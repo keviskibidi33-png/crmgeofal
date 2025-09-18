@@ -1,0 +1,13 @@
+# Ejemplo de conexión PostgreSQL para CRMGeoFal
+
+Host: 127.0.0.1
+Puerto: 5432
+Usuario: admin
+Contraseña: (oculta) admin123
+Base de datos: postgres
+
+Notas:
+- El archivo de configuración real está en `backend/config/db.js` y usa variables de entorno.
+- Para desarrollo local, puedes usar estos datos en tu cliente SQL favorito.
+- Asegúrate de que el usuario y la base de datos existan y tengan los permisos necesarios.
+- Puedes personalizar los valores en `.env` según tu entorno.

@@ -1,0 +1,20 @@
+# Paquetes instalados para el backend CRMGeoFal
+express
+pg
+bcryptjs
+jsonwebtoken
+dotenv
+multer
+nodemailer
+exceljs
+pdfkit
+express-rate-limit
+express-validator
+helmet
+cors
+supertest
+winston
+morgan
+eslint
+jest
+prettier

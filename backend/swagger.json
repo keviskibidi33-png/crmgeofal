@@ -1,0 +1,55 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CRMGeoFal API",
+    "version": "1.0.0",
+    "description": "Documentación OpenAPI para el backend de CRMGeoFal."
+  },
+  "servers": [
+    { "url": "http://localhost:4000/api" }
+  ],
+  "paths": {
+    "/leads": {
+      "get": {
+        "summary": "Listar leads",
+        "tags": ["Leads"],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Listado paginado de leads" }
+        }
+      },
+      "post": {
+        "summary": "Crear lead",
+        "tags": ["Leads"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "company_id": { "type": "integer" },
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "status": { "type": "string" },
+                  "type": { "type": "string" },
+                  "assigned_to": { "type": "integer" }
+                },
+                "required": ["company_id", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Lead creado" },
+          "400": { "description": "Error de validación" }
+        }
+      }
+    }
+    
+  }
+}
