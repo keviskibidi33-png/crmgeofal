@@ -18,7 +18,7 @@ const layoutStyles = {
   },
   contentArea: {
     flex: 1,
-    padding: '1.5rem 1.5rem 0 1.5rem',
+    padding: '0.7rem 1.5rem 0 1.5rem',
     minWidth: 0,
     background: '#f6f8fa',
     height: '100vh',

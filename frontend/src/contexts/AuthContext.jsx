@@ -33,19 +33,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      // Llamada real a backend
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) throw new Error('Credenciales inválidas');
-      const data = await res.json();
+      const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       dispatch({ type: 'LOGIN_SUCCESS', payload: data });
       // Guardar token en localStorage para persistencia
       localStorage.setItem('token', data.token);
     } catch (err) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: err.message });
+      dispatch({ type: 'LOGIN_FAILURE', payload: err.message || 'Error al iniciar sesión' });
     }
   };
 

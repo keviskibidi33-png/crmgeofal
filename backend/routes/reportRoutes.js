@@ -36,17 +36,21 @@ router.get('/proyectos-categorias', auth(), async (req, res) => {
 });
 
 // Reporte: Dashboard resumen
+
+// Dashboard resumen con total de usuarios
 router.get('/dashboard', auth(), async (req, res) => {
   try {
-    const [totalEmpresas, totalProyectos, totalCotizaciones] = await Promise.all([
+    const [totalUsuarios, totalEmpresas, totalProyectos, totalCotizaciones] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM users'),
       pool.query('SELECT COUNT(*) FROM companies'),
       pool.query('SELECT COUNT(*) FROM projects'),
       pool.query('SELECT COUNT(*) FROM quotes')
     ]);
     res.json({
-      empresas: parseInt(totalEmpresas.rows[0].count),
-      proyectos: parseInt(totalProyectos.rows[0].count),
-      cotizaciones: parseInt(totalCotizaciones.rows[0].count)
+      totalUsuarios: parseInt(totalUsuarios.rows[0].count),
+      totalEmpresas: parseInt(totalEmpresas.rows[0].count),
+      totalProyectos: parseInt(totalProyectos.rows[0].count),
+      totalCotizaciones: parseInt(totalCotizaciones.rows[0].count)
     });
   } catch (err) {
     res.status(500).json({ error: 'Error al generar dashboard' });
