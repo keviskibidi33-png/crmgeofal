@@ -1,5 +1,6 @@
 // Small API helper for frontend
-const API_BASE = '';
+// Use VITE_API_URL if provided; otherwise rely on same-origin and dev proxy
+const API_BASE = import.meta.env?.VITE_API_URL || '';
 
 function getAuthHeader() {
   const token = localStorage.getItem('token');

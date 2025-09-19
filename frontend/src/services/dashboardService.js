@@ -1,53 +1,36 @@
-import axios from 'axios';
+import { apiFetch } from './api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-
+// Nota: apiFetch ya agrega el header Authorization usando localStorage.
+// Aceptamos `token` en la firma para no romper llamadas existentes, pero no es necesario.
 
 // Admin dashboard: usa el endpoint /api/reports/dashboard
-export const getAdminDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/reports/dashboard`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getAdminDashboardData = async (_token) => {
+  const data = await apiFetch('/api/reports/dashboard');
   // Mapea los datos para el dashboard admin
   return {
-    totalUsuarios: res.data.totalUsuarios,
-    totalEmpresas: res.data.totalEmpresas,
-    totalProyectos: res.data.totalProyectos,
-    totalCotizaciones: res.data.totalCotizaciones
+    totalUsuarios: data.totalUsuarios,
+    totalEmpresas: data.totalEmpresas,
+    totalProyectos: data.totalProyectos,
+    totalCotizaciones: data.totalCotizaciones,
   };
 };
 
-export const getVentasDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/dashboard/ventas`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const getVentasDashboardData = async (_token) => {
+  return apiFetch('/api/dashboard/ventas');
 };
 
-export const getLaboratorioDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/dashboard/laboratorio`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const getLaboratorioDashboardData = async (_token) => {
+  return apiFetch('/api/dashboard/laboratorio');
 };
 
-export const getJefeDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/dashboard/jefe`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const getJefeDashboardData = async (_token) => {
+  return apiFetch('/api/dashboard/jefe');
 };
 
-export const getGerenciaDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/dashboard/gerencia`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const getGerenciaDashboardData = async (_token) => {
+  return apiFetch('/api/dashboard/gerencia');
 };
 
-export const getSoporteDashboardData = async (token) => {
-  const res = await axios.get(`${API_URL}/dashboard/soporte`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const getSoporteDashboardData = async (_token) => {
+  return apiFetch('/api/dashboard/soporte');
 };
