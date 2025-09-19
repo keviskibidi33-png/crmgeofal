@@ -1,0 +1,58 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build frontend (vite)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Dev frontend (vite)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev"
+			],
+			"isBackground": true
+		},
+		{
+			"label": "Lint frontend",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"lint"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			]
+		},
+		{
+			"label": "Test frontend",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test"
+			]
+		},
+		{
+			"label": "Preview frontend (vite)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"preview"
+			],
+			"isBackground": true
+		}
+	]
+}
