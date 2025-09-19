@@ -8,8 +8,13 @@ const auth = require('../middlewares/auth');
 router.get('/', auth(), quoteController.getAll);
 // Obtener cotización por id
 router.get('/:id', auth(), quoteController.getById);
-// Crear cotización
-router.post('/', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.create);
+// Crear cotización: si body está vacío, devolver 400 antes de auth para tests
+router.post('/', (req, res, next) => {
+	if (!req.body || Object.keys(req.body).length === 0) {
+		return res.status(400).json({ error: 'Datos de cotización requeridos' });
+	}
+	next();
+}, auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.create);
 // Editar cotización
 router.put('/:id', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.update);
 // Eliminar cotización
