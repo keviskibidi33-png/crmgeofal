@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer } from 'react';
+import apiFetch from '../services/api';
 
 // Estado inicial seguro para producción
 const initialState = {
