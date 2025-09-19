@@ -1,36 +1,43 @@
+
 const pool = require('../config/db');
 
 const Quote = {
-  async getAllByProject(project_id, user, { page = 1, limit = 20 }) {
+  async getAll({ project_id, status, page = 1, limit = 20 }) {
+    let where = [];
+    let params = [];
+    if (project_id) { where.push('project_id = $' + (params.length + 1)); params.push(project_id); }
+    if (status) { where.push('status = $' + (params.length + 1)); params.push(status); }
+    const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const offset = (page - 1) * limit;
-    const data = await pool.query('SELECT * FROM quotes WHERE project_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3', [project_id, limit, offset]);
-    const total = await pool.query('SELECT COUNT(*) FROM quotes WHERE project_id = $1', [project_id]);
+    const data = await pool.query(
+      `SELECT * FROM quotes ${whereClause} ORDER BY id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset]
+    );
+    const total = await pool.query(`SELECT COUNT(*) FROM quotes ${whereClause}`, params);
     return { rows: data.rows, total: parseInt(total.rows[0].count) };
   },
-  async create({ project_id, document_url, engineer_name, notes }) {
+  async getById(id) {
+    const res = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
+    return res.rows[0];
+  },
+  async create({ project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, total, status }) {
     const res = await pool.query(
-      'INSERT INTO quotes (project_id, document_url, engineer_name, notes) VALUES ($1, $2, $3, $4) RETURNING *',
-      [project_id, document_url, engineer_name, notes]
+      'INSERT INTO quotes (project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, total, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+      [project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, total, status]
     );
     return res.rows[0];
   },
-  async update(id, { document_url, engineer_name, notes }, user) {
-    // Solo laboratorio asignado o jefe laboratorio puede editar
-    const res = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
-    const quote = res.rows[0];
-    if (!quote) return null;
-    // Validación de permisos se puede mejorar según flujo
-    const updated = await pool.query(
-      'UPDATE quotes SET document_url = $1, engineer_name = $2, notes = $3 WHERE id = $4 RETURNING *',
-      [document_url, engineer_name, notes, id]
+  async update(id, { client_contact, client_email, client_phone, issue_date, total, status }) {
+    const res = await pool.query(
+      'UPDATE quotes SET client_contact=$1, client_email=$2, client_phone=$3, issue_date=$4, total=$5, status=$6 WHERE id=$7 RETURNING *',
+      [client_contact, client_email, client_phone, issue_date, total, status, id]
     );
-    return updated.rows[0];
+    return res.rows[0];
   },
-  async delete(id, user) {
-    // Solo jefe laboratorio puede eliminar
+  async delete(id) {
     await pool.query('DELETE FROM quotes WHERE id = $1', [id]);
     return true;
-  },
+  }
 };
 
 module.exports = Quote;

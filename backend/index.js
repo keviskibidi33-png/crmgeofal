@@ -52,6 +52,15 @@ app.use('/api/subcategories', subcategoryRoutes);
 // Quote routes
 const quoteRoutes = require('./routes/quoteRoutes');
 app.use('/api/quotes', quoteRoutes);
+// Quote item routes
+const quoteItemRoutes = require('./routes/quoteItemRoutes');
+app.use('/api/quote-items', quoteItemRoutes);
+// Quote variant routes
+const quoteVariantRoutes = require('./routes/quoteVariantRoutes');
+app.use('/api/quote-variants', quoteVariantRoutes);
+// Audit quotes routes
+const auditQuoteRoutes = require('./routes/auditQuoteRoutes');
+app.use('/api/audit-quotes', auditQuoteRoutes);
 // Project routes
 const projectRoutes = require('./routes/projectRoutes');
 app.use('/api/projects', projectRoutes);

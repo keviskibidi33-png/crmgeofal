@@ -3,10 +3,16 @@ const router = express.Router();
 const quoteController = require('../controllers/quoteController');
 const auth = require('../middlewares/auth');
 
-// Acceso según rol y asignación
-router.get('/project/:project_id', auth(), quoteController.getAllByProject);
-router.post('/', auth(['jefa_comercial','vendedor_comercial','jefe_laboratorio','usuario_laboratorio']), quoteController.create);
-router.put('/:id', auth(['jefe_laboratorio','usuario_laboratorio']), quoteController.update);
-router.delete('/:id', auth(['jefe_laboratorio']), quoteController.delete);
+
+// Listar todas las cotizaciones o por proyecto
+router.get('/', auth(), quoteController.getAll);
+// Obtener cotización por id
+router.get('/:id', auth(), quoteController.getById);
+// Crear cotización
+router.post('/', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.create);
+// Editar cotización
+router.put('/:id', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.update);
+// Eliminar cotización
+router.delete('/:id', auth(['jefa_comercial','admin']), quoteController.delete);
 
 module.exports = router;

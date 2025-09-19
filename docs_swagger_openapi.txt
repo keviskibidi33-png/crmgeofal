@@ -1,0 +1,43 @@
+# Documentación técnica: Swagger y OpenAPI en el backend CRMGeoFal
+
+## ¿Qué es OpenAPI?
+OpenAPI es una especificación estándar para describir APIs RESTful. Permite definir, documentar y consumir APIs de manera estructurada y legible tanto para humanos como para máquinas. Un archivo OpenAPI (generalmente en formato YAML o JSON) describe los endpoints, métodos, parámetros, respuestas, esquemas de datos y seguridad de la API.
+
+## ¿Qué es Swagger?
+Swagger es un conjunto de herramientas que trabaja sobre la especificación OpenAPI. Permite:
+- Generar documentación interactiva de la API (Swagger UI)
+- Probar endpoints directamente desde el navegador
+- Generar clientes y servidores a partir del archivo OpenAPI
+
+En este proyecto, Swagger UI se utiliza para mostrar y probar la API documentada con OpenAPI.
+
+## ¿Cómo funciona en este backend?
+- El backend expone un endpoint (por ejemplo, `/api-docs`) donde se sirve la documentación Swagger UI.
+- Swagger UI lee el archivo OpenAPI (swagger.json o swagger.yaml) y genera una interfaz web interactiva.
+- Los desarrolladores pueden ver todos los endpoints, sus parámetros, respuestas y probarlos directamente desde la interfaz.
+
+## ¿Se necesita token para usar Swagger/OpenAPI?
+- **OpenAPI** es solo una especificación/archivo, no requiere token.
+- **Swagger UI** puede mostrar endpoints públicos y protegidos. Si un endpoint requiere autenticación (por ejemplo, JWT), Swagger UI permite ingresar el token JWT en la sección "Authorize" (ícono de candado). Así, las peticiones a endpoints protegidos incluirán el token en el header `Authorization`.
+- Si la API está protegida, para probar endpoints privados desde Swagger UI, sí necesitas un token válido (por ejemplo, inicia sesión, copia el JWT y pégalo en "Authorize").
+
+## ¿Qué necesitas para usar Swagger UI?
+- Acceder a la ruta `/api-docs` (o la que esté configurada) en el backend.
+- Si vas a probar endpoints protegidos, obtener un JWT válido (por ejemplo, usando el endpoint de login) y autorizarlo en Swagger UI.
+
+## Resumen
+- **OpenAPI**: Especificación/archivo que describe la API. No requiere token.
+- **Swagger UI**: Herramienta para visualizar y probar la API. Solo requiere token si los endpoints lo exigen.
+- **Token JWT**: Necesario para probar endpoints protegidos desde Swagger UI.
+
+---
+
+### Ejemplo de flujo:
+1. Accede a `/api-docs` en el navegador.
+2. Busca el endpoint de login, ingresa usuario/contraseña y obtén el JWT.
+3. Haz clic en "Authorize" (candado), pega el JWT.
+4. Ahora puedes probar endpoints protegidos desde Swagger UI.
+
+---
+
+**Nota:** Si la API tiene endpoints públicos, puedes probarlos sin token. Si son privados, siempre necesitarás un token JWT válido.
