@@ -70,10 +70,15 @@ app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+
 app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 
 // Middleware global de manejo de errores
-app.use((err, req, res, next) => {
+// Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
+// unused `next` parameter while preserving Express's middleware signature we disable the
+// no-unused-vars rule on this line.
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   logger.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
