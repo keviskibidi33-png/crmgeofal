@@ -1,0 +1,339 @@
+# ANÁLISIS DETALLADO DE REQUERIMIENTOS - SISTEMA DE COTIZACIONES
+# CRM GeoFal - Laboratorio de Materiales
+
+## RESUMEN EJECUTIVO
+El sistema de cotizaciones para el laboratorio GeoFal requiere un módulo complejo que maneje 8 variantes diferentes de condiciones específicas, generación automática de PDFs, y integración completa con el CRM existente.
+
+## 1. ANÁLISIS DE VARIANTES DE CONDICIONES
+
+### VARIANTE 1: MUESTRA DE SUELO Y AGREGADO
+**Características principales:**
+- Requiere cantidad mínima: 100 kg por muestra
+- Muestras debidamente identificadas
+- Norma ASTM o NTP por defecto
+- Entrega en instalaciones LEM (Av. Marañón N° 763, Los Olivos, Lima)
+
+**Campos específicos necesarios:**
+- sample_weight_minimum (100 kg)
+- sample_identification_required (boolean)
+- default_norm (ASTM/NTP)
+- delivery_location (fijo: LEM)
+
+### VARIANTE 2: PROBETAS
+**Características principales:**
+- Probetas antes del ingreso a obra
+- Muestras identificadas
+- Norma ASTM o NTP por defecto
+- Entrega en instalaciones LEM
+
+**Campos específicos necesarios:**
+- pre_work_delivery_required (boolean)
+- sample_identification_required (boolean)
+- default_norm (ASTM/NTP)
+- delivery_location (fijo: LEM)
+
+### VARIANTE 3: DENSIDAD DE CAMPO Y MUESTREO
+**Características principales:**
+- Cantidad mínima: 100 kg por muestra
+- Puntos/salida mínimo: 4 unidades
+- Programación con 24 horas de anticipación
+- Norma ASTM o NTP por defecto
+- Entrega en instalaciones LEM
+
+**Campos específicos necesarios:**
+- sample_weight_minimum (100 kg)
+- minimum_points (4 unidades)
+- advance_booking_hours (24 horas)
+- default_norm (ASTM/NTP)
+- delivery_location (fijo: LEM)
+
+### VARIANTE 4: EXTRACCIÓN DE DIAMANTINA
+**Características principales:**
+- Movilización a cargo de GEOFAL
+- Resane con materiales específicos (Sika Rep 500, Sikadur 32)
+- No incluye acabados (pintura, mayólica)
+- Área libre de interferencias
+- 2 días en campo, 5 días en laboratorio
+- Costo adicional de resane: 250 soles
+
+**Campos específicos necesarios:**
+- mobilization_included (boolean)
+- resane_materials (Sika Rep 500, Sikadur 32)
+- excludes_finishes (pintura, mayólica)
+- interference_free_area (boolean)
+- field_days (2 días)
+- lab_days (5 días)
+- resane_cost (250 soles)
+
+### VARIANTE 5: DIAMANTINA PARA PASES
+**Características principales:**
+- Programación con 24 horas de anticipación
+- Área libre de interferencias
+- Localización de acero con escáner
+- Movilización a cargo de GEOFAL
+
+**Campos específicos necesarios:**
+- advance_booking_hours (24 horas)
+- interference_free_area (boolean)
+- steel_scanner_required (boolean)
+- mobilization_included (boolean)
+
+### VARIANTE 6: ALBAÑILERÍA
+**Características principales:**
+- 20 ladrillos de cada tipo
+- Buen estado, sin fisuras
+- Muestras identificadas
+- Norma ASTM o NTP por defecto
+- Entrega en instalaciones LEM
+
+**Campos específicos necesarios:**
+- brick_quantity_per_type (20 unidades)
+- good_condition_required (boolean)
+- no_cracks_required (boolean)
+- sample_identification_required (boolean)
+- default_norm (ASTM/NTP)
+- delivery_location (fijo: LEM)
+
+### VARIANTE 7: VIGA BECKELMAN
+**Características principales:**
+- Programación con 24 horas de anticipación
+- Área de trabajo habilitada
+- Norma ASTM, NTP o MTC por defecto
+- Especificación de características del camión
+
+**Campos específicos necesarios:**
+- advance_booking_hours (24 horas)
+- work_area_enabled (boolean)
+- default_norm (ASTM/NTP/MTC)
+- truck_specifications_required (boolean)
+
+### VARIANTE 8: CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA
+**Características principales:**
+- Programación con 24 horas de anticipación
+- 6 probetas moldeadas
+- Ensayos: slump, temperatura
+- Cámara de curado
+- Compresión: 3 a 7 días y 3 a 28 días
+- Control cada 50m3 o por día
+- Norma ASTM o NTP por defecto
+
+**Campos específicos necesarios:**
+- advance_booking_hours (24 horas)
+- specimen_quantity (6 unidades)
+- tests_included (slump, temperatura)
+- curing_chamber_required (boolean)
+- compression_days (3-7 días, 3-28 días)
+- control_frequency (50m3 o diario)
+- default_norm (ASTM/NTP)
+
+## 2. ANÁLISIS DE ESTRUCTURA DE DATOS
+
+### TABLA PRINCIPAL: quotes
+```sql
+CREATE TABLE quotes (
+    id SERIAL PRIMARY KEY,
+    quote_number VARCHAR(20) UNIQUE NOT NULL,
+    client_id INTEGER REFERENCES companies(id),
+    project_id INTEGER REFERENCES projects(id),
+    service_type VARCHAR(100),
+    variant_id INTEGER REFERENCES quote_variants(id),
+    request_date DATE,
+    issue_date DATE,
+    commercial_user_id INTEGER REFERENCES users(id),
+    status VARCHAR(20) DEFAULT 'borrador',
+    total_amount DECIMAL(12,2),
+    igv_percentage DECIMAL(5,2) DEFAULT 18.00,
+    payment_condition VARCHAR(20) DEFAULT 'adelantado',
+    validity_days INTEGER DEFAULT 30,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### TABLA DE ÍTEMS: quote_items
+```sql
+CREATE TABLE quote_items (
+    id SERIAL PRIMARY KEY,
+    quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+    service_code VARCHAR(20),
+    service_description TEXT,
+    norm_standard VARCHAR(100),
+    unit_cost DECIMAL(10,2),
+    quantity INTEGER DEFAULT 1,
+    partial_cost DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### TABLA DE VARIANTES: quote_variants
+```sql
+CREATE TABLE quote_variants (
+    id SERIAL PRIMARY KEY,
+    variant_name VARCHAR(100),
+    variant_description TEXT,
+    conditions_text TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 3. ANÁLISIS DE FUNCIONALIDADES REQUERIDAS
+
+### 3.1 GENERACIÓN DE NÚMERO DE COTIZACIÓN
+**Formato:** xxx-XX (ejemplo: 911-25)
+- xxx: Número secuencial
+- XX: Año (2 dígitos)
+- Debe ser único y autoincremental
+
+### 3.2 CÁLCULOS AUTOMÁTICOS
+- Costo parcial = Costo unitario × Cantidad
+- Subtotal = Suma de costos parciales
+- IGV = Subtotal × 18%
+- Total = Subtotal + IGV
+
+### 3.3 GENERACIÓN DE PDF
+**Nombre del archivo:**
+- Formato: "Cotización {quote_number} LEM-GEOFAL-{client_name}"
+- Ejemplo: "Cotización 911-25 LEM-GEOFAL-TACTICAL IT SAC"
+
+**Contenido del PDF:**
+1. Datos fijos del cliente
+2. Datos de la cotización
+3. Tabla de ítems detallada
+4. Condiciones específicas según variante
+5. Información de pago
+6. Validez de oferta
+7. Plazos y programación
+8. Aceptación de cotización
+
+### 3.4 INTEGRACIÓN CON MÓDULOS EXISTENTES
+- **Companies:** Datos del cliente
+- **Projects:** Información del proyecto
+- **Users:** Ejecutivo comercial
+- **Invoices:** Conversión de cotización a factura
+- **Audit:** Registro de todas las operaciones
+- **Notifications:** Envío de emails
+
+## 4. ANÁLISIS DE FLUJO DE TRABAJO
+
+### 4.1 CREACIÓN DE COTIZACIÓN
+1. Cliente solicita cotización
+2. Ejecutivo comercial crea nueva cotización
+3. Selecciona tipo de servicio y variante
+4. Agrega ítems con precios y cantidades
+5. Sistema calcula totales automáticamente
+6. Revisa y ajusta si es necesario
+7. Genera PDF
+8. Envía por email al cliente
+
+### 4.2 SEGUIMIENTO DE COTIZACIÓN
+1. Estado inicial: "Borrador"
+2. Estado: "Enviada" (después de envío)
+3. Estado: "Aceptada" (cliente acepta)
+4. Estado: "Rechazada" (cliente rechaza)
+5. Estado: "Vencida" (pasa fecha de validez)
+
+### 4.3 CONVERSIÓN A FACTURA
+- Cotización aceptada → Factura
+- Mantener referencia entre cotización y factura
+- Copiar ítems y precios
+
+## 5. ANÁLISIS DE REQUERIMIENTOS TÉCNICOS
+
+### 5.1 BACKEND (Node.js/Express)
+- API REST para CRUD de cotizaciones
+- Generación de PDF con PDFKit
+- Envío de emails con Nodemailer
+- Validaciones de negocio
+- Cálculos automáticos
+
+### 5.2 FRONTEND (React)
+- Formulario de creación de cotización
+- Tabla de ítems editable
+- Selector de variante
+- Vista previa del PDF
+- Listado con filtros y búsqueda
+
+### 5.3 BASE DE DATOS (PostgreSQL)
+- Estructura normalizada
+- Índices para búsquedas rápidas
+- Triggers para auditoría
+- Constraints de integridad
+
+## 6. ANÁLISIS DE COMPLEJIDAD
+
+### 6.1 ALTA COMPLEJIDAD
+- 8 variantes diferentes de condiciones
+- Generación automática de PDFs
+- Cálculos complejos con IGV
+- Integración con múltiples módulos
+
+### 6.2 MEDIA COMPLEJIDAD
+- Flujo de estados de cotización
+- Envío de emails
+- Búsqueda y filtrado
+- Clonación de cotizaciones
+
+### 6.3 BAJA COMPLEJIDAD
+- CRUD básico
+- Validaciones de formulario
+- Interfaz de usuario
+- Reportes básicos
+
+## 7. RECOMENDACIONES DE IMPLEMENTACIÓN
+
+### 7.1 FASE 1: FUNCIONALIDADES BÁSICAS
+- CRUD de cotizaciones
+- Cálculos automáticos
+- Generación de PDF básico
+- Integración con clientes y proyectos
+
+### 7.2 FASE 2: VARIANTES Y CONDICIONES
+- Implementar las 8 variantes
+- Generación de PDF con condiciones específicas
+- Validaciones por variante
+
+### 7.3 FASE 3: FUNCIONALIDADES AVANZADAS
+- Envío automático de emails
+- Seguimiento de estados
+- Clonación y versionado
+- Reportes y estadísticas
+
+### 7.4 FASE 4: OPTIMIZACIONES
+- Mejoras en rendimiento
+- Interfaz de usuario avanzada
+- Integración con facturación
+- Notificaciones en tiempo real
+
+## 8. CONSIDERACIONES ESPECIALES
+
+### 8.1 VALIDACIONES DE NEGOCIO
+- Número de cotización único
+- Fechas válidas (solicitud ≤ emisión)
+- Cantidades positivas
+- Precios válidos
+- Cliente y proyecto existentes
+
+### 8.2 SEGURIDAD
+- Solo usuarios autorizados pueden crear cotizaciones
+- Auditoría de todos los cambios
+- Protección de datos sensibles
+- Validación de permisos por rol
+
+### 8.3 RENDIMIENTO
+- Índices en campos de búsqueda frecuente
+- Paginación en listados
+- Caché de variantes
+- Optimización de consultas
+
+## 9. CONCLUSIÓN
+
+El sistema de cotizaciones para el laboratorio GeoFal es un módulo complejo que requiere:
+
+1. **Estructura de datos robusta** para manejar 8 variantes diferentes
+2. **Lógica de negocio compleja** para cálculos y validaciones
+3. **Generación de PDFs** con plantillas personalizables
+4. **Integración completa** con el CRM existente
+5. **Flujo de trabajo** bien definido desde creación hasta facturación
+
+La implementación debe ser por fases, priorizando las funcionalidades básicas y luego agregando las características avanzadas según las necesidades del negocio.

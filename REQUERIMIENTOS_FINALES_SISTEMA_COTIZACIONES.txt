@@ -1,0 +1,452 @@
+# REQUERIMIENTOS FINALES - SISTEMA DE COTIZACIONES
+# CRM GeoFal - Laboratorio de Materiales
+# Versión: 1.0 - Enero 2025
+
+## RESUMEN EJECUTIVO
+Sistema completo de cotizaciones para el laboratorio GeoFal con 8 variantes de condiciones específicas, plantillas editables, generación automática de PDFs y integración completa con el CRM existente.
+
+## 1. DATOS FIJOS DEL CLIENTE (SIEMPRE VISIBLES)
+- **Cliente:** Nombre de la empresa solicitante
+- **R.U.C.:** RUC de la empresa solicitante
+- **Contacto:** Nombre del contacto quien solicitó la cotización
+- **Teléfono:** Teléfono del contacto quien solicitó la cotización
+- **Correo electrónico:** Correo del contacto quien solicitó la cotización
+- **Ubicación del proyecto:** Ubicación del proyecto quien solicitó la cotización
+- **Nombre del proyecto:** Nombre del Proyecto quien solicitó la cotización
+- **Nombre del servicio:** Tipo de servicio a cotizar
+
+## 2. DATOS DE LA COTIZACIÓN (POR PARTE DE GEOFAL)
+- **Fecha de Solicitud:** Fecha de solicitante del servicio
+- **Fecha de Emisión:** Fecha de envío de cotización
+- **Teléfono:** Teléfono del contacto quien solicitó la cotización
+- **Comercial:** Nombre del ejecutivo comercial quien realizó la cotización
+
+## 3. DETALLE DE ÍTEMS (TABLA EDITABLE)
+- **Código o nombre del ensayo/servicio**
+- **Descripción Ensayo**
+- **Norma** (ASTM, NTP, MTC)
+- **Costo Unitario en soles (S/)**
+- **Cantidad**
+- **Costo Parcial en soles (S/)**
+
+## 4. LAS 8 VARIANTES DE CONDICIONES ESPECÍFICAS
+
+### 🏗️ **VARIANTE 1: MUESTRA DE SUELO Y AGREGADO** (PRINCIPAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente deberá enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+**SERVICIOS TÍPICOS:**
+- Clasificación suelo SUCS - AASHTO
+- Límite líquido y Límite Plástico del Suelo
+- Análisis granulométrico por tamizado en agregado
+- Próctor modificado
+- Gravedad específica de los sólidos del suelo
+- California Bearing Ratio (CBR)
+- Equivalente de arena
+- Abrasión los Ángeles de agregado grueso
+
+**PRECIOS:** S/ 20 - S/ 300 por ensayo
+
+### 🏗️ **VARIANTE 2: CONTROL DE CALIDAD DE CONCRETO FRESCO** (PRINCIPAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente deberá de programar el servicio, con 24 horas de anticipación.
+- Para el ensayo de control de calidad de concreto fresco en obra, se moldeará 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocará en cámara de curado, el ensayo de compresión de las probetas serán 3 a 7 días y 3 a 28 días.
+- El control de calidad del concreto fresco se sacará cada 50m3 a uno de los mixer donde se hará todos los ensayos respectivos mencionados, o por día así no se haya llegado los 50m3.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+
+**SERVICIOS TÍPICOS:**
+- Muestreo de concreto fresco (6 probetas)
+- Ensayo de asentamiento del concreto (slump)
+- Control de temperatura en el concreto
+- Resistencia a la compresión (3 a 7 días y 3 a 28 días)
+- Movilidad del muestreo y recojo de las probetas
+
+**PRECIOS:** S/ 370 - S/ 400 por servicio
+
+### 🏗️ **VARIANTE 3: EXTRACCIÓN DE DIAMANTINA** (PRINCIPAL)
+**CONDICIONES ESPECÍFICAS:**
+- Movilización y desmovilización de equipos y del personal técnico, estará a cargo de GEOFAL.
+- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estará a cargo de GEOFAL.
+- El servicio no incluye trabajos de acabados como pintura, mayólica y otros.
+- El área de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.
+- La extracción de diamantina se realizará en 2 días en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizará en 5 días (el tiempo de ensayo obedece a la normativa vigente).
+- Costo de resane insumos 250 soles, este costo se distribuirá de acuerdo con el número de perforaciones donde se hará las extracciones de diamantina.
+
+**SERVICIOS TÍPICOS:**
+- Extracción de testigo diamantina con broca de 4" en pavimento flexible
+- Determinación del Coeficiente de Resistencia al Deslizamiento (Péndulo)
+- Movilización de personal y equipo
+- Resane de pavimento
+
+**PRECIOS:** S/ 200 - S/ 2,400 por servicio
+
+### 🏗️ **VARIANTE 4: ALBAÑILERÍA** (PRINCIPAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+**SERVICIOS TÍPICOS:**
+- Resistencia a la compresión de unidades de albañilería
+- Ensayos en ladrillos y bloquetas de concreto
+- Múltiples tipos de ensayos según norma
+
+**PRECIOS:** S/ 130 - S/ 200 por ensayo
+
+### 🏗️ **VARIANTE 5: ESTUDIO DE SUELOS** (PRINCIPAL)
+**CONDICIONES ESPECÍFICAS:**
+- El precio incluye IGV y están expresados en nuevos soles.
+- El cliente deberá enviar al laboratorio para los ensayos la cantidad mínima de 60 kg por cada muestra.
+- El cliente deberá entregar las muestras debidamente identificadas.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Río Marañón 763, Los Olivos, Lima.
+- El cliente deberá coordinar previamente los permisos necesarios para realizar el trabajo.
+- La presente propuesta incluye seguro SCTR, EPP.
+- La presente propuesta incluye movilización y desmovilización del personal y equipo.
+- La presente propuesta NO incluye eliminación de desmonte.
+- La presente propuesta NO incluye rotura de la estructura.
+- La presente propuesta NO incluye resane de estructura.
+- La presente propuesta NO incluye acabados y/o algún servicio ajeno a lo cotizado.
+
+**SERVICIOS TÍPICOS:**
+- Estudio de suelos con fines de cimentación
+- Prospección (calicata) de 3.00 m de profundidad
+- Múltiples ensayos de laboratorio
+- Diseño de cimentación
+- Análisis de parámetros del suelo
+
+**PRECIOS:** S/ 1,100 por estudio completo
+
+### 🏗️ **VARIANTE 6: DIAMANTINA PARA PASES** (ADICIONAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.
+- El área de trabajo, zona de extracción de diamantina, deberá estar libre de interferencia.
+- Para extraer la diamantina, se ubicará el acero con un escáner.
+- Movilización y desmovilización de equipos y del personal técnico, estará a cargo de Geofal.
+
+### 🏗️ **VARIANTE 7: VIGA BECKELMAN** (ADICIONAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.
+- El área de trabajo tiene que estar habilitado.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.
+- Especificar las características del camión.
+
+### 🏗️ **VARIANTE 8: PROBETAS** (ADICIONAL)
+**CONDICIONES ESPECÍFICAS:**
+- El cliente debe proporcionar las probetas antes del ingreso a obra.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+## 5. FUNCIONALIDADES DE EDICIÓN DE PLANTILLAS
+
+### 📝 **EDITOR DE PLANTILLAS**
+- **Interfaz visual** para editar plantillas de cotización
+- **Drag & drop** para reorganizar elementos
+- **Editor WYSIWYG** para texto y formato
+- **Vista previa en tiempo real** de la plantilla
+- **Guardado automático** de cambios
+- **Historial de versiones** de plantillas
+
+### 🎨 **PERSONALIZACIÓN VISUAL**
+- **Cambio de colores** y fuentes
+- **Logo personalizable** por cliente
+- **Márgenes y espaciado** ajustables
+- **Encabezados y pies de página** editables
+- **Formato de tablas** personalizable
+- **Elementos gráficos** (líneas, bordes, sombras)
+
+### 📋 **CONTENIDO EDITABLE**
+- **Textos de condiciones** específicas por variante
+- **Información de contacto** de GEOFAL
+- **Datos bancarios** y formas de pago
+- **Términos y condiciones** generales
+- **Información legal** y normativa
+- **Mensajes personalizados** por cliente
+
+### 🔧 **CONFIGURACIÓN AVANZADA**
+- **Variables dinámicas** (fecha, número de cotización, cliente)
+- **Cálculos automáticos** (IGV, totales, descuentos)
+- **Validaciones personalizadas** por tipo de servicio
+- **Campos condicionales** según variante seleccionada
+- **Plantillas por usuario** o por rol
+- **Importación/exportación** de plantillas
+
+## 6. CONDICIONES DE PAGO
+
+### 💰 **OPCIONES DE PAGO DISPONIBLES:**
+1. **Adelantado:** El pago del servicio deberá ser realizado por Adelantado
+2. **50% Adelanto:** Adelanto el 50% y saldo previo a la entrega del Informe
+3. **Crédito 7 días:** Crédito a 7 días, previa orden de servicio
+4. **Crédito 15 días:** Crédito a 15 días, previa orden de servicio
+5. **Crédito 30 días:** Crédito a 30 días, previa orden de servicio
+6. **Valorización mensual:** El pago del servicio se realizará de acuerdo a la valorización mensual
+
+### 🏦 **DATOS BANCARIOS DE GEOFAL:**
+- **Razón Social:** Geofal S.A.C.
+- **RUC:** 20549356762
+
+**Cuentas bancarias:**
+- **Banco de La Nación:** N° 00-074-045472
+- **Interbank:** N° 200-3005201096 (CCI: 003-200-003005201096-31)
+- **BCP:** N° 192 2024 3030 04 (CCI: 002-192-002 02430 3004-34)
+- **BBVA:** N° 0011-0174-0100082311-00 (CCI: 011-174-000100082311-00)
+
+## 7. INFORMACIÓN DE GEOFAL
+
+### 🏢 **DATOS DE LA EMPRESA:**
+- **Dirección:** Av. Marañón N° 763, Los Olivos, Lima
+- **Teléfonos:** (01) 9051911 / (01) 7543070-956057624-993077479 - 982 429 895
+- **Web:** www.geofal.com.pe
+- **Emails:** asesorcomercial@geofal.com.pe / laboratorio@geofal.com.pe
+
+### 📋 **VALIDEZ DE LA OFERTA:**
+- **30 días calendario** desde la fecha de emisión
+- Si la cotización llegó al límite de su validez, solicitar una actualización
+
+### ⏰ **HORARIO DE ATENCIÓN:**
+- **Lunes a Viernes:** 8:30am a 1:00pm y 2:00pm a 5:30pm
+- **Sábado:** 8:30am a 12:30pm
+
+## 8. NORMAS TÉCNICAS UTILIZADAS
+
+### 📚 **NORMAS ASTM:**
+- ASTM D2487-17ε1 (Clasificación de suelos)
+- ASTM D4318-17ε1 (Límites de consistencia)
+- ASTM C136/C136M-19 (Análisis granulométrico)
+- ASTM D1557-12 (Próctor modificado)
+- ASTM D854-14 (Gravedad específica)
+- ASTM C127-24 (Absorción de agregado grueso)
+- ASTM D1883-21 (CBR)
+- ASTM D2419-22 (Equivalente de arena)
+- ASTM C131/C131M-20 (Abrasión Los Ángeles)
+
+### 📚 **NORMAS NTP:**
+- NTP 339.150 (Descripción visual-manual)
+- NTP 339.152 (Análisis químico)
+- NTP 339.171 (Corte directo)
+- NTP 339.176 (pH)
+- NTP 339.143 (Densidad natural)
+- NTP 399.613 (Resistencia albañilería)
+- NTP 399.604 (Unidades de albañilería)
+- NTP 331.041 (Ladrillos)
+
+### 📚 **NORMAS MTC:**
+- MTC E-219 (Contenido de materia orgánica)
+- MTC E 1004 (Coeficiente de resistencia al deslizamiento)
+- MTC E 504 (Ensayo específico)
+
+## 9. ESTRUCTURA DE BASE DE DATOS
+
+### 🗄️ **TABLA PRINCIPAL: quotes**
+```sql
+CREATE TABLE quotes (
+    id SERIAL PRIMARY KEY,
+    quote_number VARCHAR(20) UNIQUE NOT NULL,
+    client_id INTEGER REFERENCES companies(id),
+    project_id INTEGER REFERENCES projects(id),
+    service_type VARCHAR(100),
+    variant_id INTEGER REFERENCES quote_variants(id),
+    request_date DATE,
+    issue_date DATE,
+    commercial_user_id INTEGER REFERENCES users(id),
+    status VARCHAR(20) DEFAULT 'borrador',
+    total_amount DECIMAL(12,2),
+    igv_percentage DECIMAL(5,2) DEFAULT 18.00,
+    payment_condition VARCHAR(20) DEFAULT 'adelantado',
+    validity_days INTEGER DEFAULT 30,
+    template_id INTEGER REFERENCES quote_templates(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 🗄️ **TABLA DE ÍTEMS: quote_items**
+```sql
+CREATE TABLE quote_items (
+    id SERIAL PRIMARY KEY,
+    quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+    service_code VARCHAR(20),
+    service_description TEXT,
+    norm_standard VARCHAR(100),
+    unit_cost DECIMAL(10,2),
+    quantity INTEGER DEFAULT 1,
+    partial_cost DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 🗄️ **TABLA DE VARIANTES: quote_variants**
+```sql
+CREATE TABLE quote_variants (
+    id SERIAL PRIMARY KEY,
+    variant_name VARCHAR(100),
+    variant_description TEXT,
+    conditions_text TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 🗄️ **TABLA DE PLANTILLAS: quote_templates**
+```sql
+CREATE TABLE quote_templates (
+    id SERIAL PRIMARY KEY,
+    template_name VARCHAR(100),
+    template_content TEXT,
+    variant_id INTEGER REFERENCES quote_variants(id),
+    is_default BOOLEAN DEFAULT false,
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 10. FUNCIONALIDADES DEL SISTEMA
+
+### 🚀 **GENERACIÓN DE COTIZACIONES**
+- **Número automático:** Formato xxx-XX (ejemplo: 2000-25)
+- **Selección de variante:** Dropdown con las 8 variantes
+- **Aplicación automática** de condiciones específicas
+- **Cálculos automáticos:** Costos, IGV, totales
+- **Validaciones:** Datos del cliente, precios, condiciones
+
+### 📄 **GENERACIÓN DE PDF**
+- **Plantilla personalizable** por variante
+- **Nombre del archivo:** "Cotización {número} LEM-GEOFAL-{cliente}"
+- **Formato profesional** con logo y datos de GEOFAL
+- **Condiciones específicas** incluidas automáticamente
+- **Información de pago** y validez
+
+### 📧 **ENVÍO AUTOMÁTICO**
+- **Email al cliente** con PDF adjunto
+- **Plantilla de email** personalizable
+- **Confirmación de envío** y seguimiento
+- **Recordatorios** de vencimiento
+
+### 🔍 **BÚSQUEDA Y FILTROS**
+- **Por cliente, proyecto, número**
+- **Filtros por fecha, estado, variante**
+- **Ordenamiento múltiple**
+- **Exportación** de resultados
+
+### 📊 **REPORTES Y ESTADÍSTICAS**
+- **Cotizaciones por período**
+- **Tasa de conversión** (cotización → factura)
+- **Métricas por variante**
+- **KPIs comerciales**
+
+## 11. FLUJO DE TRABAJO
+
+### 📋 **PROCESO DE CREACIÓN:**
+1. **Cliente solicita** cotización
+2. **Ejecutivo comercial** crea nueva cotización
+3. **Selecciona variante** y tipo de servicio
+4. **Agrega ítems** con precios y cantidades
+5. **Sistema calcula** totales automáticamente
+6. **Revisa y ajusta** si es necesario
+7. **Genera PDF** con plantilla correspondiente
+8. **Envía por email** al cliente
+
+### 📈 **SEGUIMIENTO DE ESTADOS:**
+1. **Borrador** → Cotización en creación
+2. **Enviada** → Enviada al cliente
+3. **Aceptada** → Cliente acepta la cotización
+4. **Rechazada** → Cliente rechaza la cotización
+5. **Vencida** → Pasó fecha de validez
+
+### 🔄 **CONVERSIÓN A FACTURA:**
+- **Cotización aceptada** → Factura
+- **Mantener referencia** entre cotización y factura
+- **Copiar ítems** y precios
+- **Actualizar estado** de la cotización
+
+## 12. INTEGRACIÓN CON MÓDULOS EXISTENTES
+
+### 🔗 **MÓDULOS A INTEGRAR:**
+- **Companies:** Datos del cliente
+- **Projects:** Información del proyecto
+- **Users:** Ejecutivo comercial
+- **Invoices:** Conversión de cotización a factura
+- **Audit:** Registro de todas las operaciones
+- **Notifications:** Envío de emails
+
+### 🔄 **SINCRONIZACIÓN:**
+- **Datos del cliente** actualizados automáticamente
+- **Información del proyecto** sincronizada
+- **Usuarios y permisos** integrados
+- **Auditoría completa** de operaciones
+
+## 13. CRITERIOS DE ACEPTACIÓN
+
+### ✅ **FUNCIONALIDADES BÁSICAS:**
+- [ ] CRUD completo de cotizaciones
+- [ ] 8 variantes implementadas
+- [ ] Cálculos automáticos funcionando
+- [ ] Generación de PDF correcta
+- [ ] Envío de emails operativo
+
+### ✅ **FUNCIONALIDADES AVANZADAS:**
+- [ ] Editor de plantillas funcional
+- [ ] Personalización visual completa
+- [ ] Búsqueda y filtros operativos
+- [ ] Reportes y estadísticas
+- [ ] Integración con módulos existentes
+
+### ✅ **CALIDAD Y RENDIMIENTO:**
+- [ ] Pruebas unitarias > 90%
+- [ ] Pruebas de integración pasando
+- [ ] Rendimiento aceptable (< 2 segundos)
+- [ ] Seguridad validada
+- [ ] Documentación completa
+
+## 14. PLAN DE IMPLEMENTACIÓN
+
+### 🎯 **FASE 1: FUNCIONALIDADES BÁSICAS** (3-4 semanas)
+- Base de datos y modelos
+- API básica
+- Generación de PDF básico
+- Interfaz básica
+
+### 🎯 **FASE 2: VARIANTES Y CONDICIONES** (2-3 semanas)
+- 8 variantes implementadas
+- Plantillas específicas
+- Validaciones por variante
+
+### 🎯 **FASE 3: FUNCIONALIDADES AVANZADAS** (3-4 semanas)
+- Estados y transiciones
+- Envío de emails
+- Clonación y versionado
+- Búsqueda y reportes
+
+### 🎯 **FASE 4: EDITOR DE PLANTILLAS** (2-3 semanas)
+- Editor visual de plantillas
+- Personalización completa
+- Integración con facturación
+- Notificaciones en tiempo real
+
+## 15. CONCLUSIÓN
+
+El sistema de cotizaciones para el laboratorio GeoFal es un módulo complejo que requiere:
+
+1. **8 variantes de condiciones** específicas (5 principales + 3 adicionales)
+2. **Editor de plantillas** completamente funcional
+3. **Generación automática** de PDFs personalizables
+4. **Integración completa** con el CRM existente
+5. **Flujo de trabajo** bien definido desde creación hasta facturación
+
+La implementación debe ser por fases, priorizando las funcionalidades básicas y luego agregando las características avanzadas según las necesidades del negocio.
+
+**Duración total estimada:** 14 semanas
+**Recursos necesarios:** 1 Backend + 1 Frontend + 1 Full-stack
+**Entregas:** Cada 2-3 semanas con valor incremental
+
+---
+
+**Documento creado:** Enero 2025
+**Versión:** 1.0
+**Estado:** Listo para implementación
+**Próximo paso:** Pull request a GitHub

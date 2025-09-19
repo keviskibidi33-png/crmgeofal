@@ -1,0 +1,715 @@
+# PLAN DETALLADO DE IMPLEMENTACIÓN - SISTEMA DE COTIZACIONES
+# CRM GeoFal - Laboratorio de Materiales
+
+## RESUMEN EJECUTIVO
+Este documento detalla las 4 fases de implementación del sistema de cotizaciones para el laboratorio GeoFal, incluyendo tareas específicas, tiempos estimados, recursos necesarios y criterios de aceptación para cada fase.
+
+## FASE 1: FUNCIONALIDADES BÁSICAS
+**Duración estimada:** 3-4 semanas
+**Objetivo:** Implementar el CRUD básico de cotizaciones con cálculos automáticos y generación de PDF
+
+### 1.1 PREPARACIÓN DE BASE DE DATOS (Semana 1)
+
+#### Tareas:
+1. **Crear esquema de base de datos**
+   - Tabla `quotes` (cotizaciones principales)
+   - Tabla `quote_items` (ítems de cotización)
+   - Tabla `quote_variants` (variantes de condiciones)
+   - Índices y constraints necesarios
+
+2. **Migración de datos existentes**
+   - Importar datos de clientes existentes
+   - Configurar usuarios y permisos
+   - Datos maestros de servicios
+
+#### Archivos a crear:
+```
+backend/sql/quotes_schema.sql
+backend/migrations/001_create_quotes_tables.sql
+backend/seeders/quote_variants_seeder.sql
+```
+
+#### Criterios de aceptación:
+- [ ] Tablas creadas correctamente
+- [ ] Índices funcionando
+- [ ] Datos de prueba insertados
+- [ ] Constraints de integridad activos
+
+### 1.2 MODELOS Y CONTROLADORES (Semana 1-2)
+
+#### Tareas:
+1. **Crear modelo Quote**
+   - Métodos CRUD básicos
+   - Validaciones de negocio
+   - Relaciones con otras tablas
+
+2. **Crear modelo QuoteItem**
+   - Gestión de ítems
+   - Cálculos automáticos
+   - Validaciones de precios
+
+3. **Crear modelo QuoteVariant**
+   - Gestión de variantes
+   - Condiciones específicas
+   - Estados activo/inactivo
+
+#### Archivos a crear:
+```
+backend/models/quote.js
+backend/models/quoteItem.js
+backend/models/quoteVariant.js
+backend/controllers/quoteController.js
+backend/controllers/quoteItemController.js
+```
+
+#### Criterios de aceptación:
+- [ ] Modelos creados con validaciones
+- [ ] Controladores con métodos CRUD
+- [ ] Relaciones funcionando
+- [ ] Validaciones de negocio implementadas
+
+### 1.3 RUTAS Y MIDDLEWARE (Semana 2)
+
+#### Tareas:
+1. **Crear rutas de API**
+   - GET /api/quotes (listar)
+   - GET /api/quotes/:id (obtener)
+   - POST /api/quotes (crear)
+   - PUT /api/quotes/:id (actualizar)
+   - DELETE /api/quotes/:id (eliminar)
+
+2. **Middleware de autenticación**
+   - Verificación de tokens JWT
+   - Validación de permisos por rol
+   - Logging de operaciones
+
+#### Archivos a crear:
+```
+backend/routes/quoteRoutes.js
+backend/middlewares/quoteAuth.js
+backend/validators/quoteValidator.js
+```
+
+#### Criterios de aceptación:
+- [ ] Rutas funcionando correctamente
+- [ ] Autenticación implementada
+- [ ] Validaciones de entrada
+- [ ] Logging de operaciones
+
+### 1.4 GENERACIÓN DE PDF BÁSICO (Semana 3)
+
+#### Tareas:
+1. **Configurar PDFKit**
+   - Instalar dependencias
+   - Configurar plantilla básica
+   - Implementar generación de PDF
+
+2. **Plantilla básica de cotización**
+   - Datos del cliente
+   - Datos de la cotización
+   - Tabla de ítems
+   - Totales y cálculos
+
+#### Archivos a crear:
+```
+backend/utils/pdfGenerator.js
+backend/templates/quoteTemplate.js
+backend/services/pdfService.js
+```
+
+#### Criterios de aceptación:
+- [ ] PDF se genera correctamente
+- [ ] Datos del cliente incluidos
+- [ ] Tabla de ítems formateada
+- [ ] Cálculos correctos
+
+### 1.5 INTERFAZ BÁSICA (Semana 3-4)
+
+#### Tareas:
+1. **Componentes React básicos**
+   - Formulario de creación
+   - Lista de cotizaciones
+   - Vista de detalle
+   - Tabla de ítems
+
+2. **Servicios de API**
+   - Cliente HTTP con Axios
+   - Manejo de errores
+   - Loading states
+
+#### Archivos a crear:
+```
+frontend/src/components/quotes/QuoteForm.js
+frontend/src/components/quotes/QuoteList.js
+frontend/src/components/quotes/QuoteDetail.js
+frontend/src/components/quotes/QuoteItemsTable.js
+frontend/src/services/quoteService.js
+frontend/src/pages/QuotesPage.js
+```
+
+#### Criterios de aceptación:
+- [ ] Formulario funcional
+- [ ] Lista con paginación
+- [ ] Vista de detalle
+- [ ] Tabla de ítems editable
+
+### 1.6 INTEGRACIÓN Y PRUEBAS (Semana 4)
+
+#### Tareas:
+1. **Pruebas unitarias**
+   - Modelos y controladores
+   - Servicios de PDF
+   - Componentes React
+
+2. **Pruebas de integración**
+   - Flujo completo de creación
+   - Generación de PDF
+   - Validaciones end-to-end
+
+#### Archivos a crear:
+```
+backend/tests/quote.test.js
+backend/tests/quoteItem.test.js
+frontend/src/tests/QuoteForm.test.js
+frontend/src/tests/QuoteList.test.js
+```
+
+#### Criterios de aceptación:
+- [ ] Pruebas unitarias pasando
+- [ ] Pruebas de integración exitosas
+- [ ] Cobertura de código > 80%
+- [ ] Documentación actualizada
+
+## FASE 2: VARIANTES Y CONDICIONES ESPECÍFICAS
+**Duración estimada:** 2-3 semanas
+**Objetivo:** Implementar las 8 variantes de condiciones específicas
+
+### 2.1 CONFIGURACIÓN DE VARIANTES (Semana 1)
+
+#### Tareas:
+1. **Crear seeder de variantes**
+   - 8 variantes con condiciones específicas
+   - Textos de condiciones
+   - Configuraciones por variante
+
+2. **Modelo de variantes**
+   - Gestión de variantes
+   - Validaciones específicas
+   - Estados activo/inactivo
+
+#### Archivos a crear:
+```
+backend/seeders/quote_variants_detailed_seeder.sql
+backend/models/quoteVariant.js (actualizar)
+backend/controllers/quoteVariantController.js
+```
+
+#### Criterios de aceptación:
+- [ ] 8 variantes creadas
+- [ ] Condiciones específicas configuradas
+- [ ] API de variantes funcionando
+- [ ] Validaciones implementadas
+
+### 2.2 LÓGICA DE VARIANTES (Semana 1-2)
+
+#### Tareas:
+1. **Selector de variantes**
+   - Dropdown con variantes disponibles
+   - Validación de selección
+   - Carga de condiciones específicas
+
+2. **Aplicación de condiciones**
+   - Validaciones por variante
+   - Campos específicos por variante
+   - Cálculos especiales
+
+#### Archivos a crear:
+```
+backend/services/variantService.js
+backend/validators/variantValidator.js
+frontend/src/components/quotes/VariantSelector.js
+frontend/src/components/quotes/VariantConditions.js
+```
+
+#### Criterios de aceptación:
+- [ ] Selector de variantes funcional
+- [ ] Condiciones se aplican correctamente
+- [ ] Validaciones por variante
+- [ ] Campos específicos mostrados
+
+### 2.3 PLANTILLAS DE PDF POR VARIANTE (Semana 2)
+
+#### Tareas:
+1. **Plantillas específicas**
+   - 8 plantillas diferentes
+   - Condiciones específicas incluidas
+   - Formato personalizado por variante
+
+2. **Generador de PDF mejorado**
+   - Selección automática de plantilla
+   - Inclusión de condiciones
+   - Formato profesional
+
+#### Archivos a crear:
+```
+backend/templates/variant1Template.js
+backend/templates/variant2Template.js
+backend/templates/variant3Template.js
+backend/templates/variant4Template.js
+backend/templates/variant5Template.js
+backend/templates/variant6Template.js
+backend/templates/variant7Template.js
+backend/templates/variant8Template.js
+backend/utils/variantPdfGenerator.js
+```
+
+#### Criterios de aceptación:
+- [ ] 8 plantillas creadas
+- [ ] PDF se genera con variante correcta
+- [ ] Condiciones específicas incluidas
+- [ ] Formato profesional
+
+### 2.4 INTERFAZ DE VARIANTES (Semana 2-3)
+
+#### Tareas:
+1. **Formulario con variantes**
+   - Selector de variante
+   - Campos dinámicos
+   - Validaciones específicas
+
+2. **Vista previa de condiciones**
+   - Mostrar condiciones seleccionadas
+   - Validación en tiempo real
+   - Ayuda contextual
+
+#### Archivos a crear:
+```
+frontend/src/components/quotes/VariantForm.js
+frontend/src/components/quotes/ConditionsPreview.js
+frontend/src/hooks/useVariant.js
+frontend/src/utils/variantUtils.js
+```
+
+#### Criterios de aceptación:
+- [ ] Formulario con variantes funcional
+- [ ] Campos dinámicos funcionando
+- [ ] Vista previa de condiciones
+- [ ] Validaciones en tiempo real
+
+### 2.5 PRUEBAS DE VARIANTES (Semana 3)
+
+#### Tareas:
+1. **Pruebas por variante**
+   - Validaciones específicas
+   - Generación de PDF
+   - Flujos completos
+
+2. **Pruebas de integración**
+   - Selección de variante
+   - Aplicación de condiciones
+   - Generación de PDF
+
+#### Archivos a crear:
+```
+backend/tests/variantService.test.js
+backend/tests/variantPdf.test.js
+frontend/src/tests/VariantSelector.test.js
+frontend/src/tests/VariantForm.test.js
+```
+
+#### Criterios de aceptación:
+- [ ] Pruebas por variante pasando
+- [ ] PDFs generados correctamente
+- [ ] Flujos completos funcionando
+- [ ] Cobertura de código > 85%
+
+## FASE 3: FUNCIONALIDADES AVANZADAS
+**Duración estimada:** 3-4 semanas
+**Objetivo:** Implementar envío de emails, seguimiento de estados, clonación y versionado
+
+### 3.1 SISTEMA DE ESTADOS (Semana 1)
+
+#### Tareas:
+1. **Estados de cotización**
+   - Borrador
+   - Enviada
+   - Aceptada
+   - Rechazada
+   - Vencida
+
+2. **Transiciones de estado**
+   - Validaciones de transición
+   - Logging de cambios
+   - Notificaciones automáticas
+
+#### Archivos a crear:
+```
+backend/models/quoteStatus.js
+backend/services/statusService.js
+backend/controllers/statusController.js
+frontend/src/components/quotes/StatusIndicator.js
+frontend/src/components/quotes/StatusActions.js
+```
+
+#### Criterios de aceptación:
+- [ ] Estados definidos y funcionando
+- [ ] Transiciones validadas
+- [ ] Logging de cambios
+- [ ] Indicadores visuales
+
+### 3.2 ENVÍO DE EMAILS (Semana 1-2)
+
+#### Tareas:
+1. **Configuración de email**
+   - SMTP configurado
+   - Plantillas de email
+   - Servicio de notificaciones
+
+2. **Emails automáticos**
+   - Envío de cotización
+   - Recordatorios de vencimiento
+   - Notificaciones de estado
+
+#### Archivos a crear:
+```
+backend/services/emailService.js
+backend/templates/emailTemplates.js
+backend/controllers/emailController.js
+backend/jobs/emailJobs.js
+```
+
+#### Criterios de aceptación:
+- [ ] Emails se envían correctamente
+- [ ] Plantillas funcionando
+- [ ] Notificaciones automáticas
+- [ ] Logging de envíos
+
+### 3.3 CLONACIÓN Y VERSIONADO (Semana 2)
+
+#### Tareas:
+1. **Clonación de cotizaciones**
+   - Copiar cotización existente
+   - Modificar datos necesarios
+   - Generar nuevo número
+
+2. **Sistema de versionado**
+   - Historial de versiones
+   - Comparación de versiones
+   - Restauración de versiones
+
+#### Archivos a crear:
+```
+backend/services/cloneService.js
+backend/services/versionService.js
+backend/controllers/cloneController.js
+frontend/src/components/quotes/CloneQuote.js
+frontend/src/components/quotes/VersionHistory.js
+```
+
+#### Criterios de aceptación:
+- [ ] Clonación funcionando
+- [ ] Versionado implementado
+- [ ] Historial visible
+- [ ] Restauración funcional
+
+### 3.4 BÚSQUEDA Y FILTROS (Semana 2-3)
+
+#### Tareas:
+1. **Búsqueda avanzada**
+   - Por cliente, proyecto, número
+   - Filtros por fecha, estado, variante
+   - Ordenamiento múltiple
+
+2. **Interfaz de búsqueda**
+   - Formulario de filtros
+   - Resultados paginados
+   - Exportación de resultados
+
+#### Archivos a crear:
+```
+backend/services/searchService.js
+backend/controllers/searchController.js
+frontend/src/components/quotes/SearchFilters.js
+frontend/src/components/quotes/SearchResults.js
+frontend/src/hooks/useSearch.js
+```
+
+#### Criterios de aceptación:
+- [ ] Búsqueda funcionando
+- [ ] Filtros aplicados
+- [ ] Resultados paginados
+- [ ] Exportación disponible
+
+### 3.5 REPORTES Y ESTADÍSTICAS (Semana 3-4)
+
+#### Tareas:
+1. **Reportes básicos**
+   - Cotizaciones por período
+   - Estadísticas por cliente
+   - Análisis de conversión
+
+2. **Dashboard de cotizaciones**
+   - KPIs principales
+   - Gráficos de tendencias
+   - Alertas de vencimiento
+
+#### Archivos a crear:
+```
+backend/services/reportService.js
+backend/controllers/reportController.js
+frontend/src/components/reports/QuoteDashboard.js
+frontend/src/components/reports/QuoteCharts.js
+frontend/src/pages/ReportsPage.js
+```
+
+#### Criterios de aceptación:
+- [ ] Reportes generados
+- [ ] Dashboard funcional
+- [ ] KPIs calculados
+- [ ] Gráficos mostrados
+
+### 3.6 PRUEBAS AVANZADAS (Semana 4)
+
+#### Tareas:
+1. **Pruebas de integración**
+   - Flujos completos
+   - Envío de emails
+   - Clonación y versionado
+
+2. **Pruebas de rendimiento**
+   - Carga de datos
+   - Generación de PDFs
+   - Búsquedas complejas
+
+#### Archivos a crear:
+```
+backend/tests/integration/quoteFlow.test.js
+backend/tests/performance/quotePerformance.test.js
+frontend/src/tests/integration/QuoteWorkflow.test.js
+```
+
+#### Criterios de aceptación:
+- [ ] Pruebas de integración pasando
+- [ ] Rendimiento aceptable
+- [ ] Cobertura de código > 90%
+- [ ] Documentación completa
+
+## FASE 4: OPTIMIZACIONES Y MEJORAS
+**Duración estimada:** 2-3 semanas
+**Objetivo:** Optimizar rendimiento, mejorar interfaz y agregar funcionalidades adicionales
+
+### 4.1 OPTIMIZACIÓN DE RENDIMIENTO (Semana 1)
+
+#### Tareas:
+1. **Optimización de base de datos**
+   - Índices adicionales
+   - Consultas optimizadas
+   - Caché de consultas
+
+2. **Optimización de frontend**
+   - Lazy loading
+   - Memoización de componentes
+   - Optimización de re-renders
+
+#### Archivos a modificar:
+```
+backend/sql/performance_indexes.sql
+backend/services/cacheService.js
+frontend/src/components/quotes/QuoteList.js (optimizar)
+frontend/src/hooks/useOptimizedQuotes.js
+```
+
+#### Criterios de aceptación:
+- [ ] Consultas optimizadas
+- [ ] Caché funcionando
+- [ ] Frontend más rápido
+- [ ] Métricas de rendimiento mejoradas
+
+### 4.2 MEJORAS DE INTERFAZ (Semana 1-2)
+
+#### Tareas:
+1. **Interfaz mejorada**
+   - Diseño más moderno
+   - Mejor UX/UI
+   - Responsive design
+
+2. **Funcionalidades adicionales**
+   - Drag & drop para ítems
+   - Autocompletado
+   - Validaciones en tiempo real
+
+#### Archivos a crear:
+```
+frontend/src/components/quotes/DragDropItems.js
+frontend/src/components/quotes/AutoComplete.js
+frontend/src/styles/QuoteStyles.css
+frontend/src/utils/uiUtils.js
+```
+
+#### Criterios de aceptación:
+- [ ] Interfaz mejorada
+- [ ] UX/UI optimizada
+- [ ] Responsive funcionando
+- [ ] Funcionalidades adicionales
+
+### 4.3 INTEGRACIÓN CON FACTURACIÓN (Semana 2)
+
+#### Tareas:
+1. **Conversión a factura**
+   - Botón de conversión
+   - Copia de datos
+   - Referencia entre cotización y factura
+
+2. **Sincronización de datos**
+   - Actualización automática
+   - Validaciones de consistencia
+   - Logging de cambios
+
+#### Archivos a crear:
+```
+backend/services/invoiceConversionService.js
+backend/controllers/conversionController.js
+frontend/src/components/quotes/ConvertToInvoice.js
+frontend/src/services/conversionService.js
+```
+
+#### Criterios de aceptación:
+- [ ] Conversión funcionando
+- [ ] Datos sincronizados
+- [ ] Referencias correctas
+- [ ] Validaciones implementadas
+
+### 4.4 NOTIFICACIONES EN TIEMPO REAL (Semana 2-3)
+
+#### Tareas:
+1. **WebSockets**
+   - Conexión en tiempo real
+   - Notificaciones instantáneas
+   - Actualizaciones automáticas
+
+2. **Sistema de alertas**
+   - Vencimientos próximos
+   - Cambios de estado
+   - Recordatorios automáticos
+
+#### Archivos a crear:
+```
+backend/services/websocketService.js
+backend/controllers/notificationController.js
+frontend/src/hooks/useWebSocket.js
+frontend/src/components/notifications/NotificationCenter.js
+```
+
+#### Criterios de aceptación:
+- [ ] WebSockets funcionando
+- [ ] Notificaciones en tiempo real
+- [ ] Alertas automáticas
+- [ ] Actualizaciones instantáneas
+
+### 4.5 PRUEBAS FINALES (Semana 3)
+
+#### Tareas:
+1. **Pruebas de aceptación**
+   - Flujos completos
+   - Casos de uso reales
+   - Pruebas de usuario
+
+2. **Pruebas de seguridad**
+   - Validación de permisos
+   - Protección de datos
+   - Auditoría de seguridad
+
+#### Archivos a crear:
+```
+backend/tests/acceptance/quoteAcceptance.test.js
+backend/tests/security/quoteSecurity.test.js
+frontend/src/tests/acceptance/QuoteAcceptance.test.js
+```
+
+#### Criterios de aceptación:
+- [ ] Pruebas de aceptación pasando
+- [ ] Seguridad validada
+- [ ] Cobertura de código > 95%
+- [ ] Documentación finalizada
+
+## CRONOGRAMA GENERAL
+
+### Semana 1-4: Fase 1 - Funcionalidades Básicas
+- Base de datos y modelos
+- API básica
+- Generación de PDF
+- Interfaz básica
+
+### Semana 5-7: Fase 2 - Variantes y Condiciones
+- 8 variantes implementadas
+- Plantillas específicas
+- Validaciones por variante
+
+### Semana 8-11: Fase 3 - Funcionalidades Avanzadas
+- Estados y transiciones
+- Envío de emails
+- Clonación y versionado
+- Búsqueda y reportes
+
+### Semana 12-14: Fase 4 - Optimizaciones
+- Rendimiento optimizado
+- Interfaz mejorada
+- Integración con facturación
+- Notificaciones en tiempo real
+
+## RECURSOS NECESARIOS
+
+### Desarrolladores:
+- 1 Desarrollador Backend (Node.js/Express)
+- 1 Desarrollador Frontend (React)
+- 1 Desarrollador Full-stack (coordinación)
+
+### Herramientas:
+- IDE (VS Code)
+- Base de datos (PostgreSQL)
+- Testing (Jest, React Testing Library)
+- Documentación (Swagger, JSDoc)
+
+### Infraestructura:
+- Servidor de desarrollo
+- Base de datos de pruebas
+- Servidor de staging
+- Herramientas de CI/CD
+
+## CRITERIOS DE ÉXITO
+
+### Técnicos:
+- [ ] Todas las funcionalidades implementadas
+- [ ] Pruebas pasando al 95%
+- [ ] Rendimiento aceptable
+- [ ] Seguridad validada
+
+### Funcionales:
+- [ ] 8 variantes funcionando
+- [ ] PDFs generados correctamente
+- [ ] Emails enviados automáticamente
+- [ ] Flujos completos operativos
+
+### Usuario:
+- [ ] Interfaz intuitiva
+- [ ] Tiempo de respuesta < 2 segundos
+- [ ] Documentación completa
+- [ ] Capacitación realizada
+
+## RIESGOS Y MITIGACIONES
+
+### Riesgos Técnicos:
+- **Complejidad de variantes:** Mitigación con desarrollo iterativo
+- **Rendimiento de PDFs:** Mitigación con optimización y caché
+- **Integración con módulos existentes:** Mitigación con pruebas exhaustivas
+
+### Riesgos de Negocio:
+- **Cambios en requerimientos:** Mitigación con desarrollo ágil
+- **Tiempo de implementación:** Mitigación con priorización
+- **Aceptación de usuarios:** Mitigación con capacitación y soporte
+
+## CONCLUSIÓN
+
+Este plan de implementación proporciona una hoja de ruta clara y detallada para desarrollar el sistema de cotizaciones del laboratorio GeoFal. La implementación por fases permite entregar valor incremental y ajustar el desarrollo según las necesidades del negocio.
+
+La duración total estimada es de 14 semanas, con entregas parciales cada 2-3 semanas, permitiendo validación continua y ajustes según sea necesario.

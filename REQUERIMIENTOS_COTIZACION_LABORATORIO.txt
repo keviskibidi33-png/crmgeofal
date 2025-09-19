@@ -1,0 +1,242 @@
+# REQUERIMIENTOS COMPLETOS - PLANTILLA DE COTIZACIÓN PARA LABORATORIO
+# Sistema CRM GeoFal - Módulo de Cotizaciones
+
+## 1. DATOS FIJOS DEL CLIENTE (SIEMPRE VISIBLES)
+- Cliente (Nombre de la empresa solicitante)
+- R.U.C. (Ruc de la empresa solicitante)
+- Contacto (Nombre del contacto quien solicito la cotización)
+- Teléfono (Teléfono del contacto quien solicito la cotización)
+- Correo electrónico (Correo del contacto quien solicito la cotización)
+- Ubicación del proyecto (Ubicación del proyecto quien solicito la cotización)
+- Nombre del proyecto (Nombre del Proyecto quien solicito la cotización)
+- Nombre del servicio
+
+## 2. DATOS DE LA COTIZACIÓN (POR PARTE DE GEOFAL)
+- Fecha de Solicitud (Fecha de solicitante del servicio)
+- Fecha de Emisión (Fecha de envió de cotización)
+- Teléfono (Teléfono del contacto quien solicito la cotización)
+- Comercial (Nombre del ejecutivo comercial quien realizo la cotización)
+
+## 3. DETALLE DE ÍTEMS (TABLA)
+- Código o nombre del ensayo/servicio
+- Descripción Ensayo
+- Norma
+- Costo Unitario en soles (S/)
+- Cantidad
+- Costo Parcial en soles (S/)
+
+## 4. CONDICIONES ESPECÍFICAS - VARIANTES
+
+### VARIANTE 1: MUESTRA DE SUELO Y AGREGADO
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+### VARIANTE 2: PROBETAS
+CONDICIONES ESPECÍFICAS:
+- El cliente debe proporcionar las probetas antes del ingreso a obra.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+### VARIANTE 3: DENSIDAD DE CAMPO Y MUESTREO
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.
+- Para el ensayo de Densidad de campo, la cantidad de puntos/salida minimo 4 und.
+- El cliente deberá de programar el servicio, Densidad de campo, con 24 horas de anticipación.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+
+### VARIANTE 4: EXTRACCION DE DIAMANTINA
+CONDICIONES ESPECÍFICAS:
+- Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.
+- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.
+- El servicio no incluye trabajos de acabados como pintura, mayolica y otros.
+- El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.
+- La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).
+- Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina
+
+### VARIANTE 5: DIAMANTINA PARA PASES
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.
+- El area de trabajo, zona de extraccion de diamantina, debera estar libre de interferencia.
+- Para extraer la diamantina, se ubicara el acero con un escaneador.
+- Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.
+
+### VARIANTE 6: ALBANILERIA
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.
+- El cliente deberá de entregar las muestras debidamente identificadas.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima
+
+### VARIANTE 7: VIGA BECKELMAN
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.
+- El area de trabajo tiene que estar habilitado.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.
+- Especificar las caracteristicas del camion
+
+### VARIANTE 8: CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA
+CONDICIONES ESPECÍFICAS:
+- El cliente deberá de programar el servicio, con 24 horas de anticipación.
+- Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.
+- El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.
+- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.
+
+## 5. PLAZOS Y PROGRAMACIÓN DE SERVICIO
+
+### PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO:
+- El plazo de entrega de los resultados se estima 10 días hábiles, este tiempo será evaluado de acuerdo a la cantidad de muestra recepcionada y está sujeto a la programacion enviada por el área de LEM.
+- El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+
+### CONTRAMUESTRA:
+- Al finalizar los ensayos, la muestra sobrante/contramuestra permanecerán en custodia por un tiempo de 10 dias calendario después de emitido el informe de ensayo.
+- Siempre que se trate de una muestra dirimente, las contramuestras serán devueltas a los clientes, previa coordinación y autorización, caso contrario, serán eliminadas si se trata de residuos del ensayo o contramuestras de ensayo.
+
+### CONFIDENCIALIDAD:
+- El laboratorio mantiene acuerdos de confidencialidad entre el cliente y el laboratorio, la divulgación de la información sin la autorización de las partes, no es permitida.
+- El laboratorio mantiene reserva de la información brindada por el cliente, salvo solicitud de la información por ley, o por entidades gubernamentales inmersos dentro del presente servicio de ensayo.
+
+### QUEJAS Y SUGERENCIAS:
+- Si tiene alguna queja o sugerencia, lo invitamos a conocer nuestro Proceso de Atención de Quejas, el cual iniciará 24 horas después de recibida la queja.
+- El plazo limite establecido para la recepción de quejas respecto a un informe de ensayo es de 10 días después de emitido el documento.
+- Pasado este plazo, no se aceptarán quejas bajo ninguna circunstancia.
+
+### ENTREGA DE INFORME DE ENSAYO:
+- Como parte de la mejora de nuestros procesos y en alineamiento con el Laboratorio Nacional INACAL-DM(PRODUCE) a partir de julio del 2022 los informes de ensayo son emitidos de forma digital con firma electrónica.
+- La entrega de los informes de ensayo será mediante el intranet de la pagina web www.geofal.com.pe, y se enviará un correo de confirmación con el usuario y clave para el acceso.
+- Geofal no declara conformidad de sus informes de ensayo.
+- En caso se requiera la modificación del informe de ensayo a consecuencia de los datos proporcionados por el cliente, esta se realizará mediante la emisión de un nuevo informe que tendrá un costo adicional de acuerdo a evaluación.
+
+### HORARIO DE ATENCION:
+- El horario para recepción de muestra y entrega de informes es de Lunes a Viernes de 8:30am a 1:00pm y 2:00pm a 5:30pm, y Sábado de 8:30am a 12:30pm
+
+## 6. ACEPTACIÓN DE LA COTIZACIÓN
+La aceptación de la cotización de parte del cliente será mediante:
+- Pago respectivo del servicio según cotización enviada
+- Envío de la orden de servicio
+- Envío de correo aceptando el servicio, a los siguientes correos asesorcomercial@geofal.com.pe y/o laboratorio@geofal.com.pe, en señal de conformidad.
+
+Le agradeceremos que nos envie el comprobante del depósito realizado via correo electronico
+
+Atentamente,
+Geofal SAC
+Av. Marañón N° 763, Los Olivos, Lima
+Telf.: (01) 9051911 / (01) 7543070-956057624-993077479 - 982 429 895
+Web: www.geofal.com.pe
+COM-F-01
+Página 2 de 2
+Versión: 03 (01-08-2022)
+
+## 7. FORMA DE PAGO
+En las condiciones de pago puede ser por adelantado, 50% o a crédito.
+
+CONDICIÓN: El pago del servicio deberá ser realizado por Adelantado.
+RAZON SOCIAL: Geofal S.A.C. RUC: 20549356762
+
+Sírvase realizar el depósito correspondiente de los servicios a nuestra cuenta bancaria:
+
+### Cuenta de detraccion Banco de La Nación:
+- Cuenta de detraccion Banco de La Nación: N° 00-074-045472
+
+### Cuenta corriente Interbank:
+- Cuenta Corriente en Soles de Interbank: N° 200-3005201096
+- Código Interbancario (CCI) de Interbank: N° 003-200-003005201096-31
+
+### Cuenta corriente BCP:
+- Cuenta Corriente en Soles del Banco de Crédito del Perú (BCP): N° 192 2024 3030 04
+- Código Interbancario (CCI) del Banco de Crédito del Perú (BCP): N° 002-192-002 02430 3004-34
+
+### Cuenta corriente BBVA:
+- Cuenta Corriente en Soles BBVA: N° 0011-0174-0100082311-00
+- Código Interbancario (CCI) BBVA: N° 011-174-000100082311-00
+
+## 8. VALIDEZ DE LA OFERTA
+30 días calendario. Si la cotización llegó al límite de su validez, solicite una actualización.
+
+## 9. DATOS DE LA COTIZACIÓN (NOMENCLATURA)
+- El nombre final que debe de tener el pdf/archivo de la cotización.
+- Ejemplo para laboratorio:
+  - Versión correcta: Cotización 911-25 LEM-GEOFAL-TACTICAL IT SAC
+  - Versión Base: Cotización xxx-XX LEM-GEOFAL-Nombre del cliente
+- Numero de solicitud - xxx-XX
+- Nombre del cliente - Nombre del cliente
+
+## 10. FLUJO DE GENERACIÓN DE LA COTIZACIÓN
+1. El cliente remite su requerimiento
+2. El área comercial crea una nueva cotización en el CRM
+3. Se eligen ítems y se ajustan cantidades, precios y condiciones particulares
+4. La plantilla se completa automáticamente con datos fijos y variables
+5. Se revisa y se genera el PDF final
+
+## 11. PERSONALIZACIÓN Y PLANTILLAS MÚLTIPLES
+- Permitir que cada usuario puede hacer cotizaciones en tiempo real
+- Posibilidad de tener un backup de la cotización antes creada
+- Permitir clonar una cotización ya hecha pero con otros datos de empresa
+
+## 12. ALMACENAMIENTO EN BASE DE DATOS
+- Cada cotización registrada con ID único
+- Se almacenan todos los parámetros relevantes
+- Posibilidad de búsqueda y filtrado por cliente, estado, fechas, asesor
+
+## 13. ANÁLISIS DE REQUERIMIENTOS TÉCNICOS
+
+### CAMPOS DE BASE DE DATOS NECESARIOS:
+- quote_id (ID único)
+- client_id (referencia a tabla clients)
+- project_id (referencia a tabla projects)
+- quote_number (formato: xxx-XX)
+- service_type (tipo de servicio)
+- variant_id (referencia a variante de condiciones)
+- request_date
+- issue_date
+- commercial_user_id (ejecutivo comercial)
+- status (borrador, enviada, aceptada, rechazada)
+- total_amount
+- igv_percentage (18%)
+- payment_condition (adelantado, 50%, credito)
+- validity_days (30 días por defecto)
+- created_at
+- updated_at
+
+### TABLA DE ÍTEMS DE COTIZACIÓN:
+- quote_item_id
+- quote_id (referencia)
+- service_code
+- service_description
+- norm_standard
+- unit_cost
+- quantity
+- partial_cost
+- created_at
+
+### TABLA DE VARIANTES DE CONDICIONES:
+- variant_id
+- variant_name
+- variant_description
+- conditions_text
+- is_active
+- created_at
+
+### FUNCIONALIDADES DEL SISTEMA:
+1. Generación automática de número de cotización
+2. Selección de variante de condiciones según tipo de servicio
+3. Cálculo automático de costos (unitario, parcial, total, IGV)
+4. Generación de PDF con plantilla personalizada
+5. Envío automático por email
+6. Seguimiento de estado de cotización
+7. Historial de versiones
+8. Clonación de cotizaciones
+9. Búsqueda y filtrado avanzado
+10. Reportes y estadísticas
+
+### INTEGRACIÓN CON MÓDULOS EXISTENTES:
+- Módulo de Clientes (companies)
+- Módulo de Proyectos (projects)
+- Módulo de Usuarios (users)
+- Módulo de Facturas (invoices)
+- Módulo de Auditoría (audit)
+- Módulo de Notificaciones (notifications)
