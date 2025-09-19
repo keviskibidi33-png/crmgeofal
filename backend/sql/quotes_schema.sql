@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS quote_variants (
   code VARCHAR(20) NOT NULL UNIQUE,
   title VARCHAR(150) NOT NULL,
   description TEXT,
+  image_url TEXT, -- opcional: imagen de la variante para selección visual
   conditions JSONB, -- campos y reglas específicas
   active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -64,8 +65,12 @@ CREATE TABLE IF NOT EXISTS quotes (
   client_email VARCHAR(100),
   client_phone VARCHAR(30),
   issue_date DATE,
+  subtotal NUMERIC(12,2) DEFAULT 0,
+  igv NUMERIC(12,2) DEFAULT 0,
   total NUMERIC(12,2),
   status VARCHAR(30) DEFAULT 'borrador',
+  reference TEXT,
+  meta JSONB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -92,3 +97,10 @@ CREATE TABLE IF NOT EXISTS audit_quotes (
   details TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS subtotal NUMERIC(12,2) DEFAULT 0;
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS igv NUMERIC(12,2) DEFAULT 0;
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS reference TEXT;
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS meta JSONB;
+-- Añadir columna image_url a variantes si no existe
+ALTER TABLE quote_variants ADD COLUMN IF NOT EXISTS image_url TEXT;

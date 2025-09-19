@@ -21,8 +21,8 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { code, title, description, conditions } = req.body;
-    const variant = await QuoteVariant.create({ code, title, description, conditions });
+  const { code, title, description, image_url, conditions } = req.body;
+  const variant = await QuoteVariant.create({ code, title, description, image_url, conditions });
     res.status(201).json(variant);
   } catch (err) {
     res.status(500).json({ error: 'Error al crear variante' });
@@ -31,8 +31,8 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { title, description, conditions, active } = req.body;
-    const variant = await QuoteVariant.update(req.params.id, { title, description, conditions, active });
+  const { title, description, image_url, conditions, active } = req.body;
+  const variant = await QuoteVariant.update(req.params.id, { title, description, image_url, conditions, active });
     res.json(variant);
   } catch (err) {
     res.status(500).json({ error: 'Error al actualizar variante' });

@@ -1,11 +1,12 @@
 
-import React from 'react';
-import ModuloBase from '../components/ModuloBase';
+import React, { lazy, Suspense } from 'react';
 
-const Cotizaciones = () => (
-  <ModuloBase titulo="Gestión de Cotizaciones" descripcion="Aquí podrás ver, crear, editar y eliminar cotizaciones.">
-    {/* Aquí irá la tabla de cotizaciones y acciones CRUD */}
-  </ModuloBase>
-);
+const Lista = lazy(() => import('./ListaCotizaciones'));
 
-export default Cotizaciones;
+export default function Cotizaciones() {
+  return (
+    <Suspense fallback={<div style={{ padding: 16 }}>Cargando módulo de cotizaciones...</div>}>
+      <Lista />
+    </Suspense>
+  );
+}

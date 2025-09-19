@@ -9,17 +9,17 @@ const QuoteVariant = {
     const res = await pool.query('SELECT * FROM quote_variants WHERE id = $1', [id]);
     return res.rows[0];
   },
-  async create({ code, title, description, conditions }) {
+  async create({ code, title, description, image_url, conditions }) {
     const res = await pool.query(
-      'INSERT INTO quote_variants (code, title, description, conditions) VALUES ($1, $2, $3, $4) RETURNING *',
-      [code, title, description, conditions]
+      'INSERT INTO quote_variants (code, title, description, image_url, conditions) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [code, title, description, image_url, conditions]
     );
     return res.rows[0];
   },
-  async update(id, { title, description, conditions, active }) {
+  async update(id, { title, description, image_url, conditions, active }) {
     const res = await pool.query(
-      'UPDATE quote_variants SET title = $1, description = $2, conditions = $3, active = $4 WHERE id = $5 RETURNING *',
-      [title, description, conditions, active, id]
+      'UPDATE quote_variants SET title = $1, description = $2, image_url = $3, conditions = $4, active = $5 WHERE id = $6 RETURNING *',
+      [title, description, image_url, conditions, active, id]
     );
     return res.rows[0];
   },

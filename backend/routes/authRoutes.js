@@ -4,6 +4,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
+const auth = require('../middlewares/auth');
 
 // Login
 router.post('/login', async (req, res) => {
@@ -22,3 +23,15 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = router;
+// Obtener usuario actual a partir del JWT
+router.get('/me', auth(), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [userId]);
+    const user = result.rows[0];
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: 'Error obteniendo usuario' });
+  }
+});

@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './layout/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 const Ajustes = lazy(() => import('./pages/Ajustes'));
@@ -25,6 +26,9 @@ const ItemsCotizacion = lazy(() => import('./pages/ItemsCotizacion'));
 const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
 const Auditoria = lazy(() => import('./pages/Auditoria'));
 const Exportaciones = lazy(() => import('./pages/Exportaciones'));
+const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
+const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
+const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
 
 // Rutas protegidas por autenticación
 function PrivateRoute({ children }) {
@@ -42,29 +46,35 @@ function App() {
             <Route path="/*" element={
               <RequireAuthLayout>
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+                  <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   {/* Eliminada la duplicidad: solo / apunta a Dashboard */}
-                  <Route path="/ajustes" element={<Ajustes />} />
-                  <Route path="/usuarios" element={<Usuarios />} />
-                  <Route path="/clientes" element={<Clientes />} />
-                  <Route path="/proyectos" element={<Proyectos />} />
-                  <Route path="/cotizaciones" element={<Cotizaciones />} />
-                  <Route path="/adjuntos" element={<Adjuntos />} />
-                  <Route path="/tickets" element={<Tickets />} />
-                  <Route path="/reportes" element={<Reportes />} />
-                  <Route path="/categorias" element={<Categorias />} />
-                  <Route path="/subcategorias" element={<Subcategorias />} />
-                  <Route path="/historial-proyectos" element={<HistorialProyectos />} />
-                  <Route path="/notificaciones-whatsapp" element={<NotificacionesWhatsapp />} />
-                  <Route path="/servicios" element={<Servicios />} />
-                  <Route path="/subservicios" element={<Subservicios />} />
-                  <Route path="/evidencias" element={<Evidencias />} />
-                  <Route path="/facturas" element={<Facturas />} />
-                  <Route path="/variantes-cotizacion" element={<VariantesCotizacion />} />
-                  <Route path="/items-cotizacion" element={<ItemsCotizacion />} />
-                  <Route path="/historial-tickets" element={<HistorialTickets />} />
-                  <Route path="/auditoria" element={<Auditoria />} />
-                  <Route path="/exportaciones" element={<Exportaciones />} />
+                  <Route path="/ajustes" element={<ErrorBoundary><Ajustes /></ErrorBoundary>} />
+                  <Route path="/usuarios" element={<ErrorBoundary><Usuarios /></ErrorBoundary>} />
+                  <Route path="/clientes" element={<ErrorBoundary><Clientes /></ErrorBoundary>} />
+                  <Route path="/proyectos" element={<ErrorBoundary><Proyectos /></ErrorBoundary>} />
+                  <Route path="/cotizaciones" element={<ErrorBoundary><Cotizaciones /></ErrorBoundary>} />
+                  <Route path="/cotizaciones/lista" element={<ErrorBoundary><ListaCotizaciones /></ErrorBoundary>} />
+                  <Route path="/cotizaciones/nueva/lem" element={<ErrorBoundary><CotizacionNuevaLEM /></ErrorBoundary>} />
+                  <Route path="/cotizaciones/:id" element={<ErrorBoundary><DetalleCotizacion /></ErrorBoundary>} />
+                  <Route path="/adjuntos" element={<ErrorBoundary><Adjuntos /></ErrorBoundary>} />
+                  <Route path="/tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
+                  <Route path="/reportes" element={<ErrorBoundary><Reportes /></ErrorBoundary>} />
+                  <Route path="/categorias" element={<ErrorBoundary><Categorias /></ErrorBoundary>} />
+                  <Route path="/subcategorias" element={<ErrorBoundary><Subcategorias /></ErrorBoundary>} />
+                  <Route path="/historial-proyectos" element={<ErrorBoundary><HistorialProyectos /></ErrorBoundary>} />
+                  <Route path="/notificaciones-whatsapp" element={<ErrorBoundary><NotificacionesWhatsapp /></ErrorBoundary>} />
+                  <Route path="/servicios" element={<ErrorBoundary><Servicios /></ErrorBoundary>} />
+                  <Route path="/subservicios" element={<ErrorBoundary><Subservicios /></ErrorBoundary>} />
+                  <Route path="/evidencias" element={<ErrorBoundary><Evidencias /></ErrorBoundary>} />
+                  <Route path="/facturas" element={<ErrorBoundary><Facturas /></ErrorBoundary>} />
+                  <Route path="/variantes-cotizacion" element={<ErrorBoundary><VariantesCotizacion /></ErrorBoundary>} />
+                  <Route path="/items-cotizacion" element={<ErrorBoundary><ItemsCotizacion /></ErrorBoundary>} />
+                  <Route path="/historial-tickets" element={<ErrorBoundary><HistorialTickets /></ErrorBoundary>} />
+                  <Route path="/auditoria" element={<ErrorBoundary><Auditoria /></ErrorBoundary>} />
+                  <Route path="/exportaciones" element={<ErrorBoundary><Exportaciones /></ErrorBoundary>} />
+                  {/* Fallback a dashboard si la ruta no existe */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </RequireAuthLayout>
             } />
@@ -77,8 +87,12 @@ function App() {
 
 // Layout solo visible si autenticado
 function RequireAuthLayout({ children }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+  // Mientras verificamos la sesión, mostramos loader
+  if (loading) {
+    return <div style={{ padding: 24 }}>Verificando sesión...</div>;
+  }
+  if (!user) return <Navigate to="/login" replace />;
   return <Layout>{children}</Layout>;
 }
 

@@ -1,0 +1,2 @@
+import{b as o}from"./index-HaxW7Nk-.js";const i=(t={})=>{const s=new URLSearchParams(t).toString(),e=s?`/api/quotes?${s}`:"/api/quotes";return o(e)},u=t=>o(`/api/quotes/${t}`),n=t=>o("/api/quotes",{method:"POST",body:JSON.stringify(t)}),c=t=>o(`/api/quote-items/quote/${t}`),r=t=>o("/api/quote-items",{method:"POST",body:JSON.stringify(t)});export{r as a,c as b,n as c,u as g,i as l};
+//# sourceMappingURL=quotes-Dd9vJWvI.js.map
