@@ -3,10 +3,23 @@
 if (process.env.NODE_ENV === 'test') {
   const stub = {
     query: async (sql, params) => {
-      // Basic responses for simple SELECT NOW() or other queries.
-      if (/SELECT NOW\(\)/i.test(sql)) {
-        return { rows: [{ now: new Date().toISOString() }], rowCount: 1 };
+      // Handle common patterns used in tests/controllers
+      if (/SELECT NOW\(\)/i.test(sql)) return { rows: [{ now: new Date().toISOString() }], rowCount: 1 };
+      if (/COUNT\(\s*\*\s*\)/i.test(sql)) return { rows: [{ count: '0' }], rowCount: 1 };
+      // SELECT ... FROM table WHERE id = $1
+      if (/SELECT .* FROM .* WHERE .*id = \$1/i.test(sql)) return { rows: [], rowCount: 0 };
+      // INSERT ... RETURNING * or RETURNING id
+      if (/RETURNING/i.test(sql) && /INSERT/i.test(sql)) {
+        // create a dummy row with id=1 and echo some params
+        const row = { id: 1 };
+        if (params && params.length) {
+          params.forEach((p, i) => { row[`p${i+1}`] = p; });
+        }
+        return { rows: [row], rowCount: 1 };
       }
+      // UPDATE ... RETURNING
+      if (/UPDATE/i.test(sql) && /RETURNING/i.test(sql)) return { rows: [{ id: params && params[params.length-1] ? params[params.length-1] : 1 }], rowCount: 1 };
+      // Default
       return { rows: [], rowCount: 0 };
     },
     connect: async () => ({ release: () => {} }),

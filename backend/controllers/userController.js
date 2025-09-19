@@ -67,6 +67,10 @@ exports.getAreas = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { name, email, password, role, notification_enabled } = req.body;
+    // Basic validation: required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Campos requeridos: name, email, password' });
+    }
     const user = await User.create({ name, email, password, role, notification_enabled });
     res.status(201).json(user);
   } catch (err) {
