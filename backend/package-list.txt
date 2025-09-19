@@ -1,20 +1,24 @@
 # Paquetes instalados para el backend CRMGeoFal
-express
-pg
-bcryptjs
-jsonwebtoken
-dotenv
-multer
-nodemailer
-exceljs
-pdfkit
-express-rate-limit
-express-validator
-helmet
-cors
-supertest
-winston
-morgan
-eslint
-jest
-prettier
+express                # Framework principal
+pg                     # Conexión PostgreSQL
+bcryptjs               # Hash de contraseñas
+jsonwebtoken           # Autenticación JWT
+dotenv                 # Variables de entorno
+multer                 # Subida de archivos (adjuntos)
+nodemailer             # Envío de correos
+exceljs                # Exportar a Excel
+pdfkit                 # Exportar a PDF
+express-rate-limit     # Rate limiting
+express-validator      # Validaciones de entrada
+helmet                 # Seguridad HTTP
+cors                   # CORS
+supertest              # Pruebas de endpoints
+winston                # Logging avanzado
+morgan                 # Logging HTTP
+eslint                 # Linting
+jest                   # Testing
+prettier               # Formato de código
+
+# Nuevos módulos clave:
+# projectAttachment, projectWhatsappNotice (adjuntos y avisos por proyecto)
+# Integración de roles: ventas, jefes, gerencia, admin, laboratorio

@@ -1,0 +1,11 @@
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/categories HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.129Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"GET /api/reports/ventas-por-vendedor HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.129Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/leads HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.138Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/users HTTP/1.1\" 500 31 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.140Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/project-attachments HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.136Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/projects HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.137Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/subcategories HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.140Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/quotes HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.140Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/companies HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.141Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/project-history HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.142Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:14:42:59 +0000] \"POST /api/project-whatsapp-notices HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T14:42:59.154Z"}

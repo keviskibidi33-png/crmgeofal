@@ -1,3 +1,23 @@
+-- Tabla de adjuntos de proyectos (solo ventas)
+CREATE TABLE IF NOT EXISTS project_attachments (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  uploaded_by INTEGER REFERENCES users(id),
+  file_url TEXT NOT NULL,
+  file_type VARCHAR(20), -- pdf, excel, etc
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de avisos de WhatsApp (solo ventas)
+CREATE TABLE IF NOT EXISTS project_whatsapp_notices (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  sent_by INTEGER REFERENCES users(id),
+  sent_to VARCHAR(100), -- número o nombre de contacto
+  message TEXT NOT NULL,
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 -- Esquema de cotizaciones para CRMGeoFal
 
 -- Tabla de clientes (empresas y personas naturales)
@@ -7,7 +27,10 @@ CREATE TABLE IF NOT EXISTS companies (
   ruc VARCHAR(20), -- solo para empresas
   dni VARCHAR(15), -- solo para persona natural
   name VARCHAR(150) NOT NULL,
-  address TEXT,
+  address TEXT NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  contact_name VARCHAR(100) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

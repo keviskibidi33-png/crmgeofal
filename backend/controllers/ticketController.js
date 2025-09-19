@@ -14,7 +14,6 @@ const { sendNotification, ticketCreatedTemplate } = require('../services/notific
 
 const Audit = require('../models/audit');
 
-exports.create = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const ticket = await Ticket.getById(req.params.id);
@@ -92,5 +91,5 @@ exports.getHistory = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener historial del ticket' });
   }
-}
 };
+

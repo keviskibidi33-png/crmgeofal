@@ -15,17 +15,18 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE ruc = $1', [ruc]);
     return res.rows[0];
   },
-  async create({ ruc, name, address }) {
+  async create({ type, ruc, dni, name, address, email, phone, contact_name }) {
     const res = await pool.query(
-      'INSERT INTO companies (ruc, name, address) VALUES ($1, $2, $3) RETURNING *',
-      [ruc, name, address]
+      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name]
     );
     return res.rows[0];
   },
-  async update(id, { name, address }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name }) {
     const res = await pool.query(
-      'UPDATE companies SET name = $1, address = $2 WHERE id = $3 RETURNING *',
-      [name, address, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8 WHERE id = $9 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, id]
     );
     return res.rows[0];
   },

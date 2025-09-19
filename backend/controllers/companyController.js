@@ -23,13 +23,20 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { ruc, name, address } = req.body;
-    // Validar duplicidad por RUC
-    const existing = await Company.getByRuc(ruc);
-    if (existing) {
-      return res.status(409).json({ error: 'Ya existe una empresa con ese RUC' });
+    const { type, ruc, dni, name, address, email, phone, contact_name } = req.body;
+    // Validación estricta
+    if (!type || !name || !address || !email || !phone || !contact_name || (type === 'empresa' && !ruc) || (type === 'persona_natural' && !dni)) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
-    const company = await Company.create({ ruc, name, address });
+    // Validar duplicidad por RUC/DNI
+    if (type === 'empresa' && ruc) {
+      const existing = await Company.getByRuc(ruc);
+      if (existing) {
+        return res.status(409).json({ error: 'Ya existe una empresa con ese RUC' });
+      }
+    }
+    // TODO: Validar duplicidad por DNI si es persona natural
+    const company = await Company.create({ type, ruc, dni, name, address, email, phone, contact_name });
     res.status(201).json(company);
   } catch (err) {
     res.status(500).json({ error: 'Error al crear empresa' });
@@ -38,8 +45,11 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { name, address } = req.body;
-    const company = await Company.update(req.params.id, { name, address });
+    const { type, ruc, dni, name, address, email, phone, contact_name } = req.body;
+    if (!type || !name || !address || !email || !phone || !contact_name || (type === 'empresa' && !ruc) || (type === 'persona_natural' && !dni)) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+    }
+    const company = await Company.update(req.params.id, { type, ruc, dni, name, address, email, phone, contact_name });
     res.json(company);
   } catch (err) {
     res.status(500).json({ error: 'Error al actualizar empresa' });
