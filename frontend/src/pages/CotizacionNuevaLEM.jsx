@@ -216,9 +216,6 @@ const CotizacionNuevaLEM = () => {
                   {(variants||[]).map(v => (
                     <div className="col" key={v.id}>
                       <div className={`card h-100 ${String(variantId)===String(v.id)?'border-primary':''}`} role="button" onClick={()=>setVariantId(String(v.id))}>
-                        {v.image_url ? (
-                          <img src={v.image_url} alt={v.title} className="card-img-top" style={{ maxHeight: 120, objectFit: 'cover' }} />
-                        ) : null}
                         <div className="card-body py-2">
                           <div className="fw-semibold small">{v.code}</div>
                           <div className="small">{v.title}</div>
