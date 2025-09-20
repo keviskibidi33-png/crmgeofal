@@ -3,6 +3,7 @@ import ModuloBase from '../components/ModuloBase';
 import { listVariants } from '../services/quoteVariants';
 import { createQuote, addQuoteItem } from '../services/quotes';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
+import { useId } from 'react';
 
 // Plantilla de creación de cotización para Laboratorio (LEM)
 // Requisitos clave cubiertos:
@@ -71,7 +72,6 @@ const getVariantText = (v) => {
 const CotizacionNuevaLEM = () => {
   const [variants, setVariants] = useState([]);
   const [variantId, setVariantId] = useState('');
-  const [variantVisual, setVariantVisual] = useState(false);
   const [client, setClient] = useState(emptyClient);
   const [selection, setSelection] = useState({ company_id: null, project_id: null, company: null, project: null });
   const [quote, setQuote] = useState(emptyQuote);
@@ -79,6 +79,7 @@ const CotizacionNuevaLEM = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [conditionsText, setConditionsText] = useState('');
+  // Modal eliminado: ya no se usa vista de cards
 
   useEffect(() => {
     (async () => {
@@ -163,9 +164,10 @@ const CotizacionNuevaLEM = () => {
     setError('');
     try {
       // Construir payload de cotización base
+      const numericVariantId = /^\d+$/.test(String(variantId)) ? Number(variantId) : null;
       const payload = {
         project_id: selection.project?.id || selection.project_id || null,
-        variant_id: variantId || null,
+        variant_id: numericVariantId,
         client_contact: client.contact_name,
         client_email: client.contact_email,
         client_phone: client.contact_phone,
@@ -247,57 +249,53 @@ const CotizacionNuevaLEM = () => {
         <CompanyProjectPicker value={selection} onChange={setSelection} />
         <div className="row g-3 mt-3">
           <div className="col-md-6">
-            <h5>Datos del Cliente</h5>
-            <div className="mb-2"><label className="form-label">Empresa</label><input className="form-control" value={client.company_name} onChange={e=>setClient({...client, company_name:e.target.value})} required/></div>
-            <div className="mb-2"><label className="form-label">R.U.C.</label><input className="form-control" value={client.ruc} onChange={e=>setClient({...client, ruc:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Contacto</label><input className="form-control" value={client.contact_name} onChange={e=>setClient({...client, contact_name:e.target.value})} required/></div>
-            <div className="mb-2"><label className="form-label">Teléfono</label><input className="form-control" value={client.contact_phone} onChange={e=>setClient({...client, contact_phone:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Correo</label><input type="email" className="form-control" value={client.contact_email} onChange={e=>setClient({...client, contact_email:e.target.value})} /></div>
+            <div className="card shadow-sm">
+              <div className="card-header py-2"><strong>Datos del Cliente</strong></div>
+              <div className="card-body">
+            <div className="mb-2"><label className="form-label">Empresa</label><input className="form-control" value={client.company_name} onChange={e=>setClient({...client, company_name:e.target.value})} required/><div className="form-text">Razón social o nombre comercial del cliente.</div></div>
+            <div className="mb-2"><label className="form-label">R.U.C.</label><input className="form-control" value={client.ruc} onChange={e=>setClient({...client, ruc:e.target.value})} /><div className="form-text">RUC de la empresa (si aplica). Para persona natural, deja vacío.</div></div>
+            <div className="mb-2"><label className="form-label">Contacto</label><input className="form-control" value={client.contact_name} onChange={e=>setClient({...client, contact_name:e.target.value})} required/><div className="form-text">Nombre de la persona que solicita la cotización.</div></div>
+            <div className="mb-2"><label className="form-label">Teléfono</label><input className="form-control" value={client.contact_phone} onChange={e=>setClient({...client, contact_phone:e.target.value})} /><div className="form-text">Teléfono del contacto para coordinaciones.</div></div>
+            <div className="mb-2"><label className="form-label">Correo</label><input type="email" className="form-control" value={client.contact_email} onChange={e=>setClient({...client, contact_email:e.target.value})} /><div className="form-text">Correo del contacto para envío de la cotización.</div></div>
             <div className="mb-2"><label className="form-label">Ubicación del proyecto</label><input className="form-control" value={client.project_location} onChange={e=>setClient({...client, project_location:e.target.value})} /></div>
             <div className="mb-2"><label className="form-label">Nombre del proyecto</label><input className="form-control" value={client.project_name} onChange={e=>setClient({...client, project_name:e.target.value})} /></div>
-            <div className="mb-3"><label className="form-label">Nombre del servicio</label><input className="form-control" value={client.service_name} onChange={e=>setClient({...client, service_name:e.target.value})} /></div>
+            <div className="mb-0"><label className="form-label">Nombre del servicio</label><input className="form-control" value={client.service_name} onChange={e=>setClient({...client, service_name:e.target.value})} /><div className="form-text">Ej.: Ensayos de suelo y agregado, Extracción de diamantina, etc.</div></div>
+              </div>
+            </div>
           </div>
 
           <div className="col-md-6">
-            <h5>Datos de la Cotización</h5>
+            <div className="card shadow-sm">
+              <div className="card-header py-2"><strong>Datos de la Cotización</strong></div>
+              <div className="card-body">
             <div className="mb-2"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
             <div className="mb-2"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Referencia</label><input className="form-control" placeholder="SEGÚN LO SOLICITADO VÍA correo / llamada" value={quote.reference} onChange={e=>setQuote({...quote, reference:e.target.value})} /></div>
+            <div className="mb-2"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
+            <div className="mb-2"><label className="form-label">Referencia</label><input className="form-control" placeholder="SEGÚN LO SOLICITADO VÍA correo / llamada" value={quote.reference} onChange={e=>setQuote({...quote, reference:e.target.value})} /><div className="form-text">Contexto corto de la solicitud (llamada, correo, OS, etc.).</div></div>
             <div className="mb-2">
-              <div className="d-flex justify-content-between align-items-center">
-                <label className="form-label mb-0">Variante</label>
-                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={()=>setVariantVisual(!variantVisual)}>
-                  {variantVisual ? 'Ver como lista' : 'Ver como cards'}
-                </button>
-              </div>
-              {!variantVisual ? (
-                <select className="form-select mt-2" value={variantId} onChange={(e)=>setVariantId(e.target.value)}>
+              <label className="form-label">Variante</label>
+              <div className="d-flex gap-2 align-items-center">
+                <select className="form-select" value={variantId} onChange={(e)=>setVariantId(e.target.value)} style={{maxWidth:'70%'}}>
                   <option value="">Sin variante</option>
                   {(variants||[]).map(v => <option key={v.id} value={v.id}>{v.code} - {v.title}</option>)}
                 </select>
-              ) : (
-                <div className="row row-cols-2 row-cols-md-3 g-2 mt-1">
-                  {(variants||[]).map(v => {
-                    const extra = getVariantText(v) || v.description || '';
-                    return (
-                      <div className="col" key={v.id}>
-                        <div className={`card h-100 ${String(variantId)===String(v.id)?'border-primary':''}`} role="button" onClick={()=>setVariantId(String(v.id))}>
-                          <div className="card-body py-2">
-                            <div className="fw-semibold small">{v.code}</div>
-                            <div className="small">{v.title}</div>
-                            {extra ? (
-                              <div className="text-muted small mt-1" style={{whiteSpace:'pre-line', maxHeight: '8.5em', overflowY: 'auto'}}>
-                                {extra}
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                {variantId ? (
+                  <button type="button" className="btn btn-sm btn-outline-secondary" onClick={()=>{ setVariantId(''); setConditionsText(''); }}>
+                    Quitar
+                  </button>
+                ) : null}
+              </div>
+              {variantId ? (()=>{
+                const v = (variants||[]).find(x=>String(x.id)===String(variantId));
+                if (!v) return null;
+                const extra = getVariantText(v) || v.description || '';
+                return (
+                  <div className="alert alert-info mt-2 p-2">
+                    <div className="fw-semibold small">{v.code} - {v.title}</div>
+                    {extra ? <div className="small text-muted" style={{whiteSpace:'pre-line'}}>{extra}</div> : null}
+                  </div>
+                );
+              })() : <div className="form-text">Selecciona una variante del listado.</div>}
             </div>
             <div className="mb-2"><label className="form-label">Forma de pago</label>
               <select className="form-select" value={quote.payment_terms} onChange={e=>setQuote({...quote, payment_terms:e.target.value})}>
@@ -329,10 +327,16 @@ const CotizacionNuevaLEM = () => {
             <div className="mb-2"><label className="form-label">Nombre de archivo sugerido</label>
               <input className="form-control" value={suggestedFileName('xxx-XX', client.company_name)} readOnly />
             </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <h5 className="mt-3">Ítems</h5>
+        {/* Modal eliminado: la selección se hace solo con el menú desplegable */}
+
+  <div className="card shadow-sm mt-4">
+    <div className="card-header py-2"><strong>Ítems</strong></div>
+    <div className="card-body">
         <div className="table-responsive">
           <table className="table table-bordered align-middle">
             <thead>
@@ -366,7 +370,6 @@ const CotizacionNuevaLEM = () => {
         <div className="mb-3">
           <button type="button" className="btn btn-outline-primary" onClick={onAddItem}>Agregar ítem</button>
         </div>
-
         <div className="d-flex justify-content-end align-items-center gap-4 flex-wrap">
           <div className="text-end">
             <div>Subtotal: S/ {subtotal.toFixed(2)}</div>
@@ -384,6 +387,8 @@ const CotizacionNuevaLEM = () => {
             Exportar Excel
           </button>
         </div>
+    </div>
+  </div>
       </form>
     </ModuloBase>
   );
