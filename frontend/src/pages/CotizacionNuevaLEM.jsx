@@ -35,6 +35,39 @@ function suggestedFileName(seq = 'xxx-XX', client = '') {
   return `Cotización ${seq} LEM-GEOFAL-${clientName}`;
 }
 
+// Texto exacto por variante (extraído de REQUERIMIENTOS_COTIZACION_LABORATORIO.txt)
+// Usamos claves normalizadas (mayúsculas, sin acentos) para robustez.
+const normalizeKey = (s = '') => (s || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toUpperCase()
+  .trim();
+
+const VARIANT_TEXTS = {
+  [normalizeKey('MUESTRA DE SUELO Y AGREGADO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
+  [normalizeKey('PROBETAS')]: `CONDICIONES ESPECÍFICAS:\n- El cliente debe proporcionar las probetas antes del ingreso a obra.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
+  [normalizeKey('DENSIDAD DE CAMPO Y MUESTREO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.\n- Para el ensayo de Densidad de campo, la cantidad de puntos/salida minimo 4 und.\n- El cliente deberá de programar el servicio, Densidad de campo, con 24 horas de anticipación.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
+  [normalizeKey('EXTRACCIÓN DE DIAMANTINA')]: `CONDICIONES ESPECÍFICAS:\n- Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.\n- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.\n- El servicio no incluye trabajos de acabados como pintura, mayolica y otros.\n- El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.\n- La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).\n- Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina`,
+  // alias sin acentos
+  [normalizeKey('EXTRACCION DE DIAMANTINA')]: `CONDICIONES ESPECÍFICAS:\n- Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.\n- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.\n- El servicio no incluye trabajos de acabados como pintura, mayolica y otros.\n- El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.\n- La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).\n- Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina`,
+  [normalizeKey('DIAMANTINA PARA PASES')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.\n- El area de trabajo, zona de extraccion de diamantina, debera estar libre de interferencia.\n- Para extraer la diamantina, se ubicara el acero con un escaneador.\n- Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.`,
+  [normalizeKey('ALBAÑILERÍA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima`,
+  // alias sin ñ
+  [normalizeKey('ALBANILERIA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima`,
+  [normalizeKey('VIGA BECKELMAN')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.\n- El area de trabajo tiene que estar habilitado.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.\n- Especificar las caracteristicas del camion`,
+  [normalizeKey('CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, con 24 horas de anticipación.\n- Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.\n- El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.`,
+  // alias más corto usado en análisis
+  [normalizeKey('CONTROL DE CALIDAD DE CONCRETO FRESCO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, con 24 horas de anticipación.\n- Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.\n- El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.`,
+};
+
+const getVariantText = (v) => {
+  const t = normalizeKey(v?.title || '');
+  if (VARIANT_TEXTS[t]) return VARIANT_TEXTS[t];
+  // intento de match por inclusión si el título difiere levemente
+  const entry = Object.entries(VARIANT_TEXTS).find(([k]) => t.includes(k) || k.includes(t));
+  return entry ? entry[1] : '';
+};
+
 const CotizacionNuevaLEM = () => {
   const [variants, setVariants] = useState([]);
   const [variantId, setVariantId] = useState('');
@@ -213,17 +246,24 @@ const CotizacionNuevaLEM = () => {
                 </select>
               ) : (
                 <div className="row row-cols-2 row-cols-md-3 g-2 mt-1">
-                  {(variants||[]).map(v => (
-                    <div className="col" key={v.id}>
-                      <div className={`card h-100 ${String(variantId)===String(v.id)?'border-primary':''}`} role="button" onClick={()=>setVariantId(String(v.id))}>
-                        <div className="card-body py-2">
-                          <div className="fw-semibold small">{v.code}</div>
-                          <div className="small">{v.title}</div>
-                          {v.description ? <div className="text-muted small mt-1" style={{minHeight: '2.4em'}}>{v.description}</div> : null}
+                  {(variants||[]).map(v => {
+                    const extra = getVariantText(v) || v.description || '';
+                    return (
+                      <div className="col" key={v.id}>
+                        <div className={`card h-100 ${String(variantId)===String(v.id)?'border-primary':''}`} role="button" onClick={()=>setVariantId(String(v.id))}>
+                          <div className="card-body py-2">
+                            <div className="fw-semibold small">{v.code}</div>
+                            <div className="small">{v.title}</div>
+                            {extra ? (
+                              <div className="text-muted small mt-1" style={{whiteSpace:'pre-line', maxHeight: '8.5em', overflowY: 'auto'}}>
+                                {extra}
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

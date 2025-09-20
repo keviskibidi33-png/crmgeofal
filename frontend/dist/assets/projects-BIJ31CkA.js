@@ -1,2 +1,0 @@
-import{b as o}from"./index-HaxW7Nk-.js";const c=(t={})=>{const s=new URLSearchParams(t).toString(),a=s?`/api/companies?${s}`:"/api/companies";return o(a)},e=(t={})=>{const s=new URLSearchParams(t).toString(),a=s?`/api/projects?${s}`:"/api/projects";return o(a)},n=t=>o("/api/projects",{method:"POST",body:JSON.stringify(t)});export{e as a,n as c,c as l};
-//# sourceMappingURL=projects-BIJ31CkA.js.map
