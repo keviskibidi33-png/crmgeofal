@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ModuloBase from '../components/ModuloBase';
+import apiFetch from '../services/api';
 
 const Recuperados = () => {
   const [data, setData] = useState([]);
@@ -11,25 +12,25 @@ const Recuperados = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/recuperados?page=${page}&limit=${limit}`,
-      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al cargar recuperados');
-        return res.json();
-      })
-      .then(json => {
-        setData(json.data);
-        setTotal(json.total);
+    (async () => {
+      try {
+        const json = await apiFetch(`/api/recuperados?page=${page}&limit=${limit}`);
+        setData(json.data || []);
+        setTotal(json.total || 0);
+      } catch (err) {
+        setError(err.message || 'Error al cargar recuperados');
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+      }
+    })();
   }, [page]);
 
   return (
     <ModuloBase titulo="Clientes Recuperados" descripcion="Empresas sin proyectos en los últimos 3 meses.">
+      <div style={{background:'#fffbe6',border:'1px solid #ffe58f',borderRadius:8,padding:'1rem',marginBottom:'1.5rem',color:'#ad8b00'}}>
+        <b>¿Qué es un cliente recuperado?</b><br/>
+        Este listado muestra todas las empresas que no han tenido ningún proyecto registrado en los últimos 3 meses. Puedes usar esta información para campañas de reactivación, seguimiento comercial o análisis de clientes inactivos.
+      </div>
       {loading && <p>Cargando...</p>}
       {error && <p style={{color:'red'}}>{error}</p>}
       {!loading && !error && (

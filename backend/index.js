@@ -70,23 +70,28 @@ app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+
 app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 
 // Middleware global de manejo de errores
-app.use((err, req, res, next) => {
+// Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
+// unused `next` parameter while preserving Express's middleware signature we disable the
+// no-unused-vars rule on this line.
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   logger.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Test DB connection on startup
-const pool = require('./config/db');
-pool.query('SELECT NOW()')
-  .then(res => console.log('PostgreSQL connected:', res.rows[0].now))
-  .catch(err => console.error('PostgreSQL connection error:', err));
-
 module.exports = app;
 
 if (require.main === module) {
+  // Only test DB connection when starting the server directly (not when running tests)
+  const pool = require('./config/db');
+  pool.query('SELECT NOW()')
+    .then(res => console.log('PostgreSQL connected:', res.rows[0].now))
+    .catch(err => console.error('PostgreSQL connection error:', err));
+
   if (!process.env.JWT_SECRET) {
     throw new Error('Falta la variable de entorno JWT_SECRET');
   }
