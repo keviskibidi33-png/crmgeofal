@@ -7,5 +7,7 @@ const auth = require('../middlewares/auth');
 router.get('/project/:project_id', auth(['vendedor_comercial','jefa_comercial','jefe_comercial','gerencia','admin']), projectWhatsappNoticeController.getAllByProject);
 // Solo ventas y jefes pueden registrar avisos
 router.post('/', auth(['vendedor_comercial','jefa_comercial','jefe_comercial']), projectWhatsappNoticeController.create);
+// Listado global de avisos
+router.get('/', auth(['admin','gerencia','sistemas','soporte','jefa_comercial','jefe_comercial']), projectWhatsappNoticeController.getAll);
 
 module.exports = router;

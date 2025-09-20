@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import RequireRole from './components/RequireRole';
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 const Ajustes = lazy(() => import('./pages/Ajustes'));
@@ -50,29 +51,29 @@ function App() {
                   <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   {/* Eliminada la duplicidad: solo / apunta a Dashboard */}
                   <Route path="/ajustes" element={<ErrorBoundary><Ajustes /></ErrorBoundary>} />
-                  <Route path="/usuarios" element={<ErrorBoundary><Usuarios /></ErrorBoundary>} />
-                  <Route path="/clientes" element={<ErrorBoundary><Clientes /></ErrorBoundary>} />
-                  <Route path="/proyectos" element={<ErrorBoundary><Proyectos /></ErrorBoundary>} />
-                  <Route path="/cotizaciones" element={<ErrorBoundary><Cotizaciones /></ErrorBoundary>} />
-                  <Route path="/cotizaciones/lista" element={<ErrorBoundary><ListaCotizaciones /></ErrorBoundary>} />
-                  <Route path="/cotizaciones/nueva/lem" element={<ErrorBoundary><CotizacionNuevaLEM /></ErrorBoundary>} />
-                  <Route path="/cotizaciones/:id" element={<ErrorBoundary><DetalleCotizacion /></ErrorBoundary>} />
-                  <Route path="/adjuntos" element={<ErrorBoundary><Adjuntos /></ErrorBoundary>} />
-                  <Route path="/tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
-                  <Route path="/reportes" element={<ErrorBoundary><Reportes /></ErrorBoundary>} />
-                  <Route path="/categorias" element={<ErrorBoundary><Categorias /></ErrorBoundary>} />
-                  <Route path="/subcategorias" element={<ErrorBoundary><Subcategorias /></ErrorBoundary>} />
-                  <Route path="/historial-proyectos" element={<ErrorBoundary><HistorialProyectos /></ErrorBoundary>} />
-                  <Route path="/notificaciones-whatsapp" element={<ErrorBoundary><NotificacionesWhatsapp /></ErrorBoundary>} />
-                  <Route path="/servicios" element={<ErrorBoundary><Servicios /></ErrorBoundary>} />
-                  <Route path="/subservicios" element={<ErrorBoundary><Subservicios /></ErrorBoundary>} />
-                  <Route path="/evidencias" element={<ErrorBoundary><Evidencias /></ErrorBoundary>} />
-                  <Route path="/facturas" element={<ErrorBoundary><Facturas /></ErrorBoundary>} />
-                  <Route path="/variantes-cotizacion" element={<ErrorBoundary><VariantesCotizacion /></ErrorBoundary>} />
-                  <Route path="/items-cotizacion" element={<ErrorBoundary><ItemsCotizacion /></ErrorBoundary>} />
-                  <Route path="/historial-tickets" element={<ErrorBoundary><HistorialTickets /></ErrorBoundary>} />
-                  <Route path="/auditoria" element={<ErrorBoundary><Auditoria /></ErrorBoundary>} />
-                  <Route path="/exportaciones" element={<ErrorBoundary><Exportaciones /></ErrorBoundary>} />
+                  <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
+                  <Route path="/clientes" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Clientes /></RequireRole></ErrorBoundary>} />
+                  <Route path="/proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Proyectos /></RequireRole></ErrorBoundary>} />
+                  <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
+                  <Route path="/cotizaciones/lista" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><ListaCotizaciones /></RequireRole></ErrorBoundary>} />
+                  <Route path="/cotizaciones/nueva/lem" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><CotizacionNuevaLEM /></RequireRole></ErrorBoundary>} />
+                  <Route path="/cotizaciones/:id" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio","gerencia"]}><DetalleCotizacion /></RequireRole></ErrorBoundary>} />
+                  <Route path="/adjuntos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Adjuntos /></RequireRole></ErrorBoundary>} />
+                  <Route path="/tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte","jefa_comercial","vendedor_comercial"]}><Tickets /></RequireRole></ErrorBoundary>} />
+                  <Route path="/reportes" element={<ErrorBoundary><RequireRole roles={["admin","gerencia","jefa_comercial"]}><Reportes /></RequireRole></ErrorBoundary>} />
+                  <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} />
+                  <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} />
+                  <Route path="/historial-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><HistorialProyectos /></RequireRole></ErrorBoundary>} />
+                  <Route path="/notificaciones-whatsapp" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><NotificacionesWhatsapp /></RequireRole></ErrorBoundary>} />
+                  <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
+                  <Route path="/subservicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Subservicios /></RequireRole></ErrorBoundary>} />
+                  <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
+                  <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Facturas /></RequireRole></ErrorBoundary>} />
+                  <Route path="/variantes-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><VariantesCotizacion /></RequireRole></ErrorBoundary>} />
+                  <Route path="/items-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><ItemsCotizacion /></RequireRole></ErrorBoundary>} />
+                  <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
+                  <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
+                  <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
                   {/* Fallback a dashboard si la ruta no existe */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

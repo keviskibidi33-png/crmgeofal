@@ -10,6 +10,10 @@ function getAuthHeader() {
 
 export async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...getAuthHeader(), ...(opts.headers || {}) };
+  // Si el body es FormData, eliminamos Content-Type para que el navegador establezca los límites correctamente
+  if (opts && opts.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
   // normaliza path para no duplicar /api ni barras dobles
   let normPath = String(path || '')
     .replace(/^[\s]*\//, '/') // asegura que inicia con '/'

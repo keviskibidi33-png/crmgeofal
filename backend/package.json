@@ -7,8 +7,9 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "jest",
-  "lint": "eslint .",
-    "format": "prettier --write ."
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "build": "echo \"No build step for backend\""
   },
   "dependencies": {
     "express": "^4.18.2",

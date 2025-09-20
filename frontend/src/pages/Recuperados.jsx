@@ -1,74 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ModuloBase from '../components/ModuloBase';
-import apiFetch from '../services/api';
+import Toolbar from '../components/Toolbar';
+import DataTable from '../components/DataTable';
+import Toast from '../components/Toast';
+import { listRecuperados } from '../services/recuperados';
 
-const Recuperados = () => {
-  const [data, setData] = useState([]);
+export default function Recuperados() {
+  const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const [limit] = useState(10);
+  const [months, setMonths] = useState(3);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, variant: 'success', message: '' });
 
-  useEffect(() => {
-    setLoading(true);
-    (async () => {
-      try {
-        const json = await apiFetch(`/api/recuperados?page=${page}&limit=${limit}`);
-        setData(json.data || []);
-        setTotal(json.total || 0);
-      } catch (err) {
-        setError(err.message || 'Error al cargar recuperados');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [page]);
+  const load = async () => {
+    try {
+      setLoading(true);
+      const resp = await listRecuperados({ page, limit, months });
+      const data = Array.isArray(resp?.data) ? resp.data : (resp?.rows || resp || []);
+      setRows(data);
+      setTotal(resp?.total ?? data.length);
+    } catch (err) {
+      setToast({ show: true, variant: 'danger', message: err.message || 'No se pudo cargar' });
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, months]);
+
+  const columns = useMemo(() => ([
+    { header: 'ID', key: 'id', width: 80 },
+    { header: 'Cliente', key: 'name' },
+    { header: 'RUC', key: 'ruc', width: 140 },
+    { header: 'Dirección', key: 'address' },
+    { header: 'Creado', key: 'created_at', render: r => (r.created_at ? String(r.created_at).slice(0,10) : '—'), width: 120 },
+  ]), []);
+
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
   return (
-    <ModuloBase titulo="Clientes Recuperados" descripcion="Empresas sin proyectos en los últimos 3 meses.">
-      <div style={{background:'#fffbe6',border:'1px solid #ffe58f',borderRadius:8,padding:'1rem',marginBottom:'1.5rem',color:'#ad8b00'}}>
-        <b>¿Qué es un cliente recuperado?</b><br/>
-        Este listado muestra todas las empresas que no han tenido ningún proyecto registrado en los últimos 3 meses. Puedes usar esta información para campañas de reactivación, seguimiento comercial o análisis de clientes inactivos.
-      </div>
-      {loading && <p>Cargando...</p>}
-      {error && <p style={{color:'red'}}>{error}</p>}
-      {!loading && !error && (
-        <>
-          <table style={{width:'100%',borderCollapse:'collapse',marginBottom:'1rem'}}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>RUC/DNI</th>
-                <th>Contacto</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.length === 0 && <tr><td colSpan={6} style={{textAlign:'center'}}>Sin recuperados</td></tr>}
-              {data.map(c => (
-                <tr key={c.id}>
-                  <td>{c.id}</td>
-                  <td>{c.name}</td>
-                  <td>{c.ruc || c.dni}</td>
-                  <td>{c.contact_name}</td>
-                  <td>{c.email}</td>
-                  <td>{c.phone}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <button disabled={page===1} onClick={()=>setPage(p=>p-1)}>Anterior</button>
-            <span>Página {page} de {Math.ceil(total/limit)||1}</span>
-            <button disabled={page*limit>=total} onClick={()=>setPage(p=>p+1)}>Siguiente</button>
+    <ModuloBase titulo="Clientes Recuperados" descripcion="Empresas sin proyectos en los últimos meses (seguimiento comercial)">
+      <Toolbar
+        compact
+        left={
+          <div className="row g-2 w-100">
+            <div className="col-6 col-md-3">
+              <label className="form-label">Meses sin proyectos</label>
+              <select className="form-select" value={months} onChange={e=>{ setMonths(parseInt(e.target.value)||3); setPage(1); }}>
+                <option value={1}>1 mes</option>
+                <option value={3}>3 meses</option>
+                <option value={6}>6 meses</option>
+                <option value={12}>12 meses</option>
+              </select>
+            </div>
           </div>
-        </>
-      )}
+        }
+        right={
+          <div className="d-flex gap-2">
+            <button className="btn btn-outline-primary" onClick={()=>{ setPage(1); load(); }} disabled={loading}>{loading ? 'Cargando...' : 'Refrescar'}</button>
+          </div>
+        }
+      />
+
+      <DataTable columns={columns} rows={rows} loading={loading} />
+
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="text-muted small">Total: {total}</div>
+        <div className="btn-group">
+          <button className="btn btn-outline-secondary" disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}>Anterior</button>
+          <span className="btn btn-outline-secondary disabled">{page}/{totalPages}</span>
+          <button className="btn btn-outline-secondary" disabled={page>=totalPages} onClick={()=>setPage(p=>Math.min(totalPages,p+1))}>Siguiente</button>
+        </div>
+      </div>
+
+      <Toast show={toast.show} variant={toast.variant} onClose={()=>setToast({ ...toast, show: false })}>
+        {toast.message}
+      </Toast>
     </ModuloBase>
   );
-};
-
-export default Recuperados;
+}

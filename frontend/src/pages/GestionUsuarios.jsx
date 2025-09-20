@@ -51,7 +51,8 @@ const UserManagement = () => {
 
   return (
     <ModuloBase titulo="Gestión de Usuarios" descripcion="Activa o desactiva el acceso de los agentes, gestiona sus contraseñas y filtra por nombre o área.">
-      <div style={{display:'flex',gap:'1rem',marginBottom:'1.5rem',alignItems:'center'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',gap:'1rem',flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:'1rem',alignItems:'center',flexWrap:'wrap'}}>
         <input
           type="text"
           placeholder="Buscar por nombre..."
@@ -62,6 +63,16 @@ const UserManagement = () => {
         <select value={role} onChange={e => { setRole(e.target.value); setPage(1); }} style={{padding:'0.5rem',borderRadius:6,background:'#f5f5f5',fontWeight:500}}>
           {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => setModalEdit({ id: null, name: '', apellido: '', email: '', role: 'user', area: '', active: true })}
+            style={{background:'#222',color:'#fff',border:'none',borderRadius:8,padding:'0.6rem 1rem',fontWeight:600}}
+          >
+            + Agregar usuario
+          </button>
+        </div>
       </div>
       {loading && <p>Cargando...</p>}
       {error && <p style={{color:'red'}}>{error}</p>}
@@ -135,16 +146,26 @@ const UserManagement = () => {
             const email = form.email.value.trim();
             const rol = form.rol.value;
             const area = form.area.value.trim();
+            const isCreate = !modalEdit.id;
+            const password = isCreate ? form.password.value.trim() : undefined;
             try {
-              await apiFetch(`/api/users/${modalEdit.id}`, { method: 'PATCH', body: JSON.stringify({ name: nombre, apellido, email, role: rol, area }) });
+              if (isCreate) {
+                if (!password || password.length < 6) {
+                  alert('La contraseña debe tener al menos 6 caracteres');
+                  return;
+                }
+                await apiFetch(`/api/users`, { method: 'POST', body: JSON.stringify({ name: nombre, apellido, email, role: rol, area, password, active: true }) });
+              } else {
+                await apiFetch(`/api/users/${modalEdit.id}`, { method: 'PATCH', body: JSON.stringify({ name: nombre, apellido, email, role: rol, area }) });
+              }
               setModalEdit(null);
               setRefresh(r => !r);
             } catch (err) {
               alert(err.message || 'Error al editar usuario');
             }
           }}>
-            <h2 style={{marginBottom:8}}>Editar Usuario</h2>
-            <div style={{color:'#888',marginBottom:18}}>Actualiza los datos del usuario.</div>
+            <h2 style={{marginBottom:8}}>{modalEdit.id ? 'Editar Usuario' : 'Nuevo Usuario'}</h2>
+            <div style={{color:'#888',marginBottom:18}}>{modalEdit.id ? 'Actualiza los datos del usuario.' : 'Completa los datos para crear un nuevo usuario.'}</div>
             <div style={{display:'flex',gap:'1rem',marginBottom:18}}>
               <div style={{flex:1}}>
                 <label>Nombre</label>
@@ -163,6 +184,12 @@ const UserManagement = () => {
               <label>Correo Electrónico</label>
               <input name="email" defaultValue={modalEdit.email} style={{width:'100%',padding:'0.6rem',borderRadius:8,border:'1px solid #ccc',marginTop:4}} required />
             </div>
+            {!modalEdit.id && (
+              <div style={{marginBottom:18}}>
+                <label>Contraseña</label>
+                <input name="password" type="password" minLength={6} style={{width:'100%',padding:'0.6rem',borderRadius:8,border:'1px solid #ccc',marginTop:4}} required />
+              </div>
+            )}
             <div style={{marginBottom:24}}>
               <label>Rol</label>
               <select name="rol" defaultValue={modalEdit.role} style={{width:'100%',padding:'0.6rem',borderRadius:8,border:'1px solid #ccc',marginTop:4}}>

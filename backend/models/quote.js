@@ -2,12 +2,14 @@
 const pool = require('../config/db');
 
 const Quote = {
-  async getAll({ project_id, company_id, status, page = 1, limit = 20 }) {
+  async getAll({ project_id, company_id, status, page = 1, limit = 20, date_from, date_to }) {
     let where = [];
     let params = [];
     if (project_id) { where.push('q.project_id = $' + (params.length + 1)); params.push(project_id); }
     if (company_id) { where.push('p.company_id = $' + (params.length + 1)); params.push(company_id); }
     if (status) { where.push('q.status = $' + (params.length + 1)); params.push(status); }
+    if (date_from) { where.push('q.issue_date >= $' + (params.length + 1)); params.push(date_from); }
+    if (date_to) { where.push('q.issue_date <= $' + (params.length + 1)); params.push(date_to); }
     const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const offset = (page - 1) * limit;
     const select = `SELECT q.* FROM quotes q LEFT JOIN projects p ON p.id = q.project_id ${whereClause} ORDER BY q.id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;

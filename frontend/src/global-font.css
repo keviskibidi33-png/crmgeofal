@@ -11,3 +11,17 @@ body, html {
 * {
   box-sizing: inherit;
 }
+
+/* Tabla utilitaria */
+table.table th, table.table td {
+  vertical-align: middle;
+}
+
+/* Select con apariencia de badge (usado para estado en tablas) */
+.badge-select {
+  padding: 0.15rem 0.35rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  max-width: 160px;
+}

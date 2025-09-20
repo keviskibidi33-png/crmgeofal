@@ -49,7 +49,6 @@ const sectionsByRole = {
         },
   { path: '/recuperados', label: 'Recuperados', icon: <FaCheckCircle /> },
   { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
-        { path: '/historial-proyectos', label: 'Historial Proyectos', icon: <FaHistory /> },
         { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: <FaWhatsapp /> },
         // Agrupación Servicios
         {
@@ -74,7 +73,102 @@ const sectionsByRole = {
       ]
     }
   ],
-  // Otros roles pueden tener otras secciones
+  jefa_comercial: [
+    {
+      title: 'General',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+      ]
+    },
+    {
+      title: 'Gestión',
+      items: [
+        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
+        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
+        { path: '/cotizaciones', label: 'Cotizaciones', icon: <FaFileAlt /> },
+        { path: '/facturas', label: 'Facturas', icon: <FaFileInvoice /> },
+        { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
+        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: <FaWhatsapp /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  vendedor_comercial: [
+    {
+      title: 'General',
+      items: [ { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> } ]
+    },
+    {
+      title: 'Gestión',
+      items: [
+        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
+        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
+        { path: '/cotizaciones', label: 'Cotizaciones', icon: <FaFileAlt /> },
+        { path: '/tickets', label: 'Tickets', icon: <FaTicketAlt /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  jefe_laboratorio: [
+    {
+      title: 'Laboratorio',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/variantes-cotizacion', label: 'Variantes', icon: <FaList /> },
+        { path: '/items-cotizacion', label: 'Items', icon: <FaListAlt /> },
+        { path: '/servicios', label: 'Servicios', icon: <FaCogs /> },
+        { path: '/subservicios', label: 'Subservicios', icon: <FaBoxes /> },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
+        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  usuario_laboratorio: [
+    {
+      title: 'Laboratorio',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
+        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  laboratorio: [
+    {
+      title: 'Laboratorio',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
+        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  soporte: [
+    {
+      title: 'Operación',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/tickets', label: 'Tickets', icon: <FaTicketAlt /> },
+        { path: '/historial-tickets', label: 'Historial Tickets', icon: <FaHistory /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
+  gerencia: [
+    {
+      title: 'Dirección',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
+        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
+        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+  ],
 };
 
 const sidebarStyles = {

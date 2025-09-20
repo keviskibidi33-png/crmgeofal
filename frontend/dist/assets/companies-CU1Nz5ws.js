@@ -1,0 +1,2 @@
+import{b as s}from"./index-BFrTSJXc.js";const n=(a={})=>{const o=new URLSearchParams(a).toString(),t=o?`/api/companies?${o}`:"/api/companies";return s(t)},i=a=>s("/api/companies",{method:"POST",body:JSON.stringify(a)}),p=(a,o)=>s(`/api/companies/${a}`,{method:"PATCH",body:JSON.stringify(o)}),c=a=>s(`/api/companies/${a}`,{method:"DELETE"});export{i as c,c as d,n as l,p as u};
+//# sourceMappingURL=companies-CU1Nz5ws.js.map

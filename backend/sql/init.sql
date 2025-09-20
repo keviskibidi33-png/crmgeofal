@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Puedes agregar más tablas aquí según el modelo de negocio
-ALTER TABLE users ADD COLUMN area TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS area TEXT;

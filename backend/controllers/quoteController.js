@@ -4,8 +4,8 @@ const AuditQuote = require('../models/auditQuote');
 
 exports.getAll = async (req, res) => {
   try {
-  const { project_id, company_id, status, page, limit } = req.query;
-  const result = await Quote.getAll({ project_id, company_id, status, page, limit });
+    const { project_id, company_id, status, page, limit, date_from, date_to } = req.query;
+    const result = await Quote.getAll({ project_id, company_id, status, page, limit, date_from, date_to });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener cotizaciones' });

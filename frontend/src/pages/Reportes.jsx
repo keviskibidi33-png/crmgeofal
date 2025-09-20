@@ -1,10 +1,10 @@
 import React from 'react';
 import ModuloBase from '../components/ModuloBase';
 
-const Reportes = () => (
-  <ModuloBase titulo="Reportes y Estadísticas" descripcion="Aquí podrás consultar reportes y estadísticas del sistema.">
-    {/* Aquí irán los filtros y visualizaciones de reportes */}
-  </ModuloBase>
-);
-
-export default Reportes;
+export default function Reportes() {
+  return (
+    <ModuloBase titulo="Reportes" descripcion="Panel para visualizar y generar reportes.">
+      <div className="alert alert-info">Próximamente: gráficos y filtros de reportes.</div>
+    </ModuloBase>
+  );
+}

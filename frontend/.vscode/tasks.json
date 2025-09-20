@@ -63,12 +63,12 @@
 				"build"
 			],
 			"problemMatcher": [
-				"$eslint - stylish"
+				"$eslint-stylish"
 			],
 			"group": "build"
 		},
 		{
-			"label": "Build frontend (Vite)",
+			"label": "build-frontend",
 			"type": "shell",
 			"command": "npm run build",
 			"args": [],
@@ -78,31 +78,13 @@
 			"group": "build"
 		},
 		{
-			"label": "Build frontend (Vite)",
+			"label": "frontend:build",
 			"type": "shell",
 			"command": "npm run build",
 			"args": [],
-			"group": "build"
-		},
-		{
-			"label": "Build frontend (Vite)",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
-			"group": "build"
-		},
-		{
-			"label": "Build frontend (Vite)",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
-			"group": "build"
-		},
-		{
-			"label": "Build frontend (Vite)",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
 			"group": "build"
 		}
 	]
