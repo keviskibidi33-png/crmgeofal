@@ -1,3 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/ListaCotizaciones-ptFIPQEU.js","assets/index-FgnKWDtQ.js","assets/index-BHM2OMZ0.css","assets/ModuloBase-BCXrQDzC.js","assets/quotes-Bv-nGcaF.js","assets/projects-yUBhH7vx.js"])))=>i.map(i=>d[i]);
-import{j as s,r as t,_ as a}from"./index-FgnKWDtQ.js";const e=t.lazy(()=>a(()=>import("./ListaCotizaciones-ptFIPQEU.js"),__vite__mapDeps([0,1,2,3,4,5])));function i(){return s.jsx(t.Suspense,{fallback:s.jsx("div",{style:{padding:16},children:"Cargando módulo de cotizaciones..."}),children:s.jsx(e,{})})}export{i as default};
-//# sourceMappingURL=Cotizaciones-CMn8AbI0.js.map

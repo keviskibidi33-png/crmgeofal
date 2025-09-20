@@ -76,6 +76,13 @@
 				"$eslint-stylish"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Build frontend (Vite)",
+			"type": "shell",
+			"command": "npm run build",
+			"args": [],
+			"group": "build"
 		}
 	]
 }

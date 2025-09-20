@@ -78,14 +78,42 @@ const CotizacionNuevaLEM = () => {
   const [items, setItems] = useState([{ ...emptyItem }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [conditionsText, setConditionsText] = useState('');
 
   useEffect(() => {
     (async () => {
       try {
         const v = await listVariants({ active: true });
-        setVariants(v || []);
+        const loaded = v || [];
+        if (loaded.length > 0) {
+          setVariants(loaded);
+          return;
+        }
+        // Fallback local de variantes si la API devuelve vacío, para que las cards sean visibles
+        const fallback = [
+          { id: 'V1', code: 'V1', title: 'MUESTRA DE SUELO Y AGREGADO', description: getVariantText({ title: 'MUESTRA DE SUELO Y AGREGADO' }) },
+          { id: 'V2', code: 'V2', title: 'PROBETAS', description: getVariantText({ title: 'PROBETAS' }) },
+          { id: 'V3', code: 'V3', title: 'DENSIDAD DE CAMPO Y MUESTREO', description: getVariantText({ title: 'DENSIDAD DE CAMPO Y MUESTREO' }) },
+          { id: 'V4', code: 'V4', title: 'EXTRACCIÓN DE DIAMANTINA', description: getVariantText({ title: 'EXTRACCIÓN DE DIAMANTINA' }) },
+          { id: 'V5', code: 'V5', title: 'DIAMANTINA PARA PASES', description: getVariantText({ title: 'DIAMANTINA PARA PASES' }) },
+          { id: 'V6', code: 'V6', title: 'ALBAÑILERÍA', description: getVariantText({ title: 'ALBAÑILERÍA' }) },
+          { id: 'V7', code: 'V7', title: 'VIGA BECKELMAN', description: getVariantText({ title: 'VIGA BECKELMAN' }) },
+          { id: 'V8', code: 'V8', title: 'CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA', description: getVariantText({ title: 'CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA' }) },
+        ];
+        setVariants(fallback);
       } catch (e) {
-        // ignore load error
+        // En error, también usar fallback local
+        const fallback = [
+          { id: 'V1', code: 'V1', title: 'MUESTRA DE SUELO Y AGREGADO', description: getVariantText({ title: 'MUESTRA DE SUELO Y AGREGADO' }) },
+          { id: 'V2', code: 'V2', title: 'PROBETAS', description: getVariantText({ title: 'PROBETAS' }) },
+          { id: 'V3', code: 'V3', title: 'DENSIDAD DE CAMPO Y MUESTREO', description: getVariantText({ title: 'DENSIDAD DE CAMPO Y MUESTREO' }) },
+          { id: 'V4', code: 'V4', title: 'EXTRACCIÓN DE DIAMANTINA', description: getVariantText({ title: 'EXTRACCIÓN DE DIAMANTINA' }) },
+          { id: 'V5', code: 'V5', title: 'DIAMANTINA PARA PASES', description: getVariantText({ title: 'DIAMANTINA PARA PASES' }) },
+          { id: 'V6', code: 'V6', title: 'ALBAÑILERÍA', description: getVariantText({ title: 'ALBAÑILERÍA' }) },
+          { id: 'V7', code: 'V7', title: 'VIGA BECKELMAN', description: getVariantText({ title: 'VIGA BECKELMAN' }) },
+          { id: 'V8', code: 'V8', title: 'CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA', description: getVariantText({ title: 'CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA' }) },
+        ];
+        setVariants(fallback);
       }
     })();
   }, []);
@@ -111,6 +139,9 @@ const CotizacionNuevaLEM = () => {
       igv: typeof c.default_igv === 'boolean' ? c.default_igv : prev.igv,
       reference: c.default_reference || prev.reference,
     }));
+    // Autollenar textarea de Condiciones específicas con el texto exacto
+    const extra = getVariantText(v) || v.description || '';
+    if (extra) setConditionsText(extra);
     if (Array.isArray(c.default_items) && items.length <= 1 && !items[0].code && !items[0].description && !items[0].norm) {
       const mapped = c.default_items.map(di => ({
         code: di.code || '',
@@ -147,6 +178,7 @@ const CotizacionNuevaLEM = () => {
         meta: {
           customer: client,
           quote,
+          conditions_text: conditionsText,
           payment_terms: quote.payment_terms,
           acceptance: quote.acceptance,
           reference: quote.reference,
@@ -283,6 +315,16 @@ const CotizacionNuevaLEM = () => {
             <div className="form-check mb-3">
               <input className="form-check-input" type="checkbox" id="acceptance" checked={quote.acceptance} onChange={e=>setQuote({...quote, acceptance:e.target.checked})}/>
               <label className="form-check-label" htmlFor="acceptance">Aceptación de cotización</label>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Condiciones específicas</label>
+              <textarea
+                className="form-control"
+                rows={6}
+                placeholder="Aquí aparecerán las condiciones de la variante seleccionada; puedes editarlas si es necesario."
+                value={conditionsText}
+                onChange={(e)=>setConditionsText(e.target.value)}
+              />
             </div>
             <div className="mb-2"><label className="form-label">Nombre de archivo sugerido</label>
               <input className="form-control" value={suggestedFileName('xxx-XX', client.company_name)} readOnly />
