@@ -1,0 +1,2 @@
+import{b as i}from"./index-BA6zIb2O.js";const o=(t={})=>{const a=new URLSearchParams(t).toString(),s=a?`/api/quote-variants?${a}`:"/api/quote-variants";return i(s)},r=t=>i("/api/quote-variants",{method:"POST",body:JSON.stringify(t)}),e=(t,a)=>i(`/api/quote-variants/${t}`,{method:"PUT",body:JSON.stringify(a)}),c=t=>i(`/api/quote-variants/${t}`,{method:"DELETE"});export{r as c,c as d,o as l,e as u};
+//# sourceMappingURL=quoteVariants-Dj-47FVD.js.map

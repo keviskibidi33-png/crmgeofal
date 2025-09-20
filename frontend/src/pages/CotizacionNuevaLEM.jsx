@@ -3,7 +3,7 @@ import ModuloBase from '../components/ModuloBase';
 import { listVariants } from '../services/quoteVariants';
 import { createQuote, addQuoteItem } from '../services/quotes';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
-import { useId } from 'react';
+import './CotizacionNuevaLEM.css';
 
 // Plantilla de creación de cotización para Laboratorio (LEM)
 // Requisitos clave cubiertos:
@@ -245,20 +245,26 @@ const CotizacionNuevaLEM = () => {
   return (
     <ModuloBase titulo="Nueva Cotización LEM" descripcion="Plantilla de cotización para Laboratorio con variantes y condiciones">
       {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="lem-quote-page">
         <CompanyProjectPicker value={selection} onChange={setSelection} />
-        <div className="row g-3 mt-3">
+        <div className="alert alert-light border mt-3 lem-intro">
+          Completa el formulario para crear una nueva cotización del Laboratorio (LEM). Los campos están agrupados por sección para facilitar el flujo.
+        </div>
+        <div className="row g-4 mt-3">
           <div className="col-md-6">
             <div className="card shadow-sm">
-              <div className="card-header py-2"><strong>Datos del Cliente</strong></div>
+              <div className="card-header py-2">
+                <strong>Datos del Cliente</strong>
+                <div className="lem-subtitle">Información del cliente y del proyecto.</div>
+              </div>
               <div className="card-body">
-            <div className="mb-2"><label className="form-label">Empresa</label><input className="form-control" value={client.company_name} onChange={e=>setClient({...client, company_name:e.target.value})} required/><div className="form-text">Razón social o nombre comercial del cliente.</div></div>
-            <div className="mb-2"><label className="form-label">R.U.C.</label><input className="form-control" value={client.ruc} onChange={e=>setClient({...client, ruc:e.target.value})} /><div className="form-text">RUC de la empresa (si aplica). Para persona natural, deja vacío.</div></div>
-            <div className="mb-2"><label className="form-label">Contacto</label><input className="form-control" value={client.contact_name} onChange={e=>setClient({...client, contact_name:e.target.value})} required/><div className="form-text">Nombre de la persona que solicita la cotización.</div></div>
-            <div className="mb-2"><label className="form-label">Teléfono</label><input className="form-control" value={client.contact_phone} onChange={e=>setClient({...client, contact_phone:e.target.value})} /><div className="form-text">Teléfono del contacto para coordinaciones.</div></div>
-            <div className="mb-2"><label className="form-label">Correo</label><input type="email" className="form-control" value={client.contact_email} onChange={e=>setClient({...client, contact_email:e.target.value})} /><div className="form-text">Correo del contacto para envío de la cotización.</div></div>
-            <div className="mb-2"><label className="form-label">Ubicación del proyecto</label><input className="form-control" value={client.project_location} onChange={e=>setClient({...client, project_location:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Nombre del proyecto</label><input className="form-control" value={client.project_name} onChange={e=>setClient({...client, project_name:e.target.value})} /></div>
+            <div className="mb-3"><label className="form-label">Empresa</label><input className="form-control" value={client.company_name} onChange={e=>setClient({...client, company_name:e.target.value})} required/><div className="form-text">Razón social o nombre comercial del cliente.</div></div>
+            <div className="mb-3"><label className="form-label">R.U.C.</label><input className="form-control" value={client.ruc} onChange={e=>setClient({...client, ruc:e.target.value})} /><div className="form-text">RUC de la empresa (si aplica). Para persona natural, deja vacío.</div></div>
+            <div className="mb-3"><label className="form-label">Contacto</label><input className="form-control" value={client.contact_name} onChange={e=>setClient({...client, contact_name:e.target.value})} required/><div className="form-text">Nombre de la persona que solicita la cotización.</div></div>
+            <div className="mb-3"><label className="form-label">Teléfono</label><input className="form-control" value={client.contact_phone} onChange={e=>setClient({...client, contact_phone:e.target.value})} /><div className="form-text">Teléfono del contacto para coordinaciones.</div></div>
+            <div className="mb-3"><label className="form-label">Correo</label><input type="email" className="form-control" value={client.contact_email} onChange={e=>setClient({...client, contact_email:e.target.value})} /><div className="form-text">Correo del contacto para envío de la cotización.</div></div>
+            <div className="mb-3"><label className="form-label">Ubicación del proyecto</label><input className="form-control" value={client.project_location} onChange={e=>setClient({...client, project_location:e.target.value})} /></div>
+            <div className="mb-3"><label className="form-label">Nombre del proyecto</label><input className="form-control" value={client.project_name} onChange={e=>setClient({...client, project_name:e.target.value})} /></div>
             <div className="mb-0"><label className="form-label">Nombre del servicio</label><input className="form-control" value={client.service_name} onChange={e=>setClient({...client, service_name:e.target.value})} /><div className="form-text">Ej.: Ensayos de suelo y agregado, Extracción de diamantina, etc.</div></div>
               </div>
             </div>
@@ -266,13 +272,16 @@ const CotizacionNuevaLEM = () => {
 
           <div className="col-md-6">
             <div className="card shadow-sm">
-              <div className="card-header py-2"><strong>Datos de la Cotización</strong></div>
+              <div className="card-header py-2">
+                <strong>Datos de la Cotización</strong>
+                <div className="lem-subtitle">Fechas, referencia y configuración principal.</div>
+              </div>
               <div className="card-body">
-            <div className="mb-2"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
-            <div className="mb-2"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
-            <div className="mb-2"><label className="form-label">Referencia</label><input className="form-control" placeholder="SEGÚN LO SOLICITADO VÍA correo / llamada" value={quote.reference} onChange={e=>setQuote({...quote, reference:e.target.value})} /><div className="form-text">Contexto corto de la solicitud (llamada, correo, OS, etc.).</div></div>
-            <div className="mb-2">
+            <div className="mb-3"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
+            <div className="mb-3"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
+            <div className="mb-3"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
+            <div className="mb-3"><label className="form-label">Referencia</label><input className="form-control" placeholder="SEGÚN LO SOLICITADO VÍA correo / llamada" value={quote.reference} onChange={e=>setQuote({...quote, reference:e.target.value})} /><div className="form-text">Contexto corto de la solicitud (llamada, correo, OS, etc.).</div></div>
+            <div className="mb-3">
               <label className="form-label">Variante</label>
               <div className="d-flex gap-2 align-items-center">
                 <select className="form-select" value={variantId} onChange={(e)=>setVariantId(e.target.value)} style={{maxWidth:'70%'}}>
@@ -297,7 +306,7 @@ const CotizacionNuevaLEM = () => {
                 );
               })() : <div className="form-text">Selecciona una variante del listado.</div>}
             </div>
-            <div className="mb-2"><label className="form-label">Forma de pago</label>
+            <div className="mb-3"><label className="form-label">Forma de pago</label>
               <select className="form-select" value={quote.payment_terms} onChange={e=>setQuote({...quote, payment_terms:e.target.value})}>
                 <option value="adelantado">Adelantado</option>
                 <option value="50%">Adelanto 50% y saldo previo al informe</option>
@@ -306,7 +315,7 @@ const CotizacionNuevaLEM = () => {
                 <option value="credito30">Crédito 30 días con OS</option>
               </select>
             </div>
-            <div className="form-check mb-2">
+            <div className="form-check mb-3">
               <input className="form-check-input" type="checkbox" id="igv" checked={quote.igv} onChange={e=>setQuote({...quote, igv: e.target.checked})}/>
               <label className="form-check-label" htmlFor="igv">Aplicar IGV 18%</label>
             </div>
@@ -314,17 +323,7 @@ const CotizacionNuevaLEM = () => {
               <input className="form-check-input" type="checkbox" id="acceptance" checked={quote.acceptance} onChange={e=>setQuote({...quote, acceptance:e.target.checked})}/>
               <label className="form-check-label" htmlFor="acceptance">Aceptación de cotización</label>
             </div>
-            <div className="mb-3">
-              <label className="form-label">Condiciones específicas</label>
-              <textarea
-                className="form-control"
-                rows={6}
-                placeholder="Aquí aparecerán las condiciones de la variante seleccionada; puedes editarlas si es necesario."
-                value={conditionsText}
-                onChange={(e)=>setConditionsText(e.target.value)}
-              />
-            </div>
-            <div className="mb-2"><label className="form-label">Nombre de archivo sugerido</label>
+            <div className="mb-0"><label className="form-label">Nombre de archivo sugerido</label>
               <input className="form-control" value={suggestedFileName('xxx-XX', client.company_name)} readOnly />
             </div>
               </div>
@@ -332,10 +331,31 @@ const CotizacionNuevaLEM = () => {
           </div>
         </div>
 
+        {/* Sección: Condiciones específicas */}
+        <div className="card shadow-sm lem-section-gap">
+          <div className="card-header py-2">
+            <strong>Condiciones específicas</strong>
+            <div className="lem-subtitle">Se auto-completan según la variante; puedes editarlas.</div>
+          </div>
+          <div className="card-body">
+            <textarea
+              className="form-control lem-monospace"
+              rows={8}
+              placeholder="Aquí aparecerán las condiciones de la variante seleccionada; puedes editarlas si es necesario."
+              value={conditionsText}
+              onChange={(e)=>setConditionsText(e.target.value)}
+            />
+            <div className="form-text mt-2">Este texto se guardará en la cotización y se usará para PDF/Excel.</div>
+          </div>
+        </div>
+
         {/* Modal eliminado: la selección se hace solo con el menú desplegable */}
 
   <div className="card shadow-sm mt-4">
-    <div className="card-header py-2"><strong>Ítems</strong></div>
+    <div className="card-header py-2">
+      <strong>Ítems</strong>
+      <div className="lem-subtitle">Detalle de ensayos/servicios cotizados.</div>
+    </div>
     <div className="card-body">
         <div className="table-responsive">
           <table className="table table-bordered align-middle">
@@ -367,26 +387,36 @@ const CotizacionNuevaLEM = () => {
             </tbody>
           </table>
         </div>
-        <div className="mb-3">
+        <div className="mb-2">
           <button type="button" className="btn btn-outline-primary" onClick={onAddItem}>Agregar ítem</button>
         </div>
-        <div className="d-flex justify-content-end align-items-center gap-4 flex-wrap">
-          <div className="text-end">
+    </div>
+  </div>
+
+  {/* Resumen y Acciones */}
+  <div className="card shadow-sm mt-3">
+    <div className="card-header py-2">
+      <strong>Resumen y Acciones</strong>
+      <div className="lem-subtitle">Revisa montos y genera tus archivos.</div>
+    </div>
+    <div className="card-body">
+      <div className="row align-items-center g-3">
+        <div className="col-md">
+          <div className="text-md-end">
             <div>Subtotal: S/ {subtotal.toFixed(2)}</div>
             <div>IGV 18%: S/ {igvAmount.toFixed(2)}</div>
             <div><strong>Total: S/ {total.toFixed(2)}</strong></div>
           </div>
-          <button type="submit" className="btn btn-success" disabled={saving || !selection.project?.id && !selection.project_id}>{saving ? 'Guardando...' : 'Guardar borrador'}</button>
-          <button type="button" className="btn btn-outline-warning" onClick={exportDraft}>
-            Guardar PDF Borrador
-          </button>
-          <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('pdf')}>
-            Exportar PDF
-          </button>
-          <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>
-            Exportar Excel
-          </button>
         </div>
+        <div className="col-md-auto">
+          <div className="d-flex flex-wrap gap-2 lem-actions">
+            <button type="submit" className="btn btn-success" disabled={saving || !selection.project?.id && !selection.project_id}>{saving ? 'Guardando...' : 'Guardar borrador'}</button>
+            <button type="button" className="btn btn-outline-warning" onClick={exportDraft}>PDF Borrador</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('pdf')}>Exportar PDF</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>Exportar Excel</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
       </form>

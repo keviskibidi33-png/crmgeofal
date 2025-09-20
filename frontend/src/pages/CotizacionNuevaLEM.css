@@ -1,0 +1,57 @@
+:root {
+  --lem-gap: 1rem;
+}
+
+.lem-quote-page {
+  /* mejora el ritmo vertical y legibilidad */
+  line-height: 1.5;
+}
+
+/* Espaciado mayor entre secciones grandes */
+.lem-section-gap {
+  margin-top: 1.25rem;
+}
+
+/* Inputs con un poco más de espacio vertical */
+.lem-quote-page .form-control,
+.lem-quote-page .form-select,
+.lem-quote-page textarea {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+/* Alinear y espaciar el bloque resumen de variante */
+.lem-quote-page .alert-info {
+  margin-top: 0.5rem;
+}
+
+/* Tipografía monoespaciada para condiciones largas (más orden visual) */
+.lem-monospace {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Títulos de card más compactos pero claros */
+.card-header {
+  background: #f8f9fa;
+}
+
+/* Pequeños ajustes a tablas */
+.table > :not(caption) > * > * {
+  padding: 0.55rem 0.5rem;
+}
+
+/* new: subtle subtitle under headers */
+.lem-subtitle {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* new: softer intro alert */
+.lem-intro {
+  background-color: #fcfcfd;
+}
+
+/* new: space around actions */
+.lem-actions {
+  justify-content: flex-end;
+}
