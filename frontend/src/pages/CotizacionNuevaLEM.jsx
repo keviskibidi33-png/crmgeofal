@@ -203,7 +203,7 @@ const CotizacionNuevaLEM = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <label className="form-label mb-0">Variante</label>
                 <button type="button" className="btn btn-sm btn-outline-secondary" onClick={()=>setVariantVisual(!variantVisual)}>
-                  {variantVisual ? 'Ver como lista' : 'Ver con imágenes'}
+                  {variantVisual ? 'Ver como lista' : 'Ver como cards'}
                 </button>
               </div>
               {!variantVisual ? (
@@ -212,16 +212,19 @@ const CotizacionNuevaLEM = () => {
                   {(variants||[]).map(v => <option key={v.id} value={v.id}>{v.code} - {v.title}</option>)}
                 </select>
               ) : (
-                <div className="row row-cols-2 g-2 mt-1">
+                <div className="row row-cols-2 row-cols-md-3 g-2 mt-1">
                   {(variants||[]).map(v => (
                     <div className="col" key={v.id}>
-                      <button type="button" className={`w-100 btn btn-outline-primary ${String(variantId)===String(v.id)?'active':''}`}
-                        onClick={()=>setVariantId(String(v.id))}
-                        title={v.title}
-                      >
-                        {v.image_url ? <img src={v.image_url} alt={v.title} style={{ maxHeight: 90, objectFit: 'contain', display:'block', margin:'0 auto 6px' }} /> : null}
-                        <div className="small">{v.code} - {v.title}</div>
-                      </button>
+                      <div className={`card h-100 ${String(variantId)===String(v.id)?'border-primary':''}`} role="button" onClick={()=>setVariantId(String(v.id))}>
+                        {v.image_url ? (
+                          <img src={v.image_url} alt={v.title} className="card-img-top" style={{ maxHeight: 120, objectFit: 'cover' }} />
+                        ) : null}
+                        <div className="card-body py-2">
+                          <div className="fw-semibold small">{v.code}</div>
+                          <div className="small">{v.title}</div>
+                          {v.description ? <div className="text-muted small mt-1" style={{minHeight: '2.4em'}}>{v.description}</div> : null}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
