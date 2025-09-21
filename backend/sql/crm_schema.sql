@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Evitar duplicados de categorías por nombre (case-insensitive)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_categories_name ON categories (LOWER(name));
+
 -- Tabla de subcategorías
 CREATE TABLE IF NOT EXISTS subcategories (
   id SERIAL PRIMARY KEY,
@@ -37,6 +40,9 @@ CREATE TABLE IF NOT EXISTS subcategories (
   name VARCHAR(100) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Evitar duplicados de subcategorías por categoría (case-insensitive en nombre)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_subcategories_category_name ON subcategories (category_id, LOWER(name));
 
 -- Tabla de cotizaciones
 CREATE TABLE IF NOT EXISTS quotes (

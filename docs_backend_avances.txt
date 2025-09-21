@@ -1,0 +1,46 @@
+# Avances Backend CRMGeoFal (Septiembre 2025)
+
+## 1. Notificaciones automáticas configurables por usuario
+- Cada usuario puede activar/desactivar notificaciones por correo desde su perfil.
+- El sistema solo envía correos a quienes tienen notificaciones activas.
+- Auditoría de cada envío y acción relevante.
+
+## 2. Validación y asociación completa de clientes
+- Al registrar un cliente (empresa/persona natural) se exige: tipo, RUC/DNI, razón social, nombre de contacto, correo, teléfono, dirección.
+- Todos los datos quedan asociados a proyectos, cotizaciones y notificaciones.
+
+## 3. Adjuntos y avisos en proyectos (solo ventas)
+- Ventas puede adjuntar archivos (PDF, Excel) a cada proyecto/cliente.
+- Cada adjunto queda registrado con usuario, fecha y descripción.
+- Botón WhatsApp genera mensaje personalizado según estado y registra la acción (hora, usuario, texto enviado).
+- Laboratorio solo notifica y adjunta documentos de muestras.
+- Jefe comercial, gerencia y admin pueden ver historial de avisos y adjuntos.
+- Auditoría de cada acción (adjuntar, eliminar, avisar).
+
+## 4. Control de acceso por rol
+- Ventas y jefes pueden adjuntar/eliminar archivos y registrar avisos.
+- Gerencia y admin pueden ver todo y eliminar si es necesario.
+- Laboratorio solo puede adjuntar documentos de muestras.
+
+## 5. Auditoría y trazabilidad
+- Todas las acciones críticas quedan registradas en la tabla de auditoría.
+- Gerencia y admin pueden consultar historial completo.
+
+## 6. Endpoints y modelos nuevos
+- /api/project-attachments: Adjuntar, listar y eliminar archivos por proyecto.
+- /api/project-whatsapp-notices: Registrar y consultar avisos de WhatsApp por proyecto.
+
+---
+
+# Dependencias utilizadas/actualizadas
+- express
+- multer (subida de archivos)
+- jsonwebtoken (auth)
+- nodemailer (notificaciones email)
+- winston, morgan (logging)
+- bcryptjs (hash de contraseñas)
+- pg (PostgreSQL)
+- cors, helmet, express-rate-limit (seguridad)
+- express-validator (validaciones)
+
+(Ver package.json para versiones exactas)

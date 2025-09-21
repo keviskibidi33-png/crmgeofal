@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
     const data = req.body;
     const item = await QuoteItem.create(data);
     await AuditQuote.log({
-      user_id: req.user.id,
+      user_id: req.user?.id || null,
       action: 'crear',
       entity: 'quote_item',
       entity_id: item.id,
@@ -42,7 +42,7 @@ exports.update = async (req, res) => {
     const data = req.body;
     const item = await QuoteItem.update(req.params.id, data);
     await AuditQuote.log({
-      user_id: req.user.id,
+      user_id: req.user?.id || null,
       action: 'editar',
       entity: 'quote_item',
       entity_id: req.params.id,
@@ -58,7 +58,7 @@ exports.delete = async (req, res) => {
   try {
     await QuoteItem.delete(req.params.id);
     await AuditQuote.log({
-      user_id: req.user.id,
+      user_id: req.user?.id || null,
       action: 'eliminar',
       entity: 'quote_item',
       entity_id: req.params.id,

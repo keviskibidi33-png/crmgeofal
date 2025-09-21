@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import apiFetch from '../services/api';
 
 // Estado inicial seguro para producción
 const initialState = {
@@ -11,6 +12,10 @@ const initialState = {
 // Acciones posibles
 const AuthReducer = (state, action) => {
   switch (action.type) {
+    case 'INIT_START':
+      return { ...state, loading: true, error: null };
+    case 'INIT_DONE':
+      return { ...state, loading: false };
     case 'LOGIN_START':
       return { ...state, loading: true, error: null };
     case 'LOGIN_SUCCESS':
@@ -29,23 +34,42 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AuthReducer, initialState);
 
+  // Rehidratar sesión al montar
+  useEffect(() => {
+    const boot = async () => {
+      dispatch({ type: 'INIT_START' });
+      const savedToken = localStorage.getItem('token');
+      if (!savedToken) {
+        dispatch({ type: 'INIT_DONE' });
+        return;
+      }
+      try {
+        // intentamos obtener el usuario actual
+        const data = await apiFetch('/api/auth/me');
+        if (data && data.user) {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: { user: data.user, token: savedToken } });
+        }
+      } catch (e) {
+        // token inválido/expirado
+        localStorage.removeItem('token');
+        dispatch({ type: 'LOGOUT' });
+      } finally {
+        dispatch({ type: 'INIT_DONE' });
+      }
+    };
+    boot();
+  }, []);
+
   // Métodos de autenticación
   const login = async (email, password) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      // Llamada real a backend
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) throw new Error('Credenciales inválidas');
-      const data = await res.json();
+      const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       dispatch({ type: 'LOGIN_SUCCESS', payload: data });
       // Guardar token en localStorage para persistencia
       localStorage.setItem('token', data.token);
     } catch (err) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: err.message });
+      dispatch({ type: 'LOGIN_FAILURE', payload: err.message || 'Error al iniciar sesión' });
     }
   };
 

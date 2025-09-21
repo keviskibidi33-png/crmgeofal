@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS audit_log (
   details TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+

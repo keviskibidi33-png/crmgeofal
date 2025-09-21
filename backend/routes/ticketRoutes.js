@@ -23,9 +23,11 @@ router.get('/', auth(), ticketController.getAll);
 router.get('/:id', auth(), ticketController.getById);
 // Crear ticket con adjunto
 router.post('/', auth(), upload.single('attachment'), ticketController.create);
-// Cambiar estado (solo sistemas)
-router.put('/:id/status', auth(['sistemas']), ticketController.updateStatus);
+// Cambiar estado (sistemas, soporte, admin)
+router.put('/:id/status', auth(['sistemas','soporte','admin']), ticketController.updateStatus);
 // Historial de ticket
 router.get('/:ticket_id/history', auth(), ticketController.getHistory);
+// Historial global de tickets
+router.get('/history/global', auth(['admin','sistemas','soporte','gerencia']), ticketController.getGlobalHistory);
 
 module.exports = router;

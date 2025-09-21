@@ -4,8 +4,8 @@ const AuditQuote = require('../models/auditQuote');
 
 exports.getAll = async (req, res) => {
   try {
-    const { project_id, status, page, limit } = req.query;
-    const result = await Quote.getAll({ project_id, status, page, limit });
+    const { project_id, company_id, status, page, limit, date_from, date_to } = req.query;
+    const result = await Quote.getAll({ project_id, company_id, status, page, limit, date_from, date_to });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener cotizaciones' });
@@ -24,10 +24,16 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const data = req.body;
+    const data = req.body || {};
+    // basic validation: require at least project_id or client info
+    if (!data || Object.keys(data).length === 0) {
+      return res.status(400).json({ error: 'Datos de cotización requeridos' });
+    }
+  // set created_by when user present (tests may call without token)
+  if (req.user && req.user.id) data.created_by = req.user.id;
     const quote = await Quote.create(data);
     await AuditQuote.log({
-      user_id: req.user.id,
+      user_id: req.user?.id || null,
       action: 'crear',
       entity: 'quote',
       entity_id: quote.id,

@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "dependencies": {
     "cors": "^2.8.5",
     "exceljs": "^4.4.0",

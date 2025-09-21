@@ -1,6 +1,12 @@
 export default [
   {
-    ignores: ['**/node_modules/**', '**/logs/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/logs/**',
+      '**/dist/**',
+      'frontend/dist/**',
+      '**/uploads/**',
+    ],
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',

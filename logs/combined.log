@@ -1,0 +1,14 @@
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"GET /api/reports/ventas-por-vendedor HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.200Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/project-attachments HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.208Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"GET /api/recuperados HTTP/1.1\" 200 21 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.205Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/categories HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.213Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/leads HTTP/1.1\" 400 247 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.212Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/quotes HTTP/1.1\" 400 43 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.213Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/projects HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.214Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/subcategories HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.216Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/companies HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.215Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/project-history HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.217Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"GET /api/recuperados HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.224Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/project-whatsapp-notices HTTP/1.1\" 401 27 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.219Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"POST /api/users HTTP/1.1\" 400 52 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.220Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [19/Sep/2025:21:17:45 +0000] \"GET /api/recuperados HTTP/1.1\" 403 25 \"-\" \"-\"","timestamp":"2025-09-19T21:17:45.231Z"}

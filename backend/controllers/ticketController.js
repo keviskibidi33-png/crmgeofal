@@ -93,3 +93,27 @@ exports.getHistory = async (req, res) => {
   }
 };
 
+exports.getGlobalHistory = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, q = '', action = '', range = '30' } = req.query;
+    const offset = (page - 1) * limit;
+    const params = [];
+    const conds = [];
+    if (q) { params.push(`%${q.toLowerCase()}%`); conds.push('(CAST(ticket_id AS TEXT) ILIKE $' + params.length + ' OR CAST(performed_by AS TEXT) ILIKE $' + params.length + ')'); }
+    if (action) { params.push(action); conds.push('action = $' + params.length); }
+    if (range && range !== 'all') { const days = Number(range)||30; params.push(days); conds.push(`performed_at >= NOW() - ($${params.length}::int || ' days')::interval`); }
+    const where = conds.length ? ('WHERE ' + conds.join(' AND ')) : '';
+    const pool = require('../config/db');
+    const data = await pool.query(
+      `SELECT th.*, u.name as user_name FROM ticket_history th
+       LEFT JOIN users u ON u.id = th.performed_by
+       ${where} ORDER BY th.id DESC LIMIT $${params.length+1} OFFSET $${params.length+2}`,
+      [...params, limit, offset]
+    );
+    const total = await pool.query(`SELECT COUNT(*) FROM ticket_history th ${where}`, params);
+    res.json({ data: data.rows, total: parseInt(total.rows[0].count) });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener historial global de tickets' });
+  }
+};
+

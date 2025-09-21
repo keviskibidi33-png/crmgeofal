@@ -9,6 +9,8 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 4000;
+const fs = require('fs');
+const dbPath = require('path');
 
 // Logger con winston
 const logger = winston.createLogger({
@@ -66,31 +68,68 @@ app.use('/api/quote-variants', require('./routes/quoteVariantRoutes'));
 app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 app.use('/api/project-attachments', require('./routes/projectAttachmentRoutes'));
 app.use('/api/project-whatsapp-notices', require('./routes/projectWhatsappNoticeRoutes'));
+// Alias para vista global solicitada: /api/whatsapp-notices
+app.use('/api/whatsapp-notices', require('./routes/projectWhatsappNoticeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+
 app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 
 // Middleware global de manejo de errores
-app.use((err, req, res, next) => {
+// Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
+// unused `next` parameter while preserving Express's middleware signature we disable the
+// no-unused-vars rule on this line.
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   logger.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Test DB connection on startup
-const pool = require('./config/db');
-pool.query('SELECT NOW()')
-  .then(res => console.log('PostgreSQL connected:', res.rows[0].now))
-  .catch(err => console.error('PostgreSQL connection error:', err));
-
 module.exports = app;
 
 if (require.main === module) {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('Falta la variable de entorno JWT_SECRET');
+  // Only test DB connection and run schema when starting the server directly (not when running tests)
+  const pool = require('./config/db');
+
+  async function migrateSchemas() {
+    try {
+      const sqlDir = dbPath.join(__dirname, 'sql');
+      if (!fs.existsSync(sqlDir)) return;
+      const files = fs.readdirSync(sqlDir)
+        .filter(f => f.toLowerCase().endsWith('.sql'))
+        .sort();
+      for (const f of files) {
+        const full = dbPath.join(sqlDir, f);
+        const sql = fs.readFileSync(full, 'utf8');
+        if (sql && sql.trim()) {
+          await pool.query(sql);
+          console.log(`[DB] schema applied: ${f}`);
+        }
+      }
+    } catch (e) {
+      console.error('[DB] Error applying schemas:', e.message);
+      throw e;
+    }
   }
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+
+  (async () => {
+    try {
+      if (process.env.MIGRATE_ON_START !== 'false') {
+        await migrateSchemas();
+      }
+      const now = await pool.query('SELECT NOW()');
+      console.log('PostgreSQL connected:', now.rows[0].now);
+      if (!process.env.JWT_SECRET) {
+        throw new Error('Falta la variable de entorno JWT_SECRET');
+      }
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    } catch (err) {
+      console.error('Startup error:', err);
+      process.exit(1);
+    }
+  })();
 }

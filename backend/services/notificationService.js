@@ -22,7 +22,7 @@ async function sendNotification({ to, subject, text, html }) {
 }
 
 // Ejemplo de plantilla para notificar creación de lead
-function leadCreatedTemplate({ lead, user }) {
+function leadCreatedTemplate({ lead }) {
   return {
     subject: `Nuevo lead creado: ${lead.name}`,
     text: `Se ha creado un nuevo lead para la empresa ${lead.company_id}.
@@ -34,19 +34,19 @@ Asignado a: ${lead.assigned_to}`,
 }
 
 // Plantilla para notificar creación de ticket
-function ticketCreatedTemplate({ ticket, user }) {
+function ticketCreatedTemplate({ ticket }) {
   return {
     subject: `Nuevo ticket creado: ${ticket.title}`,
     text: `Se ha creado un nuevo ticket.
 Título: ${ticket.title}
 Prioridad: ${ticket.priority}
-Usuario: ${user ? user.name : ticket.user_id}`,
-    html: `<h2>Nuevo ticket creado</h2><p>Título: ${ticket.title}</p><p>Prioridad: ${ticket.priority}</p><p>Usuario: ${user ? user.name : ticket.user_id}</p>`
+Usuario: ${ticket.user_id}`,
+    html: `<h2>Nuevo ticket creado</h2><p>Título: ${ticket.title}</p><p>Prioridad: ${ticket.priority}</p><p>Usuario: ${ticket.user_id}</p>`
   };
 }
 
 // Plantilla para notificar creación de factura
-function invoiceCreatedTemplate({ invoice, user }) {
+function invoiceCreatedTemplate({ invoice }) {
   return {
     subject: `Nueva factura creada: ${invoice.quote_number}`,
     text: `Se ha creado una nueva factura.

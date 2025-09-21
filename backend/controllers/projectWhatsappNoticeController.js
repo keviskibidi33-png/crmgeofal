@@ -30,3 +30,13 @@ exports.create = async (req, res) => {
     res.status(500).json({ error: 'Error al registrar aviso' });
   }
 };
+
+exports.getAll = async (req, res) => {
+  try {
+    const { page, limit, q, status, project_id, range } = req.query;
+    const { rows, total } = await ProjectWhatsappNotice.getAll({ page: Number(page)||1, limit: Number(limit)||20, q, status, project_id, range });
+    res.json({ data: rows, total });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener avisos' });
+  }
+};

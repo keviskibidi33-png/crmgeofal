@@ -14,5 +14,7 @@ if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 router.get('/excel', auth(['admin','jefa_comercial','jefe_laboratorio']), exportController.exportExcel);
 // Exportar a PDF
 router.get('/pdf', auth(['admin','jefa_comercial','jefe_laboratorio']), exportController.exportPDF);
+// Historial de exportaciones
+router.get('/history', auth(['admin','gerencia','sistemas','soporte','jefa_comercial','jefe_laboratorio']), exportController.history);
 
 module.exports = router;

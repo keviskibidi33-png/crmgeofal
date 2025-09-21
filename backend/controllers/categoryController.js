@@ -4,7 +4,8 @@ exports.getAll = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const { rows, total } = await Category.getAll({ page, limit });
+    const q = req.query.q;
+    const { rows, total } = await Category.getAll({ q, page, limit });
     res.json({ data: rows, total });
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener categorías' });
@@ -17,6 +18,9 @@ exports.create = async (req, res) => {
     const category = await Category.create({ name });
     res.status(201).json(category);
   } catch (err) {
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe una categoría con ese nombre' });
+    }
     res.status(500).json({ error: 'Error al crear categoría' });
   }
 };
@@ -27,6 +31,9 @@ exports.update = async (req, res) => {
     const category = await Category.update(req.params.id, { name });
     res.json(category);
   } catch (err) {
+    if (err && err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe una categoría con ese nombre' });
+    }
     res.status(500).json({ error: 'Error al actualizar categoría' });
   }
 };

@@ -1,0 +1,151 @@
+FUNCIONAMIENTO COMPLETO DEL CRM GEOFAL (Descripción funcional, sin tecnologías)
+
+1. Propósito general
+- Centralizar gestión de clientes, proyectos, cotizaciones, laboratorio, tickets de soporte, evidencias, facturación y auditoría.
+- Dar trazabilidad de punta a punta: desde el primer contacto comercial hasta la entrega, facturación y seguimiento postventa.
+
+2. Entidades principales
+- Clientes (Empresas): registro maestro de empresas (identificación fiscal, razón social, dirección, contactos principales, estado).
+- Proyectos: oportunidades y trabajos activos con un cliente; contienen alcance, estado, responsables, fechas clave y adjuntos.
+- Cotizaciones: propuestas económicas asociadas a un proyecto; contienen variantes y partidas (ítems) con sus alcances y notas.
+- Servicios y Subservicios: catálogo maestro de ofertas; base para cotizar y estandarizar descripciones.
+- Categorías y Subcategorías: clasificaciones para agrupar servicios y facilitar búsqueda y reportes.
+- Tickets: solicitudes y casos de soporte o requerimiento interno; con historial de estados y actividades.
+- Evidencias: archivos (imágenes, PDFs, etc.) que respaldan avances o entregables de un proyecto.
+- Facturas: documentos de cobro vinculados a proyectos/cotizaciones; con estados y fechas.
+- Recuperados: empresas sin actividad reciente para reactivación comercial.
+- Auditoría: registro de acciones relevantes realizadas por usuarios.
+- Notificaciones WhatsApp: avisos enviados relacionados a proyectos/clientes.
+- Usuarios: personas con acceso al sistema, con roles y permisos definidos.
+
+3. Roles y permisos (visión general)
+- Administrador: acceso total. Configura catálogos, gestiona usuarios, todos los módulos y reportes.
+- Jefa Comercial: acceso a clientes, proyectos, cotizaciones, recuperados, reportes, notificaciones. Puede crear/editar y aprobar en su ámbito.
+- Vendedor Comercial: acceso a clientes, proyectos y cotizaciones propias o de su equipo; seguimiento de recuperados y notificaciones.
+- Gerencia: acceso de lectura a información clave (dashboard, reportes, cotizaciones, proyectos) y a indicadores.
+- Jefe de Laboratorio: gestión de servicios/subservicios, variantes, evidencias y coordinación de entregables técnicos; acceso a cotizaciones técnicas.
+- Usuario de Laboratorio: ejecución operativa; carga de evidencias y avance; acceso a proyectos asignados y tareas.
+- Soporte/Sistemas: gestión de tickets; puede cambiar estados y atender requerimientos de usuarios.
+
+Nota: Los permisos son granulares por módulo (ver/listar/crear/editar/eliminar/cambiar estado) y por contexto (p. ej., ver sólo los proyectos asignados o del área).
+
+4. Flujo comercial y operativo (de punta a punta)
+4.1 Generación y calificación de cliente
+- Registro de un nuevo cliente con datos básicos y contacto.
+- Clasificación por categoría/segmento y estado (activo/inactivo/recuperado potencial).
+
+4.2 Creación de proyecto (oportunidad)
+- Asociado a un cliente. Se define alcance inicial, responsables, fechas estimadas y estado del proyecto (p. ej., Abierto, En curso, En revisión, Cerrado).
+- Se registran adjuntos iniciales (requerimientos o fichas técnicas).
+
+4.3 Cotización
+- Creación de una cotización vinculada al proyecto.
+- Se seleccionan servicios/subservicios del catálogo; se agregan variantes si aplica (cada variante representa una alternativa con texto estandarizado y editable).
+- Se agregan ítems/partidas con cantidades, precios, notas y condiciones.
+- Se generan observaciones y términos (plantillas reutilizables con posibilidad de personalización).
+- Estados típicos: Borrador → Enviada → Aceptada → Rechazada → Vencida.
+- Historial de cambios: quién creó, quién editó, cuándo se envió y resultados.
+
+4.4 Aprobación y ejecución
+- Si la cotización es aceptada, el proyecto cambia de estado a En ejecución.
+- Laboratorio planifica actividades según servicios aprobados.
+- Se suben evidencias a medida que avanza el trabajo (con fecha, autor y vínculo al proyecto/entregable).
+
+4.5 Entrega y facturación
+- Al completar entregables, se registran hitos y se generan facturas asociadas al proyecto/cotización.
+- Estado de factura: Emitida, Pagada, Anulada, Vencida.
+- Se puede vincular evidencia a una factura para trazabilidad.
+
+4.6 Postventa y seguimiento
+- Tickets de soporte se crean por incidencias o solicitudes posteriores; incluyen prioridad, estado, responsable y adjuntos.
+- Historial de tickets documenta cambios de estado, asignaciones y comentarios.
+- Notificaciones (WhatsApp) para alertar a clientes o responsables internos.
+
+4.7 Recuperación de clientes
+- Módulo de recuperados identifica empresas sin proyectos en los últimos N meses.
+- Comercial realiza campañas de reactivación, registra resultados y actualiza estado del cliente.
+
+5. Reglas de negocio clave
+- Un cliente puede tener múltiples proyectos; un proyecto puede tener múltiples cotizaciones; una cotización tiene variantes e ítems.
+- Las cotizaciones aceptadas deben bloquear edición de precios salvo rol autorizado.
+- Los catálogos (servicios, subservicios, categorías) no deben permitir duplicados por nombre/área/categoría según corresponda.
+- Los tickets sólo pueden cambiar de estado por roles habilitados (soporte, sistemas, admin) y deben registrar historial.
+- Las evidencias deben guardar relación con proyecto (y opcionalmente con factura) y conservar autor y timestamp.
+- Las facturas cambian de estado sólo por roles con permiso y deben registrar actividad (quién/cuándo).
+- Los recuperados calculan inactividad por meses basados en la última actividad/proyecto cerrado.
+- Toda acción relevante debe quedar en auditoría con usuario, acción, fecha y notas.
+
+6. Estados y transiciones sugeridas
+- Proyectos: Abierto → En curso → En revisión → Cerrado → Archivado.
+- Cotizaciones: Borrador → Enviada → (Aceptada | Rechazada | Vencida). Reapertura controlada por permiso.
+- Tickets: Abierto → En progreso → En espera → Resuelto → Cerrado. Reapertura con justificación.
+- Facturas: Emitida → Pagada | Vencida | Anulada. Reglas para reversión con autorización.
+
+7. Módulos funcionales y operaciones
+7.1 Clientes
+- Crear/editar/eliminar. Buscar por nombre, RUC, segmento. Ver proyectos vinculados. Marcar como inactivo/recuperado.
+
+7.2 Proyectos
+- Crear/editar. Asignar responsables. Adjuntar archivos. Ver historial. Cambiar estado. Listar por cliente, fecha, estado.
+
+7.3 Cotizaciones
+- Crear desde proyecto. Agregar variantes (texto estandarizado por subservicio), ítems y condiciones.
+- Enviar (registro de envío). Cambiar estado. Duplicar cotización. Exportar a PDF.
+- Filtros por estado, fecha, cliente, vendedor.
+
+7.4 Servicios/Subservicios
+- CRUD con validaciones de duplicados. Búsqueda por nombre/área.
+- Subservicios dependen de servicio padre; búsqueda y filtros por servicio.
+
+7.5 Categorías/Subcategorías
+- CRUD con validaciones y búsqueda. Relación jerárquica: subcategoría depende de categoría.
+
+7.6 Tickets
+- Crear con o sin adjuntos. Asignar responsable. Cambiar estado (con permisos). Añadir comentarios y notas.
+- Ver historial de cambios. Filtros por estado, prioridad, fecha.
+
+7.7 Evidencias
+- Subir/gestionar adjuntos por proyecto. Ver autor, fecha y descripción.
+- Visualizar vínculo con factura (cuando aplique).
+
+7.8 Facturas
+- Registrar factura asociada a proyecto/cotización. Cambiar estado (pagada, anulada, vencida).
+- Filtros por cliente, estado, fecha. Posible exportación.
+
+7.9 Recuperados
+- Listado de clientes sin actividad según umbral de meses. Paginación y filtros básicos.
+
+7.10 Auditoría
+- Registro de acciones por módulo. Búsqueda por usuario, fecha, tipo de acción.
+
+7.11 Notificaciones WhatsApp
+- Registro de notificaciones. Ver estado de cada envío (en cola, enviado, entregado, fallido). Filtrar por rango y texto.
+
+7.12 Usuarios
+- CRUD de usuarios. Asignación de roles y áreas. Activar/desactivar notificaciones. Restablecer contraseñas.
+
+8. Reportes y exportaciones
+- Exportaciones: generar archivos (PDF/Excel/CSV) de listados y detalles.
+- Reportes: panel de indicadores para gerencia y jefaturas (volumen de cotizaciones, tasa de aceptación, tiempo de resolución de tickets, facturación por período, etc.).
+
+9. Seguridad y cumplimiento funcional
+- Segmentar accesos por rol y área. Restringir operaciones sensibles a roles autorizados.
+- Mantener trazabilidad (quién, qué, cuándo) en auditoría.
+- Validar datos críticos (unicidad en catálogos, formatos obligatorios, tamaños de archivo en evidencias).
+
+10. Usabilidad y experiencia
+- Barras de herramientas con filtros claros. Tablas consistentes con paginación. Estados visuales (etiquetas de estado y fechas legibles).
+- Formularios con validaciones y mensajes de ayuda. Confirmaciones para operaciones destructivas.
+- Acciones frecuentes a un clic (cambio de estado, exportar, asignar responsable).
+
+11. Flujos de aprobación y excepciones
+- Aprobaciones en cotización: ciertas acciones (enviar, aceptar) pueden requerir autorización según monto o políticas.
+- Cambios de estado en facturas/tickets: requieren permisos y quedan registrados con notas.
+- Reaperturas (cotización/ticket): justificadas y con restricción por rol.
+
+12. Consideraciones operativas
+- Catálogos bien mantenidos (servicios/subservicios/categorías) garantizan rapidez y consistencia al cotizar.
+- La auditoría y el historial de tickets son la fuente de verdad frente a disputas.
+- Recuperados alimenta campañas comerciales y mejora retención.
+
+Este documento describe el “qué” y el “cómo funcional” del CRM GeoFal, sin referencia a tecnologías específicas. Sirve como guía para capacitación, validación de procesos y futuros incrementos funcionales.
