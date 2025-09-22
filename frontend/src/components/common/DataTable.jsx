@@ -282,26 +282,41 @@ const DataTable = ({
                           <FiMoreVertical />
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
-                          {onView && (
-                            <Dropdown.Item onClick={() => onView(item)}>
-                              <FiEye className="me-2" />
-                              Ver
-                            </Dropdown.Item>
-                          )}
-                          {onEdit && (
-                            <Dropdown.Item onClick={() => onEdit(item)}>
-                              <FiEdit className="me-2" />
-                              Editar
-                            </Dropdown.Item>
-                          )}
-                          {onDelete && (
-                            <Dropdown.Item 
-                              onClick={() => onDelete(item)}
-                              className="text-danger"
-                            >
-                              <FiTrash2 className="me-2" />
-                              Eliminar
-                            </Dropdown.Item>
+                          {actions.length > 0 ? (
+                            actions.map((action, actionIndex) => (
+                              <Dropdown.Item 
+                                key={actionIndex}
+                                onClick={() => action.onClick && action.onClick(item)}
+                                className={action.variant === 'outline-danger' ? 'text-danger' : ''}
+                              >
+                                {action.icon && <action.icon className="me-2" />}
+                                {action.label}
+                              </Dropdown.Item>
+                            ))
+                          ) : (
+                            <>
+                              {onView && (
+                                <Dropdown.Item onClick={() => onView(item)}>
+                                  <FiEye className="me-2" />
+                                  Ver
+                                </Dropdown.Item>
+                              )}
+                              {onEdit && (
+                                <Dropdown.Item onClick={() => onEdit(item)}>
+                                  <FiEdit className="me-2" />
+                                  Editar
+                                </Dropdown.Item>
+                              )}
+                              {onDelete && (
+                                <Dropdown.Item 
+                                  onClick={() => onDelete(item)}
+                                  className="text-danger"
+                                >
+                                  <FiTrash2 className="me-2" />
+                                  Eliminar
+                                </Dropdown.Item>
+                              )}
+                            </>
                           )}
                         </Dropdown.Menu>
                       </Dropdown>
