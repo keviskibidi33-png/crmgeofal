@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listProjects, createProject, updateProject, deleteProject } from '../services/projects';
+import { listProjects, createProject, updateProject, deleteProject, getProjectStats } from '../services/projects';
 
 const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '' };
 
@@ -15,22 +15,100 @@ export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedProjectType, setSelectedProjectType] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery(
-    ['projects'],
-    () => listProjects(),
-    { keepPreviousData: true }
+  const { data, isLoading, refetch } = useQuery(
+    ['projects', currentPage, searchTerm, selectedStatus, selectedCompany, selectedProjectType],
+    () => listProjects({ 
+      page: currentPage, 
+      limit: 20, 
+      search: searchTerm, 
+      status: selectedStatus, 
+      company_id: selectedCompany,
+      project_type: selectedProjectType
+    }),
+    { 
+      keepPreviousData: true,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+      cacheTime: 0
+    }
+  );
+
+  // Estadísticas separadas
+  const { data: statsData, isLoading: statsLoading } = useQuery(
+    ['projectStats'],
+    getProjectStats,
+    {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 30000, // 30 segundos
+      cacheTime: 60000  // 1 minuto
+    }
   );
 
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('projects');
+    queryClient.invalidateQueries('projectStats');
     setShowModal(false);
     setEditingProject(null);
     setDeletingProject(null);
   };
+
+  // Función para manejar búsqueda
+  const handleSearch = (searchValue) => {
+    console.log('🔍 handleSearch - Búsqueda:', searchValue);
+    setSearchTerm(searchValue);
+    setCurrentPage(1); // Resetear a la primera página
+    setIsSearching(true);
+    setTimeout(() => setIsSearching(false), 1000);
+  };
+
+  // Función para manejar filtros
+  const handleFilter = (filters) => {
+    console.log('🔍 handleFilter - Filtros:', filters);
+    setSelectedStatus(filters.status || '');
+    setSelectedCompany(filters.company_id || '');
+    setSelectedProjectType(filters.project_type || '');
+    setCurrentPage(1); // Resetear a la primera página
+  };
+
+  // Opciones de filtros específicas para proyectos
+  const projectFilterOptions = [
+    {
+      title: 'Por Estado',
+      options: [
+        { label: 'Pendientes', filter: { status: 'pendiente' } },
+        { label: 'Activos', filter: { status: 'activo' } },
+        { label: 'Completados', filter: { status: 'completado' } },
+        { label: 'Cancelados', filter: { status: 'cancelado' } }
+      ]
+    },
+    {
+      title: 'Por Tipo de Proyecto',
+      options: [
+        { label: 'Análisis de Suelos', filter: { project_type: 'Análisis de Suelos' } },
+        { label: 'Estudio Geotécnico', filter: { project_type: 'Estudio Geotécnico' } },
+        { label: 'Evaluación Ambiental', filter: { project_type: 'Evaluación Ambiental' } },
+        { label: 'Control de Calidad', filter: { project_type: 'Control de Calidad' } },
+        { label: 'Análisis de Agua', filter: { project_type: 'Análisis de Agua' } },
+        { label: 'Estudio de Impacto', filter: { project_type: 'Estudio de Impacto' } },
+        { label: 'Análisis Químico', filter: { project_type: 'Análisis Químico' } },
+        { label: 'Pruebas de Laboratorio', filter: { project_type: 'Pruebas de Laboratorio' } },
+        { label: 'Inspección Técnica', filter: { project_type: 'Inspección Técnica' } },
+        { label: 'Certificación de Materiales', filter: { project_type: 'Certificación de Materiales' } }
+      ]
+    }
+  ];
 
   const createMutation = useMutation(createProject, {
     onSuccess: () => handleMutationSuccess('Proyecto creado exitosamente'),
@@ -105,13 +183,63 @@ export default function Proyectos() {
       )
     },
     {
+      header: 'Tipo de Proyecto',
+      accessor: 'project_type',
+      render: (value, row) => {
+        const projectType = row.project_type || 'General';
+        let typeColor = 'secondary';
+        
+        // Asignar colores según el tipo de proyecto
+        switch (projectType) {
+          case 'Análisis de Suelos':
+            typeColor = 'success';
+            break;
+          case 'Estudio Geotécnico':
+            typeColor = 'primary';
+            break;
+          case 'Evaluación Ambiental':
+            typeColor = 'info';
+            break;
+          case 'Control de Calidad':
+            typeColor = 'warning';
+            break;
+          case 'Análisis de Agua':
+            typeColor = 'info';
+            break;
+          case 'Estudio de Impacto':
+            typeColor = 'danger';
+            break;
+          case 'Análisis Químico':
+            typeColor = 'primary';
+            break;
+          case 'Pruebas de Laboratorio':
+            typeColor = 'success';
+            break;
+          case 'Inspección Técnica':
+            typeColor = 'warning';
+            break;
+          case 'Certificación de Materiales':
+            typeColor = 'info';
+            break;
+          default:
+            typeColor = 'secondary';
+        }
+        
+        return (
+          <Badge bg={typeColor} className="px-2 py-1">
+            {projectType}
+          </Badge>
+        );
+      }
+    },
+    {
       header: 'Empresa',
-      accessor: 'company',
+      accessor: 'company_name',
       render: (value, row) => (
         <div>
-          <div className="fw-medium">{row.company?.name || 'Sin empresa'}</div>
-          {row.company?.ruc && (
-            <small className="text-muted">RUC: {row.company.ruc}</small>
+          <div className="fw-medium">{row.company_name || 'Sin empresa'}</div>
+          {row.company_ruc && (
+            <small className="text-muted">RUC: {row.company_ruc}</small>
           )}
         </div>
       )
@@ -123,19 +251,19 @@ export default function Proyectos() {
     },
     {
       header: 'Asignado a',
-      accessor: 'vendedor',
+      accessor: 'vendedor_name',
       render: (value, row) => (
         <div>
-          {row.vendedor && (
+          {row.vendedor_name && (
             <div className="d-flex align-items-center">
               <FiUser size={14} className="me-1 text-muted" />
-              <span>{row.vendedor.name}</span>
+              <span>{row.vendedor_name}</span>
             </div>
           )}
-          {row.laboratorio && (
+          {row.laboratorio_name && (
             <div className="d-flex align-items-center mt-1">
               <FiHome size={14} className="me-1 text-muted" />
-              <span className="small text-muted">{row.laboratorio.name}</span>
+              <span className="small text-muted">{row.laboratorio_name}</span>
             </div>
           )}
         </div>
@@ -198,7 +326,19 @@ export default function Proyectos() {
 
   // Calcular estadísticas
   const stats = useMemo(() => {
-    const projects = data?.projects || [];
+    if (statsData) {
+      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
+      return {
+        total: statsData.total || 0,
+        activos: statsData.activos || 0,
+        completados: statsData.completados || 0,
+        pendientes: statsData.pendientes || 0,
+        cancelados: statsData.cancelados || 0
+      };
+    }
+    // Fallback: calcular desde los datos de la página actual
+    const projects = data?.data || [];
+    console.log('📊 Stats - Fallback: calculando desde página actual:', projects);
     return {
       total: projects.length,
       activos: projects.filter(p => p.status === 'activo').length,
@@ -206,7 +346,7 @@ export default function Proyectos() {
       pendientes: projects.filter(p => p.status === 'pendiente').length,
       cancelados: projects.filter(p => p.status === 'cancelado').length
     };
-  }, [data]);
+  }, [statsData, data]);
 
   return (
     <Container fluid className="py-4">
@@ -232,6 +372,7 @@ export default function Proyectos() {
               icon={FiHome}
               color="primary"
               subtitle="Proyectos registrados"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -241,6 +382,7 @@ export default function Proyectos() {
               icon={FiCheckCircle}
               color="success"
               subtitle="En desarrollo"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -250,6 +392,7 @@ export default function Proyectos() {
               icon={FiCheckCircle}
               color="info"
               subtitle="Finalizados"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -259,6 +402,7 @@ export default function Proyectos() {
               icon={FiClock}
               color="warning"
               subtitle="Por iniciar"
+              loading={statsLoading}
             />
           </Col>
         </Row>
@@ -271,19 +415,39 @@ export default function Proyectos() {
                 <FiHome className="me-2 text-primary" />
                 Lista de Proyectos
               </h5>
-              <Badge bg="light" text="dark" className="px-3 py-2">
-                {stats.total} proyectos
-              </Badge>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="d-flex align-items-center"
+                  title="Actualizar datos"
+                >
+                  <FiRefreshCw className={`${isLoading ? 'spinning' : ''}`} />
+                </Button>
+                <Badge bg="light" text="dark" className="px-3 py-2">
+                  {stats.total} proyectos
+                </Badge>
+              </div>
             </div>
           </Card.Header>
           <Card.Body className="p-0">
             <DataTable
-              data={data?.projects || []}
+              data={data?.data || []}
               columns={columns}
-              loading={isLoading}
+              loading={isLoading || isSearching}
               onEdit={handleEdit}
               onDelete={handleDelete}
               emptyMessage="No hay proyectos registrados"
+              // Props para paginación del backend
+              totalItems={data?.total || 0}
+              itemsPerPage={20}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              onSearch={handleSearch}
+              onFilter={handleFilter}
+              // Filtros específicos para proyectos
+              filterOptions={projectFilterOptions}
             />
           </Card.Body>
         </Card>

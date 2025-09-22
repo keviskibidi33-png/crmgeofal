@@ -4,9 +4,28 @@ exports.getAll = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const { rows, total } = await Project.getAllByUser(req.user, { page, limit });
+    const search = req.query.search || '';
+    const status = req.query.status || '';
+    const company_id = req.query.company_id || '';
+    const project_type = req.query.project_type || '';
+    
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const { rows, total } = await Project.getAllByUser(req.user, { 
+      page, 
+      limit, 
+      search, 
+      status, 
+      company_id,
+      project_type
+    });
     res.json({ data: rows, total });
   } catch (err) {
+    console.error('Error getting projects:', err);
     res.status(500).json({ error: 'Error al obtener proyectos' });
   }
 };
@@ -74,5 +93,22 @@ exports.delete = async (req, res) => {
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: 'Error al eliminar proyecto' });
+  }
+};
+
+exports.getStats = async (req, res) => {
+  try {
+    console.log('📊 getProjectStats - Obteniendo estadísticas de proyectos...');
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    const stats = await Project.getStats(req.user);
+    console.log('✅ getProjectStats - Estadísticas obtenidas:', stats);
+    res.json(stats);
+  } catch (err) {
+    console.error('❌ getProjectStats - Error:', err);
+    res.status(500).json({ error: 'Error getting project stats: ' + err.message });
   }
 };
