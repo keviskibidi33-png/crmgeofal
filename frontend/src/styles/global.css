@@ -144,7 +144,7 @@ a:hover {
   background: white;
   border-right: 1px solid #e9ecef;
   box-shadow: var(--box-shadow);
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -152,10 +152,25 @@ a:hover {
   top: 0;
   left: 0;
   z-index: 1040;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
   width: 80px;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Mejorar el scroll en modo colapsado */
+.sidebar.collapsed .nav-section-title {
+  display: none;
+}
+
+.sidebar.collapsed .nav-children {
+  display: none;
 }
 
 .sidebar-overlay {
@@ -174,6 +189,8 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  min-height: 80px;
 }
 
 .sidebar-brand .brand-text {
@@ -186,10 +203,38 @@ a:hover {
   flex: 1;
   padding: 1rem 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  height: 0; /* Permite que flex: 1 funcione correctamente */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+/* Estilos personalizados para el scrollbar en navegadores webkit */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
 .nav-section {
   margin-bottom: 2rem;
+}
+
+.nav-section:last-child {
+  margin-bottom: 1rem;
 }
 
 .nav-section-title {
@@ -281,6 +326,8 @@ a:hover {
   padding: 1rem;
   border-top: 1px solid #e9ecef;
   background-color: #f8f9fa;
+  flex-shrink: 0;
+  min-height: 80px;
 }
 
 .user-info {
