@@ -1,59 +1,94 @@
 const pool = require('../config/db');
+const path = require('path');
+const fs = require('fs').promises;
 
 const ProjectAttachment = {
-  async getAll({ page = 1, limit = 20, q = '' }) {
-    const offset = (page - 1) * limit;
-    const params = [];
-    let where = 'WHERE 1=1';
-    if (q) {
-        params.push(`%${q.toLowerCase()}%`);
-        // Search in description, file_url, or project name
-        where += ` AND (LOWER(pa.description) LIKE $${params.length} OR LOWER(pa.file_url) LIKE $${params.length} OR LOWER(p.name) LIKE $${params.length})`;
+  // Obtener adjuntos de un proyecto
+  async getByProject(projectId) {
+    const result = await pool.query(`
+      SELECT 
+        pa.*,
+        pc.name as category_name,
+        ps.name as subcategory_name,
+        u.name as uploaded_by_name
+      FROM project_attachments pa
+      LEFT JOIN project_categories pc ON pa.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON pa.subcategory_id = ps.id
+      LEFT JOIN users u ON pa.uploaded_by = u.id
+      WHERE pa.project_id = $1
+      ORDER BY pa.created_at DESC
+    `, [projectId]);
+    return result.rows;
+  },
+
+  // Obtener adjunto por ID
+  async getById(id) {
+    const result = await pool.query(`
+      SELECT 
+        pa.*,
+        pc.name as category_name,
+        ps.name as subcategory_name,
+        u.name as uploaded_by_name
+      FROM project_attachments pa
+      LEFT JOIN project_categories pc ON pa.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON pa.subcategory_id = ps.id
+      LEFT JOIN users u ON pa.uploaded_by = u.id
+      WHERE pa.id = $1
+    `, [id]);
+    return result.rows[0];
+  },
+
+  // Crear nuevo adjunto
+  async create({
+    projectId,
+    categoryId,
+    subcategoryId,
+    filename,
+    originalName,
+    filePath,
+    fileSize,
+    fileType,
+    description,
+    uploadedBy
+  }) {
+    const result = await pool.query(`
+      INSERT INTO project_attachments (
+        project_id, category_id, subcategory_id, filename, original_name, 
+        file_path, file_size, file_type, description, uploaded_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+      RETURNING *
+    `, [projectId, categoryId, subcategoryId, filename, originalName, filePath, fileSize, fileType, description, uploadedBy]);
+    return result.rows[0];
+  },
+
+  // Eliminar adjunto
+  async delete(id) {
+    // Primero obtener la información del archivo para eliminarlo del sistema de archivos
+    const attachment = await this.getById(id);
+    if (attachment) {
+      try {
+        await fs.unlink(attachment.file_path);
+      } catch (error) {
+        console.error('Error eliminando archivo:', error.message);
+      }
     }
-    
-    const dataQuery = `
-        SELECT pa.*, p.name as project_name, u.name as uploaded_by_name
-        FROM project_attachments pa
-        LEFT JOIN projects p ON p.id = pa.project_id
-        LEFT JOIN users u ON u.id = pa.uploaded_by
-        ${where}
-        ORDER BY pa.id DESC
-        LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-    `;
-    
-    const data = await pool.query(dataQuery, [...params, limit, offset]);
 
-    const totalQuery = `
-        SELECT COUNT(*)
-        FROM project_attachments pa
-        LEFT JOIN projects p ON p.id = pa.project_id
-        ${where}
-    `;
-    const total = await pool.query(totalQuery, params);
-
-    return { rows: data.rows, total: parseInt(total.rows[0].count) };
+    const result = await pool.query('DELETE FROM project_attachments WHERE id = $1 RETURNING *', [id]);
+    return result.rows[0];
   },
 
-  async getAllByProject(project_id) {
-    const res = await pool.query('SELECT * FROM project_attachments WHERE project_id = $1 ORDER BY created_at DESC', [project_id]);
-    return res.rows;
-  },
-  async create({ project_id, uploaded_by, file_url, file_type, description }) {
-    const res = await pool.query(
-      `INSERT INTO project_attachments (project_id, uploaded_by, file_url, file_type, description)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [project_id, uploaded_by, file_url, file_type, description]
-    );
-    return res.rows[0];
-  },
-  async delete(id, user) {
-    // Admin can delete any attachment. Otherwise, only the uploader can.
-    if (user.role === 'admin') {
-      const res = await pool.query('DELETE FROM project_attachments WHERE id = $1 RETURNING *', [id]);
-      return res.rows[0];
-    }
-    const res = await pool.query('DELETE FROM project_attachments WHERE id = $1 AND uploaded_by = $2 RETURNING *', [id, user.id]);
-    return res.rows[0];
+  // Obtener estadísticas de adjuntos por proyecto
+  async getStatsByProject(projectId) {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(*) as total_files,
+        SUM(file_size) as total_size,
+        COUNT(DISTINCT category_id) as categories_with_files,
+        COUNT(DISTINCT subcategory_id) as subcategories_with_files
+      FROM project_attachments 
+      WHERE project_id = $1
+    `, [projectId]);
+    return result.rows[0];
   }
 };
 

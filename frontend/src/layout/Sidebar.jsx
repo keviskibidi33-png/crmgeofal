@@ -8,7 +8,7 @@ import {
   FiMessageSquare, FiBarChart2, FiSettings, FiLayers, FiList, 
   FiClock, FiFileText as FiInvoice, 
   FiPackage, FiCheckCircle, FiDownload, FiShield, FiChevronRight,
-  FiChevronDown, FiMenu, FiX
+  FiChevronDown, FiMenu, FiX, FiHardDrive
 } from 'react-icons/fi';
 
 const sectionsByRole = {
@@ -67,6 +67,7 @@ const sectionsByRole = {
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/auditoria', label: 'Auditoría', icon: FiShield },
         { path: '/exportaciones', label: 'Exportaciones', icon: FiDownload },
+        { path: '/gestion-archivos', label: 'Gestión de Archivos', icon: FiHardDrive },
       ]
     },
     {

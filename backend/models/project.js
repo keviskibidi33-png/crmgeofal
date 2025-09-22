@@ -52,18 +52,22 @@ const Project = {
     let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     params.push(limit, offset);
 
-    // Query con JOINs para obtener información de empresa y usuarios
+    // Query con JOINs para obtener información de empresa, usuarios y categorías
     const data = await pool.query(`
       SELECT 
         p.*,
         c.name as company_name,
         c.ruc as company_ruc,
         v.name as vendedor_name,
-        l.name as laboratorio_name
+        l.name as laboratorio_name,
+        pc.name as category_name,
+        ps.name as subcategory_name
       FROM projects p
       LEFT JOIN companies c ON p.company_id = c.id
       LEFT JOIN users v ON p.vendedor_id = v.id
       LEFT JOIN users l ON p.laboratorio_id = l.id
+      LEFT JOIN project_categories pc ON p.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
       ${whereClause}
       ORDER BY p.id DESC 
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -76,6 +80,8 @@ const Project = {
       LEFT JOIN companies c ON p.company_id = c.id
       LEFT JOIN users v ON p.vendedor_id = v.id
       LEFT JOIN users l ON p.laboratorio_id = l.id
+      LEFT JOIN project_categories pc ON p.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
       ${whereClause}
     `, totalParams);
 
@@ -83,12 +89,29 @@ const Project = {
   },
   async getById(id, user) {
     // Solo acceso si el usuario tiene permiso
-    const res = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
+    const res = await pool.query(`
+      SELECT 
+        p.*,
+        c.name as company_name,
+        c.ruc as company_ruc,
+        v.name as vendedor_name,
+        l.name as laboratorio_name,
+        pc.name as category_name,
+        ps.name as subcategory_name
+      FROM projects p
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users v ON p.vendedor_id = v.id
+      LEFT JOIN users l ON p.laboratorio_id = l.id
+      LEFT JOIN project_categories pc ON p.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
+      WHERE p.id = $1
+    `, [id]);
     const project = res.rows[0];
     if (!project) return null;
     if (
       user.role === 'jefa_comercial' ||
       user.role === 'jefe_laboratorio' ||
+      user.role === 'admin' ||
       (user.role === 'vendedor_comercial' && project.vendedor_id === user.id) ||
       (user.role === 'usuario_laboratorio' && project.laboratorio_id === user.id)
     ) {
@@ -96,10 +119,10 @@ const Project = {
     }
     return null;
   },
-  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, requiere_consultoria = false, requiere_capacitacion = false, requiere_auditoria = false, contact_name, contact_phone, contact_email, queries, marked = false, priority = 'normal' }) {
+  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, requiere_consultoria = false, requiere_capacitacion = false, requiere_auditoria = false, contact_name, contact_phone, contact_email, queries, marked = false, priority = 'normal', category_id, subcategory_id, category_name, subcategory_name }) {
     const res = await pool.query(
-      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, laboratorio_status, ingenieria_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *',
-      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, requiere_laboratorio ? 'pendiente' : 'no_requerido', requiere_ingenieria ? 'pendiente' : 'no_requerido']
+      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, laboratorio_status, ingenieria_status, category_id, subcategory_id, category_name, subcategory_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING *',
+      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, requiere_laboratorio ? 'pendiente' : 'no_requerido', requiere_ingenieria ? 'pendiente' : 'no_requerido', category_id, subcategory_id, category_name, subcategory_name]
     );
     return res.rows[0];
   },
@@ -159,7 +182,11 @@ const Project = {
     contact_email,
     queries,
     priority,
-    marked
+    marked,
+    category_id,
+    subcategory_id,
+    category_name,
+    subcategory_name
   }, user) {
     console.log('🔍 Project.update - ID:', id);
     console.log('🔍 Project.update - User:', user);
@@ -200,8 +227,12 @@ const Project = {
           queries = $13,
           priority = $14,
           marked = $15,
+          category_id = $16,
+          subcategory_id = $17,
+          category_name = $18,
+          subcategory_name = $19,
           updated_at = NOW()
-        WHERE id = $16 RETURNING *`,
+        WHERE id = $20 RETURNING *`,
         [
           name, 
           location, 
@@ -218,6 +249,10 @@ const Project = {
           queries,
           priority,
           marked,
+          category_id,
+          subcategory_id,
+          category_name,
+          subcategory_name,
           id
         ]
       );

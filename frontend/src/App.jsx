@@ -28,6 +28,7 @@ const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
 const Auditoria = lazy(() => import('./pages/Auditoria'));
 const Exportaciones = lazy(() => import('./pages/Exportaciones'));
 const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
+const FileManagement = lazy(() => import('./pages/FileManagement'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
 const Activities = lazy(() => import('./pages/Activities'));
@@ -76,6 +77,7 @@ function App() {
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/actividades" element={<ErrorBoundary><RequireRole roles={["admin"]}><Activities /></RequireRole></ErrorBoundary>} />
+                  <Route path="/gestion-archivos" element={<ErrorBoundary><RequireRole roles={["admin"]}><FileManagement /></RequireRole></ErrorBoundary>} />
                   {/* Fallback a dashboard si la ruta no existe */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

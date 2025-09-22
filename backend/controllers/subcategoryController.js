@@ -1,48 +1,106 @@
-const Subcategory = require('../models/subcategory');
+const ProjectSubcategory = require('../models/projectSubcategory');
 
-exports.getAllByCategory = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const q = req.query.q;
-    const { rows, total } = await Subcategory.getAllByCategory(req.params.category_id, { q, page, limit });
-    res.json({ data: rows, total });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener subcategorías' });
-  }
-};
-
-exports.create = async (req, res) => {
-  try {
-    const { category_id, name } = req.body;
-    const subcategory = await Subcategory.create({ category_id, name });
-    res.status(201).json(subcategory);
-  } catch (err) {
-    if (err && err.code === '23505') {
-      return res.status(409).json({ error: 'Ya existe una subcategoría con ese nombre' });
+const subcategoryController = {
+  // Obtener todas las subcategorías
+  async getAll(req, res) {
+    try {
+      const { category_id } = req.query;
+      
+      let subcategories;
+      if (category_id) {
+        subcategories = await ProjectSubcategory.getByCategory(category_id);
+      } else {
+        subcategories = await ProjectSubcategory.getAll();
+      }
+      
+      res.json(subcategories);
+    } catch (error) {
+      console.error('Error al obtener subcategorías:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
-    res.status(500).json({ error: 'Error al crear subcategoría' });
-  }
-};
+  },
 
-exports.update = async (req, res) => {
-  try {
-    const { name } = req.body;
-    const subcategory = await Subcategory.update(req.params.id, { name });
-    res.json(subcategory);
-  } catch (err) {
-    if (err && err.code === '23505') {
-      return res.status(409).json({ error: 'Ya existe una subcategoría con ese nombre' });
+  // Obtener subcategoría por ID
+  async getById(req, res) {
+    try {
+      const { id } = req.params;
+      const subcategory = await ProjectSubcategory.getById(id);
+      
+      if (!subcategory) {
+        return res.status(404).json({ error: 'Subcategoría no encontrada' });
+      }
+
+      res.json(subcategory);
+    } catch (error) {
+      console.error('Error al obtener subcategoría:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
-    res.status(500).json({ error: 'Error al actualizar subcategoría' });
+  },
+
+  // Crear nueva subcategoría
+  async create(req, res) {
+    try {
+      const { category_id, name, description } = req.body;
+
+      if (!category_id || !name) {
+        return res.status(400).json({ error: 'El ID de categoría y el nombre son requeridos' });
+      }
+
+      const subcategory = await ProjectSubcategory.create({ category_id, name, description });
+      res.status(201).json(subcategory);
+    } catch (error) {
+      console.error('Error al crear subcategoría:', error);
+      if (error.code === '23505') { // Violación de restricción única
+        res.status(400).json({ error: 'Ya existe una subcategoría con ese nombre en esta categoría' });
+      } else {
+        res.status(500).json({ error: 'Error interno del servidor' });
+      }
+    }
+  },
+
+  // Actualizar subcategoría
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const { name, description } = req.body;
+
+      if (!name) {
+        return res.status(400).json({ error: 'El nombre es requerido' });
+      }
+
+      const subcategory = await ProjectSubcategory.update(id, { name, description });
+      
+      if (!subcategory) {
+        return res.status(404).json({ error: 'Subcategoría no encontrada' });
+      }
+
+      res.json(subcategory);
+    } catch (error) {
+      console.error('Error al actualizar subcategoría:', error);
+      if (error.code === '23505') { // Violación de restricción única
+        res.status(400).json({ error: 'Ya existe una subcategoría con ese nombre en esta categoría' });
+      } else {
+        res.status(500).json({ error: 'Error interno del servidor' });
+      }
+    }
+  },
+
+  // Eliminar subcategoría
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const subcategory = await ProjectSubcategory.delete(id);
+      
+      if (!subcategory) {
+        return res.status(404).json({ error: 'Subcategoría no encontrada' });
+      }
+
+      res.json({ message: 'Subcategoría eliminada correctamente' });
+    } catch (error) {
+      console.error('Error al eliminar subcategoría:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
   }
 };
 
-exports.delete = async (req, res) => {
-  try {
-    await Subcategory.delete(req.params.id);
-    res.status(204).end();
-  } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar subcategoría' });
-  }
-};
+module.exports = subcategoryController;

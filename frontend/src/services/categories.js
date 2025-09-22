@@ -1,17 +1,62 @@
-import { apiFetch } from './api';
+import apiFetch from './api';
 
-export const listCategories = (params = {}) => {
-  const sp = new URLSearchParams();
-  if (params.page) sp.set('page', params.page);
-  if (params.limit) sp.set('limit', params.limit);
-  if (params.q) sp.set('q', params.q);
-  const qs = sp.toString();
-  const path = qs ? `/api/categories?${qs}` : '/api/categories';
-  return apiFetch(path);
+// Servicios para categorías de proyectos
+export const listCategories = () => {
+  return apiFetch('/api/project-categories');
 };
 
-export const createCategory = (payload) => apiFetch('/api/categories', { method: 'POST', body: JSON.stringify(payload) });
-export const updateCategory = (id, payload) => apiFetch(`/api/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-export const deleteCategory = (id) => apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+export const getCategoryById = (id) => {
+  return apiFetch(`/api/project-categories/${id}`);
+};
 
-export default { listCategories, createCategory, updateCategory, deleteCategory };
+export const createCategory = (data) => {
+  return apiFetch('/api/project-categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateCategory = (id, data) => {
+  return apiFetch(`/api/project-categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteCategory = (id) => {
+  return apiFetch(`/api/project-categories/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+// Servicios para subcategorías
+export const listSubcategories = (categoryId = null) => {
+  const url = categoryId 
+    ? `/api/project-subcategories?category_id=${categoryId}`
+    : '/api/project-subcategories';
+  return apiFetch(url);
+};
+
+export const getSubcategoryById = (id) => {
+  return apiFetch(`/api/project-subcategories/${id}`);
+};
+
+export const createSubcategory = (data) => {
+  return apiFetch('/api/project-subcategories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateSubcategory = (id, data) => {
+  return apiFetch(`/api/project-subcategories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteSubcategory = (id) => {
+  return apiFetch(`/api/project-subcategories/${id}`, {
+    method: 'DELETE',
+  });
+};

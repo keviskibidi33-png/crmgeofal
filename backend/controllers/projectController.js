@@ -188,7 +188,11 @@ exports.create = async (req, res) => {
       contact_email,
       queries,
       priority,
-      marked
+      marked,
+      category_id,
+      subcategory_id,
+      category_name,
+      subcategory_name
     } = req.body;
     
     const project = await Project.create({ 
@@ -207,7 +211,11 @@ exports.create = async (req, res) => {
       contact_email,
       queries: queries || '',
       priority: priority || 'normal',
-      marked: marked || false
+      marked: marked || false,
+      category_id,
+      subcategory_id,
+      category_name,
+      subcategory_name
     });
     // Auditoría
     await Audit.log({
@@ -239,7 +247,11 @@ exports.update = async (req, res) => {
       contact_email,
       queries,
       priority,
-      marked
+      marked,
+      category_id,
+      subcategory_id,
+      category_name,
+      subcategory_name
     } = req.body;
     
     const project = await Project.update(req.params.id, { 
@@ -257,7 +269,11 @@ exports.update = async (req, res) => {
       contact_email,
       queries,
       priority,
-      marked
+      marked,
+      category_id,
+      subcategory_id,
+      category_name,
+      subcategory_name
     }, req.user);
     
     if (!project) return res.status(403).json({ error: 'No autorizado o proyecto no encontrado' });

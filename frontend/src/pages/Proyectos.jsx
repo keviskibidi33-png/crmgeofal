@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
+import { listCategories, listSubcategories } from '../services/categories';
+import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 
 const emptyForm = { 
   company_id: '', 
@@ -25,7 +27,11 @@ const emptyForm = {
   contact_email: '',
   queries: '',
   priority: 'normal',
-  marked: false
+  marked: false,
+  category_id: '',
+  subcategory_id: '',
+  category_name: '',
+  subcategory_name: ''
 };
 
 export default function Proyectos() {
@@ -42,6 +48,16 @@ export default function Proyectos() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
+  
+  // Estados para categorías
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  
+  // Estados para adjuntos
+  const [attachments, setAttachments] = useState([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +108,51 @@ export default function Proyectos() {
     }
   );
 
+  // Cargar categorías al montar el componente
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await listCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Error al cargar categorías:', error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  // Cargar subcategorías cuando cambie la categoría seleccionada
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (selectedCategoryId) {
+        try {
+          const subcategoriesData = await listSubcategories(selectedCategoryId);
+          setSubcategories(subcategoriesData);
+        } catch (error) {
+          console.error('Error al cargar subcategorías:', error);
+        }
+      } else {
+        setSubcategories([]);
+      }
+    };
+    loadSubcategories();
+  }, [selectedCategoryId]);
+
+  // Cargar adjuntos cuando se abra el modal de gestión
+  useEffect(() => {
+    const loadAttachments = async () => {
+      if (selectedProject?.id) {
+        try {
+          const attachmentsData = await listProjectAttachments(selectedProject.id);
+          setAttachments(attachmentsData);
+        } catch (error) {
+          console.error('Error al cargar adjuntos:', error);
+        }
+      }
+    };
+    loadAttachments();
+  }, [selectedProject?.id, showViewModal]);
+
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('projects');
     queryClient.invalidateQueries('projectStats');
@@ -127,6 +188,69 @@ export default function Proyectos() {
     setSelectedCompany(filters.company_id || '');
     setSelectedProjectType(filters.project_type || '');
     setCurrentPage(1); // Resetear a la primera página
+  };
+
+  // Funciones para manejar adjuntos
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || !selectedProject?.id) {
+      showNotification('❌ Por favor selecciona un archivo', 'danger');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('description', `Archivo subido: ${selectedFile.name}`);
+
+      await uploadAttachment(selectedProject.id, formData);
+      
+      // Recargar adjuntos
+      const attachmentsData = await listProjectAttachments(selectedProject.id);
+      setAttachments(attachmentsData);
+      
+      setSelectedFile(null);
+      setUploadingFile(false);
+      showNotification('✅ Archivo subido correctamente', 'success');
+    } catch (error) {
+      console.error('Error al subir archivo:', error);
+      setUploadingFile(false);
+      showNotification('❌ Error al subir archivo', 'danger');
+    }
+  };
+
+  const handleFileDownload = async (attachment) => {
+    try {
+      await downloadFile(attachment);
+      showNotification('✅ Archivo descargado correctamente', 'success');
+    } catch (error) {
+      console.error('Error al descargar archivo:', error);
+      showNotification('❌ Error al descargar archivo', 'danger');
+    }
+  };
+
+  const handleFileDelete = async (attachmentId) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este archivo?')) {
+      try {
+        await deleteAttachment(attachmentId);
+        
+        // Recargar adjuntos
+        const attachmentsData = await listProjectAttachments(selectedProject.id);
+        setAttachments(attachmentsData);
+        
+        showNotification('✅ Archivo eliminado correctamente', 'success');
+      } catch (error) {
+        console.error('Error al eliminar archivo:', error);
+        showNotification('❌ Error al eliminar archivo', 'danger');
+      }
+    }
   };
 
   // Opciones de filtros específicas para proyectos
@@ -313,7 +437,11 @@ export default function Proyectos() {
       queries: project.queries || '',
       contact_name: project.contact_name || '',
       contact_phone: project.contact_phone || '',
-      contact_email: project.contact_email || ''
+      contact_email: project.contact_email || '',
+      category_id: project.category_id || '',
+      subcategory_id: project.subcategory_id || '',
+      category_name: project.category_name || '',
+      subcategory_name: project.subcategory_name || ''
     };
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
@@ -412,6 +540,27 @@ export default function Proyectos() {
           </Badge>
         );
       }
+    },
+    {
+      header: 'Categoría',
+      accessor: 'category_name',
+      render: (value, row) => (
+        <div>
+          {row.category_name && (
+            <Badge bg="primary" className="px-2 py-1 mb-1 d-block">
+              {row.category_name}
+            </Badge>
+          )}
+          {row.subcategory_name && (
+            <Badge bg="secondary" className="px-2 py-1 d-block">
+              {row.subcategory_name}
+            </Badge>
+          )}
+          {!row.category_name && (
+            <span className="text-muted">Sin categoría</span>
+          )}
+        </div>
+      )
     },
     {
       header: 'Empresa',
@@ -527,6 +676,36 @@ export default function Proyectos() {
       type: 'text',
       placeholder: 'Ingresa la ubicación del proyecto',
       required: true
+    },
+    {
+      name: 'category_id',
+      label: 'Categoría del Proyecto',
+      type: 'select',
+      options: categories.map(category => ({
+        value: category.id,
+        label: category.name
+      })),
+      description: 'Selecciona la categoría principal del proyecto',
+      onChange: (value) => {
+        setSelectedCategoryId(value);
+        // Limpiar subcategoría cuando cambie la categoría
+        setEditingProject(prev => ({
+          ...prev,
+          subcategory_id: '',
+          subcategory_name: ''
+        }));
+      }
+    },
+    {
+      name: 'subcategory_id',
+      label: 'Subcategoría del Proyecto',
+      type: 'select',
+      options: subcategories.map(subcategory => ({
+        value: subcategory.id,
+        label: subcategory.name
+      })),
+      description: 'Selecciona la subcategoría específica del proyecto',
+      disabled: !selectedCategoryId
     },
     {
       name: 'contact_name',
@@ -660,30 +839,30 @@ export default function Proyectos() {
 
   return (
     <>
-    <Container fluid className="py-4">
-      <div className="fade-in">
-        <PageHeader
-          title="Gestión de Proyectos"
-          subtitle={selectedClient ? `Crear proyecto para: ${selectedClient.name}` : "Crear, editar y gestionar proyectos del sistema"}
-          icon={FiHome}
-          actions={
-            <div className="d-flex gap-2">
-              {selectedClient && (
-                <Badge bg="info" className="px-3 py-2 d-flex align-items-center">
-                  <FiUser className="me-1" />
-                  Cliente: {selectedClient.name}
-                </Badge>
-              )}
-            <Button variant="primary" onClick={handleCreate}>
-              <FiPlus className="me-2" />
-                {selectedClient ? 'Crear Proyecto' : 'Nuevo Proyecto'}
-            </Button>
-            </div>
-          }
-        />
+      <Container fluid className="py-4">
+        <div className="fade-in">
+          <PageHeader
+            title="Gestión de Proyectos"
+            subtitle={selectedClient ? `Crear proyecto para: ${selectedClient.name}` : "Crear, editar y gestionar proyectos del sistema"}
+            icon={FiHome}
+            actions={
+              <div className="d-flex gap-2">
+                {selectedClient && (
+                  <Badge bg="info" className="px-3 py-2 d-flex align-items-center">
+                    <FiUser className="me-1" />
+                    Cliente: {selectedClient.name}
+                  </Badge>
+                )}
+                <Button variant="primary" onClick={handleCreate}>
+                  <FiPlus className="me-2" />
+                  {selectedClient ? 'Crear Proyecto' : 'Nuevo Proyecto'}
+                </Button>
+              </div>
+            }
+          />
 
-        {/* Estadísticas */}
-        <Row className="g-4 mb-4">
+          {/* Estadísticas */}
+          <Row className="g-4 mb-4">
           <Col md={6} lg={3}>
             <StatsCard
               title="Total Proyectos"
@@ -1042,6 +1221,7 @@ export default function Proyectos() {
                           onChange={(e) => setEditingData({...editingData, status: e.target.value})}
                         >
                           <option value="pendiente">Pendiente</option>
+                          <option value="activo">Activo</option>
                           <option value="en_proceso">En Proceso</option>
                           <option value="completado">Completado</option>
                           <option value="pausado">Pausado</option>
@@ -1348,6 +1528,136 @@ export default function Proyectos() {
                           <FiCheck className="me-2" />
                           {updateMarkMutation.isLoading ? 'Procesando...' : (editingData.marked ? 'Desmarcar Proyecto' : 'Marcar Proyecto')}
                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Tab>
+
+                {/* Tab Adjuntos */}
+                <Tab eventKey="attachments" title={
+                  <span>
+                    <FiFolder className="me-1" />
+                    Adjuntos
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <h6 className="mb-3">Gestión de Archivos</h6>
+                      
+                      {/* Subir archivo */}
+                      <div className="card mb-4">
+                        <div className="card-header">
+                          <h6 className="mb-0">Subir Nuevo Archivo</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="mb-3">
+                            <label className="form-label">Seleccionar Archivo</label>
+                            <input 
+                              type="file" 
+                              className="form-control" 
+                              onChange={handleFileSelect}
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                            />
+                            <div className="form-text">
+                              Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, TXT (máx. 10MB)
+                            </div>
+                          </div>
+                          {selectedFile && (
+                            <div className="mb-3">
+                              <div className="alert alert-info">
+                                <strong>Archivo seleccionado:</strong> {selectedFile.name} 
+                                <br />
+                                <small>Tamaño: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
+                              </div>
+                            </div>
+                          )}
+                          <Button 
+                            variant="primary" 
+                            onClick={handleFileUpload}
+                            disabled={!selectedFile || uploadingFile}
+                          >
+                            {uploadingFile ? 'Subiendo...' : 'Subir Archivo'}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Lista de archivos */}
+                      <div className="card">
+                        <div className="card-header">
+                          <h6 className="mb-0">Archivos Adjuntos ({attachments.length})</h6>
+                        </div>
+                        <div className="card-body">
+                          {attachments.length === 0 ? (
+                            <div className="text-center text-muted py-4">
+                              <FiFolder size={48} className="mb-3" />
+                              <p>No hay archivos adjuntos</p>
+                              <small>Sube archivos como cotizaciones, documentos técnicos, etc.</small>
+                            </div>
+                          ) : (
+                            <div className="table-responsive">
+                              <table className="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>Archivo</th>
+                                    <th>Tamaño</th>
+                                    <th>Fecha</th>
+                                    <th>Subido por</th>
+                                    <th>Acciones</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {attachments.map((attachment) => (
+                                    <tr key={attachment.id}>
+                                      <td>
+                                        <div>
+                                          <strong>{attachment.original_name}</strong>
+                                          {attachment.description && (
+                                            <>
+                                              <br/>
+                                              <small className="text-muted">{attachment.description}</small>
+                                            </>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td>
+                                        {attachment.file_size ? 
+                                          `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 
+                                          'N/A'
+                                        }
+                                      </td>
+                                      <td>
+                                        {new Date(attachment.created_at).toLocaleDateString()}
+                                      </td>
+                                      <td>
+                                        {attachment.uploaded_by_name || 'Usuario'}
+                                      </td>
+                                      <td>
+                                        <div className="btn-group btn-group-sm">
+                                          <Button 
+                                            variant="outline-primary" 
+                                            size="sm"
+                                            onClick={() => handleFileDownload(attachment)}
+                                            title="Descargar"
+                                          >
+                                            <FiDownload size={14} />
+                                          </Button>
+                                          <Button 
+                                            variant="outline-danger" 
+                                            size="sm"
+                                            onClick={() => handleFileDelete(attachment.id)}
+                                            title="Eliminar"
+                                          >
+                                            <FiTrash2 size={14} />
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

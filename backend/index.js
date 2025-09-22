@@ -64,6 +64,9 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/project-history', require('./routes/projectHistoryRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/subcategories', require('./routes/subcategoryRoutes'));
+app.use('/api/project-categories', require('./routes/categoryRoutes'));
+app.use('/api/project-subcategories', require('./routes/subcategoryRoutes'));
+app.use('/api/attachments', require('./routes/attachmentRoutes'));
 app.use('/api/quotes', require('./routes/quoteRoutes'));
 app.use('/api/quote-items', require('./routes/quoteItemRoutes'));
 app.use('/api/quote-variants', require('./routes/quoteVariantRoutes'));
@@ -138,6 +141,11 @@ if (require.main === module) {
       server.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
         console.log(`WebSocket habilitado para notificaciones en tiempo real`);
+        
+        // Inicializar sistema de organización de archivos
+        const fileOrganizationService = require('./services/fileOrganizationService');
+        fileOrganizationService.startMonitoring();
+        console.log(`Sistema de organización de archivos iniciado`);
       });
     } catch (err) {
       console.error('Startup error:', err);
