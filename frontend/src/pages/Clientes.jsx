@@ -105,6 +105,7 @@ export default function Clientes() {
     {
       title: 'Por Sector',
       options: [
+        { label: 'General', filter: { sector: 'General' } },
         { label: 'Construcción', filter: { sector: 'Construcción' } },
         { label: 'Minería', filter: { sector: 'Minería' } },
         { label: 'Ingeniería', filter: { sector: 'Ingeniería' } },
