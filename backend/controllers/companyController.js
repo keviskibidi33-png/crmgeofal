@@ -6,6 +6,8 @@ exports.getAll = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const search = req.query.search || '';
     const type = req.query.type || '';
+    const city = req.query.city || '';
+    const sector = req.query.sector || '';
     
     // Agregar headers para evitar caché
     res.set({
@@ -14,7 +16,7 @@ exports.getAll = async (req, res) => {
       'Expires': '0'
     });
     
-    const { rows, total } = await Company.getAll({ page, limit, search, type });
+    const { rows, total } = await Company.getAll({ page, limit, search, type, city, sector });
     res.json({ data: rows, total });
   } catch (err) {
     console.error('Error getting companies:', err);

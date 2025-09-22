@@ -6,6 +6,8 @@ export const listCompanies = (params = {}) => {
   if (params.limit) sp.set('limit', params.limit);
   if (params.search) sp.set('search', params.search);
   if (params.type) sp.set('type', params.type);
+  if (params.city) sp.set('city', params.city);
+  if (params.sector) sp.set('sector', params.sector);
   const qs = sp.toString();
   const path = qs ? `/api/companies?${qs}` : '/api/companies';
   

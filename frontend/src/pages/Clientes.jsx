@@ -28,17 +28,21 @@ export default function Clientes() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedSector, setSelectedSector] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery(
-    ['clients', currentPage, searchTerm, selectedType],
+    ['clients', currentPage, searchTerm, selectedType, selectedCity, selectedSector],
     () => listCompanies({ 
       page: currentPage, 
       limit: 20, 
       search: searchTerm, 
-      type: selectedType 
+      type: selectedType,
+      city: selectedCity,
+      sector: selectedSector
     }),
     { 
       keepPreviousData: true,
@@ -84,6 +88,8 @@ export default function Clientes() {
   const handleFilter = (filters) => {
     console.log('🔍 handleFilter - Filtros:', filters);
     setSelectedType(filters.type || '');
+    setSelectedCity(filters.city || '');
+    setSelectedSector(filters.sector || '');
     setCurrentPage(1); // Resetear a la primera página
   };
 
@@ -99,27 +105,27 @@ export default function Clientes() {
     {
       title: 'Por Sector',
       options: [
-        { label: 'Construcción', filter: { sector: 'construccion' } },
-        { label: 'Minería', filter: { sector: 'mineria' } },
-        { label: 'Ingeniería', filter: { sector: 'ingenieria' } },
-        { label: 'Laboratorio', filter: { sector: 'laboratorio' } },
-        { label: 'Consultoría', filter: { sector: 'consultoria' } },
-        { label: 'Tecnología', filter: { sector: 'tecnologia' } },
-        { label: 'Ambiental', filter: { sector: 'ambiental' } },
-        { label: 'Geología', filter: { sector: 'geologia' } }
+        { label: 'Construcción', filter: { sector: 'Construcción' } },
+        { label: 'Minería', filter: { sector: 'Minería' } },
+        { label: 'Ingeniería', filter: { sector: 'Ingeniería' } },
+        { label: 'Laboratorio', filter: { sector: 'Laboratorio' } },
+        { label: 'Consultoría', filter: { sector: 'Consultoría' } },
+        { label: 'Tecnología', filter: { sector: 'Tecnología' } },
+        { label: 'Ambiental', filter: { sector: 'Ambiental' } },
+        { label: 'Geología', filter: { sector: 'Geología' } }
       ]
     },
     {
       title: 'Por Ciudad',
       options: [
-        { label: 'Lima', filter: { ciudad: 'lima' } },
-        { label: 'Arequipa', filter: { ciudad: 'arequipa' } },
-        { label: 'Cusco', filter: { ciudad: 'cusco' } },
-        { label: 'Trujillo', filter: { ciudad: 'trujillo' } },
-        { label: 'Piura', filter: { ciudad: 'piura' } },
-        { label: 'Chiclayo', filter: { ciudad: 'chiclayo' } },
-        { label: 'Iquitos', filter: { ciudad: 'iquitos' } },
-        { label: 'Huancayo', filter: { ciudad: 'huancayo' } }
+        { label: 'Lima', filter: { city: 'Lima' } },
+        { label: 'Arequipa', filter: { city: 'Arequipa' } },
+        { label: 'Cusco', filter: { city: 'Cusco' } },
+        { label: 'Trujillo', filter: { city: 'Trujillo' } },
+        { label: 'Piura', filter: { city: 'Piura' } },
+        { label: 'Chiclayo', filter: { city: 'Chiclayo' } },
+        { label: 'Iquitos', filter: { city: 'Iquitos' } },
+        { label: 'Huancayo', filter: { city: 'Huancayo' } }
       ]
     }
   ];
@@ -226,6 +232,94 @@ export default function Clientes() {
           )}
         </div>
       )
+    },
+    {
+      header: 'Ciudad',
+      accessor: 'city',
+      render: (value) => {
+        const city = value || 'No especificada';
+        let cityColor = 'secondary';
+        
+        // Asignar colores según la ciudad
+        switch (city) {
+          case 'Lima':
+            cityColor = 'primary';
+            break;
+          case 'Arequipa':
+            cityColor = 'info';
+            break;
+          case 'Cusco':
+            cityColor = 'success';
+            break;
+          case 'Trujillo':
+            cityColor = 'warning';
+            break;
+          case 'Piura':
+            cityColor = 'danger';
+            break;
+          case 'Chiclayo':
+            cityColor = 'info';
+            break;
+          case 'Iquitos':
+            cityColor = 'success';
+            break;
+          case 'Huancayo':
+            cityColor = 'warning';
+            break;
+          default:
+            cityColor = 'secondary';
+        }
+        
+        return (
+          <Badge bg={cityColor} className="px-2 py-1">
+            {city}
+          </Badge>
+        );
+      }
+    },
+    {
+      header: 'Sector',
+      accessor: 'sector',
+      render: (value) => {
+        const sector = value || 'General';
+        let sectorColor = 'secondary';
+        
+        // Asignar colores según el sector
+        switch (sector) {
+          case 'Construcción':
+            sectorColor = 'warning';
+            break;
+          case 'Minería':
+            sectorColor = 'dark';
+            break;
+          case 'Ingeniería':
+            sectorColor = 'primary';
+            break;
+          case 'Laboratorio':
+            sectorColor = 'info';
+            break;
+          case 'Consultoría':
+            sectorColor = 'success';
+            break;
+          case 'Tecnología':
+            sectorColor = 'primary';
+            break;
+          case 'Ambiental':
+            sectorColor = 'success';
+            break;
+          case 'Geología':
+            sectorColor = 'info';
+            break;
+          default:
+            sectorColor = 'secondary';
+        }
+        
+        return (
+          <Badge bg={sectorColor} className="px-2 py-1">
+            {sector}
+          </Badge>
+        );
+      }
     },
     {
       header: 'Dirección',

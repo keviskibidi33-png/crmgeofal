@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 const Company = {
-  async getAll({ page = 1, limit = 20, search = '', type = '', area = '' }) {
+  async getAll({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '' }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
@@ -20,14 +20,22 @@ const Company = {
       params.push(type);
       where.push(`type = $${params.length}`);
     }
+    if (city) {
+      params.push(city);
+      where.push(`city = $${params.length}`);
+    }
+    if (sector) {
+      params.push(sector);
+      where.push(`sector = $${params.length}`);
+    }
     
     let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     params.push(limit, offset);
     
-    const data = await pool.query(
-      `SELECT * FROM companies ${whereClause} ORDER BY id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
-      params
-    );
+        const data = await pool.query(
+          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, created_at FROM companies ${whereClause} ORDER BY id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+          params
+        );
     
     // Total con filtros
     let totalParams = params.slice(0, params.length-2);
