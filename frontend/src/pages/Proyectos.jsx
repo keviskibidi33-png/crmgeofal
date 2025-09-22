@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button, Badge, Row, Col, Card, Container, Tabs, Tab } from 'react-bootstrap';
+import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
@@ -22,6 +22,9 @@ export default function Proyectos() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState('view');
   const [editingData, setEditingData] = useState({});
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -73,6 +76,12 @@ export default function Proyectos() {
     setShowModal(false);
     setEditingProject(null);
     setDeletingProject(null);
+  };
+
+  const showNotification = (message, variant = 'success') => {
+    setToastMessage(message);
+    setToastVariant(variant);
+    setShowToast(true);
   };
 
   // Función para manejar búsqueda
@@ -152,12 +161,17 @@ export default function Proyectos() {
     ({ id, ...data }) => updateProjectCategories(id, data),
     {
       onSuccess: (updatedProject) => {
+        console.log('✅ updateCategoriesMutation - Success:', updatedProject);
         // Actualizar el proyecto seleccionado con los nuevos datos
         setSelectedProject(updatedProject);
         setEditingData(updatedProject);
-        handleMutationSuccess('Categorías del proyecto actualizadas exitosamente');
+        showNotification('✅ Categorías guardadas correctamente!', 'success');
+        queryClient.invalidateQueries('projects');
       },
-      onError: (error) => console.error('Error updating project categories:', error)
+      onError: (error) => {
+        console.error('❌ updateCategoriesMutation - Error:', error);
+        showNotification('❌ Error al guardar categorías', 'danger');
+      }
     }
   );
 
@@ -1023,6 +1037,8 @@ export default function Proyectos() {
                           className="form-check-input" 
                           type="checkbox" 
                           id="cat_consultoria"
+                          checked={editingData.requiere_consultoria || false}
+                          onChange={(e) => setEditingData({...editingData, requiere_consultoria: e.target.checked})}
                         />
                         <label className="form-check-label" htmlFor="cat_consultoria">
                           Consultoría
@@ -1033,6 +1049,8 @@ export default function Proyectos() {
                           className="form-check-input" 
                           type="checkbox" 
                           id="cat_capacitacion"
+                          checked={editingData.requiere_capacitacion || false}
+                          onChange={(e) => setEditingData({...editingData, requiere_capacitacion: e.target.checked})}
                         />
                         <label className="form-check-label" htmlFor="cat_capacitacion">
                           Capacitación
@@ -1043,6 +1061,8 @@ export default function Proyectos() {
                           className="form-check-input" 
                           type="checkbox" 
                           id="cat_auditoria"
+                          checked={editingData.requiere_auditoria || false}
+                          onChange={(e) => setEditingData({...editingData, requiere_auditoria: e.target.checked})}
                         />
                         <label className="form-check-label" htmlFor="cat_auditoria">
                           Auditoría
@@ -1186,6 +1206,26 @@ export default function Proyectos() {
         submitText="Cerrar"
         size="xl"
       />
+      
+      {/* Toast de notificaciones */}
+      <ToastContainer position="top-end" className="p-3">
+        <Toast 
+          show={showToast} 
+          onClose={() => setShowToast(false)} 
+          delay={3000} 
+          autohide
+          bg={toastVariant}
+        >
+          <Toast.Header>
+            <strong className="me-auto">
+              {toastVariant === 'success' ? '✅ Éxito' : '❌ Error'}
+            </strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">
+            {toastMessage}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
       </div>
     </Container>
   );
