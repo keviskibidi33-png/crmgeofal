@@ -98,11 +98,19 @@ const Project = {
   },
   async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, contact_name, contact_phone, contact_email }) {
     const res = await pool.query(
-      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email]
+      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email, laboratorio_status, ingenieria_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email, requiere_laboratorio ? 'pendiente' : 'no_requerido', requiere_ingenieria ? 'pendiente' : 'no_requerido']
     );
     return res.rows[0];
   },
+  async updateStatus(id, { status, laboratorio_status, ingenieria_status, status_notes }) {
+    const res = await pool.query(
+      'UPDATE projects SET status = $1, laboratorio_status = $2, ingenieria_status = $3, status_notes = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
+      [status, laboratorio_status, ingenieria_status, status_notes, id]
+    );
+    return res.rows[0];
+  },
+
   async update(id, { name, location }, user) {
     // Solo el vendedor asignado o jefa comercial puede editar
     const res = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);

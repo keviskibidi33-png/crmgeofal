@@ -38,6 +38,12 @@ export const updateProject = (id, payload) =>
     body: JSON.stringify(payload),
   });
 
+export const updateProjectStatus = (id, payload) =>
+  apiFetch(`/api/projects/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
 export const deleteProject = (id) =>
   apiFetch(`/api/projects/${id}`, {
     method: 'DELETE',

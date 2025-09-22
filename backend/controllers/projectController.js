@@ -42,6 +42,36 @@ exports.getById = async (req, res) => {
 
 const Audit = require('../models/audit');
 
+exports.updateStatus = async (req, res) => {
+  try {
+    const { status, laboratorio_status, ingenieria_status, status_notes } = req.body;
+    const project = await Project.updateStatus(req.params.id, {
+      status,
+      laboratorio_status,
+      ingenieria_status,
+      status_notes
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    // Auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'actualizar_estado',
+      entity: 'project',
+      entity_id: project.id,
+      details: { status, laboratorio_status, ingenieria_status }
+    });
+
+    res.json(project);
+  } catch (err) {
+    console.error('Error updating project status:', err);
+    res.status(500).json({ error: 'Error al actualizar estado del proyecto' });
+  }
+};
+
 exports.create = async (req, res) => {
   try {
     const { company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email } = req.body;

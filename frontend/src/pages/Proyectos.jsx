@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listProjects, createProject, updateProject, deleteProject, getProjectStats } from '../services/projects';
+import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus } from '../services/projects';
 
 const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false, contact_name: '', contact_phone: '', contact_email: '' };
 
@@ -17,6 +17,7 @@ export default function Proyectos() {
   const [deletingProject, setDeletingProject] = useState(null);
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [showQueriesModal, setShowQueriesModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,6 +133,14 @@ export default function Proyectos() {
     onError: (error) => console.error('Error deleting project:', error)
   });
 
+  const updateStatusMutation = useMutation(
+    ({ id, ...data }) => updateProjectStatus(id, data),
+    {
+      onSuccess: () => handleMutationSuccess('Estado del proyecto actualizado exitosamente'),
+      onError: (error) => console.error('Error updating project status:', error)
+    }
+  );
+
   const handleCreate = () => {
     // Si hay un cliente pre-seleccionado, pre-llenar el formulario
     const formData = selectedClient ? {
@@ -178,6 +187,11 @@ export default function Proyectos() {
     } catch (error) {
       console.error('Error al marcar proyecto:', error);
     }
+  };
+
+  const handleUpdateStatus = (project) => {
+    setSelectedProject(project);
+    setShowStatusModal(true);
   };
 
   const handleSubmit = async (formData) => {
@@ -567,6 +581,7 @@ export default function Proyectos() {
               onDelete={handleDelete}
               actions={[
                 { label: 'Editar', icon: FiEdit, onClick: handleEdit, variant: 'outline-primary' },
+                { label: 'Estado', icon: FiSettings, onClick: handleUpdateStatus, variant: 'outline-secondary' },
                 { label: 'Categorías', icon: FiFolder, onClick: handleViewCategories, variant: 'outline-info' },
                 { label: 'Consultas', icon: FiMessageCircle, onClick: handleViewQueries, variant: 'outline-warning' },
                 { label: 'Marcar', icon: FiCheck, onClick: handleToggleMark, variant: 'outline-success' },
@@ -644,6 +659,68 @@ export default function Proyectos() {
           setShowQueriesModal(false);
         }}
         submitText="Guardar Consultas"
+      />
+
+      {/* Modal para Actualizar Estado */}
+      <ModalForm
+        show={showStatusModal}
+        onHide={() => setShowStatusModal(false)}
+        title={`Actualizar Estado - ${selectedProject?.name || ''}`}
+        data={selectedProject || {}}
+        fields={[
+          {
+            name: 'status',
+            label: 'Estado del Proyecto',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'pendiente', label: 'Pendiente' },
+              { value: 'en_proceso', label: 'En Proceso' },
+              { value: 'completado', label: 'Completado' },
+              { value: 'pausado', label: 'Pausado' },
+              { value: 'cancelado', label: 'Cancelado' }
+            ]
+          },
+          {
+            name: 'laboratorio_status',
+            label: 'Estado del Servicio de Laboratorio',
+            type: 'select',
+            options: [
+              { value: 'no_requerido', label: 'No Requerido' },
+              { value: 'pendiente', label: 'Pendiente' },
+              { value: 'en_proceso', label: 'En Proceso' },
+              { value: 'completado', label: 'Completado' },
+              { value: 'pausado', label: 'Pausado' },
+              { value: 'cancelado', label: 'Cancelado' }
+            ]
+          },
+          {
+            name: 'ingenieria_status',
+            label: 'Estado del Servicio de Ingeniería',
+            type: 'select',
+            options: [
+              { value: 'no_requerido', label: 'No Requerido' },
+              { value: 'pendiente', label: 'Pendiente' },
+              { value: 'en_proceso', label: 'En Proceso' },
+              { value: 'completado', label: 'Completado' },
+              { value: 'pausado', label: 'Pausado' },
+              { value: 'cancelado', label: 'Cancelado' }
+            ]
+          },
+          {
+            name: 'status_notes',
+            label: 'Notas del Estado',
+            type: 'textarea',
+            placeholder: 'Agrega comentarios sobre el cambio de estado...',
+            rows: 3
+          }
+        ]}
+        onSubmit={(data) => {
+          updateStatusMutation.mutate({ id: selectedProject.id, ...data });
+          setShowStatusModal(false);
+        }}
+        submitText="Actualizar Estado"
+        loading={updateStatusMutation.isLoading}
       />
       </div>
     </Container>
