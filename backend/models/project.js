@@ -2,6 +2,9 @@ const pool = require('../config/db');
 
 const Project = {
   async getAllByUser(user, { page = 1, limit = 20, search = '', status = '', company_id = '', project_type = '', priority = '' }) {
+    console.log('🔍 Project.getAllByUser - Parámetros recibidos:', { page, limit, search, status, company_id, project_type, priority });
+    console.log('🔍 Project.getAllByUser - Usuario:', { id: user.id, role: user.role });
+    
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
@@ -9,11 +12,11 @@ const Project = {
 
     // Filtros por rol de usuario
     if (user.role === 'vendedor_comercial') {
-      where.push(`vendedor_id = $${paramIndex}`);
+      where.push(`p.vendedor_id = $${paramIndex}`);
       params.push(user.id);
       paramIndex++;
     } else if (user.role === 'usuario_laboratorio') {
-      where.push(`laboratorio_id = $${paramIndex}`);
+      where.push(`p.laboratorio_id = $${paramIndex}`);
       params.push(user.id);
       paramIndex++;
     } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin') {
@@ -24,27 +27,28 @@ const Project = {
     if (search) {
       params.push(`%${search}%`);
       params.push(`%${search}%`);
-      where.push(`(LOWER(name) LIKE LOWER($${paramIndex}) OR LOWER(location) LIKE LOWER($${paramIndex + 1}))`);
-      paramIndex += 2;
+      params.push(`%${search}%`);
+      where.push(`(LOWER(p.name) LIKE LOWER($${paramIndex}) OR LOWER(p.location) LIKE LOWER($${paramIndex + 1}) OR LOWER(c.name) LIKE LOWER($${paramIndex + 2}))`);
+      paramIndex += 3;
     }
 
     // Filtro por estado
     if (status) {
-      where.push(`status = $${paramIndex}`);
+      where.push(`p.status = $${paramIndex}`);
       params.push(status);
       paramIndex++;
     }
 
     // Filtro por empresa
     if (company_id) {
-      where.push(`company_id = $${paramIndex}`);
+      where.push(`p.company_id = $${paramIndex}`);
       params.push(company_id);
       paramIndex++;
     }
 
     // Filtro por tipo de proyecto
     if (project_type) {
-      where.push(`project_type = $${paramIndex}`);
+      where.push(`p.project_type = $${paramIndex}`);
       params.push(project_type);
       paramIndex++;
     }
@@ -52,7 +56,7 @@ const Project = {
     // Filtro por prioridad
     if (priority) {
       console.log('🔍 getAllByUser - Aplicando filtro de prioridad:', priority);
-      where.push(`priority = $${paramIndex}`);
+      where.push(`p.priority = $${paramIndex}`);
       params.push(priority);
       paramIndex++;
     }
@@ -60,40 +64,53 @@ const Project = {
     let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     params.push(limit, offset);
 
+    console.log('🔍 Project.getAllByUser - whereClause:', whereClause);
+    console.log('🔍 Project.getAllByUser - params:', params);
+    console.log('🔍 Project.getAllByUser - paramIndex:', paramIndex);
+
     // Query con JOINs para obtener información de empresa, usuarios y categorías
-    const data = await pool.query(`
-      SELECT 
-        p.*,
-        c.name as company_name,
-        c.ruc as company_ruc,
-        v.name as vendedor_name,
-        l.name as laboratorio_name,
-        pc.name as category_name,
-        ps.name as subcategory_name
-      FROM projects p
-      LEFT JOIN companies c ON p.company_id = c.id
-      LEFT JOIN users v ON p.vendedor_id = v.id
-      LEFT JOIN users l ON p.laboratorio_id = l.id
-      LEFT JOIN project_categories pc ON p.category_id = pc.id
-      LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
-      ${whereClause}
-      ORDER BY p.id DESC 
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `, params);
+    try {
+      const data = await pool.query(`
+        SELECT 
+          p.*,
+          c.name as company_name,
+          c.ruc as company_ruc,
+          v.name as vendedor_name,
+          l.name as laboratorio_name,
+          pc.name as category_name,
+          ps.name as subcategory_name
+        FROM projects p
+        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN users v ON p.vendedor_id = v.id
+        LEFT JOIN users l ON p.laboratorio_id = l.id
+        LEFT JOIN project_categories pc ON p.category_id = pc.id
+        LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
+        ${whereClause}
+        ORDER BY p.id DESC 
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `, params);
+      
+      console.log('✅ Project.getAllByUser - Query ejecutada exitosamente, filas:', data.rows.length);
 
-    // Total con filtros
-    let totalParams = params.slice(0, params.length - 2);
-    const total = await pool.query(`
-      SELECT COUNT(*) FROM projects p
-      LEFT JOIN companies c ON p.company_id = c.id
-      LEFT JOIN users v ON p.vendedor_id = v.id
-      LEFT JOIN users l ON p.laboratorio_id = l.id
-      LEFT JOIN project_categories pc ON p.category_id = pc.id
-      LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
-      ${whereClause}
-    `, totalParams);
+      // Total con filtros
+      let totalParams = params.slice(0, params.length - 2);
+      const total = await pool.query(`
+        SELECT COUNT(*) FROM projects p
+        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN users v ON p.vendedor_id = v.id
+        LEFT JOIN users l ON p.laboratorio_id = l.id
+        LEFT JOIN project_categories pc ON p.category_id = pc.id
+        LEFT JOIN project_subcategories ps ON p.subcategory_id = ps.id
+        ${whereClause}
+      `, totalParams);
 
-    return { rows: data.rows, total: parseInt(total.rows[0].count) };
+      console.log('✅ Project.getAllByUser - Total calculado:', parseInt(total.rows[0].count));
+      return { rows: data.rows, total: parseInt(total.rows[0].count) };
+    } catch (error) {
+      console.error('❌ Project.getAllByUser - Error en query:', error.message);
+      console.error('❌ Project.getAllByUser - Error completo:', error);
+      throw error;
+    }
   },
   async getById(id, user) {
     // Solo acceso si el usuario tiene permiso

@@ -5,6 +5,29 @@ export const listProjectAttachments = (projectId) => {
   return apiFetch(`/api/attachments/${projectId}/attachments`);
 };
 
+// Obtener todos los adjuntos con información completa
+export const getAllAttachments = (params = {}) => {
+  const sp = new URLSearchParams();
+  if (params.page) sp.set('page', params.page);
+  if (params.limit) sp.set('limit', params.limit);
+  if (params.search) sp.set('search', params.search);
+  if (params.project_id) sp.set('project_id', params.project_id);
+  if (params.file_type) sp.set('file_type', params.file_type);
+  
+  const qs = sp.toString();
+  const path = qs ? `/api/attachments/all?${qs}` : '/api/attachments/all';
+  
+  console.log('🔍 getAllAttachments - Llamando a:', path);
+  
+  return apiFetch(path).then(data => {
+    console.log('✅ getAllAttachments - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ getAllAttachments - Error:', error);
+    throw error;
+  });
+};
+
 export const getAttachmentById = (id) => {
   return apiFetch(`/api/attachments/${id}`);
 };

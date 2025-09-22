@@ -89,6 +89,104 @@ const ProjectAttachment = {
       WHERE project_id = $1
     `, [projectId]);
     return result.rows[0];
+  },
+
+  // Obtener todos los adjuntos con información completa
+  async getAllWithDetails({ page = 1, limit = 20, search = '', project_id = '', file_type = '' }) {
+    const offset = (page - 1) * limit;
+    let where = [];
+    let params = [];
+    let paramIndex = 1;
+
+    // Filtro por búsqueda
+    if (search) {
+      params.push(`%${search}%`);
+      params.push(`%${search}%`);
+      params.push(`%${search}%`);
+      where.push(`(LOWER(pa.original_name) LIKE LOWER($${paramIndex}) OR LOWER(p.name) LIKE LOWER($${paramIndex + 1}) OR LOWER(pa.description) LIKE LOWER($${paramIndex + 2}))`);
+      paramIndex += 3;
+    }
+
+    // Filtro por proyecto
+    if (project_id) {
+      where.push(`pa.project_id = $${paramIndex}`);
+      params.push(project_id);
+      paramIndex++;
+    }
+
+    // Filtro por tipo de archivo
+    if (file_type) {
+      where.push(`pa.file_type LIKE $${paramIndex}`);
+      params.push(`%${file_type}%`);
+      paramIndex++;
+    }
+
+    let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    params.push(limit, offset);
+
+    console.log('🔍 ProjectAttachment.getAllWithDetails - whereClause:', whereClause);
+    console.log('🔍 ProjectAttachment.getAllWithDetails - params:', params);
+
+    // Query principal con JOINs para obtener información completa
+    const data = await pool.query(`
+      SELECT 
+        pa.*,
+        p.name as project_name,
+        p.location as project_location,
+        p.status as project_status,
+        p.priority as project_priority,
+        p.requiere_laboratorio,
+        p.requiere_ingenieria,
+        p.requiere_consultoria,
+        p.requiere_capacitacion,
+        p.requiere_auditoria,
+        c.name as company_name,
+        c.ruc as company_ruc,
+        v.name as vendedor_name,
+        v.role as vendedor_role,
+        l.name as laboratorio_name,
+        l.role as laboratorio_role,
+        pc.name as category_name,
+        ps.name as subcategory_name,
+        u.name as uploaded_by_name,
+        u.role as uploaded_by_role
+      FROM project_attachments pa
+      LEFT JOIN projects p ON pa.project_id = p.id
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users v ON p.vendedor_id = v.id
+      LEFT JOIN users l ON p.laboratorio_id = l.id
+      LEFT JOIN project_categories pc ON pa.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON pa.subcategory_id = ps.id
+      LEFT JOIN users u ON pa.uploaded_by = u.id
+      ${whereClause}
+      ORDER BY pa.created_at DESC 
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `, params);
+
+    // Total con filtros
+    let totalParams = params.slice(0, params.length - 2);
+    const total = await pool.query(`
+      SELECT COUNT(*) FROM project_attachments pa
+      LEFT JOIN projects p ON pa.project_id = p.id
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users v ON p.vendedor_id = v.id
+      LEFT JOIN users l ON p.laboratorio_id = l.id
+      LEFT JOIN project_categories pc ON pa.category_id = pc.id
+      LEFT JOIN project_subcategories ps ON pa.subcategory_id = ps.id
+      LEFT JOIN users u ON pa.uploaded_by = u.id
+      ${whereClause}
+    `, totalParams);
+
+    console.log('✅ ProjectAttachment.getAllWithDetails - Filas encontradas:', data.rows.length);
+    console.log('✅ ProjectAttachment.getAllWithDetails - Total:', parseInt(total.rows[0].count));
+
+    return { 
+      data: data.rows, 
+      total: parseInt(total.rows[0].count),
+      page,
+      limit,
+      totalPages: Math.ceil(parseInt(total.rows[0].count) / limit)
+    };
   }
 };
 

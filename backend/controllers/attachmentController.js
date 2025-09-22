@@ -190,6 +190,35 @@ const attachmentController = {
     }
   },
 
+  // Visualizar adjunto (sin forzar descarga)
+  async view(req, res) {
+    try {
+      const { id } = req.params;
+      const attachment = await ProjectAttachment.getById(id);
+      
+      if (!attachment) {
+        return res.status(404).json({ error: 'Adjunto no encontrado' });
+      }
+
+      // Verificar que el archivo existe
+      try {
+        await fs.access(attachment.file_path);
+      } catch (error) {
+        return res.status(404).json({ error: 'Archivo no encontrado en el servidor' });
+      }
+
+      // Configurar headers para visualización (no forzar descarga)
+      res.setHeader('Content-Type', attachment.file_type);
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache por 1 hora
+      
+      // Enviar archivo para visualización
+      res.sendFile(path.resolve(attachment.file_path));
+    } catch (error) {
+      console.error('Error al visualizar adjunto:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+
   // Obtener estadísticas de adjuntos por proyecto
   async getStats(req, res) {
     try {
@@ -239,6 +268,32 @@ const attachmentController = {
       res.json({ message: 'Compresión de carpetas antiguas completada' });
     } catch (error) {
       console.error('Error comprimiendo carpetas:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+
+  // Obtener todos los adjuntos con información completa
+  async getAllAttachments(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const search = req.query.search || '';
+      const project_id = req.query.project_id || '';
+      const file_type = req.query.file_type || '';
+      
+      console.log('🔍 getAllAttachments - Parámetros:', { page, limit, search, project_id, file_type });
+      
+      const result = await ProjectAttachment.getAllWithDetails({
+        page,
+        limit,
+        search,
+        project_id,
+        file_type
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error obteniendo adjuntos:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }

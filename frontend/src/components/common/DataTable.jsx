@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Table, Form, InputGroup, Button, Badge, Dropdown, Pagination, Row, Col } from 'react-bootstrap';
 import { FiSearch, FiFilter, FiMoreVertical, FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
+import './DataTable.css';
 
 const DataTable = ({
   data = [],
@@ -153,8 +154,9 @@ const DataTable = ({
                   <FiFilter className="me-1" />
                   Filtros
                   </Dropdown.Toggle>
-                  <Dropdown.Menu>
+                  <Dropdown.Menu className="data-table-filter-dropdown">
                     <Dropdown.Item 
+                      className="data-table-filter-item"
                       onClick={() => onFilter && onFilter({})}
                     >
                       Limpiar filtros
@@ -165,11 +167,12 @@ const DataTable = ({
                     {filterOptions ? (
                       filterOptions.map((section, index) => (
                         <React.Fragment key={index}>
-                          <Dropdown.Header>{section.title}</Dropdown.Header>
+                          <Dropdown.Header className="data-table-filter-header">{section.title}</Dropdown.Header>
                           {section.options.map((option, optIndex) => (
                             <Dropdown.Item 
                               key={optIndex}
                               onClick={() => onFilter && onFilter(option.filter)}
+                              className="data-table-filter-item"
                             >
                               {option.label}
                             </Dropdown.Item>
@@ -180,43 +183,43 @@ const DataTable = ({
                     ) : (
                       // Filtros por defecto para usuarios
                       <>
-                        <Dropdown.Header>Por Rol</Dropdown.Header>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'admin' })}>
+                        <Dropdown.Header className="data-table-filter-header">Por Rol</Dropdown.Header>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'admin' })}>
                           Administradores
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'vendedor_comercial' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'vendedor_comercial' })}>
                           Vendedores Comerciales
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'jefa_comercial' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'jefa_comercial' })}>
                           Jefas Comerciales
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'jefe_laboratorio' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'jefe_laboratorio' })}>
                           Jefes de Laboratorio
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'usuario_laboratorio' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'usuario_laboratorio' })}>
                           Usuarios de Laboratorio
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'soporte' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'soporte' })}>
                           Soporte
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'gerencia' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ role: 'gerencia' })}>
                           Gerencia
                         </Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Header>Por Área</Dropdown.Header>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Comercial' })}>
+                        <Dropdown.Header className="data-table-filter-header">Por Área</Dropdown.Header>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ area: 'Comercial' })}>
                           Comercial
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Laboratorio' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ area: 'Laboratorio' })}>
                           Laboratorio
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Sistemas' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ area: 'Sistemas' })}>
                           Sistemas
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Gerencia' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ area: 'Gerencia' })}>
                           Gerencia
                         </Dropdown.Item>
-                        <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Soporte' })}>
+                        <Dropdown.Item className="data-table-filter-item" onClick={() => onFilter && onFilter({ area: 'Soporte' })}>
                           Soporte
                         </Dropdown.Item>
                       </>

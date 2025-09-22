@@ -1,0 +1,54 @@
+/* Estilos personalizados para DataTable */
+
+/* Scroll personalizado para el dropdown de filtros */
+.data-table-filter-dropdown {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  min-width: 300px !important;
+}
+
+/* Scroll personalizado para el dropdown de filtros */
+.data-table-filter-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.data-table-filter-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.data-table-filter-dropdown::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.data-table-filter-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Estilos para los items del dropdown */
+.data-table-filter-item {
+  white-space: normal !important;
+  word-break: break-word !important;
+  padding: 8px 16px !important;
+  line-height: 1.4 !important;
+}
+
+/* Mejorar la apariencia de los headers */
+.data-table-filter-header {
+  font-weight: 600 !important;
+  color: #495057 !important;
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Animación suave para el dropdown */
+.data-table-filter-dropdown {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect mejorado para los items */
+.data-table-filter-item:hover {
+  background-color: #e9ecef !important;
+  color: #495057 !important;
+}
