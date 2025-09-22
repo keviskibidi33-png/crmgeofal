@@ -51,10 +51,12 @@ export default function Proyectos() {
     }),
     { 
       keepPreviousData: true,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-      cacheTime: 0
+      refetchOnWindowFocus: false, // No refrescar automáticamente
+      refetchOnMount: false, // No refrescar al montar
+      staleTime: 30000, // 30 segundos - considerar datos frescos
+      cacheTime: 300000, // 5 minutos - cachear datos
+      retry: 2, // Reintentar máximo 2 veces
+      retryDelay: 1000, // Esperar 1 segundo entre reintentos
     }
   );
 
@@ -63,10 +65,11 @@ export default function Proyectos() {
     ['projectStats'],
     getProjectStats,
     {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 30000, // 30 segundos
-      cacheTime: 60000  // 1 minuto
+      refetchOnWindowFocus: false, // No refrescar automáticamente
+      refetchOnMount: false, // No refrescar al montar
+      staleTime: 60000, // 1 minuto - considerar datos frescos
+      cacheTime: 300000, // 5 minutos - cachear datos
+      retry: 1, // Reintentar máximo 1 vez
     }
   );
 
