@@ -10,10 +10,13 @@ class SocketService {
   // Conectar al servidor WebSocket
   connect(token) {
     if (this.socket && this.isConnected) {
+      console.log('🔄 WebSocket ya conectado, reutilizando conexión');
       return this.socket;
     }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+    console.log('🔌 WebSocket - Conectando a:', backendUrl);
+    console.log('🔌 WebSocket - Token:', token ? 'Presente' : 'Ausente');
     
     this.socket = io(backendUrl, {
       auth: {

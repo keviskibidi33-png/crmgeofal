@@ -9,7 +9,17 @@ export const listUsers = (params = {}) => {
   if (params.role) searchParams.set('role', params.role);
   const qs = searchParams.toString();
   const path = qs ? `/api/users?${qs}` : '/api/users';
-  return apiFetch(path);
+  
+  console.log('🔍 listUsers - Llamando a:', path);
+  console.log('🔍 listUsers - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  
+  return apiFetch(path).then(data => {
+    console.log('✅ listUsers - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ listUsers - Error:', error);
+    throw error;
+  });
 };
 
 export const createUser = (payload) =>
