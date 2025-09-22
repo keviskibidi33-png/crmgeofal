@@ -224,19 +224,65 @@ exports.create = async (req, res) => {
 };
 exports.update = async (req, res) => {
   try {
-    const { name, location } = req.body;
-    const project = await Project.update(req.params.id, { name, location }, req.user);
+    const { 
+      name, 
+      location, 
+      vendedor_id, 
+      laboratorio_id, 
+      requiere_laboratorio, 
+      requiere_ingenieria, 
+      requiere_consultoria,
+      requiere_capacitacion,
+      requiere_auditoria,
+      contact_name, 
+      contact_phone, 
+      contact_email,
+      queries,
+      priority,
+      marked
+    } = req.body;
+    
+    const project = await Project.update(req.params.id, { 
+      name, 
+      location, 
+      vendedor_id, 
+      laboratorio_id, 
+      requiere_laboratorio, 
+      requiere_ingenieria, 
+      requiere_consultoria,
+      requiere_capacitacion,
+      requiere_auditoria,
+      contact_name, 
+      contact_phone, 
+      contact_email,
+      queries,
+      priority,
+      marked
+    }, req.user);
+    
     if (!project) return res.status(403).json({ error: 'No autorizado o proyecto no encontrado' });
+    
     // Auditoría
     await Audit.log({
       user_id: req.user.id,
       action: 'actualizar',
       entity: 'project',
       entity_id: req.params.id,
-      details: JSON.stringify({ name, location })
+      details: JSON.stringify({ 
+        name, 
+        location, 
+        contact_name, 
+        contact_phone, 
+        contact_email,
+        queries,
+        priority,
+        marked
+      })
     });
+    
     res.json(project);
   } catch (err) {
+    console.error('Error updating project:', err);
     res.status(500).json({ error: 'Error al actualizar proyecto' });
   }
 };

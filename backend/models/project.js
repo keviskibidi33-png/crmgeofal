@@ -144,7 +144,23 @@ const Project = {
     return res.rows[0];
   },
 
-  async update(id, { name, location }, user) {
+  async update(id, { 
+    name, 
+    location, 
+    vendedor_id, 
+    laboratorio_id, 
+    requiere_laboratorio, 
+    requiere_ingenieria, 
+    requiere_consultoria,
+    requiere_capacitacion,
+    requiere_auditoria,
+    contact_name, 
+    contact_phone, 
+    contact_email,
+    queries,
+    priority,
+    marked
+  }, user) {
     // Solo el vendedor asignado o jefa comercial puede editar
     const res = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
     const project = res.rows[0];
@@ -154,8 +170,42 @@ const Project = {
       (user.role === 'vendedor_comercial' && project.vendedor_id === user.id)
     ) {
       const updated = await pool.query(
-        'UPDATE projects SET name = $1, location = $2 WHERE id = $3 RETURNING *',
-        [name, location, id]
+        `UPDATE projects SET 
+          name = $1, 
+          location = $2, 
+          vendedor_id = $3, 
+          laboratorio_id = $4, 
+          requiere_laboratorio = $5, 
+          requiere_ingenieria = $6, 
+          requiere_consultoria = $7,
+          requiere_capacitacion = $8,
+          requiere_auditoria = $9,
+          contact_name = $10, 
+          contact_phone = $11, 
+          contact_email = $12,
+          queries = $13,
+          priority = $14,
+          marked = $15,
+          updated_at = NOW()
+        WHERE id = $16 RETURNING *`,
+        [
+          name, 
+          location, 
+          vendedor_id, 
+          laboratorio_id, 
+          requiere_laboratorio, 
+          requiere_ingenieria, 
+          requiere_consultoria,
+          requiere_capacitacion,
+          requiere_auditoria,
+          contact_name, 
+          contact_phone, 
+          contact_email,
+          queries,
+          priority,
+          marked,
+          id
+        ]
       );
       return updated.rows[0];
     }

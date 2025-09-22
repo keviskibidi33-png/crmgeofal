@@ -156,8 +156,18 @@ export default function Proyectos() {
   });
 
   const updateMutation = useMutation(updateProject, {
-    onSuccess: () => handleMutationSuccess('Proyecto actualizado exitosamente'),
-    onError: (error) => console.error('Error updating project:', error)
+    onSuccess: (updatedProject) => {
+      console.log('✅ updateMutation - Success:', updatedProject);
+      // Actualizar el proyecto seleccionado con los nuevos datos
+      setSelectedProject(updatedProject);
+      setEditingData(updatedProject);
+      showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+      queryClient.invalidateQueries('projects');
+    },
+    onError: (error) => {
+      console.error('❌ updateMutation - Error:', error);
+      showNotification('❌ Error al actualizar proyecto', 'danger');
+    }
   });
 
   const deleteMutation = useMutation(deleteProject, {
@@ -980,19 +990,16 @@ export default function Proyectos() {
                             return;
                           }
                           
-                          updateCategoriesMutation.mutate({ 
+                          console.log('🔍 Guardando cambios del proyecto:', editingData);
+                          updateMutation.mutate({ 
                             id: projectId, 
-                            requiere_laboratorio: editingData.requiere_laboratorio || false,
-                            requiere_ingenieria: editingData.requiere_ingenieria || false,
-                            requiere_consultoria: editingData.requiere_consultoria || false,
-                            requiere_capacitacion: editingData.requiere_capacitacion || false,
-                            requiere_auditoria: editingData.requiere_auditoria || false
+                            ...editingData
                           });
-                          setShowViewModal(false);
+                          // No cerrar el modal para ver los cambios
                         }}
-                        disabled={updateCategoriesMutation.isLoading}
+                        disabled={updateMutation.isLoading}
                       >
-                        {updateCategoriesMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
+                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
                       </Button>
                     </div>
                   </div>
