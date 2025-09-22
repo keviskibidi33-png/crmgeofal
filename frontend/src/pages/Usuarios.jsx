@@ -41,6 +41,7 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -82,6 +83,25 @@ export default function Usuarios() {
     setDeletingUser(null);
     setResettingUser(null);
     setNewPassword('');
+  };
+
+  // Función para manejar búsqueda
+  const handleSearch = (searchValue) => {
+    console.log('🔍 handleSearch - Búsqueda:', searchValue);
+    setSearchTerm(searchValue);
+    setCurrentPage(1); // Resetear a la primera página
+    setIsSearching(true);
+    
+    // La consulta se actualizará automáticamente por el useQuery
+    setTimeout(() => setIsSearching(false), 1000);
+  };
+
+  // Función para manejar filtros
+  const handleFilter = (filters) => {
+    console.log('🔍 handleFilter - Filtros:', filters);
+    setSelectedRole(filters.role || '');
+    setSelectedArea(filters.area || '');
+    setCurrentPage(1); // Resetear a la primera página
   };
 
   const createMutation = useMutation(createUser, {
@@ -376,7 +396,7 @@ export default function Usuarios() {
             <DataTable
               data={data?.data || []}
               columns={columns}
-              loading={isLoading}
+              loading={isLoading || isSearching}
               onEdit={handleEdit}
               onDelete={handleDelete}
               emptyMessage="No hay usuarios registrados"
@@ -385,11 +405,8 @@ export default function Usuarios() {
               itemsPerPage={20}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
-              onSearch={setSearchTerm}
-              onFilter={(filters) => {
-                setSelectedRole(filters.role || '');
-                setSelectedArea(filters.area || '');
-              }}
+              onSearch={handleSearch}
+              onFilter={handleFilter}
               actions={[
                 {
                   label: 'Restablecer Contraseña',

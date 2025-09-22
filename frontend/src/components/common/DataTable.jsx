@@ -30,7 +30,12 @@ const DataTable = ({
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    // Búsqueda
+    // Si hay paginación del backend, no filtrar localmente
+    if (totalItems > 0) {
+      return filtered;
+    }
+
+    // Búsqueda local (solo si no hay paginación del backend)
     if (searchTerm && searchable) {
       filtered = filtered.filter(item =>
         columns.some(col => {
@@ -53,7 +58,7 @@ const DataTable = ({
     }
 
     return filtered;
-  }, [data, searchTerm, sortField, sortDirection, columns, searchable]);
+  }, [data, searchTerm, sortField, sortDirection, columns, searchable, totalItems]);
 
   // Paginación - usar props del backend si están disponibles
   const totalPages = totalItems > 0 ? Math.ceil(totalItems / itemsPerPage) : Math.ceil(filteredData.length / itemsPerPage);
@@ -120,9 +125,18 @@ const DataTable = ({
                   </InputGroup.Text>
                   <Form.Control
                     type="text"
-                    placeholder="Buscar..."
+                    placeholder="Buscar por nombre, email, rol..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      // Si hay función onSearch del backend, llamarla con debounce
+                      if (onSearch) {
+                        clearTimeout(window.searchTimeout);
+                        window.searchTimeout = setTimeout(() => {
+                          onSearch(e.target.value);
+                        }, 500); // Debounce de 500ms
+                      }
+                    }}
                   />
                 </InputGroup>
               </Col>
@@ -130,10 +144,59 @@ const DataTable = ({
             
             {filterable && (
               <Col md={6} className="text-end">
-                <Button variant="outline-secondary" size="sm">
-                  <FiFilter className="me-1" />
-                  Filtros
-                </Button>
+                <Dropdown>
+                  <Dropdown.Toggle variant="outline-secondary" size="sm">
+                    <FiFilter className="me-1" />
+                    Filtros
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item 
+                      onClick={() => onFilter && onFilter({ role: '', area: '' })}
+                    >
+                      Limpiar filtros
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Header>Por Rol</Dropdown.Header>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'admin' })}>
+                      Administradores
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'vendedor_comercial' })}>
+                      Vendedores Comerciales
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'jefa_comercial' })}>
+                      Jefas Comerciales
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'jefe_laboratorio' })}>
+                      Jefes de Laboratorio
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'usuario_laboratorio' })}>
+                      Usuarios de Laboratorio
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'soporte' })}>
+                      Soporte
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ role: 'gerencia' })}>
+                      Gerencia
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Header>Por Área</Dropdown.Header>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Comercial' })}>
+                      Comercial
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Laboratorio' })}>
+                      Laboratorio
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Sistemas' })}>
+                      Sistemas
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Gerencia' })}>
+                      Gerencia
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => onFilter && onFilter({ area: 'Soporte' })}>
+                      Soporte
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               </Col>
             )}
           </Row>

@@ -38,7 +38,9 @@ const User = {
     let params = [];
     if (search) {
       params.push(`%${search}%`);
-      where.push(`LOWER(name) LIKE LOWER($${params.length})`);
+      params.push(`%${search}%`);
+      params.push(`%${search}%`);
+      where.push(`(LOWER(name) LIKE LOWER($${params.length-2}) OR LOWER(apellido) LIKE LOWER($${params.length-1}) OR LOWER(email) LIKE LOWER($${params.length}))`);
     }
     if (area) {
       params.push(area);
