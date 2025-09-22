@@ -1105,11 +1105,20 @@ export default function Proyectos() {
                           const projectId = selectedProject?.id;
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
+                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                             return;
                           }
                           
-                          updateStatusMutation.mutate({ id: projectId, ...editingData });
-                          setShowViewModal(false);
+                          updateStatusMutation.mutate({ id: projectId, ...editingData }, {
+                            onSuccess: (data) => {
+                              console.log('✅ Actualizar Estado - Éxito:', data);
+                              showNotification('✅ Estado actualizado correctamente!', 'success');
+                            },
+                            onError: (error) => {
+                              console.error('❌ Actualizar Estado - Error:', error);
+                              showNotification('❌ Error al actualizar estado', 'danger');
+                            }
+                          });
                         }}
                         disabled={updateStatusMutation.isLoading}
                       >
@@ -1197,13 +1206,10 @@ export default function Proyectos() {
                       <Button 
                         variant="info" 
                         onClick={() => {
-                          console.log('selectedProject:', selectedProject);
-                          console.log('selectedProject.id:', selectedProject?.id);
-                          console.log('editingData:', editingData);
-                          
                           const projectId = selectedProject?.id;
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
+                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                             return;
                           }
                           
@@ -1214,8 +1220,16 @@ export default function Proyectos() {
                             requiere_consultoria: editingData.requiere_consultoria || false,
                             requiere_capacitacion: editingData.requiere_capacitacion || false,
                             requiere_auditoria: editingData.requiere_auditoria || false
+                          }, {
+                            onSuccess: (data) => {
+                              console.log('✅ Guardar Categorías - Éxito:', data);
+                              showNotification('✅ Categorías guardadas correctamente!', 'success');
+                            },
+                            onError: (error) => {
+                              console.error('❌ Guardar Categorías - Error:', error);
+                              showNotification('❌ Error al guardar categorías', 'danger');
+                            }
                           });
-                          // No cerrar el modal para ver los cambios
                         }}
                         disabled={updateCategoriesMutation.isLoading}
                       >
@@ -1252,14 +1266,23 @@ export default function Proyectos() {
                           const projectId = selectedProject?.id;
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
+                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                             return;
                           }
                           
                           updateQueriesMutation.mutate({ 
                             id: projectId, 
                             queries: editingData.queries || ''
+                          }, {
+                            onSuccess: (data) => {
+                              console.log('✅ Guardar Consultas - Éxito:', data);
+                              showNotification('✅ Consultas guardadas correctamente!', 'success');
+                            },
+                            onError: (error) => {
+                              console.error('❌ Guardar Consultas - Error:', error);
+                              showNotification('❌ Error al guardar consultas', 'danger');
+                            }
                           });
-                          // No cerrar el modal para ver los cambios
                         }}
                         disabled={updateQueriesMutation.isLoading}
                       >
@@ -1303,6 +1326,7 @@ export default function Proyectos() {
                             const projectId = selectedProject?.id;
                             if (!projectId) {
                               console.error('No se encontró el ID del proyecto');
+                              showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                               return;
                             }
                             
@@ -1310,8 +1334,17 @@ export default function Proyectos() {
                               id: projectId, 
                               marked: !editingData.marked,
                               priority: editingData.priority || 'normal'
+                            }, {
+                              onSuccess: (data) => {
+                                console.log('✅ Marcar Proyecto - Éxito:', data);
+                                const action = editingData.marked ? 'desmarcado' : 'marcado';
+                                showNotification(`✅ Proyecto ${action} correctamente!`, 'success');
+                              },
+                              onError: (error) => {
+                                console.error('❌ Marcar Proyecto - Error:', error);
+                                showNotification('❌ Error al marcar proyecto', 'danger');
+                              }
                             });
-                            setShowViewModal(false);
                           }}
                           disabled={updateMarkMutation.isLoading}
                         >
