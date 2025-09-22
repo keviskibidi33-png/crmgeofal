@@ -161,14 +161,28 @@ const Project = {
     priority,
     marked
   }, user) {
+    console.log('🔍 Project.update - ID:', id);
+    console.log('🔍 Project.update - User:', user);
+    
     // Solo el vendedor asignado o jefa comercial puede editar
     const res = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
     const project = res.rows[0];
-    if (!project) return null;
+    if (!project) {
+      console.log('❌ Project.update - Proyecto no encontrado');
+      return null;
+    }
+    
+    console.log('🔍 Project.update - Proyecto encontrado:', project);
+    console.log('🔍 Project.update - User role:', user.role);
+    console.log('🔍 Project.update - Project vendedor_id:', project.vendedor_id);
+    console.log('🔍 Project.update - User id:', user.id);
+    
     if (
       user.role === 'jefa_comercial' ||
+      user.role === 'admin' ||
       (user.role === 'vendedor_comercial' && project.vendedor_id === user.id)
     ) {
+      console.log('✅ Project.update - Usuario autorizado para editar');
       const updated = await pool.query(
         `UPDATE projects SET 
           name = $1, 
@@ -209,6 +223,7 @@ const Project = {
       );
       return updated.rows[0];
     }
+    console.log('❌ Project.update - Usuario NO autorizado para editar');
     return null;
   },
   async delete(id, user) {

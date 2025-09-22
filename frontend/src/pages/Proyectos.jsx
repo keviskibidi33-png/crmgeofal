@@ -155,20 +155,23 @@ export default function Proyectos() {
     onError: (error) => console.error('Error creating project:', error)
   });
 
-  const updateMutation = useMutation(updateProject, {
-    onSuccess: (updatedProject) => {
-      console.log('✅ updateMutation - Success:', updatedProject);
-      // Actualizar el proyecto seleccionado con los nuevos datos
-      setSelectedProject(updatedProject);
-      setEditingData(updatedProject);
-      showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-      queryClient.invalidateQueries('projects');
-    },
-    onError: (error) => {
-      console.error('❌ updateMutation - Error:', error);
-      showNotification('❌ Error al actualizar proyecto', 'danger');
+  const updateMutation = useMutation(
+    ({ id, data }) => updateProject(id, data),
+    {
+      onSuccess: (updatedProject) => {
+        console.log('✅ updateMutation - Success:', updatedProject);
+        // Actualizar el proyecto seleccionado con los nuevos datos
+        setSelectedProject(updatedProject);
+        setEditingData(updatedProject);
+        showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+        queryClient.invalidateQueries('projects');
+      },
+      onError: (error) => {
+        console.error('❌ updateMutation - Error:', error);
+        showNotification('❌ Error al actualizar proyecto', 'danger');
+      }
     }
-  });
+  );
 
   const deleteMutation = useMutation(deleteProject, {
     onSuccess: () => handleMutationSuccess('Proyecto eliminado exitosamente'),
@@ -1001,7 +1004,7 @@ export default function Proyectos() {
                           console.log('🔍 Guardando cambios del proyecto:', editingData);
                           updateMutation.mutate({ 
                             id: numericId, 
-                            ...editingData
+                            data: editingData
                           });
                           // No cerrar el modal para ver los cambios
                         }}
