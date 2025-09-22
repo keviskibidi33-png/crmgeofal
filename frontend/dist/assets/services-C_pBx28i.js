@@ -1,2 +1,0 @@
-import{R as t}from"./index-DQOtztfR.js";const r=(e={})=>{const i=new URLSearchParams;e.page&&i.set("page",e.page),e.limit&&i.set("limit",e.limit),e.q&&i.set("q",e.q);const s=i.toString(),c=s?`/api/services?${s}`:"/api/services";return t(c)},n=e=>t("/api/services",{method:"POST",body:JSON.stringify(e)}),a=(e,i)=>t(`/api/services/${e}`,{method:"PUT",body:JSON.stringify(i)}),p=e=>t(`/api/services/${e}`,{method:"DELETE"});export{n as c,p as d,r as l,a as u};
-//# sourceMappingURL=services-C_pBx28i.js.map

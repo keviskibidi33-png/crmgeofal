@@ -1,2 +1,0 @@
-import{R as e}from"./index-DQOtztfR.js";const a=(t={})=>{const i=new URLSearchParams;t.page&&i.set("page",t.page),t.limit&&i.set("limit",t.limit),t.q&&i.set("q",t.q);const o=i.toString(),s=o?`/api/companies?${o}`:"/api/companies";return e(s)},p=t=>e("/api/companies",{method:"POST",body:JSON.stringify(t)}),c=(t,i)=>e(`/api/companies/${t}`,{method:"PATCH",body:JSON.stringify(i)}),m=t=>e(`/api/companies/${t}`,{method:"DELETE"});export{p as c,m as d,a as l,c as u};
-//# sourceMappingURL=companies-zyOdEFRO.js.map

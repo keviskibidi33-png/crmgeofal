@@ -1,0 +1,2 @@
+import{R as o}from"./index-Vrmn15ab.js";const r=(t={})=>{const e=new URLSearchParams;t.page&&e.set("page",t.page),t.limit&&e.set("limit",t.limit),t.search&&e.set("search",t.search),t.q&&e.set("q",t.q);const s=e.toString(),c=s?`/api/projects?${s}`:"/api/projects";return o(c)},n=t=>o("/api/projects",{method:"POST",body:JSON.stringify(t)}),p=(t,e)=>o(`/api/projects/${t}`,{method:"PATCH",body:JSON.stringify(e)}),a=t=>o(`/api/projects/${t}`,{method:"DELETE"});export{n as c,a as d,r as l,p as u};
+//# sourceMappingURL=projects-b3Cl7FnY.js.map
