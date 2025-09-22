@@ -74,15 +74,33 @@ exports.getAreas = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, role, notification_enabled } = req.body;
+    console.log('🔍 createUser - Datos recibidos:', req.body);
+    
+    const { name, apellido, email, password, role, area, notification_enabled } = req.body;
+    
     // Basic validation: required fields
     if (!name || !email || !password) {
+      console.log('❌ createUser - Campos faltantes:', { name: !!name, email: !!email, password: !!password });
       return res.status(400).json({ error: 'Campos requeridos: name, email, password' });
     }
-    const user = await User.create({ name, email, password, role, notification_enabled });
+    
+    console.log('✅ createUser - Creando usuario con datos:', { name, apellido, email, role, area });
+    
+    const user = await User.create({ 
+      name, 
+      apellido, 
+      email, 
+      password, 
+      role, 
+      area, 
+      notification_enabled: notification_enabled || true 
+    });
+    
+    console.log('✅ createUser - Usuario creado exitosamente:', user);
     res.status(201).json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Error creating user' });
+    console.error('❌ createUser - Error:', err.message);
+    res.status(500).json({ error: 'Error creating user: ' + err.message });
   }
 };
 

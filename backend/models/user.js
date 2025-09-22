@@ -69,11 +69,11 @@ const User = {
   const res = await pool.query("SELECT DISTINCT area FROM users WHERE area IS NOT NULL AND area <> ''");
   return res.rows.map(r => r.area);
   },
-  async create({ name, apellido, email, password, role, notification_enabled = true }) {
+  async create({ name, apellido, email, password, role, area, notification_enabled = true }) {
     const password_hash = await bcrypt.hash(password, 10);
     const res = await pool.query(
-      'INSERT INTO users (name, apellido, email, password_hash, role, notification_enabled) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, apellido, email, role, notification_enabled',
-      [name, apellido, email, password_hash, role, notification_enabled]
+      'INSERT INTO users (name, apellido, email, password_hash, role, area, notification_enabled) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, apellido, email, role, area, notification_enabled',
+      [name, apellido, email, password_hash, role, area, notification_enabled]
     );
     return res.rows[0];
   },

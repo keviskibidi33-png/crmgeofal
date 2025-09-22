@@ -240,7 +240,8 @@ export default function Usuarios() {
 
   // Calcular estadísticas
   const stats = useMemo(() => {
-    const users = data?.users || [];
+    const users = data?.data || []; // Corregido: la API devuelve data.data, no data.users
+    console.log('📊 Stats - Usuarios para calcular estadísticas:', users);
     return {
       total: users.length,
       admins: users.filter(u => u.role === 'admin').length,
@@ -331,7 +332,7 @@ export default function Usuarios() {
           </Card.Header>
           <Card.Body className="p-0">
             <DataTable
-              data={data?.users || []}
+              data={data?.data || []}
               columns={columns}
               loading={isLoading}
               onEdit={handleEdit}
