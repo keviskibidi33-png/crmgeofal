@@ -52,12 +52,18 @@ const attachmentController = {
   // Obtener adjuntos de un proyecto
   async getByProject(req, res) {
     try {
+      console.log('🔍 getByProject - Iniciando...');
       const { projectId } = req.params;
+      console.log('🔍 getByProject - ProjectId:', projectId);
+      
       const attachments = await ProjectAttachment.getByProject(projectId);
+      console.log('✅ getByProject - Adjuntos encontrados:', attachments.length);
+      
       res.json(attachments);
     } catch (error) {
-      console.error('Error al obtener adjuntos:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      console.error('❌ Error al obtener adjuntos:', error);
+      console.error('❌ Stack trace:', error.stack);
+      res.status(500).json({ error: 'Error interno del servidor', details: error.message });
     }
   },
 
@@ -81,10 +87,16 @@ const attachmentController = {
   // Subir nuevo adjunto
   async upload(req, res) {
     try {
+      console.log('🔍 upload - Iniciando subida...');
+      console.log('🔍 upload - File:', req.file);
+      console.log('🔍 upload - Body:', req.body);
+      console.log('🔍 upload - User:', req.user);
+      
       const { projectId } = req.params;
       const { category_id, subcategory_id, description } = req.body;
 
       if (!req.file) {
+        console.log('❌ upload - No se proporcionó archivo');
         return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
       }
 
@@ -101,11 +113,14 @@ const attachmentController = {
         uploadedBy: req.user.id
       };
 
+      console.log('🔍 upload - AttachmentData:', attachmentData);
       const attachment = await ProjectAttachment.create(attachmentData);
+      console.log('✅ upload - Adjunto creado:', attachment.id);
       res.status(201).json(attachment);
     } catch (error) {
-      console.error('Error al subir adjunto:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      console.error('❌ Error al subir adjunto:', error);
+      console.error('❌ Stack trace:', error.stack);
+      res.status(500).json({ error: 'Error interno del servidor', details: error.message });
     }
   },
 
@@ -201,10 +216,15 @@ const attachmentController = {
   // Crear carpetas anticipatorias manualmente
   async createAnticipatoryFolders(req, res) {
     try {
-      const folders = await fileOrganizationService.createAnticipatoryFolders();
+      const result = await fileOrganizationService.createAnticipatoryFolders();
       res.json({ 
-        message: 'Carpetas anticipatorias creadas exitosamente',
-        folders 
+        message: result.message,
+        currentMonth: result.currentMonth,
+        nextMonth: result.nextMonth,
+        createdFolders: result.createdFolders,
+        existingFolders: result.existingFolders,
+        daysUntilMonthEnd: result.daysUntilMonthEnd,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error creando carpetas anticipatorias:', error);

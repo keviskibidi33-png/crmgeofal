@@ -31,23 +31,93 @@ class FileOrganizationService {
     return path.join(this.baseUploadDir, year.toString(), month);
   }
 
-  // Crear carpetas anticipadamente
+  // Crear carpetas anticipadamente (versión inteligente)
   async createAnticipatoryFolders() {
     try {
+      const now = new Date();
       const currentMonthPath = this.getCurrentMonthPath();
       const nextMonthPath = this.getNextMonthPath();
+      const createdFolders = [];
+      const existingFolders = [];
 
-      // Crear carpeta del mes actual
-      await fs.mkdir(currentMonthPath, { recursive: true });
-      console.log(`📁 Carpeta del mes actual creada: ${currentMonthPath}`);
+      // Verificar y crear carpeta del mes actual
+      try {
+        await fs.access(currentMonthPath);
+        existingFolders.push({
+          path: currentMonthPath,
+          type: 'current',
+          status: 'exists'
+        });
+        console.log(`✅ Carpeta del mes actual ya existe: ${currentMonthPath}`);
+      } catch (error) {
+        await fs.mkdir(currentMonthPath, { recursive: true });
+        createdFolders.push({
+          path: currentMonthPath,
+          type: 'current',
+          status: 'created'
+        });
+        console.log(`📁 Carpeta del mes actual creada: ${currentMonthPath}`);
+      }
 
-      // Crear carpeta del mes siguiente
-      await fs.mkdir(nextMonthPath, { recursive: true });
-      console.log(`📁 Carpeta del mes siguiente creada: ${nextMonthPath}`);
+      // Verificar y crear carpeta del mes siguiente
+      try {
+        await fs.access(nextMonthPath);
+        existingFolders.push({
+          path: nextMonthPath,
+          type: 'next',
+          status: 'exists'
+        });
+        console.log(`✅ Carpeta del mes siguiente ya existe: ${nextMonthPath}`);
+      } catch (error) {
+        await fs.mkdir(nextMonthPath, { recursive: true });
+        createdFolders.push({
+          path: nextMonthPath,
+          type: 'next',
+          status: 'created'
+        });
+        console.log(`📁 Carpeta del mes siguiente creada: ${nextMonthPath}`);
+      }
+
+      // Crear carpetas para los próximos 2 meses si estamos cerca del final del mes
+      const daysUntilMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+      
+      if (daysUntilMonthEnd <= 7) { // Si quedan 7 días o menos
+        console.log(`⚠️ Quedan ${daysUntilMonthEnd} días para el final del mes. Creando carpetas adicionales...`);
+        
+        // Crear carpeta del mes +2
+        const monthAfterNext = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+        const yearAfterNext = monthAfterNext.getFullYear();
+        const monthAfterNextNum = String(monthAfterNext.getMonth() + 1).padStart(2, '0');
+        const monthAfterNextPath = path.join(this.baseUploadDir, yearAfterNext.toString(), monthAfterNextNum);
+        
+        try {
+          await fs.access(monthAfterNextPath);
+          existingFolders.push({
+            path: monthAfterNextPath,
+            type: 'future',
+            status: 'exists'
+          });
+          console.log(`✅ Carpeta del mes +2 ya existe: ${monthAfterNextPath}`);
+        } catch (error) {
+          await fs.mkdir(monthAfterNextPath, { recursive: true });
+          createdFolders.push({
+            path: monthAfterNextPath,
+            type: 'future',
+            status: 'created'
+          });
+          console.log(`📁 Carpeta del mes +2 creada: ${monthAfterNextPath}`);
+        }
+      }
 
       return {
         currentMonth: currentMonthPath,
-        nextMonth: nextMonthPath
+        nextMonth: nextMonthPath,
+        createdFolders,
+        existingFolders,
+        daysUntilMonthEnd,
+        message: createdFolders.length > 0 
+          ? `Se crearon ${createdFolders.length} carpetas nuevas`
+          : `Todas las carpetas necesarias ya existen (${existingFolders.length} verificadas)`
       };
     } catch (error) {
       console.error('❌ Error creando carpetas anticipatorias:', error);
@@ -81,7 +151,16 @@ class FileOrganizationService {
         return totalSize;
       };
 
-      totalSize = await calculateDirSize(this.baseUploadDir);
+      // Verificar si el directorio base existe
+      try {
+        await fs.access(this.baseUploadDir);
+        totalSize = await calculateDirSize(this.baseUploadDir);
+      } catch (error) {
+        // Si no existe, crear el directorio
+        await fs.mkdir(this.baseUploadDir, { recursive: true });
+        totalSize = 0;
+      }
+      
       return totalSize;
     } catch (error) {
       console.error('❌ Error calculando tamaño total:', error);
@@ -123,6 +202,15 @@ class FileOrganizationService {
   async getFolderStats() {
     try {
       const folders = [];
+      
+      // Verificar si el directorio base existe
+      try {
+        await fs.access(this.baseUploadDir);
+      } catch (error) {
+        await fs.mkdir(this.baseUploadDir, { recursive: true });
+        return folders;
+      }
+      
       const years = await fs.readdir(this.baseUploadDir).catch(() => []);
       
       for (const year of years) {

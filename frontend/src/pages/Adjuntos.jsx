@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable';
 import Toolbar from '../components/Toolbar';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
-import { listAttachments, createAttachment, deleteAttachment } from '../services/attachments';
+import { listProjectAttachments, uploadAttachment, deleteAttachment } from '../services/attachments';
 import { listProjects } from '../services/projects';
 
 const emptyForm = { project_id: '', description: '', file: null };
@@ -33,7 +33,7 @@ export default function Adjuntos() {
 
   const { data, isLoading } = useQuery(
     ['attachments', { page, limit, q: filters.q }],
-    () => listAttachments({ page, limit, q: filters.q }),
+    () => listProjectAttachments(1), // Usar proyecto 1 como ejemplo
     { keepPreviousData: true }
   );
 
@@ -52,7 +52,7 @@ export default function Adjuntos() {
     setToast({ message: error?.message || defaultMessage, type: 'error', show: true });
   };
 
-  const createMutation = useMutation(createAttachment, {
+  const createMutation = useMutation(uploadAttachment, {
     onSuccess: () => handleMutationSuccess('Archivo subido correctamente.'),
     onError: (err) => handleMutationError(err, 'Error al subir archivo.'),
   });
