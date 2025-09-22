@@ -39,12 +39,12 @@ exports.getDashboardStats = async (req, res) => {
       clientsResult,
       evidencesResult
     ] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL'),
-      pool.query('SELECT COUNT(*) as count FROM projects WHERE deleted_at IS NULL'),
-      pool.query('SELECT COUNT(*) as count FROM quotes WHERE deleted_at IS NULL'),
-      pool.query('SELECT COUNT(*) as count FROM tickets WHERE deleted_at IS NULL'),
-      pool.query('SELECT COUNT(*) as count FROM companies WHERE deleted_at IS NULL'),
-      pool.query('SELECT COUNT(*) as count FROM evidences WHERE deleted_at IS NULL')
+      pool.query('SELECT COUNT(*) as count FROM users'),
+      pool.query('SELECT COUNT(*) as count FROM projects'),
+      pool.query('SELECT COUNT(*) as count FROM quotes'),
+      pool.query('SELECT COUNT(*) as count FROM tickets'),
+      pool.query('SELECT COUNT(*) as count FROM companies'),
+      pool.query('SELECT COUNT(*) as count FROM evidences')
     ]);
 
     stats.totalUsers = parseInt(usersResult.rows[0].count);
@@ -54,23 +54,18 @@ exports.getDashboardStats = async (req, res) => {
     stats.totalClients = parseInt(clientsResult.rows[0].count);
     stats.totalEvidences = parseInt(evidencesResult.rows[0].count);
 
-    // Obtener estadísticas por estado
+    // Obtener estadísticas por estado (usando las columnas que existen)
     const [
-      activeProjectsResult,
-      pendingQuotesResult,
-      openTicketsResult,
-      completedProjectsResult
+      openTicketsResult
     ] = await Promise.all([
-      pool.query("SELECT COUNT(*) as count FROM projects WHERE status = 'activo' AND deleted_at IS NULL"),
-      pool.query("SELECT COUNT(*) as count FROM quotes WHERE status = 'pendiente' AND deleted_at IS NULL"),
-      pool.query("SELECT COUNT(*) as count FROM tickets WHERE status = 'abierto' AND deleted_at IS NULL"),
-      pool.query("SELECT COUNT(*) as count FROM projects WHERE status = 'completado' AND deleted_at IS NULL")
+      pool.query("SELECT COUNT(*) as count FROM tickets WHERE status = 'abierto'")
     ]);
 
-    stats.activeProjects = parseInt(activeProjectsResult.rows[0].count);
-    stats.pendingQuotes = parseInt(pendingQuotesResult.rows[0].count);
+    // Para proyectos y cotizaciones, usamos el total ya que no tienen columna status
+    stats.activeProjects = stats.totalProjects; // Todos los proyectos se consideran activos
+    stats.pendingQuotes = stats.totalQuotes; // Todas las cotizaciones se consideran pendientes
     stats.openTickets = parseInt(openTicketsResult.rows[0].count);
-    stats.completedProjects = parseInt(completedProjectsResult.rows[0].count);
+    stats.completedProjects = 0; // No hay columna status en projects
 
     // Obtener estadísticas de tendencias (últimos 30 días)
     const thirtyDaysAgo = new Date();
