@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
 import { Navbar, Nav, Dropdown, Badge, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [notifications] = useState(3); // Simular notificaciones
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleProfileClick = () => {
+    navigate('/ajustes');
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/ajustes');
   };
 
   const getRoleBadgeColor = (role) => {
@@ -16,7 +26,11 @@ const Header = ({ onToggleSidebar }) => {
       admin: 'danger',
       jefa_comercial: 'warning',
       vendedor_comercial: 'primary',
+      jefe_laboratorio: 'info',
+      usuario_laboratorio: 'info',
       laboratorio: 'info',
+      soporte: 'secondary',
+      gerencia: 'dark',
       default: 'secondary'
     };
     return colors[role] || colors.default;
@@ -26,8 +40,12 @@ const Header = ({ onToggleSidebar }) => {
     const labels = {
       admin: 'Administrador',
       jefa_comercial: 'Jefa Comercial',
-      vendedor_comercial: 'Vendedor',
+      vendedor_comercial: 'Vendedor Comercial',
+      jefe_laboratorio: 'Jefe Laboratorio',
+      usuario_laboratorio: 'Usuario Laboratorio',
       laboratorio: 'Laboratorio',
+      soporte: 'Soporte Técnico',
+      gerencia: 'Gerencia',
       default: role
     };
     return labels[role] || labels.default;
@@ -123,13 +141,18 @@ const Header = ({ onToggleSidebar }) => {
                   <Dropdown.Header>
                     <div className="fw-medium">{user.name}</div>
                     <small className="text-muted">{user.email}</small>
+                    <div className="mt-1">
+                      <Badge bg={getRoleBadgeColor(user.role)} className="status-badge">
+                        {getRoleLabel(user.role)}
+                      </Badge>
+                    </div>
                   </Dropdown.Header>
                   <Dropdown.Divider />
-                  <Dropdown.Item>
+                  <Dropdown.Item onClick={handleProfileClick}>
                     <FiUser className="me-2" />
                     Mi Perfil
                   </Dropdown.Item>
-                  <Dropdown.Item>
+                  <Dropdown.Item onClick={handleSettingsClick}>
                     <FiSettings className="me-2" />
                     Configuración
                   </Dropdown.Item>
