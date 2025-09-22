@@ -88,17 +88,26 @@ exports.updateCategories = async (req, res) => {
     });
     
     if (!project) {
+      console.log('❌ updateCategories - Proyecto no encontrado');
       return res.status(404).json({ error: 'Proyecto no encontrado' });
     }
 
+    console.log('✅ updateCategories - Proyecto actualizado:', project);
+
     // Auditoría
-    await Audit.log({
-      user_id: req.user.id,
-      action: 'actualizar_categorias',
-      entity: 'project',
-      entity_id: project.id,
-      details: { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria }
-    });
+    try {
+      await Audit.log({
+        user_id: req.user.id,
+        action: 'actualizar_categorias',
+        entity: 'project',
+        entity_id: project.id,
+        details: { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria }
+      });
+      console.log('✅ updateCategories - Auditoría registrada');
+    } catch (auditError) {
+      console.error('❌ updateCategories - Error en auditoría:', auditError);
+      // No fallar por error de auditoría
+    }
 
     res.json(project);
   } catch (err) {

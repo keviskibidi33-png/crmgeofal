@@ -112,11 +112,20 @@ const Project = {
   },
 
   async updateCategories(id, { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria }) {
-    const res = await pool.query(
-      'UPDATE projects SET requiere_laboratorio = $1, requiere_ingenieria = $2, requiere_consultoria = $3, requiere_capacitacion = $4, requiere_auditoria = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
-      [requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, id]
-    );
-    return res.rows[0];
+    console.log('🔍 Project.updateCategories - ID:', id);
+    console.log('🔍 Project.updateCategories - Params:', { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria });
+    
+    try {
+      const res = await pool.query(
+        'UPDATE projects SET requiere_laboratorio = $1, requiere_ingenieria = $2, requiere_consultoria = $3, requiere_capacitacion = $4, requiere_auditoria = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+        [requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, id]
+      );
+      console.log('✅ Project.updateCategories - Resultado:', res.rows[0]);
+      return res.rows[0];
+    } catch (error) {
+      console.error('❌ Project.updateCategories - Error SQL:', error);
+      throw error;
+    }
   },
 
   async updateQueries(id, { queries }) {
