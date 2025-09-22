@@ -9,7 +9,24 @@ import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
 
-const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false, contact_name: '', contact_phone: '', contact_email: '' };
+const emptyForm = { 
+  company_id: '', 
+  name: '', 
+  location: '', 
+  vendedor_id: '', 
+  laboratorio_id: '', 
+  requiere_laboratorio: false, 
+  requiere_ingenieria: false, 
+  requiere_consultoria: false,
+  requiere_capacitacion: false,
+  requiere_auditoria: false,
+  contact_name: '', 
+  contact_phone: '', 
+  contact_email: '',
+  queries: '',
+  priority: 'normal',
+  marked: false
+};
 
 export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
@@ -511,6 +528,55 @@ export default function Proyectos() {
       type: 'email',
       placeholder: 'Email para comunicación',
       description: 'Email para envío de reportes y documentos'
+    },
+    {
+      name: 'requiere_laboratorio',
+      label: 'Requiere Laboratorio',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita servicios de laboratorio'
+    },
+    {
+      name: 'requiere_ingenieria',
+      label: 'Requiere Ingeniería',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita servicios de ingeniería'
+    },
+    {
+      name: 'requiere_consultoria',
+      label: 'Requiere Consultoría',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita servicios de consultoría'
+    },
+    {
+      name: 'requiere_capacitacion',
+      label: 'Requiere Capacitación',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita servicios de capacitación'
+    },
+    {
+      name: 'requiere_auditoria',
+      label: 'Requiere Auditoría',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita servicios de auditoría'
+    },
+    {
+      name: 'queries',
+      label: 'Consultas del Cliente',
+      type: 'textarea',
+      placeholder: 'Ingresa las consultas o dudas del cliente...',
+      description: 'Preguntas o dudas específicas del cliente sobre el proyecto'
+    },
+    {
+      name: 'priority',
+      label: 'Prioridad del Proyecto',
+      type: 'select',
+      options: [
+        { value: 'low', label: 'Baja' },
+        { value: 'normal', label: 'Normal' },
+        { value: 'high', label: 'Alta' },
+        { value: 'urgent', label: 'Urgente' }
+      ],
+      description: 'Nivel de prioridad para la ejecución del proyecto'
     },
     {
       name: 'vendedor_id',

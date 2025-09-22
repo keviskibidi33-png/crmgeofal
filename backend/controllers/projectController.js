@@ -172,7 +172,25 @@ exports.updateMark = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email } = req.body;
+    const { 
+      company_id, 
+      name, 
+      location, 
+      vendedor_id, 
+      laboratorio_id, 
+      requiere_laboratorio, 
+      requiere_ingenieria, 
+      requiere_consultoria,
+      requiere_capacitacion,
+      requiere_auditoria,
+      contact_name, 
+      contact_phone, 
+      contact_email,
+      queries,
+      priority,
+      marked
+    } = req.body;
+    
     const project = await Project.create({ 
       company_id, 
       name, 
@@ -181,9 +199,15 @@ exports.create = async (req, res) => {
       laboratorio_id, 
       requiere_laboratorio: requiere_laboratorio || false, 
       requiere_ingenieria: requiere_ingenieria || false,
+      requiere_consultoria: requiere_consultoria || false,
+      requiere_capacitacion: requiere_capacitacion || false,
+      requiere_auditoria: requiere_auditoria || false,
       contact_name,
       contact_phone,
-      contact_email
+      contact_email,
+      queries: queries || '',
+      priority: priority || 'normal',
+      marked: marked || false
     });
     // Auditoría
     await Audit.log({
