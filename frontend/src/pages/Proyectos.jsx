@@ -42,6 +42,13 @@ export default function Proyectos() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
+
+  // Log cuando cambia el estado del Toast
+  React.useEffect(() => {
+    console.log('🔔 Toast State - showToast:', showToast);
+    console.log('🔔 Toast State - message:', toastMessage);
+    console.log('🔔 Toast State - variant:', toastVariant);
+  }, [showToast, toastMessage, toastVariant]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -99,9 +106,12 @@ export default function Proyectos() {
   };
 
   const showNotification = (message, variant = 'success') => {
+    console.log('🔔 showNotification - Message:', message);
+    console.log('🔔 showNotification - Variant:', variant);
     setToastMessage(message);
     setToastVariant(variant);
     setShowToast(true);
+    console.log('🔔 showNotification - Toast activado');
   };
 
   // Función para manejar búsqueda
@@ -994,6 +1004,7 @@ export default function Proyectos() {
                           
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
+                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                             return;
                           }
                           
@@ -1002,11 +1013,21 @@ export default function Proyectos() {
                           console.log('🔍 numericId:', numericId);
                           
                           console.log('🔍 Guardando cambios del proyecto:', editingData);
+                          
+                          // Llamar a la mutación con manejo de respuesta
                           updateMutation.mutate({ 
                             id: numericId, 
                             data: editingData
+                          }, {
+                            onSuccess: (data) => {
+                              console.log('✅ Guardar Cambios - Éxito:', data);
+                              showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+                            },
+                            onError: (error) => {
+                              console.error('❌ Guardar Cambios - Error:', error);
+                              showNotification('❌ Error al actualizar proyecto', 'danger');
+                            }
                           });
-                          // No cerrar el modal para ver los cambios
                         }}
                         disabled={updateMutation.isLoading}
                       >
@@ -1319,14 +1340,20 @@ export default function Proyectos() {
         size="xl"
       />
       
+      </div>
+      
       {/* Toast de notificaciones */}
-      <ToastContainer position="top-end" className="p-3">
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
         <Toast 
           show={showToast} 
-          onClose={() => setShowToast(false)} 
+          onClose={() => {
+            console.log('🔔 Toast - Cerrando notificación');
+            setShowToast(false);
+          }} 
           delay={3000} 
           autohide
           bg={toastVariant}
+          onShow={() => console.log('🔔 Toast - Mostrando notificación')}
         >
           <Toast.Header>
             <strong className="me-auto">
@@ -1338,7 +1365,6 @@ export default function Proyectos() {
           </Toast.Body>
         </Toast>
       </ToastContainer>
-      </div>
     </Container>
   );
 };
