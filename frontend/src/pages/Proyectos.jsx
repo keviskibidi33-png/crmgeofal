@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -18,6 +18,7 @@ export default function Proyectos() {
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [showQueriesModal, setShowQueriesModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -192,6 +193,11 @@ export default function Proyectos() {
   const handleUpdateStatus = (project) => {
     setSelectedProject(project);
     setShowStatusModal(true);
+  };
+
+  const handleViewProject = (project) => {
+    setSelectedProject(project);
+    setShowViewModal(true);
   };
 
   const handleSubmit = async (formData) => {
@@ -580,6 +586,7 @@ export default function Proyectos() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               actions={[
+                { label: 'Ver', icon: FiEye, onClick: handleViewProject, variant: 'outline-info' },
                 { label: 'Editar', icon: FiEdit, onClick: handleEdit, variant: 'outline-primary' },
                 { label: 'Estado', icon: FiSettings, onClick: handleUpdateStatus, variant: 'outline-secondary' },
                 { label: 'Categorías', icon: FiFolder, onClick: handleViewCategories, variant: 'outline-info' },
@@ -721,6 +728,139 @@ export default function Proyectos() {
         }}
         submitText="Actualizar Estado"
         loading={updateStatusMutation.isLoading}
+      />
+
+      {/* Modal para Ver Proyecto Completo */}
+      <ModalForm
+        show={showViewModal}
+        onHide={() => setShowViewModal(false)}
+        title={`Información del Proyecto - ${selectedProject?.name || ''}`}
+        data={selectedProject || {}}
+        fields={[
+          {
+            name: 'project_info',
+            label: 'Información del Proyecto',
+            type: 'custom',
+            render: (project) => (
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <div className="border rounded p-3 h-100">
+                    <h6 className="text-primary mb-3">
+                      <FiHome className="me-2" />
+                      Datos Generales
+                    </h6>
+                    <div className="mb-2">
+                      <strong>ID:</strong> {project.id}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Nombre:</strong> {project.name}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Ubicación:</strong> {project.location}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Tipo:</strong> 
+                      <Badge bg="info" className="ms-2">{project.project_type}</Badge>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Estado:</strong> 
+                      <Badge bg="primary" className="ms-2">{project.status}</Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="border rounded p-3 h-100">
+                    <h6 className="text-success mb-3">
+                      <FiUser className="me-2" />
+                      Información de Contacto
+                    </h6>
+                    <div className="mb-2">
+                      <strong>Empresa:</strong> {project.company_name}
+                    </div>
+                    <div className="mb-2">
+                      <strong>RUC:</strong> {project.company_ruc}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Contacto:</strong> {project.contact_name || 'Sin contacto'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Teléfono:</strong> {project.contact_phone || 'Sin teléfono'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Email:</strong> {project.contact_email || 'Sin email'}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="border rounded p-3 h-100">
+                    <h6 className="text-warning mb-3">
+                      <FiSettings className="me-2" />
+                      Servicios Requeridos
+                    </h6>
+                    <div className="mb-2">
+                      <strong>Laboratorio:</strong> 
+                      {project.requiere_laboratorio ? (
+                        <Badge bg="info" className="ms-2">Requerido</Badge>
+                      ) : (
+                        <Badge bg="secondary" className="ms-2">No requerido</Badge>
+                      )}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Ingeniería:</strong> 
+                      {project.requiere_ingenieria ? (
+                        <Badge bg="success" className="ms-2">Requerido</Badge>
+                      ) : (
+                        <Badge bg="secondary" className="ms-2">No requerido</Badge>
+                      )}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Estado Lab:</strong> 
+                      <Badge bg="info" className="ms-2">{project.laboratorio_status}</Badge>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Estado Ing:</strong> 
+                      <Badge bg="success" className="ms-2">{project.ingenieria_status}</Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="border rounded p-3 h-100">
+                    <h6 className="text-info mb-3">
+                      <FiUsers className="me-2" />
+                      Asignaciones
+                    </h6>
+                    <div className="mb-2">
+                      <strong>Vendedor:</strong> {project.vendedor_name || 'Sin asignar'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Laboratorio:</strong> {project.laboratorio_name || 'Sin asignar'}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Fecha Creación:</strong> {new Date(project.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Última Actualización:</strong> {new Date(project.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+                {project.status_notes && (
+                  <div className="col-12">
+                    <div className="border rounded p-3">
+                      <h6 className="text-muted mb-3">
+                        <FiMessageCircle className="me-2" />
+                        Notas del Estado
+                      </h6>
+                      <p className="mb-0">{project.status_notes}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+        ]}
+        onSubmit={() => setShowViewModal(false)}
+        submitText="Cerrar"
+        size="xl"
       />
       </div>
     </Container>

@@ -226,6 +226,13 @@ const ModalForm = ({
           </Form.Group>
         );
 
+      case 'custom':
+        return (
+          <div key={field.name} className="mb-3">
+            {field.render && field.render(formData)}
+          </div>
+        );
+
       default:
         return null;
     }
