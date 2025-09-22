@@ -9,7 +9,7 @@ import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats } from '../services/projects';
 
-const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false };
+const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false, contact_name: '', contact_phone: '', contact_email: '' };
 
 export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
@@ -135,7 +135,10 @@ export default function Proyectos() {
       ...emptyForm,
       company_id: selectedClient.id,
       name: `${selectedClient.sector || 'Proyecto'} - ${selectedClient.name}`,
-      location: selectedClient.city || ''
+      location: selectedClient.city || '',
+      contact_name: selectedClient.contact_name || '',
+      contact_phone: selectedClient.phone || '',
+      contact_email: selectedClient.email || ''
     } : emptyForm;
     
     setEditingProject(formData);
@@ -287,6 +290,26 @@ export default function Proyectos() {
       )
     },
     {
+      header: 'Contacto',
+      accessor: 'contacto',
+      render: (value, row) => (
+        <div className="small">
+          {row.contact_name && (
+            <div><strong>{row.contact_name}</strong></div>
+          )}
+          {row.contact_phone && (
+            <div className="text-muted">{row.contact_phone}</div>
+          )}
+          {row.contact_email && (
+            <div className="text-muted">{row.contact_email}</div>
+          )}
+          {!row.contact_name && !row.contact_phone && !row.contact_email && (
+            <span className="text-muted">Sin contacto</span>
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Asignado a',
       accessor: 'vendedor_name',
       render: (value, row) => (
@@ -316,13 +339,14 @@ export default function Proyectos() {
   const formFields = [
     {
       name: 'company_id',
-      label: 'Empresa',
+      label: 'Empresa/Cliente',
       type: 'select',
       required: true,
       options: data?.companies?.map(company => ({
         value: company.id,
-        label: `${company.name} (${company.ruc})`
-      })) || []
+        label: `${company.name} (${company.ruc || company.dni || 'Sin RUC/DNI'})`
+      })) || [],
+      description: 'Selecciona un cliente existente o crea uno nuevo desde el módulo de clientes'
     },
     {
       name: 'name',
@@ -333,9 +357,31 @@ export default function Proyectos() {
     },
     {
       name: 'location',
-      label: 'Ubicación',
+      label: 'Ubicación del Proyecto',
       type: 'text',
-      placeholder: 'Ingresa la ubicación del proyecto'
+      placeholder: 'Ingresa la ubicación del proyecto',
+      required: true
+    },
+    {
+      name: 'contact_name',
+      label: 'Persona de Contacto',
+      type: 'text',
+      placeholder: 'Nombre de la persona con quien negociar',
+      description: 'Persona responsable del proyecto en el cliente'
+    },
+    {
+      name: 'contact_phone',
+      label: 'Teléfono de Contacto',
+      type: 'text',
+      placeholder: 'Teléfono para comunicación directa',
+      description: 'Número para llamadas urgentes o seguimiento'
+    },
+    {
+      name: 'contact_email',
+      label: 'Email de Contacto',
+      type: 'email',
+      placeholder: 'Email para comunicación',
+      description: 'Email para envío de reportes y documentos'
     },
     {
       name: 'vendedor_id',

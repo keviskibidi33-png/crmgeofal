@@ -37,9 +37,9 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const { type, ruc, dni, name, address, email, phone, contact_name } = req.body;
-    // Validación estricta
-    if (!type || !name || !address || !email || !phone || !contact_name || (type === 'empresa' && !ruc) || (type === 'persona_natural' && !dni)) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+    // Validación básica
+    if (!type || !name) {
+      return res.status(400).json({ error: 'Tipo y nombre son obligatorios' });
     }
     // Validar duplicidad por RUC/DNI
     if (type === 'empresa' && ruc) {

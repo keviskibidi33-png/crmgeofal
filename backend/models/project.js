@@ -96,10 +96,10 @@ const Project = {
     }
     return null;
   },
-  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false }) {
+  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, contact_name, contact_phone, contact_email }) {
     const res = await pool.query(
-      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria]
+      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email]
     );
     return res.rows[0];
   },
