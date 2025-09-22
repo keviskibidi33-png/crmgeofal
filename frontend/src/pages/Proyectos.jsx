@@ -222,6 +222,10 @@ export default function Proyectos() {
   };
 
   const handleViewProject = (project) => {
+    console.log('🔍 handleViewProject - Project recibido:', project);
+    console.log('🔍 handleViewProject - Project.id:', project?.id);
+    console.log('🔍 handleViewProject - Type of project.id:', typeof project?.id);
+    
     setSelectedProject(project);
     setEditingData(project);
     setActiveTab('view');
@@ -854,12 +858,19 @@ export default function Proyectos() {
                             return;
                           }
                           
-                          updateMutation.mutate({ id: projectId, ...editingData });
+                          updateCategoriesMutation.mutate({ 
+                            id: projectId, 
+                            requiere_laboratorio: editingData.requiere_laboratorio || false,
+                            requiere_ingenieria: editingData.requiere_ingenieria || false,
+                            requiere_consultoria: editingData.requiere_consultoria || false,
+                            requiere_capacitacion: editingData.requiere_capacitacion || false,
+                            requiere_auditoria: editingData.requiere_auditoria || false
+                          });
                           setShowViewModal(false);
                         }}
-                        disabled={updateMutation.isLoading}
+                        disabled={updateCategoriesMutation.isLoading}
                       >
-                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                        {updateCategoriesMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
                       </Button>
                     </div>
                   </div>
