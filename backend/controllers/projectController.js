@@ -74,6 +74,10 @@ exports.updateStatus = async (req, res) => {
 
 exports.updateCategories = async (req, res) => {
   try {
+    console.log('🔍 updateCategories - ID recibido:', req.params.id);
+    console.log('🔍 updateCategories - Body recibido:', req.body);
+    console.log('🔍 updateCategories - User:', req.user);
+    
     const { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria } = req.body;
     const project = await Project.updateCategories(req.params.id, {
       requiere_laboratorio,
