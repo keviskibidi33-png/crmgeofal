@@ -4,9 +4,20 @@ exports.getAll = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const { rows, total } = await Company.getAll({ page, limit });
+    const search = req.query.search || '';
+    const type = req.query.type || '';
+    
+    // Agregar headers para evitar caché
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const { rows, total } = await Company.getAll({ page, limit, search, type });
     res.json({ data: rows, total });
   } catch (err) {
+    console.error('Error getting companies:', err);
     res.status(500).json({ error: 'Error al obtener empresas' });
   }
 };
@@ -62,5 +73,25 @@ exports.delete = async (req, res) => {
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: 'Error al eliminar empresa' });
+  }
+};
+
+exports.getStats = async (req, res) => {
+  try {
+    console.log('📊 getCompanyStats - Obteniendo estadísticas de clientes...');
+    
+    // Agregar headers para evitar caché
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const stats = await Company.getStats();
+    console.log('✅ getCompanyStats - Estadísticas obtenidas:', stats);
+    res.json(stats);
+  } catch (err) {
+    console.error('❌ getCompanyStats - Error:', err);
+    res.status(500).json({ error: 'Error getting company stats: ' + err.message });
   }
 };

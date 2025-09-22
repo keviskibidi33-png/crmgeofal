@@ -6,7 +6,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listCompanies, createCompany, updateCompany, deleteCompany } from '../services/companies';
+import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats } from '../services/companies';
 
 const emptyForm = {
   type: 'empresa',
@@ -23,21 +23,106 @@ export default function Clientes() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
+  
+  // Estado para paginación y filtros
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery(
-    ['clients'],
-    () => listCompanies(),
-    { keepPreviousData: true }
+  const { data, isLoading, refetch } = useQuery(
+    ['clients', currentPage, searchTerm, selectedType],
+    () => listCompanies({ 
+      page: currentPage, 
+      limit: 20, 
+      search: searchTerm, 
+      type: selectedType 
+    }),
+    { 
+      keepPreviousData: true,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+      cacheTime: 0
+    }
+  );
+
+  // Consulta separada para estadísticas reales
+  const { data: statsData, isLoading: statsLoading } = useQuery(
+    ['clientStats'],
+    getCompanyStats,
+    {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 30000, // 30 segundos
+      cacheTime: 60000  // 1 minuto
+    }
   );
 
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('clients');
+    queryClient.invalidateQueries('clientStats'); // Invalidar también las estadísticas
     setShowModal(false);
     setEditingClient(null);
     setDeletingClient(null);
   };
+
+  // Función para manejar búsqueda
+  const handleSearch = (searchValue) => {
+    console.log('🔍 handleSearch - Búsqueda:', searchValue);
+    setSearchTerm(searchValue);
+    setCurrentPage(1); // Resetear a la primera página
+    setIsSearching(true);
+    
+    // La consulta se actualizará automáticamente por el useQuery
+    setTimeout(() => setIsSearching(false), 1000);
+  };
+
+  // Función para manejar filtros
+  const handleFilter = (filters) => {
+    console.log('🔍 handleFilter - Filtros:', filters);
+    setSelectedType(filters.type || '');
+    setCurrentPage(1); // Resetear a la primera página
+  };
+
+  // Opciones de filtros específicas para clientes
+  const clientFilterOptions = [
+    {
+      title: 'Por Tipo de Cliente',
+      options: [
+        { label: 'Empresas', filter: { type: 'empresa' } },
+        { label: 'Personas Naturales', filter: { type: 'persona' } }
+      ]
+    },
+    {
+      title: 'Por Sector',
+      options: [
+        { label: 'Construcción', filter: { sector: 'construccion' } },
+        { label: 'Minería', filter: { sector: 'mineria' } },
+        { label: 'Ingeniería', filter: { sector: 'ingenieria' } },
+        { label: 'Laboratorio', filter: { sector: 'laboratorio' } },
+        { label: 'Consultoría', filter: { sector: 'consultoria' } },
+        { label: 'Tecnología', filter: { sector: 'tecnologia' } },
+        { label: 'Ambiental', filter: { sector: 'ambiental' } },
+        { label: 'Geología', filter: { sector: 'geologia' } }
+      ]
+    },
+    {
+      title: 'Por Ciudad',
+      options: [
+        { label: 'Lima', filter: { ciudad: 'lima' } },
+        { label: 'Arequipa', filter: { ciudad: 'arequipa' } },
+        { label: 'Cusco', filter: { ciudad: 'cusco' } },
+        { label: 'Trujillo', filter: { ciudad: 'trujillo' } },
+        { label: 'Piura', filter: { ciudad: 'piura' } },
+        { label: 'Chiclayo', filter: { ciudad: 'chiclayo' } },
+        { label: 'Iquitos', filter: { ciudad: 'iquitos' } },
+        { label: 'Huancayo', filter: { ciudad: 'huancayo' } }
+      ]
+    }
+  ];
 
   const createMutation = useMutation(createCompany, {
     onSuccess: () => handleMutationSuccess('Cliente creado exitosamente'),
@@ -223,7 +308,21 @@ export default function Clientes() {
 
   // Calcular estadísticas
   const stats = useMemo(() => {
-    const companies = data?.companies || [];
+    // Usar estadísticas reales del backend si están disponibles
+    if (statsData) {
+      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
+      return {
+        total: statsData.total || 0,
+        empresas: statsData.empresas || 0,
+        personas: statsData.personas || 0,
+        conEmail: statsData.withEmail || 0,
+        conTelefono: statsData.withPhone || 0
+      };
+    }
+    
+    // Fallback: calcular desde los datos de la página actual
+    const companies = data?.data || [];
+    console.log('📊 Stats - Fallback: calculando desde página actual:', companies);
     return {
       total: companies.length,
       empresas: companies.filter(c => c.type === 'empresa').length,
@@ -231,7 +330,7 @@ export default function Clientes() {
       conEmail: companies.filter(c => c.email).length,
       conTelefono: companies.filter(c => c.phone).length
     };
-  }, [data]);
+  }, [statsData, data]);
 
   return (
     <Container fluid className="py-4">
@@ -257,6 +356,7 @@ export default function Clientes() {
               icon={FiUsers}
               color="primary"
               subtitle="Clientes registrados"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -266,6 +366,7 @@ export default function Clientes() {
               icon={FiBuilding}
               color="success"
               subtitle="Clientes corporativos"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -275,6 +376,7 @@ export default function Clientes() {
               icon={FiUser}
               color="info"
               subtitle="Clientes individuales"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -284,6 +386,7 @@ export default function Clientes() {
               icon={FiMail}
               color="warning"
               subtitle="Con email registrado"
+              loading={statsLoading}
             />
           </Col>
         </Row>
@@ -303,12 +406,21 @@ export default function Clientes() {
           </Card.Header>
           <Card.Body className="p-0">
             <DataTable
-              data={data?.companies || []}
+              data={data?.data || []}
               columns={columns}
-              loading={isLoading}
+              loading={isLoading || isSearching}
               onEdit={handleEdit}
               onDelete={handleDelete}
               emptyMessage="No hay clientes registrados"
+              // Props para paginación del backend
+              totalItems={data?.total || 0}
+              itemsPerPage={20}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              onSearch={handleSearch}
+              onFilter={handleFilter}
+              // Filtros específicos para clientes
+              filterOptions={clientFilterOptions}
             />
           </Card.Body>
         </Card>
