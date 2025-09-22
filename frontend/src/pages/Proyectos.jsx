@@ -43,6 +43,7 @@ export default function Proyectos() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
 
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -103,6 +104,11 @@ export default function Proyectos() {
     setToastMessage(message);
     setToastVariant(variant);
     setShowToast(true);
+    
+    // Auto-close después de 5 segundos
+    setTimeout(() => {
+      setShowToast(false);
+    }, 5000);
   };
 
   // Función para manejar búsqueda
@@ -653,6 +659,7 @@ export default function Proyectos() {
   }, [statsData, data]);
 
   return (
+    <>
     <Container fluid className="py-4">
       <div className="fade-in">
         <PageHeader
@@ -955,10 +962,7 @@ export default function Proyectos() {
                           type="text" 
                           className="form-control" 
                           value={editingData.contact_name || ''} 
-                          onChange={(e) => {
-                            console.log('🔍 contact_name onChange:', e.target.value);
-                            setEditingData({...editingData, contact_name: e.target.value});
-                          }}
+                          onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
                         />
                       </div>
                     </div>
@@ -989,9 +993,6 @@ export default function Proyectos() {
                         variant="primary" 
                         onClick={() => {
                           const projectId = selectedProject?.id;
-                          console.log('🔍 selectedProject:', selectedProject);
-                          console.log('🔍 projectId:', projectId);
-                          console.log('🔍 typeof projectId:', typeof projectId);
                           
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
@@ -1001,9 +1002,6 @@ export default function Proyectos() {
                           
                           // Asegurar que projectId sea un número
                           const numericId = typeof projectId === 'object' ? projectId.id : projectId;
-                          console.log('🔍 numericId:', numericId);
-                          
-                          console.log('🔍 Guardando cambios del proyecto:', editingData);
                           
                           // Llamar a la mutación con manejo de respuesta
                           updateMutation.mutate({ 
@@ -1011,7 +1009,6 @@ export default function Proyectos() {
                             data: editingData
                           }, {
                             onSuccess: (data) => {
-                              console.log('✅ Guardar Cambios - Éxito:', data);
                               showNotification('✅ Proyecto actualizado exitosamente!', 'success');
                             },
                             onError: (error) => {
@@ -1365,30 +1362,32 @@ export default function Proyectos() {
       />
       
       </div>
-      
-      {/* Toast de notificaciones */}
-      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
-        <Toast 
-          show={showToast} 
-          onClose={() => setShowToast(false)} 
-          delay={5000} 
-          autohide
-          bg={toastVariant}
-          style={{ 
-            minWidth: '300px',
-            backgroundColor: toastVariant === 'success' ? '#28a745' : '#dc3545'
-          }}
-        >
-          <Toast.Header closeButton={false}>
-            <strong className="me-auto text-white">
-              {toastVariant === 'success' ? '✅ Éxito' : '❌ Error'}
-            </strong>
-          </Toast.Header>
-          <Toast.Body className="text-white">
-            {toastMessage}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
     </Container>
+    
+    {/* Toast de notificaciones - SOLUCIÓN ALTERNATIVA */}
+    {showToast && (
+      <div 
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 99999,
+          backgroundColor: toastVariant === 'success' ? '#28a745' : '#dc3545',
+          color: 'white',
+          padding: '15px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          minWidth: '300px',
+          border: 'none'
+        }}
+        onClick={() => setShowToast(false)}
+      >
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+          {toastVariant === 'success' ? '✅ Éxito' : '❌ Error'}
+        </div>
+        <div>{toastMessage}</div>
+      </div>
+    )}
+    </>
   );
 };
