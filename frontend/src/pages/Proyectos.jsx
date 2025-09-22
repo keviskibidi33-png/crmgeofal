@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
@@ -9,7 +9,7 @@ import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats } from '../services/projects';
 
-const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '' };
+const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false };
 
 export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
@@ -22,6 +22,10 @@ export default function Proyectos() {
   const [selectedProjectType, setSelectedProjectType] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Obtener cliente pre-seleccionado desde la navegación
+  const selectedClient = location.state?.selectedClient;
 
   const queryClient = useQueryClient();
 
@@ -126,7 +130,15 @@ export default function Proyectos() {
   });
 
   const handleCreate = () => {
-    setEditingProject(emptyForm);
+    // Si hay un cliente pre-seleccionado, pre-llenar el formulario
+    const formData = selectedClient ? {
+      ...emptyForm,
+      company_id: selectedClient.id,
+      name: `${selectedClient.sector || 'Proyecto'} - ${selectedClient.name}`,
+      location: selectedClient.city || ''
+    } : emptyForm;
+    
+    setEditingProject(formData);
     setShowModal(true);
   };
 
@@ -250,6 +262,31 @@ export default function Proyectos() {
       render: (value) => getStatusBadge(value || 'activo')
     },
     {
+      header: 'Servicios Requeridos',
+      accessor: 'services',
+      render: (value, row) => (
+        <div className="d-flex flex-wrap gap-1">
+          {row.requiere_laboratorio && (
+            <Badge bg="info" className="px-2 py-1">
+              <FiHome size={12} className="me-1" />
+              Laboratorio
+            </Badge>
+          )}
+          {row.requiere_ingenieria && (
+            <Badge bg="primary" className="px-2 py-1">
+              <FiUser size={12} className="me-1" />
+              Ingeniería
+            </Badge>
+          )}
+          {!row.requiere_laboratorio && !row.requiere_ingenieria && (
+            <Badge bg="secondary" className="px-2 py-1">
+              Sin servicios
+            </Badge>
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Asignado a',
       accessor: 'vendedor_name',
       render: (value, row) => (
@@ -321,6 +358,18 @@ export default function Proyectos() {
         value: user.id,
         label: `${user.name} ${user.apellido}`
       })) || []
+    },
+    {
+      name: 'requiere_laboratorio',
+      label: 'Requiere Servicios de Laboratorio',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita análisis o pruebas de laboratorio'
+    },
+    {
+      name: 'requiere_ingenieria',
+      label: 'Requiere Servicios de Ingeniería',
+      type: 'checkbox',
+      description: 'Marcar si el proyecto necesita estudios o consultoría de ingeniería'
     }
   ];
 
@@ -353,13 +402,21 @@ export default function Proyectos() {
       <div className="fade-in">
         <PageHeader
           title="Gestión de Proyectos"
-          subtitle="Crear, editar y gestionar proyectos del sistema"
+          subtitle={selectedClient ? `Crear proyecto para: ${selectedClient.name}` : "Crear, editar y gestionar proyectos del sistema"}
           icon={FiHome}
           actions={
-            <Button variant="primary" onClick={handleCreate}>
-              <FiPlus className="me-2" />
-              Nuevo Proyecto
-            </Button>
+            <div className="d-flex gap-2">
+              {selectedClient && (
+                <Badge bg="info" className="px-3 py-2 d-flex align-items-center">
+                  <FiUser className="me-1" />
+                  Cliente: {selectedClient.name}
+                </Badge>
+              )}
+              <Button variant="primary" onClick={handleCreate}>
+                <FiPlus className="me-2" />
+                {selectedClient ? 'Crear Proyecto' : 'Nuevo Proyecto'}
+              </Button>
+            </div>
           }
         />
 

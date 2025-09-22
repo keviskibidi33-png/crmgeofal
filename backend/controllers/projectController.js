@@ -44,15 +44,23 @@ const Audit = require('../models/audit');
 
 exports.create = async (req, res) => {
   try {
-    const { company_id, name, location, vendedor_id, laboratorio_id } = req.body;
-    const project = await Project.create({ company_id, name, location, vendedor_id, laboratorio_id });
+    const { company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria } = req.body;
+    const project = await Project.create({ 
+      company_id, 
+      name, 
+      location, 
+      vendedor_id, 
+      laboratorio_id, 
+      requiere_laboratorio: requiere_laboratorio || false, 
+      requiere_ingenieria: requiere_ingenieria || false 
+    });
     // Auditoría
     await Audit.log({
       user_id: req.user.id,
       action: 'crear',
       entity: 'project',
       entity_id: project.id,
-      details: JSON.stringify({ company_id, name, location, vendedor_id, laboratorio_id })
+      details: JSON.stringify({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria })
     });
     res.status(201).json(project);
   } catch (err) {

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding, FiFolderPlus } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -33,6 +34,7 @@ export default function Clientes() {
   const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data, isLoading, refetch } = useQuery(
     ['clients', currentPage, searchTerm, selectedType, selectedCity, selectedSector],
@@ -160,6 +162,21 @@ export default function Clientes() {
     if (window.confirm(`¿Estás seguro de que quieres eliminar el cliente "${client.name}"?`)) {
       deleteMutation.mutate(client.id);
     }
+  };
+
+  const handleCreateProject = (client) => {
+    // Navegar al módulo de proyectos con el cliente pre-seleccionado
+    navigate('/proyectos', { 
+      state: { 
+        selectedClient: {
+          id: client.id,
+          name: client.name,
+          type: client.type,
+          sector: client.sector,
+          city: client.city
+        }
+      } 
+    });
   };
 
   const handleSubmit = async (formData) => {
@@ -340,6 +357,38 @@ export default function Clientes() {
       header: 'Fecha Registro',
       accessor: 'created_at',
       type: 'date'
+    },
+    {
+      header: 'Acciones',
+      accessor: 'actions',
+      render: (value, row) => (
+        <div className="d-flex gap-1">
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => handleEdit(row)}
+            title="Editar cliente"
+          >
+            <FiEdit size={14} />
+          </Button>
+          <Button
+            variant="outline-success"
+            size="sm"
+            onClick={() => handleCreateProject(row)}
+            title="Crear proyecto para este cliente"
+          >
+            <FiFolderPlus size={14} />
+          </Button>
+          <Button
+            variant="outline-danger"
+            size="sm"
+            onClick={() => handleDelete(row)}
+            title="Eliminar cliente"
+          >
+            <FiTrash2 size={14} />
+          </Button>
+        </div>
+      )
     }
   ];
 
