@@ -848,7 +848,13 @@ export default function Proyectos() {
                       <Button 
                         variant="primary" 
                         onClick={() => {
-                          updateMutation.mutate({ id: selectedProject.id, ...editingData });
+                          const projectId = selectedProject?.id;
+                          if (!projectId) {
+                            console.error('No se encontró el ID del proyecto');
+                            return;
+                          }
+                          
+                          updateMutation.mutate({ id: projectId, ...editingData });
                           setShowViewModal(false);
                         }}
                         disabled={updateMutation.isLoading}
@@ -933,7 +939,13 @@ export default function Proyectos() {
                       <Button 
                         variant="success" 
                         onClick={() => {
-                          updateStatusMutation.mutate({ id: selectedProject.id, ...editingData });
+                          const projectId = selectedProject?.id;
+                          if (!projectId) {
+                            console.error('No se encontró el ID del proyecto');
+                            return;
+                          }
+                          
+                          updateStatusMutation.mutate({ id: projectId, ...editingData });
                           setShowViewModal(false);
                         }}
                         disabled={updateStatusMutation.isLoading}
@@ -1013,8 +1025,18 @@ export default function Proyectos() {
                       <Button 
                         variant="info" 
                         onClick={() => {
+                          console.log('selectedProject:', selectedProject);
+                          console.log('selectedProject.id:', selectedProject?.id);
+                          console.log('editingData:', editingData);
+                          
+                          const projectId = selectedProject?.id;
+                          if (!projectId) {
+                            console.error('No se encontró el ID del proyecto');
+                            return;
+                          }
+                          
                           updateCategoriesMutation.mutate({ 
-                            id: selectedProject.id, 
+                            id: projectId, 
                             requiere_laboratorio: editingData.requiere_laboratorio || false,
                             requiere_ingenieria: editingData.requiere_ingenieria || false,
                             requiere_consultoria: editingData.requiere_consultoria || false,
@@ -1055,8 +1077,14 @@ export default function Proyectos() {
                       <Button 
                         variant="warning"
                         onClick={() => {
+                          const projectId = selectedProject?.id;
+                          if (!projectId) {
+                            console.error('No se encontró el ID del proyecto');
+                            return;
+                          }
+                          
                           updateQueriesMutation.mutate({ 
-                            id: selectedProject.id, 
+                            id: projectId, 
                             queries: editingData.queries || ''
                           });
                           setShowViewModal(false);
@@ -1100,8 +1128,14 @@ export default function Proyectos() {
                           variant="success" 
                           size="lg"
                           onClick={() => {
+                            const projectId = selectedProject?.id;
+                            if (!projectId) {
+                              console.error('No se encontró el ID del proyecto');
+                              return;
+                            }
+                            
                             updateMarkMutation.mutate({ 
-                              id: selectedProject.id, 
+                              id: projectId, 
                               marked: !editingData.marked,
                               priority: editingData.priority || 'normal'
                             });
