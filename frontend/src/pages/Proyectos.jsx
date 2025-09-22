@@ -261,7 +261,26 @@ export default function Proyectos() {
     console.log('🔍 handleViewProject - Type of project.id:', typeof project?.id);
     
     setSelectedProject(project);
-    setEditingData(project);
+    
+    // Inicializar editingData con todos los campos del proyecto
+    const initialEditingData = {
+      ...project,
+      // Asegurar que los campos booleanos tengan valores por defecto
+      requiere_laboratorio: project.requiere_laboratorio || false,
+      requiere_ingenieria: project.requiere_ingenieria || false,
+      requiere_consultoria: project.requiere_consultoria || false,
+      requiere_capacitacion: project.requiere_capacitacion || false,
+      requiere_auditoria: project.requiere_auditoria || false,
+      marked: project.marked || false,
+      priority: project.priority || 'normal',
+      queries: project.queries || '',
+      contact_name: project.contact_name || '',
+      contact_phone: project.contact_phone || '',
+      contact_email: project.contact_email || ''
+    };
+    
+    console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
+    setEditingData(initialEditingData);
     setActiveTab('view');
     setShowViewModal(true);
   };
@@ -856,7 +875,10 @@ export default function Proyectos() {
                           type="text" 
                           className="form-control" 
                           value={editingData.contact_name || ''} 
-                          onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
+                          onChange={(e) => {
+                            console.log('🔍 contact_name onChange:', e.target.value);
+                            setEditingData({...editingData, contact_name: e.target.value});
+                          }}
                         />
                       </div>
                     </div>
@@ -1017,7 +1039,10 @@ export default function Proyectos() {
                           type="checkbox" 
                           id="cat_laboratorio"
                           checked={editingData.requiere_laboratorio || false}
-                          onChange={(e) => setEditingData({...editingData, requiere_laboratorio: e.target.checked})}
+                          onChange={(e) => {
+                            console.log('🔍 requiere_laboratorio onChange:', e.target.checked);
+                            setEditingData({...editingData, requiere_laboratorio: e.target.checked});
+                          }}
                         />
                         <label className="form-check-label" htmlFor="cat_laboratorio">
                           Laboratorio

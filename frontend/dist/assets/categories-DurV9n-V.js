@@ -1,0 +1,2 @@
+import{b as i}from"./index-DHooE7hD.js";const c=(t={})=>{const e=new URLSearchParams;t.page&&e.set("page",t.page),t.limit&&e.set("limit",t.limit),t.q&&e.set("q",t.q);const o=e.toString(),s=o?`/api/categories?${o}`:"/api/categories";return i(s)},g=t=>i("/api/categories",{method:"POST",body:JSON.stringify(t)}),r=(t,e)=>i(`/api/categories/${t}`,{method:"PUT",body:JSON.stringify(e)}),n=t=>i(`/api/categories/${t}`,{method:"DELETE"});export{g as c,n as d,c as l,r as u};
+//# sourceMappingURL=categories-DurV9n-V.js.map
