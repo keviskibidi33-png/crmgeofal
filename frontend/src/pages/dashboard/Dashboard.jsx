@@ -14,9 +14,11 @@ import { listProjects } from '../../services/projects';
 import { listQuotes } from '../../services/quotes';
 import { listTickets } from '../../services/tickets';
 import { useActivities } from '../../hooks/useActivities';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Consultas para obtener estadísticas
   const { data: usersData } = useQuery(['users'], listUsers);
@@ -279,15 +281,17 @@ const Dashboard = () => {
                 >
                   <FiActivity className={activitiesLoading ? 'spinning' : ''} />
                 </Button>
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => navigate('/actividades')}
-                  title="Ver todas las actividades"
-                >
-                  <FiEye className="me-1" />
-                  Ver todas
-                </Button>
+                {user?.role === 'admin' && (
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={() => navigate('/actividades')}
+                    title="Ver todas las actividades (Solo Admin)"
+                  >
+                    <FiEye className="me-1" />
+                    Ver todas
+                  </Button>
+                )}
               </div>
             </Card.Header>
             <Card.Body>
