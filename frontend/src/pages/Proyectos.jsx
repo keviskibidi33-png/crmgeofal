@@ -139,7 +139,11 @@ export default function Proyectos() {
   const updateStatusMutation = useMutation(
     ({ id, ...data }) => updateProjectStatus(id, data),
     {
-      onSuccess: () => handleMutationSuccess('Estado del proyecto actualizado exitosamente'),
+      onSuccess: (updatedProject) => {
+        setSelectedProject(updatedProject);
+        setEditingData(updatedProject);
+        handleMutationSuccess('Estado del proyecto actualizado exitosamente');
+      },
       onError: (error) => console.error('Error updating project status:', error)
     }
   );
@@ -147,7 +151,12 @@ export default function Proyectos() {
   const updateCategoriesMutation = useMutation(
     ({ id, ...data }) => updateProjectCategories(id, data),
     {
-      onSuccess: () => handleMutationSuccess('Categorías del proyecto actualizadas exitosamente'),
+      onSuccess: (updatedProject) => {
+        // Actualizar el proyecto seleccionado con los nuevos datos
+        setSelectedProject(updatedProject);
+        setEditingData(updatedProject);
+        handleMutationSuccess('Categorías del proyecto actualizadas exitosamente');
+      },
       onError: (error) => console.error('Error updating project categories:', error)
     }
   );
@@ -155,7 +164,11 @@ export default function Proyectos() {
   const updateQueriesMutation = useMutation(
     ({ id, ...data }) => updateProjectQueries(id, data),
     {
-      onSuccess: () => handleMutationSuccess('Consultas del proyecto actualizadas exitosamente'),
+      onSuccess: (updatedProject) => {
+        setSelectedProject(updatedProject);
+        setEditingData(updatedProject);
+        handleMutationSuccess('Consultas del proyecto actualizadas exitosamente');
+      },
       onError: (error) => console.error('Error updating project queries:', error)
     }
   );
@@ -163,7 +176,11 @@ export default function Proyectos() {
   const updateMarkMutation = useMutation(
     ({ id, ...data }) => updateProjectMark(id, data),
     {
-      onSuccess: () => handleMutationSuccess('Proyecto marcado/desmarcado exitosamente'),
+      onSuccess: (updatedProject) => {
+        setSelectedProject(updatedProject);
+        setEditingData(updatedProject);
+        handleMutationSuccess('Proyecto marcado/desmarcado exitosamente');
+      },
       onError: (error) => console.error('Error updating project mark:', error)
     }
   );
@@ -1054,7 +1071,7 @@ export default function Proyectos() {
                             requiere_capacitacion: editingData.requiere_capacitacion || false,
                             requiere_auditoria: editingData.requiere_auditoria || false
                           });
-                          setShowViewModal(false);
+                          // No cerrar el modal para ver los cambios
                         }}
                         disabled={updateCategoriesMutation.isLoading}
                       >
@@ -1098,7 +1115,7 @@ export default function Proyectos() {
                             id: projectId, 
                             queries: editingData.queries || ''
                           });
-                          setShowViewModal(false);
+                          // No cerrar el modal para ver los cambios
                         }}
                         disabled={updateQueriesMutation.isLoading}
                       >
