@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Dropdown, Badge, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings, FiCheck, FiX } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
+import { getNotifications, getNotificationStats, markNotificationAsRead, markAllNotificationsAsRead } from '../services/notifications';
 
 const Header = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [notifications] = useState(3); // Simular notificaciones
+  const queryClient = useQueryClient();
+
+  // Obtener notificaciones del usuario
+  const { data: notificationsData, isLoading: notificationsLoading } = useQuery(
+    ['notifications', user?.id],
+    () => getNotifications({ limit: 5, unreadOnly: false }),
+    {
+      enabled: !!user,
+      refetchInterval: 30000, // Refrescar cada 30 segundos
+      staleTime: 10000 // Considerar datos frescos por 10 segundos
+    }
+  );
+
+  // Obtener estadísticas de notificaciones
+  const { data: statsData } = useQuery(
+    ['notificationStats', user?.id],
+    getNotificationStats,
+    {
+      enabled: !!user,
+      refetchInterval: 30000
+    }
+  );
+
+  // Mutaciones para marcar notificaciones
+  const markAsReadMutation = useMutation(markNotificationAsRead, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications', user?.id]);
+      queryClient.invalidateQueries(['notificationStats', user?.id]);
+    }
+  });
+
+  const markAllAsReadMutation = useMutation(markAllNotificationsAsRead, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications', user?.id]);
+      queryClient.invalidateQueries(['notificationStats', user?.id]);
+    }
+  });
 
   const handleLogout = () => {
     logout();
@@ -20,6 +58,63 @@ const Header = ({ onToggleSidebar }) => {
   const handleSettingsClick = () => {
     navigate('/ajustes');
   };
+
+  const handleNotificationClick = (notification) => {
+    if (!notification.read_at) {
+      markAsReadMutation.mutate(notification.id);
+    }
+    
+    // Navegar según el tipo de notificación
+    if (notification.data) {
+      const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
+      if (data.projectId) navigate(`/proyectos`);
+      if (data.quoteId) navigate(`/cotizaciones`);
+      if (data.ticketId) navigate(`/tickets`);
+    }
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
+
+  const formatNotificationTime = (createdAt) => {
+    const now = new Date();
+    const notificationTime = new Date(createdAt);
+    const diffInMinutes = Math.floor((now - notificationTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Ahora';
+    if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return `Hace ${Math.floor(diffInMinutes / 60)} h`;
+    return `Hace ${Math.floor(diffInMinutes / 1440)} días`;
+  };
+
+  const getNotificationIcon = (type) => {
+    const icons = {
+      quote_assigned: '📄',
+      quote_approved: '✅',
+      quote_rejected: '❌',
+      quote_completed: '🎉',
+      project_assigned: '🏠',
+      project_started: '🚀',
+      project_completed: '✅',
+      project_delayed: '⏰',
+      ticket_created: '🎫',
+      ticket_assigned: '👤',
+      ticket_resolved: '✅',
+      ticket_escalated: '⚠️',
+      evidence_uploaded: '📎',
+      evidence_approved: '✅',
+      evidence_rejected: '❌',
+      user_assigned: '👥',
+      user_role_changed: '🔄',
+      system_maintenance: '🔧',
+      system_update: '🆕'
+    };
+    return icons[type] || '🔔';
+  };
+
+  const notifications = notificationsData?.notifications || [];
+  const unreadCount = statsData?.unreadCount || 0;
 
   const getRoleBadgeColor = (role) => {
     const colors = {
@@ -76,48 +171,85 @@ const Header = ({ onToggleSidebar }) => {
             <Dropdown className="me-3">
               <Dropdown.Toggle variant="outline-secondary" size="sm" className="position-relative">
                 <FiBell size={18} />
-                {notifications > 0 && (
+                {unreadCount > 0 && (
                   <Badge 
                     bg="danger" 
                     className="position-absolute top-0 start-100 translate-middle rounded-pill"
                     style={{ fontSize: '0.6rem' }}
                   >
-                    {notifications}
+                    {unreadCount}
                   </Badge>
                 )}
               </Dropdown.Toggle>
-              <Dropdown.Menu align="end" className="shadow">
-                <Dropdown.Header>Notificaciones</Dropdown.Header>
-                <Dropdown.Item>
-                  <div className="d-flex align-items-start">
-                    <div className="me-2">
-                      <div className="bg-primary bg-opacity-10 rounded-circle p-1">
-                        <FiBell size={12} className="text-primary" />
-                      </div>
+              <Dropdown.Menu align="end" className="shadow" style={{ minWidth: '320px' }}>
+                <Dropdown.Header className="d-flex justify-content-between align-items-center">
+                  <span>Notificaciones</span>
+                  {unreadCount > 0 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 text-primary"
+                      onClick={handleMarkAllAsRead}
+                      disabled={markAllAsReadMutation.isLoading}
+                    >
+                      <FiCheck size={14} />
+                    </Button>
+                  )}
+                </Dropdown.Header>
+                
+                {notificationsLoading ? (
+                  <Dropdown.Item className="text-center">
+                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                      <span className="visually-hidden">Cargando...</span>
                     </div>
-                    <div>
-                      <div className="fw-medium">Nueva cotización</div>
-                      <small className="text-muted">Hace 5 minutos</small>
-                    </div>
-                  </div>
-                </Dropdown.Item>
-                <Dropdown.Item>
-                  <div className="d-flex align-items-start">
-                    <div className="me-2">
-                      <div className="bg-success bg-opacity-10 rounded-circle p-1">
-                        <FiBell size={12} className="text-success" />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="fw-medium">Proyecto completado</div>
-                      <small className="text-muted">Hace 1 hora</small>
-                    </div>
-                  </div>
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item className="text-center text-primary">
-                  Ver todas las notificaciones
-                </Dropdown.Item>
+                    Cargando notificaciones...
+                  </Dropdown.Item>
+                ) : notifications.length === 0 ? (
+                  <Dropdown.Item className="text-center text-muted">
+                    No hay notificaciones
+                  </Dropdown.Item>
+                ) : (
+                  <>
+                    {notifications.slice(0, 5).map((notification) => (
+                      <Dropdown.Item
+                        key={notification.id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`${!notification.read_at ? 'bg-light' : ''}`}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="d-flex align-items-start">
+                          <div className="me-2">
+                            <div className="bg-primary bg-opacity-10 rounded-circle p-1">
+                              <span style={{ fontSize: '12px' }}>
+                                {getNotificationIcon(notification.type)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-grow-1">
+                            <div className={`fw-medium ${!notification.read_at ? 'text-dark' : 'text-muted'}`}>
+                              {notification.title}
+                            </div>
+                            <div className="text-muted small">
+                              {notification.message}
+                            </div>
+                            <small className="text-muted">
+                              {formatNotificationTime(notification.created_at)}
+                            </small>
+                          </div>
+                          {!notification.read_at && (
+                            <div className="ms-2">
+                              <div className="bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></div>
+                            </div>
+                          )}
+                        </div>
+                      </Dropdown.Item>
+                    ))}
+                    <Dropdown.Divider />
+                    <Dropdown.Item className="text-center text-primary" onClick={() => navigate('/notificaciones')}>
+                      Ver todas las notificaciones
+                    </Dropdown.Item>
+                  </>
+                )}
               </Dropdown.Menu>
             </Dropdown>
 
