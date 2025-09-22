@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
+import { Card, Spinner } from 'react-bootstrap';
 
 const StatsCard = ({
   title,
@@ -8,6 +8,7 @@ const StatsCard = ({
   icon: Icon,
   color = 'primary',
   trend = null,
+  loading = false,
   className = ""
 }) => {
   const getColorClasses = (color) => {
@@ -48,12 +49,16 @@ const StatsCard = ({
           <div className="flex-grow-1">
             <h6 className="text-muted mb-2 fw-medium">{title}</h6>
             <h3 className="mb-1 fw-bold text-dark">
-              {typeof value === 'number' ? value.toLocaleString() : value}
+              {loading ? (
+                <Spinner size="sm" className="me-2" />
+              ) : (
+                typeof value === 'number' ? value.toLocaleString() : value
+              )}
             </h3>
             {subtitle && (
               <p className="text-muted mb-0 small">{subtitle}</p>
             )}
-            {trend && (
+            {trend && !loading && (
               <div className="mt-2">
                 {getTrendIcon(trend)}
               </div>

@@ -13,6 +13,7 @@ import { listUsers } from '../../services/users';
 import { listProjects } from '../../services/projects';
 import { listQuotes } from '../../services/quotes';
 import { listTickets } from '../../services/tickets';
+import { getDashboardStats } from '../../services/dashboard';
 import { useActivities } from '../../hooks/useActivities';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -20,11 +21,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Consultas para obtener estadísticas
-  const { data: usersData } = useQuery(['users'], listUsers);
-  const { data: projectsData } = useQuery(['projects'], listProjects);
-  const { data: quotesData } = useQuery(['quotes'], listQuotes);
-  const { data: ticketsData } = useQuery(['tickets'], listTickets);
+  // Obtener estadísticas del dashboard
+  const { data: dashboardStats, isLoading: statsLoading } = useQuery(
+    ['dashboardStats'],
+    getDashboardStats,
+    {
+      refetchInterval: 300000, // 5 minutos
+      staleTime: 60000 // 1 minuto
+    }
+  );
   
   // Obtener actividades recientes con hook optimizado
   const { 
@@ -41,16 +46,22 @@ const Dashboard = () => {
     role: user?.role // Filtrar por rol
   });
 
-  // Calcular estadísticas
-  const stats = {
-    totalUsers: usersData?.users?.length || 0,
-    totalProjects: projectsData?.projects?.length || 0,
-    totalQuotes: quotesData?.quotes?.length || 0,
-    totalTickets: ticketsData?.tickets?.length || 0,
-    activeProjects: projectsData?.projects?.filter(p => p.status === 'activo')?.length || 0,
-    pendingQuotes: quotesData?.quotes?.filter(q => q.status === 'pendiente')?.length || 0,
-    openTickets: ticketsData?.tickets?.filter(t => t.status === 'abierto')?.length || 0,
-    completedProjects: projectsData?.projects?.filter(p => p.status === 'completado')?.length || 0
+  // Usar estadísticas reales del backend
+  const stats = dashboardStats?.stats || {
+    totalUsers: 0,
+    totalProjects: 0,
+    totalQuotes: 0,
+    totalTickets: 0,
+    activeProjects: 0,
+    pendingQuotes: 0,
+    openTickets: 0,
+    completedProjects: 0,
+    changePercentages: {
+      users: 0,
+      projects: 0,
+      quotes: 0,
+      tickets: 0
+    }
   };
 
   // Función para formatear tiempo de actividad
@@ -223,8 +234,9 @@ const Dashboard = () => {
             value={stats.totalUsers}
             icon={FiUsers}
             color="primary"
-            trend={12}
+            trend={stats.changePercentages?.users || 0}
             subtitle="Usuarios activos"
+            loading={statsLoading}
           />
         </Col>
         <Col lg={3} md={6} className="mb-3">
@@ -233,8 +245,9 @@ const Dashboard = () => {
             value={stats.activeProjects}
             icon={FiHome}
             color="success"
-            trend={8}
+            trend={stats.changePercentages?.projects || 0}
             subtitle={`${stats.totalProjects} proyectos totales`}
+            loading={statsLoading}
           />
         </Col>
         <Col lg={3} md={6} className="mb-3">
@@ -243,8 +256,9 @@ const Dashboard = () => {
             value={stats.pendingQuotes}
             icon={FiFileText}
             color="warning"
-            trend={-3}
+            trend={stats.changePercentages?.quotes || 0}
             subtitle={`${stats.totalQuotes} cotizaciones totales`}
+            loading={statsLoading}
           />
         </Col>
         <Col lg={3} md={6} className="mb-3">
@@ -253,8 +267,9 @@ const Dashboard = () => {
             value={stats.openTickets}
             icon={FiMessageSquare}
             color="danger"
-            trend={5}
+            trend={stats.changePercentages?.tickets || 0}
             subtitle={`${stats.totalTickets} tickets totales`}
+            loading={statsLoading}
           />
         </Col>
       </Row>

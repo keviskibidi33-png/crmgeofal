@@ -81,6 +81,7 @@ app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 // Middleware global de manejo de errores
 // Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
