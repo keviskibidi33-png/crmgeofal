@@ -6,7 +6,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listUsers, createUser, updateUser, deleteUser, resetPassword } from '../services/users';
+import { listUsers, createUser, updateUser, deleteUser, resetPassword, getUserStats } from '../services/users';
 
 const emptyForm = { name: '', apellido: '', email: '', role: 'vendedor_comercial', area: 'Comercial', password: '' };
 
@@ -35,12 +35,24 @@ export default function Usuarios() {
   const [deletingUser, setDeletingUser] = useState(null);
   const [resettingUser, setResettingUser] = useState(null);
   const [newPassword, setNewPassword] = useState('');
+  
+  // Estado para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedArea, setSelectedArea] = useState('');
 
   const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery(
-    ['users'],
-    () => listUsers(),
+    ['users', currentPage, searchTerm, selectedRole, selectedArea],
+    () => listUsers({ 
+      page: currentPage, 
+      limit: 20, 
+      search: searchTerm, 
+      role: selectedRole, 
+      area: selectedArea 
+    }),
     { 
       keepPreviousData: true,
       refetchOnWindowFocus: true,
@@ -50,8 +62,21 @@ export default function Usuarios() {
     }
   );
 
+  // Consulta separada para estadísticas reales
+  const { data: statsData, isLoading: statsLoading } = useQuery(
+    ['userStats'],
+    getUserStats,
+    {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 30000, // 30 segundos
+      cacheTime: 60000  // 1 minuto
+    }
+  );
+
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('users');
+    queryClient.invalidateQueries('userStats'); // Invalidar también las estadísticas
     setShowModal(false);
     setEditingUser(null);
     setDeletingUser(null);
@@ -240,8 +265,21 @@ export default function Usuarios() {
 
   // Calcular estadísticas
   const stats = useMemo(() => {
-    const users = data?.data || []; // Corregido: la API devuelve data.data, no data.users
-    console.log('📊 Stats - Usuarios para calcular estadísticas:', users);
+    // Usar estadísticas reales del backend si están disponibles
+    if (statsData) {
+      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
+      return {
+        total: statsData.total || 0,
+        admins: statsData.admins || 0,
+        vendedores: statsData.vendedores || 0,
+        laboratorio: statsData.laboratorio || 0,
+        activos: statsData.active || 0
+      };
+    }
+    
+    // Fallback: calcular desde los datos de la página actual
+    const users = data?.data || [];
+    console.log('📊 Stats - Fallback: calculando desde página actual:', users);
     return {
       total: users.length,
       admins: users.filter(u => u.role === 'admin').length,
@@ -249,7 +287,7 @@ export default function Usuarios() {
       laboratorio: users.filter(u => ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(u.role)).length,
       activos: users.filter(u => u.active !== false).length
     };
-  }, [data]);
+  }, [statsData, data]);
 
   return (
     <Container fluid className="py-4">
@@ -275,6 +313,7 @@ export default function Usuarios() {
               icon={FiUsers}
               color="primary"
               subtitle="Usuarios registrados"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -284,6 +323,7 @@ export default function Usuarios() {
               icon={FiShield}
               color="danger"
               subtitle="Usuarios con privilegios"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -293,6 +333,7 @@ export default function Usuarios() {
               icon={FiUser}
               color="success"
               subtitle="Equipo comercial"
+              loading={statsLoading}
             />
           </Col>
           <Col md={6} lg={3}>
@@ -302,6 +343,7 @@ export default function Usuarios() {
               icon={FiSettings}
               color="info"
               subtitle="Personal técnico"
+              loading={statsLoading}
             />
           </Col>
         </Row>
@@ -338,6 +380,16 @@ export default function Usuarios() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               emptyMessage="No hay usuarios registrados"
+              // Props para paginación del backend
+              totalItems={data?.total || 0}
+              itemsPerPage={20}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              onSearch={setSearchTerm}
+              onFilter={(filters) => {
+                setSelectedRole(filters.role || '');
+                setSelectedArea(filters.area || '');
+              }}
               actions={[
                 {
                   label: 'Restablecer Contraseña',

@@ -22,6 +22,19 @@ export const listUsers = (params = {}) => {
   });
 };
 
+export const getUserStats = () => {
+  console.log('📊 getUserStats - Llamando a: /api/users/stats');
+  console.log('📊 getUserStats - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  
+  return apiFetch('/api/users/stats').then(data => {
+    console.log('✅ getUserStats - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ getUserStats - Error:', error);
+    throw error;
+  });
+};
+
 export const createUser = (payload) =>
   apiFetch('/api/users', {
     method: 'POST',

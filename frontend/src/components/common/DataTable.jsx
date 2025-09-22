@@ -13,13 +13,18 @@ const DataTable = ({
   onView,
   loading = false,
   emptyMessage = "No hay datos disponibles",
-  className = ""
+  className = "",
+  // Nuevas props para paginación del backend
+  totalItems = 0,
+  itemsPerPage = 20,
+  currentPage = 1,
+  onPageChange,
+  onSearch,
+  onFilter
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
 
   // Filtrar y ordenar datos
   const filteredData = useMemo(() => {
@@ -50,10 +55,9 @@ const DataTable = ({
     return filtered;
   }, [data, searchTerm, sortField, sortDirection, columns, searchable]);
 
-  // Paginación
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  // Paginación - usar props del backend si están disponibles
+  const totalPages = totalItems > 0 ? Math.ceil(totalItems / itemsPerPage) : Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = totalItems > 0 ? data : filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -229,31 +233,104 @@ const DataTable = ({
           <Row className="align-items-center">
             <Col>
               <small className="text-muted">
-                Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, filteredData.length)} de {filteredData.length} registros
+                Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalItems || filteredData.length)} de {totalItems || filteredData.length} registros
               </small>
             </Col>
             <Col xs="auto">
-              <Pagination size="sm" className="mb-0">
-                <Pagination.Prev 
+              <div className="d-flex align-items-center gap-2">
+                {/* Botón Primera página */}
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                />
+                  onClick={() => onPageChange ? onPageChange(1) : setCurrentPage(1)}
+                  title="Primera página"
+                >
+                  ««
+                </Button>
                 
-                {[...Array(totalPages)].map((_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={currentPage === index + 1}
-                    onClick={() => setCurrentPage(index + 1)}
-                  >
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
+                {/* Botón Anterior */}
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => onPageChange ? onPageChange(currentPage - 1) : setCurrentPage(currentPage - 1)}
+                  title="Página anterior"
+                >
+                  «
+                </Button>
                 
-                <Pagination.Next 
+                {/* Páginas dinámicas (máximo 3 visibles) */}
+                {(() => {
+                  const pages = [];
+                  const startPage = Math.max(1, currentPage - 1);
+                  const endPage = Math.min(totalPages, startPage + 2);
+                  
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={currentPage === i ? "primary" : "outline-secondary"}
+                        size="sm"
+                        onClick={() => onPageChange ? onPageChange(i) : setCurrentPage(i)}
+                        className="px-3"
+                      >
+                        {i}
+                      </Button>
+                    );
+                  }
+                  return pages;
+                })()}
+                
+                {/* Botón Siguiente */}
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                />
-              </Pagination>
+                  onClick={() => onPageChange ? onPageChange(currentPage + 1) : setCurrentPage(currentPage + 1)}
+                  title="Página siguiente"
+                >
+                  »
+                </Button>
+                
+                {/* Botón Última página */}
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => onPageChange ? onPageChange(totalPages) : setCurrentPage(totalPages)}
+                  title="Última página"
+                >
+                  »»
+                </Button>
+                
+                {/* Input para ir a página específica */}
+                <div className="d-flex align-items-center gap-1 ms-3">
+                  <span className="text-muted small">Ir a:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalPages}
+                    className="form-control form-control-sm"
+                    style={{ width: '60px' }}
+                    placeholder="..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const page = parseInt(e.target.value);
+                        if (page >= 1 && page <= totalPages) {
+                          onPageChange ? onPageChange(page) : setCurrentPage(page);
+                          e.target.value = '';
+                        } else {
+                          // Si la página no existe, ir a la última página
+                          onPageChange ? onPageChange(totalPages) : setCurrentPage(totalPages);
+                          e.target.value = '';
+                        }
+                      }
+                    }}
+                    title={`Ingresa un número del 1 al ${totalPages}`}
+                  />
+                </div>
+              </div>
             </Col>
           </Row>
         </div>

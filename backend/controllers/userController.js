@@ -118,3 +118,23 @@ exports.setNotificationEnabled = async (req, res) => {
     res.status(500).json({ error: 'Error actualizando preferencia de notificación' });
   }
 };
+
+exports.getUserStats = async (req, res) => {
+  try {
+    console.log('📊 getUserStats - Obteniendo estadísticas de usuarios...');
+    
+    // Agregar headers para evitar caché
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const stats = await User.getStats();
+    console.log('✅ getUserStats - Estadísticas obtenidas:', stats);
+    res.json(stats);
+  } catch (err) {
+    console.error('❌ getUserStats - Error:', err);
+    res.status(500).json({ error: 'Error getting user stats: ' + err.message });
+  }
+};

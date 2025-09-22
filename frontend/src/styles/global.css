@@ -223,6 +223,53 @@ a:hover {
   margin: 1rem 0;
 }
 
+/* Estilos para paginación dinámica */
+.pagination-dynamic {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-dynamic .btn {
+  min-width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.pagination-dynamic .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-dynamic .btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pagination-dynamic .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+}
+
+.pagination-dynamic input[type="number"] {
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.pagination-dynamic input[type="number"]:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
 .activity-empty-state .icon {
   opacity: 0.6;
   transition: opacity 0.3s ease;
