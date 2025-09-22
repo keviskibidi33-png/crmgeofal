@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
+import { Button, Badge, Row, Col, Card, Container, Tabs, Tab } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
@@ -20,6 +20,8 @@ export default function Proyectos() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [activeTab, setActiveTab] = useState('view');
+  const [editingData, setEditingData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -197,6 +199,8 @@ export default function Proyectos() {
 
   const handleViewProject = (project) => {
     setSelectedProject(project);
+    setEditingData(project);
+    setActiveTab('view');
     setShowViewModal(true);
   };
 
@@ -586,12 +590,7 @@ export default function Proyectos() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               actions={[
-                { label: 'Ver', icon: FiEye, onClick: handleViewProject, variant: 'outline-info' },
-                { label: 'Editar', icon: FiEdit, onClick: handleEdit, variant: 'outline-primary' },
-                { label: 'Estado', icon: FiSettings, onClick: handleUpdateStatus, variant: 'outline-secondary' },
-                { label: 'Categorías', icon: FiFolder, onClick: handleViewCategories, variant: 'outline-info' },
-                { label: 'Consultas', icon: FiMessageCircle, onClick: handleViewQueries, variant: 'outline-warning' },
-                { label: 'Marcar', icon: FiCheck, onClick: handleToggleMark, variant: 'outline-success' },
+                { label: 'Gestionar', icon: FiEye, onClick: handleViewProject, variant: 'outline-primary' },
                 { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
               ]}
               emptyMessage="No hay proyectos registrados"
@@ -619,242 +618,444 @@ export default function Proyectos() {
         submitText={editingProject?.id ? 'Actualizar' : 'Crear'}
       />
 
-      {/* Modal para Categorías */}
-      <ModalForm
-        show={showCategoriesModal}
-        onHide={() => setShowCategoriesModal(false)}
-        title={`Categorías - ${selectedProject?.name || ''}`}
-        data={selectedProject || {}}
-        fields={[
-          {
-            name: 'categories',
-            label: 'Categorías del Proyecto',
-            type: 'checkbox-group',
-            options: [
-              { value: 'laboratorio', label: 'Laboratorio' },
-              { value: 'ingenieria', label: 'Ingeniería' },
-              { value: 'consultoria', label: 'Consultoría' },
-              { value: 'capacitacion', label: 'Capacitación' },
-              { value: 'auditoria', label: 'Auditoría' }
-            ]
-          }
-        ]}
-        onSubmit={(data) => {
-          console.log('Categorías actualizadas:', data);
-          setShowCategoriesModal(false);
-        }}
-        submitText="Guardar Categorías"
-      />
-
-      {/* Modal para Consultas */}
-      <ModalForm
-        show={showQueriesModal}
-        onHide={() => setShowQueriesModal(false)}
-        title={`Consultas - ${selectedProject?.name || ''}`}
-        data={selectedProject || {}}
-        fields={[
-          {
-            name: 'queries',
-            label: 'Consultas y Dudas',
-            type: 'textarea',
-            placeholder: 'Ingresa las consultas o dudas del cliente...',
-            rows: 5
-          }
-        ]}
-        onSubmit={(data) => {
-          console.log('Consultas actualizadas:', data);
-          setShowQueriesModal(false);
-        }}
-        submitText="Guardar Consultas"
-      />
-
-      {/* Modal para Actualizar Estado */}
-      <ModalForm
-        show={showStatusModal}
-        onHide={() => setShowStatusModal(false)}
-        title={`Actualizar Estado - ${selectedProject?.name || ''}`}
-        data={selectedProject || {}}
-        fields={[
-          {
-            name: 'status',
-            label: 'Estado del Proyecto',
-            type: 'select',
-            required: true,
-            options: [
-              { value: 'pendiente', label: 'Pendiente' },
-              { value: 'en_proceso', label: 'En Proceso' },
-              { value: 'completado', label: 'Completado' },
-              { value: 'pausado', label: 'Pausado' },
-              { value: 'cancelado', label: 'Cancelado' }
-            ]
-          },
-          {
-            name: 'laboratorio_status',
-            label: 'Estado del Servicio de Laboratorio',
-            type: 'select',
-            options: [
-              { value: 'no_requerido', label: 'No Requerido' },
-              { value: 'pendiente', label: 'Pendiente' },
-              { value: 'en_proceso', label: 'En Proceso' },
-              { value: 'completado', label: 'Completado' },
-              { value: 'pausado', label: 'Pausado' },
-              { value: 'cancelado', label: 'Cancelado' }
-            ]
-          },
-          {
-            name: 'ingenieria_status',
-            label: 'Estado del Servicio de Ingeniería',
-            type: 'select',
-            options: [
-              { value: 'no_requerido', label: 'No Requerido' },
-              { value: 'pendiente', label: 'Pendiente' },
-              { value: 'en_proceso', label: 'En Proceso' },
-              { value: 'completado', label: 'Completado' },
-              { value: 'pausado', label: 'Pausado' },
-              { value: 'cancelado', label: 'Cancelado' }
-            ]
-          },
-          {
-            name: 'status_notes',
-            label: 'Notas del Estado',
-            type: 'textarea',
-            placeholder: 'Agrega comentarios sobre el cambio de estado...',
-            rows: 3
-          }
-        ]}
-        onSubmit={(data) => {
-          updateStatusMutation.mutate({ id: selectedProject.id, ...data });
-          setShowStatusModal(false);
-        }}
-        submitText="Actualizar Estado"
-        loading={updateStatusMutation.isLoading}
-      />
-
-      {/* Modal para Ver Proyecto Completo */}
+      {/* Modal Unificado para Gestionar Proyecto */}
       <ModalForm
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={`Información del Proyecto - ${selectedProject?.name || ''}`}
-        data={selectedProject || {}}
+        title={`Gestionar Proyecto - ${selectedProject?.name || ''}`}
+        data={editingData}
         fields={[
           {
-            name: 'project_info',
-            label: 'Información del Proyecto',
+            name: 'project_management',
+            label: 'Gestión del Proyecto',
             type: 'custom',
             render: (project) => (
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <div className="border rounded p-3 h-100">
-                    <h6 className="text-primary mb-3">
-                      <FiHome className="me-2" />
-                      Datos Generales
-                    </h6>
-                    <div className="mb-2">
-                      <strong>ID:</strong> {project.id}
+              <Tabs
+                activeKey={activeTab}
+                onSelect={(k) => setActiveTab(k)}
+                className="mb-3"
+              >
+                {/* Tab Ver */}
+                <Tab eventKey="view" title={
+                  <span>
+                    <FiEye className="me-1" />
+                    Ver
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <div className="border rounded p-3 h-100">
+                        <h6 className="text-primary mb-3">
+                          <FiHome className="me-2" />
+                          Datos Generales
+                        </h6>
+                        <div className="mb-2">
+                          <strong>ID:</strong> {project.id}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Nombre:</strong> {project.name}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Ubicación:</strong> {project.location}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Tipo:</strong> 
+                          <Badge bg="info" className="ms-2">{project.project_type}</Badge>
+                        </div>
+                        <div className="mb-2">
+                          <strong>Estado:</strong> 
+                          <Badge bg="primary" className="ms-2">{project.status}</Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Nombre:</strong> {project.name}
+                    <div className="col-md-6">
+                      <div className="border rounded p-3 h-100">
+                        <h6 className="text-success mb-3">
+                          <FiUser className="me-2" />
+                          Información de Contacto
+                        </h6>
+                        <div className="mb-2">
+                          <strong>Empresa:</strong> {project.company_name}
+                        </div>
+                        <div className="mb-2">
+                          <strong>RUC:</strong> {project.company_ruc}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Contacto:</strong> {project.contact_name || 'Sin contacto'}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Teléfono:</strong> {project.contact_phone || 'Sin teléfono'}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Email:</strong> {project.contact_email || 'Sin email'}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Ubicación:</strong> {project.location}
+                    <div className="col-md-6">
+                      <div className="border rounded p-3 h-100">
+                        <h6 className="text-warning mb-3">
+                          <FiSettings className="me-2" />
+                          Servicios Requeridos
+                        </h6>
+                        <div className="mb-2">
+                          <strong>Laboratorio:</strong> 
+                          {project.requiere_laboratorio ? (
+                            <Badge bg="info" className="ms-2">Requerido</Badge>
+                          ) : (
+                            <Badge bg="secondary" className="ms-2">No requerido</Badge>
+                          )}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Ingeniería:</strong> 
+                          {project.requiere_ingenieria ? (
+                            <Badge bg="success" className="ms-2">Requerido</Badge>
+                          ) : (
+                            <Badge bg="secondary" className="ms-2">No requerido</Badge>
+                          )}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Estado Lab:</strong> 
+                          <Badge bg="info" className="ms-2">{project.laboratorio_status}</Badge>
+                        </div>
+                        <div className="mb-2">
+                          <strong>Estado Ing:</strong> 
+                          <Badge bg="success" className="ms-2">{project.ingenieria_status}</Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Tipo:</strong> 
-                      <Badge bg="info" className="ms-2">{project.project_type}</Badge>
+                    <div className="col-md-6">
+                      <div className="border rounded p-3 h-100">
+                        <h6 className="text-info mb-3">
+                          <FiUsers className="me-2" />
+                          Asignaciones
+                        </h6>
+                        <div className="mb-2">
+                          <strong>Vendedor:</strong> {project.vendedor_name || 'Sin asignar'}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Laboratorio:</strong> {project.laboratorio_name || 'Sin asignar'}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Fecha Creación:</strong> {new Date(project.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="mb-2">
+                          <strong>Última Actualización:</strong> {new Date(project.updated_at).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Estado:</strong> 
-                      <Badge bg="primary" className="ms-2">{project.status}</Badge>
+                    {project.status_notes && (
+                      <div className="col-12">
+                        <div className="border rounded p-3">
+                          <h6 className="text-muted mb-3">
+                            <FiMessageCircle className="me-2" />
+                            Notas del Estado
+                          </h6>
+                          <p className="mb-0">{project.status_notes}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Tab>
+
+                {/* Tab Editar */}
+                <Tab eventKey="edit" title={
+                  <span>
+                    <FiEdit className="me-1" />
+                    Editar
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Nombre del Proyecto</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editingData.name || ''} 
+                          onChange={(e) => setEditingData({...editingData, name: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Ubicación</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editingData.location || ''} 
+                          onChange={(e) => setEditingData({...editingData, location: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Persona de Contacto</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editingData.contact_name || ''} 
+                          onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Teléfono de Contacto</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editingData.contact_phone || ''} 
+                          onChange={(e) => setEditingData({...editingData, contact_phone: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Email de Contacto</label>
+                        <input 
+                          type="email" 
+                          className="form-control" 
+                          value={editingData.contact_email || ''} 
+                          onChange={(e) => setEditingData({...editingData, contact_email: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-12">
+                      <Button 
+                        variant="primary" 
+                        onClick={() => {
+                          updateMutation.mutate({ id: selectedProject.id, ...editingData });
+                          setShowViewModal(false);
+                        }}
+                        disabled={updateMutation.isLoading}
+                      >
+                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="border rounded p-3 h-100">
-                    <h6 className="text-success mb-3">
-                      <FiUser className="me-2" />
-                      Información de Contacto
-                    </h6>
-                    <div className="mb-2">
-                      <strong>Empresa:</strong> {project.company_name}
+                </Tab>
+
+                {/* Tab Estado */}
+                <Tab eventKey="status" title={
+                  <span>
+                    <FiSettings className="me-1" />
+                    Estado
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Estado del Proyecto</label>
+                        <select 
+                          className="form-select" 
+                          value={editingData.status || ''} 
+                          onChange={(e) => setEditingData({...editingData, status: e.target.value})}
+                        >
+                          <option value="pendiente">Pendiente</option>
+                          <option value="en_proceso">En Proceso</option>
+                          <option value="completado">Completado</option>
+                          <option value="pausado">Pausado</option>
+                          <option value="cancelado">Cancelado</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>RUC:</strong> {project.company_ruc}
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Estado del Laboratorio</label>
+                        <select 
+                          className="form-select" 
+                          value={editingData.laboratorio_status || ''} 
+                          onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
+                        >
+                          <option value="no_requerido">No Requerido</option>
+                          <option value="pendiente">Pendiente</option>
+                          <option value="en_proceso">En Proceso</option>
+                          <option value="completado">Completado</option>
+                          <option value="pausado">Pausado</option>
+                          <option value="cancelado">Cancelado</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Contacto:</strong> {project.contact_name || 'Sin contacto'}
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Estado de Ingeniería</label>
+                        <select 
+                          className="form-select" 
+                          value={editingData.ingenieria_status || ''} 
+                          onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
+                        >
+                          <option value="no_requerido">No Requerido</option>
+                          <option value="pendiente">Pendiente</option>
+                          <option value="en_proceso">En Proceso</option>
+                          <option value="completado">Completado</option>
+                          <option value="pausado">Pausado</option>
+                          <option value="cancelado">Cancelado</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Teléfono:</strong> {project.contact_phone || 'Sin teléfono'}
+                    <div className="col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Notas del Estado</label>
+                        <textarea 
+                          className="form-control" 
+                          rows="3"
+                          value={editingData.status_notes || ''} 
+                          onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
+                          placeholder="Agrega comentarios sobre el cambio de estado..."
+                        />
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Email:</strong> {project.contact_email || 'Sin email'}
+                    <div className="col-12">
+                      <Button 
+                        variant="success" 
+                        onClick={() => {
+                          updateStatusMutation.mutate({ id: selectedProject.id, ...editingData });
+                          setShowViewModal(false);
+                        }}
+                        disabled={updateStatusMutation.isLoading}
+                      >
+                        {updateStatusMutation.isLoading ? 'Actualizando...' : 'Actualizar Estado'}
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="border rounded p-3 h-100">
-                    <h6 className="text-warning mb-3">
-                      <FiSettings className="me-2" />
-                      Servicios Requeridos
-                    </h6>
-                    <div className="mb-2">
-                      <strong>Laboratorio:</strong> 
-                      {project.requiere_laboratorio ? (
-                        <Badge bg="info" className="ms-2">Requerido</Badge>
-                      ) : (
-                        <Badge bg="secondary" className="ms-2">No requerido</Badge>
-                      )}
+                </Tab>
+
+                {/* Tab Categorías */}
+                <Tab eventKey="categories" title={
+                  <span>
+                    <FiFolder className="me-1" />
+                    Categorías
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <h6 className="mb-3">Categorías del Proyecto</h6>
+                      <div className="form-check">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="cat_laboratorio"
+                          checked={editingData.requiere_laboratorio || false}
+                          onChange={(e) => setEditingData({...editingData, requiere_laboratorio: e.target.checked})}
+                        />
+                        <label className="form-check-label" htmlFor="cat_laboratorio">
+                          Laboratorio
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="cat_ingenieria"
+                          checked={editingData.requiere_ingenieria || false}
+                          onChange={(e) => setEditingData({...editingData, requiere_ingenieria: e.target.checked})}
+                        />
+                        <label className="form-check-label" htmlFor="cat_ingenieria">
+                          Ingeniería
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="cat_consultoria"
+                        />
+                        <label className="form-check-label" htmlFor="cat_consultoria">
+                          Consultoría
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="cat_capacitacion"
+                        />
+                        <label className="form-check-label" htmlFor="cat_capacitacion">
+                          Capacitación
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="cat_auditoria"
+                        />
+                        <label className="form-check-label" htmlFor="cat_auditoria">
+                          Auditoría
+                        </label>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Ingeniería:</strong> 
-                      {project.requiere_ingenieria ? (
-                        <Badge bg="success" className="ms-2">Requerido</Badge>
-                      ) : (
-                        <Badge bg="secondary" className="ms-2">No requerido</Badge>
-                      )}
-                    </div>
-                    <div className="mb-2">
-                      <strong>Estado Lab:</strong> 
-                      <Badge bg="info" className="ms-2">{project.laboratorio_status}</Badge>
-                    </div>
-                    <div className="mb-2">
-                      <strong>Estado Ing:</strong> 
-                      <Badge bg="success" className="ms-2">{project.ingenieria_status}</Badge>
+                    <div className="col-12">
+                      <Button 
+                        variant="info" 
+                        onClick={() => {
+                          updateMutation.mutate({ id: selectedProject.id, ...editingData });
+                          setShowViewModal(false);
+                        }}
+                        disabled={updateMutation.isLoading}
+                      >
+                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="border rounded p-3 h-100">
-                    <h6 className="text-info mb-3">
-                      <FiUsers className="me-2" />
-                      Asignaciones
-                    </h6>
-                    <div className="mb-2">
-                      <strong>Vendedor:</strong> {project.vendedor_name || 'Sin asignar'}
+                </Tab>
+
+                {/* Tab Consultas */}
+                <Tab eventKey="queries" title={
+                  <span>
+                    <FiMessageCircle className="me-1" />
+                    Consultas
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Consultas y Dudas del Cliente</label>
+                        <textarea 
+                          className="form-control" 
+                          rows="8"
+                          placeholder="Ingresa las consultas o dudas del cliente..."
+                        />
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      <strong>Laboratorio:</strong> {project.laboratorio_name || 'Sin asignar'}
-                    </div>
-                    <div className="mb-2">
-                      <strong>Fecha Creación:</strong> {new Date(project.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="mb-2">
-                      <strong>Última Actualización:</strong> {new Date(project.updated_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-                {project.status_notes && (
-                  <div className="col-12">
-                    <div className="border rounded p-3">
-                      <h6 className="text-muted mb-3">
-                        <FiMessageCircle className="me-2" />
-                        Notas del Estado
-                      </h6>
-                      <p className="mb-0">{project.status_notes}</p>
+                    <div className="col-12">
+                      <Button variant="warning">
+                        Guardar Consultas
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
+                </Tab>
+
+                {/* Tab Marcar */}
+                <Tab eventKey="mark" title={
+                  <span>
+                    <FiCheck className="me-1" />
+                    Marcar
+                  </span>
+                }>
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <div className="text-center">
+                        <h6 className="mb-3">Marcar Proyecto</h6>
+                        <p className="text-muted mb-4">
+                          Marca este proyecto para seguimiento especial o prioridad alta.
+                        </p>
+                        <Button 
+                          variant="success" 
+                          size="lg"
+                          onClick={() => {
+                            alert(`Proyecto ${project.marked ? 'desmarcado' : 'marcado'}: ${project.name}`);
+                            setShowViewModal(false);
+                          }}
+                        >
+                          <FiCheck className="me-2" />
+                          {project.marked ? 'Desmarcar Proyecto' : 'Marcar Proyecto'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Tab>
+              </Tabs>
             )
           }
         ]}
