@@ -96,10 +96,10 @@ const Project = {
     }
     return null;
   },
-  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, contact_name, contact_phone, contact_email }) {
+  async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, requiere_consultoria = false, requiere_capacitacion = false, requiere_auditoria = false, contact_name, contact_phone, contact_email, queries, marked = false, priority = 'normal' }) {
     const res = await pool.query(
-      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email, laboratorio_status, ingenieria_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email, requiere_laboratorio ? 'pendiente' : 'no_requerido', requiere_ingenieria ? 'pendiente' : 'no_requerido']
+      'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, laboratorio_status, ingenieria_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *',
+      [company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, requiere_laboratorio ? 'pendiente' : 'no_requerido', requiere_ingenieria ? 'pendiente' : 'no_requerido']
     );
     return res.rows[0];
   },
@@ -107,6 +107,30 @@ const Project = {
     const res = await pool.query(
       'UPDATE projects SET status = $1, laboratorio_status = $2, ingenieria_status = $3, status_notes = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
       [status, laboratorio_status, ingenieria_status, status_notes, id]
+    );
+    return res.rows[0];
+  },
+
+  async updateCategories(id, { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria }) {
+    const res = await pool.query(
+      'UPDATE projects SET requiere_laboratorio = $1, requiere_ingenieria = $2, requiere_consultoria = $3, requiere_capacitacion = $4, requiere_auditoria = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+      [requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, id]
+    );
+    return res.rows[0];
+  },
+
+  async updateQueries(id, { queries }) {
+    const res = await pool.query(
+      'UPDATE projects SET queries = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [queries, id]
+    );
+    return res.rows[0];
+  },
+
+  async updateMark(id, { marked, priority }) {
+    const res = await pool.query(
+      'UPDATE projects SET marked = $1, priority = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
+      [marked, priority, id]
     );
     return res.rows[0];
   },

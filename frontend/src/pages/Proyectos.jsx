@@ -7,7 +7,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus } from '../services/projects';
+import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
 
 const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '', requiere_laboratorio: false, requiere_ingenieria: false, contact_name: '', contact_phone: '', contact_email: '' };
 
@@ -141,6 +141,30 @@ export default function Proyectos() {
     {
       onSuccess: () => handleMutationSuccess('Estado del proyecto actualizado exitosamente'),
       onError: (error) => console.error('Error updating project status:', error)
+    }
+  );
+
+  const updateCategoriesMutation = useMutation(
+    ({ id, ...data }) => updateProjectCategories(id, data),
+    {
+      onSuccess: () => handleMutationSuccess('Categorías del proyecto actualizadas exitosamente'),
+      onError: (error) => console.error('Error updating project categories:', error)
+    }
+  );
+
+  const updateQueriesMutation = useMutation(
+    ({ id, ...data }) => updateProjectQueries(id, data),
+    {
+      onSuccess: () => handleMutationSuccess('Consultas del proyecto actualizadas exitosamente'),
+      onError: (error) => console.error('Error updating project queries:', error)
+    }
+  );
+
+  const updateMarkMutation = useMutation(
+    ({ id, ...data }) => updateProjectMark(id, data),
+    {
+      onSuccess: () => handleMutationSuccess('Proyecto marcado/desmarcado exitosamente'),
+      onError: (error) => console.error('Error updating project mark:', error)
     }
   );
 
@@ -989,12 +1013,19 @@ export default function Proyectos() {
                       <Button 
                         variant="info" 
                         onClick={() => {
-                          updateMutation.mutate({ id: selectedProject.id, ...editingData });
+                          updateCategoriesMutation.mutate({ 
+                            id: selectedProject.id, 
+                            requiere_laboratorio: editingData.requiere_laboratorio || false,
+                            requiere_ingenieria: editingData.requiere_ingenieria || false,
+                            requiere_consultoria: editingData.requiere_consultoria || false,
+                            requiere_capacitacion: editingData.requiere_capacitacion || false,
+                            requiere_auditoria: editingData.requiere_auditoria || false
+                          });
                           setShowViewModal(false);
                         }}
-                        disabled={updateMutation.isLoading}
+                        disabled={updateCategoriesMutation.isLoading}
                       >
-                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
+                        {updateCategoriesMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
                       </Button>
                     </div>
                   </div>
@@ -1014,13 +1045,25 @@ export default function Proyectos() {
                         <textarea 
                           className="form-control" 
                           rows="8"
+                          value={editingData.queries || ''} 
+                          onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
                           placeholder="Ingresa las consultas o dudas del cliente..."
                         />
                       </div>
                     </div>
                     <div className="col-12">
-                      <Button variant="warning">
-                        Guardar Consultas
+                      <Button 
+                        variant="warning"
+                        onClick={() => {
+                          updateQueriesMutation.mutate({ 
+                            id: selectedProject.id, 
+                            queries: editingData.queries || ''
+                          });
+                          setShowViewModal(false);
+                        }}
+                        disabled={updateQueriesMutation.isLoading}
+                      >
+                        {updateQueriesMutation.isLoading ? 'Guardando...' : 'Guardar Consultas'}
                       </Button>
                     </div>
                   </div>
@@ -1040,16 +1083,34 @@ export default function Proyectos() {
                         <p className="text-muted mb-4">
                           Marca este proyecto para seguimiento especial o prioridad alta.
                         </p>
+                        <div className="mb-3">
+                          <label className="form-label">Prioridad</label>
+                          <select 
+                            className="form-select" 
+                            value={editingData.priority || 'normal'} 
+                            onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
+                          >
+                            <option value="low">Baja</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                          </select>
+                        </div>
                         <Button 
                           variant="success" 
                           size="lg"
                           onClick={() => {
-                            alert(`Proyecto ${project.marked ? 'desmarcado' : 'marcado'}: ${project.name}`);
+                            updateMarkMutation.mutate({ 
+                              id: selectedProject.id, 
+                              marked: !editingData.marked,
+                              priority: editingData.priority || 'normal'
+                            });
                             setShowViewModal(false);
                           }}
+                          disabled={updateMarkMutation.isLoading}
                         >
                           <FiCheck className="me-2" />
-                          {project.marked ? 'Desmarcar Proyecto' : 'Marcar Proyecto'}
+                          {updateMarkMutation.isLoading ? 'Procesando...' : (editingData.marked ? 'Desmarcar Proyecto' : 'Marcar Proyecto')}
                         </Button>
                       </div>
                     </div>

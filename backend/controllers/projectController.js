@@ -72,6 +72,87 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
+exports.updateCategories = async (req, res) => {
+  try {
+    const { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria } = req.body;
+    const project = await Project.updateCategories(req.params.id, {
+      requiere_laboratorio,
+      requiere_ingenieria,
+      requiere_consultoria,
+      requiere_capacitacion,
+      requiere_auditoria
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    // Auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'actualizar_categorias',
+      entity: 'project',
+      entity_id: project.id,
+      details: { requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria }
+    });
+
+    res.json(project);
+  } catch (err) {
+    console.error('Error updating project categories:', err);
+    res.status(500).json({ error: 'Error al actualizar categorías del proyecto' });
+  }
+};
+
+exports.updateQueries = async (req, res) => {
+  try {
+    const { queries } = req.body;
+    const project = await Project.updateQueries(req.params.id, { queries });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    // Auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'actualizar_consultas',
+      entity: 'project',
+      entity_id: project.id,
+      details: { queries: queries?.substring(0, 100) + '...' }
+    });
+
+    res.json(project);
+  } catch (err) {
+    console.error('Error updating project queries:', err);
+    res.status(500).json({ error: 'Error al actualizar consultas del proyecto' });
+  }
+};
+
+exports.updateMark = async (req, res) => {
+  try {
+    const { marked, priority } = req.body;
+    const project = await Project.updateMark(req.params.id, { marked, priority });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    // Auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'marcar_proyecto',
+      entity: 'project',
+      entity_id: project.id,
+      details: { marked, priority }
+    });
+
+    res.json(project);
+  } catch (err) {
+    console.error('Error updating project mark:', err);
+    res.status(500).json({ error: 'Error al marcar proyecto' });
+  }
+};
+
 exports.create = async (req, res) => {
   try {
     const { company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, contact_name, contact_phone, contact_email } = req.body;

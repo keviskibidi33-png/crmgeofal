@@ -44,6 +44,24 @@ export const updateProjectStatus = (id, payload) =>
     body: JSON.stringify(payload),
   });
 
+export const updateProjectCategories = (id, payload) =>
+  apiFetch(`/api/projects/${id}/categories`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
+export const updateProjectQueries = (id, payload) =>
+  apiFetch(`/api/projects/${id}/queries`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
+export const updateProjectMark = (id, payload) =>
+  apiFetch(`/api/projects/${id}/mark`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
 export const deleteProject = (id) =>
   apiFetch(`/api/projects/${id}`, {
     method: 'DELETE',
