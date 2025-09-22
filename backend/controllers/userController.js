@@ -46,8 +46,16 @@ exports.getAllUsers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const search = req.query.search || '';
     const area = req.query.area || '';
-  const role = req.query.role || '';
-  const { rows, total } = await User.getAll({ page, limit, search, area, role });
+    const role = req.query.role || '';
+    
+    // Agregar headers para evitar caché
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const { rows, total } = await User.getAll({ page, limit, search, area, role });
     res.json({ data: rows, total });
   } catch (err) {
     res.status(500).json({ error: 'Error fetching users' });

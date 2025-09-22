@@ -40,7 +40,7 @@ export default function Recuperados() {
 
   return (
     <ModuloBase titulo="Clientes Recuperados" descripcion="Empresas sin proyectos en los últimos meses (seguimiento comercial)">
-      <Toolbar
+      <Toolbar>
         left={
           <div className="row g-2 w-100">
             <div className="col-6 col-md-3">
@@ -59,7 +59,7 @@ export default function Recuperados() {
             <button className="btn btn-outline-primary" onClick={()=>{ setPage(1); load(); }} disabled={loading}>{loading ? 'Cargando...' : 'Refrescar'}</button>
           </div>
         }
-      />
+      </Toolbar>
 
       <DataTable columns={columns} rows={rows} loading={loading} />
 

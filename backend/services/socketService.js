@@ -37,7 +37,16 @@ class SocketService {
     this.io.on('connection', (socket) => {
       console.log(`Usuario ${socket.userId} conectado via WebSocket`);
       
-      // Registrar usuario conectado
+      // Si el usuario ya está conectado, desconectar la conexión anterior
+      if (this.connectedUsers.has(socket.userId)) {
+        const oldSocketId = this.connectedUsers.get(socket.userId);
+        const oldSocket = this.io.sockets.sockets.get(oldSocketId);
+        if (oldSocket) {
+          oldSocket.disconnect();
+        }
+      }
+      
+      // Registrar usuario conectado (solo la última conexión)
       this.connectedUsers.set(socket.userId, socket.id);
       
       // Unir al usuario a una sala personalizada

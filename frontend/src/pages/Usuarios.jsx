@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiLock, FiUser, FiUsers, FiShield, FiSettings } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiLock, FiUser, FiUsers, FiShield, FiSettings, FiRefreshCw } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -38,10 +38,16 @@ export default function Usuarios() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, refetch } = useQuery(
     ['users'],
     () => listUsers(),
-    { keepPreviousData: true }
+    { 
+      keepPreviousData: true,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0, // Siempre considerar los datos como obsoletos
+      cacheTime: 0  // No mantener en caché
+    }
   );
 
   const handleMutationSuccess = (message) => {
@@ -307,9 +313,20 @@ export default function Usuarios() {
                 <FiUsers className="me-2 text-primary" />
                 Lista de Usuarios
               </h5>
-              <Badge bg="light" text="dark" className="px-3 py-2">
-                {stats.total} usuarios
-              </Badge>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  className="refresh-btn"
+                >
+                  <FiRefreshCw className={isLoading ? 'spinning' : ''} />
+                </Button>
+                <Badge bg="light" text="dark" className="px-3 py-2">
+                  {stats.total} usuarios
+                </Badge>
+              </div>
             </div>
           </Card.Header>
           <Card.Body className="p-0">
