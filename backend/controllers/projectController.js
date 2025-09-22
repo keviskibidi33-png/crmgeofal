@@ -8,6 +8,9 @@ exports.getAll = async (req, res) => {
     const status = req.query.status || '';
     const company_id = req.query.company_id || '';
     const project_type = req.query.project_type || '';
+    const priority = req.query.priority || '';
+    
+    console.log('🔍 getAll - Parámetros recibidos:', { page, limit, search, status, company_id, project_type, priority });
     
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -21,7 +24,8 @@ exports.getAll = async (req, res) => {
       search, 
       status, 
       company_id,
-      project_type
+      project_type,
+      priority
     });
     res.json({ data: rows, total });
   } catch (err) {

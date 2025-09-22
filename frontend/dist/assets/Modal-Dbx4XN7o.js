@@ -1,2 +1,0 @@
-import{j as t}from"./index-CfR9WAuT.js";const r={position:"fixed",top:0,left:0,width:"100vw",height:"100vh",background:"rgba(0,0,0,0.18)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"},d={background:"#fff",borderRadius:12,boxShadow:"0 2px 16px #0002",padding:"2rem 2.5rem",minWidth:340,maxWidth:420};function s({open:e,onClose:i,children:n}){return e?t.jsx("div",{style:r,onClick:i,children:t.jsx("div",{style:d,onClick:o=>o.stopPropagation(),children:n})}):null}export{s as M};
-//# sourceMappingURL=Modal-Dbx4XN7o.js.map

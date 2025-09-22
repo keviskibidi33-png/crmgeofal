@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -65,6 +65,7 @@ export default function Proyectos() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedProjectType, setSelectedProjectType] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -75,14 +76,15 @@ export default function Proyectos() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery(
-    ['projects', currentPage, searchTerm, selectedStatus, selectedCompany, selectedProjectType],
+    ['projects', currentPage, searchTerm, selectedStatus, selectedCompany, selectedProjectType, selectedPriority],
     () => listProjects({ 
       page: currentPage, 
       limit: 20, 
       search: searchTerm, 
       status: selectedStatus, 
       company_id: selectedCompany,
-      project_type: selectedProjectType
+      project_type: selectedProjectType,
+      priority: selectedPriority
     }),
     { 
       keepPreviousData: true,
@@ -105,6 +107,10 @@ export default function Proyectos() {
       staleTime: 60000, // 1 minuto - considerar datos frescos
       cacheTime: 300000, // 5 minutos - cachear datos
       retry: 1, // Reintentar máximo 1 vez
+      onSuccess: (data) => {
+        console.log('📊 Frontend - Estadísticas recibidas:', data);
+        console.log('📊 Frontend - alta_prioridad:', data?.alta_prioridad);
+      }
     }
   );
 
@@ -187,6 +193,7 @@ export default function Proyectos() {
     setSelectedStatus(filters.status || '');
     setSelectedCompany(filters.company_id || '');
     setSelectedProjectType(filters.project_type || '');
+    setSelectedPriority(filters.priority || '');
     setCurrentPage(1); // Resetear a la primera página
   };
 
@@ -262,6 +269,16 @@ export default function Proyectos() {
         { label: 'Activos', filter: { status: 'activo' } },
         { label: 'Completados', filter: { status: 'completado' } },
         { label: 'Cancelados', filter: { status: 'cancelado' } }
+      ]
+    },
+    {
+      title: 'Por Prioridad',
+      options: [
+        { label: '🔴 Urgente', filter: { priority: 'urgent' } },
+        { label: '🟠 Alta', filter: { priority: 'high' } },
+        { label: '🔵 Activo', filter: { priority: 'active' } },
+        { label: '🟢 Normal', filter: { priority: 'normal' } },
+        { label: '🔵 Baja', filter: { priority: 'low' } }
       ]
     },
     {
@@ -605,6 +622,46 @@ export default function Proyectos() {
       )
     },
     {
+      header: 'Prioridad',
+      accessor: 'priority',
+      render: (value, row) => {
+        const getPriorityDisplay = (priority) => {
+          switch (priority) {
+            case 'urgent':
+              return { emoji: '🔴', text: 'Urgente', color: 'text-danger', bgColor: 'bg-danger' };
+            case 'high':
+              return { emoji: '🟠', text: 'Alta', color: 'text-warning', bgColor: 'bg-warning' };
+            case 'active':
+              return { emoji: '🔵', text: 'Activo', color: 'text-info', bgColor: 'bg-info' };
+            case 'low':
+              return { emoji: '🔵', text: 'Baja', color: 'text-primary', bgColor: 'bg-primary' };
+            case 'normal':
+            default:
+              return { emoji: '🟢', text: 'Normal', color: 'text-success', bgColor: 'bg-success' };
+          }
+        };
+
+        const priorityInfo = getPriorityDisplay(row.priority);
+        
+        return (
+          <div className="d-flex align-items-center">
+            <span className="me-2" style={{ fontSize: '1.2em' }}>
+              {priorityInfo.emoji}
+            </span>
+            <span className={`small ${priorityInfo.color} fw-medium`}>
+              {priorityInfo.text}
+            </span>
+            {/* Indicador para proyectos de alta prioridad que requieren atención del laboratorio */}
+            {(row.priority === 'urgent' || row.priority === 'high') && row.requiere_laboratorio && (
+              <span className="ms-2" title="Requiere atención prioritaria del laboratorio">
+                <FiAlertTriangle className="text-warning" size={14} />
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       header: 'Contacto',
       accessor: 'contacto',
       render: (value, row) => (
@@ -822,7 +879,8 @@ export default function Proyectos() {
         activos: statsData.activos || 0,
         completados: statsData.completados || 0,
         pendientes: statsData.pendientes || 0,
-        cancelados: statsData.cancelados || 0
+        cancelados: statsData.cancelados || 0,
+        alta_prioridad: statsData.alta_prioridad || 0
       };
     }
     // Fallback: calcular desde los datos de la página actual
@@ -833,7 +891,8 @@ export default function Proyectos() {
       activos: projects.filter(p => p.status === 'activo').length,
       completados: projects.filter(p => p.status === 'completado').length,
       pendientes: projects.filter(p => p.status === 'pendiente').length,
-      cancelados: projects.filter(p => p.status === 'cancelado').length
+      cancelados: projects.filter(p => p.status === 'cancelado').length,
+      alta_prioridad: projects.filter(p => p.priority === 'urgent' || p.priority === 'high').length
     };
   }, [statsData, data]);
 
@@ -885,11 +944,11 @@ export default function Proyectos() {
           </Col>
           <Col md={6} lg={3}>
             <StatsCard
-              title="Completados"
-              value={stats.completados}
-              icon={FiCheckCircle}
-              color="info"
-              subtitle="Finalizados"
+              title="Alta Prioridad"
+              value={stats.alta_prioridad || 0}
+              icon={FiAlertTriangle}
+              color="danger"
+              subtitle="🔴 Urgente + 🟠 Alta"
               loading={statsLoading}
             />
           </Col>
@@ -950,6 +1009,13 @@ export default function Proyectos() {
               onFilter={handleFilter}
               // Filtros específicos para proyectos
               filterOptions={projectFilterOptions}
+              // Función para estilos de fila
+              getRowClassName={(project) => {
+                if (project.status === 'cancelado') {
+                  return 'table-secondary opacity-50 text-muted';
+                }
+                return '';
+              }}
             />
           </Card.Body>
         </Card>
@@ -1492,6 +1558,7 @@ export default function Proyectos() {
                           >
                             <option value="low">Baja</option>
                             <option value="normal">Normal</option>
+                            <option value="active">Activo</option>
                             <option value="high">Alta</option>
                             <option value="urgent">Urgente</option>
                           </select>

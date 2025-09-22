@@ -8,6 +8,7 @@ export const listProjects = (params = {}) => {
   if (params.status) sp.set('status', params.status);
   if (params.company_id) sp.set('company_id', params.company_id);
   if (params.project_type) sp.set('project_type', params.project_type);
+  if (params.priority) sp.set('priority', params.priority);
   if (params.q) sp.set('q', params.q);
   const qs = sp.toString();
   const path = qs ? `/api/projects?${qs}` : '/api/projects';
@@ -79,7 +80,16 @@ export const deleteProject = (id) =>
 
 export const getProjectStats = () => {
   console.log('📊 getProjectStats - Llamando a: /api/projects/stats');
-  console.log('📊 getProjectStats - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  const token = localStorage.getItem('token');
+  console.log('📊 getProjectStats - Token:', token ? 'Presente' : 'Ausente');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('📊 getProjectStats - Usuario del token:', { id: payload.id, role: payload.role, name: payload.name });
+    } catch (e) {
+      console.log('📊 getProjectStats - Error decodificando token:', e.message);
+    }
+  }
   
   return apiFetch('/api/projects/stats').then(data => {
     console.log('✅ getProjectStats - Respuesta recibida:', data);

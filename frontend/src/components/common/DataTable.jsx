@@ -22,7 +22,9 @@ const DataTable = ({
   onSearch,
   onFilter,
   // Props para filtros personalizados
-  filterOptions = null
+  filterOptions = null,
+  // Función para estilos de fila
+  getRowClassName = null
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('');
@@ -268,7 +270,7 @@ const DataTable = ({
               </tr>
             ) : (
               paginatedData.map((item, index) => (
-                <tr key={item.id || index}>
+                <tr key={item.id || index} className={getRowClassName ? getRowClassName(item) : ''}>
                   {columns.map((column, colIndex) => (
                     <td key={colIndex}>
                       {renderCell(item, column)}

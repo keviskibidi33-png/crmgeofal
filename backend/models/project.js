@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 const Project = {
-  async getAllByUser(user, { page = 1, limit = 20, search = '', status = '', company_id = '', project_type = '' }) {
+  async getAllByUser(user, { page = 1, limit = 20, search = '', status = '', company_id = '', project_type = '', priority = '' }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
@@ -46,6 +46,14 @@ const Project = {
     if (project_type) {
       where.push(`project_type = $${paramIndex}`);
       params.push(project_type);
+      paramIndex++;
+    }
+
+    // Filtro por prioridad
+    if (priority) {
+      console.log('🔍 getAllByUser - Aplicando filtro de prioridad:', priority);
+      where.push(`priority = $${paramIndex}`);
+      params.push(priority);
       paramIndex++;
     }
 
@@ -271,6 +279,7 @@ const Project = {
   async getStats(user) {
     try {
       console.log('📊 Project.getStats - Obteniendo estadísticas de proyectos...');
+      console.log('📊 Project.getStats - Usuario:', { id: user.id, role: user.role });
       
       let whereClause = '';
       let params = [];
@@ -279,17 +288,25 @@ const Project = {
       if (user.role === 'vendedor_comercial') {
         whereClause = 'WHERE vendedor_id = $1';
         params = [user.id];
+        console.log('📊 getStats - Aplicando filtro vendedor_comercial:', whereClause);
       } else if (user.role === 'usuario_laboratorio') {
         whereClause = 'WHERE laboratorio_id = $1';
         params = [user.id];
+        console.log('📊 getStats - Aplicando filtro usuario_laboratorio:', whereClause);
       } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin') {
+        console.log('📊 getStats - Usuario sin permisos, retornando estadísticas vacías');
         return {
           total: 0,
           activos: 0,
           completados: 0,
           pendientes: 0,
-          cancelados: 0
+          cancelados: 0,
+          alta_prioridad: 0,
+          byStatus: {},
+          byPriority: {}
         };
+      } else {
+        console.log('📊 getStats - Usuario admin/jefa/jefe, sin filtros aplicados');
       }
 
       // Estadísticas por estado
@@ -300,6 +317,16 @@ const Project = {
         FROM projects 
         ${whereClause}
         GROUP BY status
+      `, params);
+
+      // Estadísticas por prioridad
+      const priorityStats = await pool.query(`
+        SELECT 
+          priority,
+          COUNT(*) as count
+        FROM projects 
+        ${whereClause}
+        GROUP BY priority
       `, params);
 
       // Total de proyectos
@@ -315,7 +342,9 @@ const Project = {
         completados: 0,
         pendientes: 0,
         cancelados: 0,
-        byStatus: {}
+        alta_prioridad: 0,
+        byStatus: {},
+        byPriority: {}
       };
 
       statusStats.rows.forEach(row => {
@@ -333,6 +362,24 @@ const Project = {
           stats.cancelados = count;
         }
       });
+
+      // Procesar estadísticas de prioridad
+      console.log('🔍 getStats - priorityStats.rows:', priorityStats.rows);
+      priorityStats.rows.forEach(row => {
+        const priority = row.priority || 'normal'; // Default priority
+        const count = parseInt(row.count);
+        stats.byPriority[priority] = count;
+        
+        console.log(`🔍 getStats - Procesando prioridad: ${priority}, count: ${count}`);
+        
+        // Contar proyectos de alta prioridad (urgent + high)
+        if (priority === 'urgent' || priority === 'high') {
+          console.log(`🔍 getStats - Agregando a alta_prioridad: ${count} (prioridad: ${priority})`);
+          stats.alta_prioridad += count;
+        }
+      });
+      
+      console.log('🔍 getStats - stats.alta_prioridad final:', stats.alta_prioridad);
 
       console.log('✅ Project.getStats - Estadísticas calculadas:', stats);
       return stats;
