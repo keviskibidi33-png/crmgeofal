@@ -14,7 +14,7 @@ const Activity = {
   },
 
   // Obtener actividades recientes
-  async getRecent({ limit = 10, offset = 0, userId = null, entityType = null } = {}) {
+  async getRecent({ limit = 10, offset = 0, userId = null, entityType = null, allowedTypes = null } = {}) {
     let query = `
       SELECT a.*, u.name as user_name, u.email as user_email
       FROM activities a
@@ -34,6 +34,13 @@ const Activity = {
       query += ` AND a.entity_type = $${paramIndex}`;
       values.push(entityType);
       paramIndex++;
+    }
+
+    if (allowedTypes && allowedTypes.length > 0) {
+      const placeholders = allowedTypes.map((_, index) => `$${paramIndex + index}`).join(',');
+      query += ` AND a.type IN (${placeholders})`;
+      values.push(...allowedTypes);
+      paramIndex += allowedTypes.length;
     }
 
     query += ` ORDER BY a.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;

@@ -36,7 +36,9 @@ const Dashboard = () => {
   } = useActivities({ 
     limit: 4,
     refetchInterval: 300000, // 5 minutos
-    staleTime: 60000 // 1 minuto
+    staleTime: 60000, // 1 minuto
+    userId: user?.id, // Filtrar por usuario actual
+    role: user?.role // Filtrar por rol
   });
 
   // Calcular estadísticas
@@ -267,6 +269,11 @@ const Dashboard = () => {
                 {activitiesCount > 0 && (
                   <small className="text-muted">
                     {activitiesCount} actividad{activitiesCount !== 1 ? 'es' : ''} • Actualizado automáticamente
+                  </small>
+                )}
+                {user?.role !== 'admin' && (
+                  <small className="text-info d-block">
+                    Mostrando solo actividades relevantes a tu rol: {user?.role}
                   </small>
                 )}
               </div>

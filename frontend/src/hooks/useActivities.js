@@ -9,7 +9,9 @@ export const useActivities = (options = {}) => {
     limit = 4,
     refetchInterval = 300000, // 5 minutos por defecto
     staleTime = 60000, // 1 minuto por defecto
-    enabled = true
+    enabled = true,
+    userId = null, // Filtrar por usuario específico
+    role = null // Filtrar por rol
   } = options;
 
   // WebSocket para actualizaciones en tiempo real
@@ -35,8 +37,8 @@ export const useActivities = (options = {}) => {
 
   // Query principal para actividades
   const activitiesQuery = useQuery(
-    ['recentActivities', { limit }],
-    () => getRecentActivities({ limit }),
+    ['recentActivities', { limit, userId, role }],
+    () => getRecentActivities({ limit, userId, role }),
     {
       enabled,
       refetchInterval,

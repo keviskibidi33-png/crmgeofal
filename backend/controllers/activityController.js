@@ -3,14 +3,67 @@ const Activity = require('../models/activity');
 // Obtener actividades recientes
 exports.getRecentActivities = async (req, res) => {
   try {
-    const { limit = 10, offset = 0, entityType } = req.query;
-    const userId = req.user?.id; // Opcional: filtrar por usuario actual
+    const { limit = 10, offset = 0, entityType, userId: queryUserId, role } = req.query;
+    const currentUserId = req.user?.id;
+    const currentUserRole = req.user?.role;
+    
+    // Determinar qué actividades mostrar según el rol
+    let filterUserId = null;
+    let allowedTypes = null;
+    
+    if (currentUserRole === 'admin') {
+      // Admin ve todo
+      filterUserId = queryUserId || null;
+    } else {
+      // Otros roles ven solo sus actividades y las relevantes a su rol
+      filterUserId = currentUserId;
+      
+      // Filtrar tipos de actividades según el rol
+      const roleActivityTypes = {
+        'vendedor_comercial': [
+          'quote_created', 'quote_assigned', 'quote_approved', 'quote_rejected',
+          'project_created', 'project_assigned', 'project_completed',
+          'ticket_created', 'ticket_assigned', 'ticket_resolved',
+          'client_created', 'client_updated'
+        ],
+        'jefa_comercial': [
+          'quote_created', 'quote_assigned', 'quote_approved', 'quote_rejected', 'quote_completed',
+          'project_created', 'project_assigned', 'project_completed', 'project_delayed',
+          'ticket_created', 'ticket_assigned', 'ticket_resolved', 'ticket_escalated',
+          'client_created', 'client_updated', 'user_registered'
+        ],
+        'jefe_laboratorio': [
+          'quote_assigned', 'quote_completed', 'project_assigned', 'project_completed',
+          'evidence_uploaded', 'evidence_approved', 'evidence_rejected',
+          'ticket_assigned', 'ticket_resolved'
+        ],
+        'usuario_laboratorio': [
+          'quote_assigned', 'quote_completed', 'project_assigned', 'project_completed',
+          'evidence_uploaded', 'ticket_assigned'
+        ],
+        'laboratorio': [
+          'quote_assigned', 'quote_completed', 'project_assigned', 'project_completed',
+          'evidence_uploaded', 'ticket_assigned'
+        ],
+        'soporte': [
+          'ticket_created', 'ticket_assigned', 'ticket_resolved', 'ticket_escalated',
+          'system_maintenance'
+        ],
+        'gerencia': [
+          'project_completed', 'project_delayed', 'quote_approved', 'ticket_escalated',
+          'system_update', 'user_registered', 'user_role_changed'
+        ]
+      };
+      
+      allowedTypes = roleActivityTypes[currentUserRole] || [];
+    }
     
     const activities = await Activity.getRecent({
       limit: parseInt(limit),
       offset: parseInt(offset),
-      userId: userId,
-      entityType: entityType
+      userId: filterUserId,
+      entityType: entityType,
+      allowedTypes: allowedTypes
     });
 
     res.json({

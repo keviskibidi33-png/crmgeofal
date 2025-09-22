@@ -8,10 +8,12 @@ import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { getRecentActivities, getActivitiesByType, ACTIVITY_TYPES, ENTITY_TYPES } from '../services/activities';
 import { useActivities } from '../hooks/useActivities';
+import { useAuth } from '../contexts/AuthContext';
 import PageHeader from '../components/common/PageHeader';
 
 const Activities = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [filters, setFilters] = useState({
     type: '',
     entityType: '',
@@ -31,7 +33,9 @@ const Activities = () => {
   } = useActivities({ 
     limit: filters.limit,
     refetchInterval: 0, // No auto-refresh en esta página
-    staleTime: 30000 // 30 segundos
+    staleTime: 30000, // 30 segundos
+    userId: user?.id, // Filtrar por usuario actual
+    role: user?.role // Filtrar por rol
   });
 
   // Función para formatear tiempo de actividad
