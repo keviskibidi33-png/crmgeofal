@@ -6,14 +6,14 @@ import {
   FiArrowUp, FiDollarSign, FiCalendar, FiCheckCircle,
   FiArrowDown, FiEye, FiTrendingUp, FiActivity
 } from 'react-icons/fi';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import PageHeader from '../../components/common/PageHeader';
 import StatsCard from '../../components/common/StatsCard';
 import { listUsers } from '../../services/users';
 import { listProjects } from '../../services/projects';
 import { listQuotes } from '../../services/quotes';
 import { listTickets } from '../../services/tickets';
-import { getRecentActivities } from '../../services/activities';
+import { useActivities } from '../../hooks/useActivities';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,15 +24,18 @@ const Dashboard = () => {
   const { data: quotesData } = useQuery(['quotes'], listQuotes);
   const { data: ticketsData } = useQuery(['tickets'], listTickets);
   
-  // Obtener actividades recientes
-  const { data: activitiesData, isLoading: activitiesLoading } = useQuery(
-    ['recentActivities'],
-    () => getRecentActivities({ limit: 4 }),
-    {
-      refetchInterval: 30000, // Refrescar cada 30 segundos
-      staleTime: 10000
-    }
-  );
+  // Obtener actividades recientes con hook optimizado
+  const { 
+    data: activitiesData, 
+    isLoading: activitiesLoading,
+    hasActivities,
+    activitiesCount,
+    refreshActivities
+  } = useActivities({ 
+    limit: 4,
+    refetchInterval: 300000, // 5 minutos
+    staleTime: 60000 // 1 minuto
+  });
 
   // Calcular estadísticas
   const stats = {
@@ -257,11 +260,35 @@ const Dashboard = () => {
         <Col lg={8} className="mb-4">
           <Card className="h-100">
             <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Actividades Recientes</h5>
-              <Button variant="outline-primary" size="sm">
-                <FiEye className="me-1" />
-                Ver todas
-              </Button>
+              <div>
+                <h5 className="mb-0">Actividades Recientes</h5>
+                {activitiesCount > 0 && (
+                  <small className="text-muted">
+                    {activitiesCount} actividad{activitiesCount !== 1 ? 'es' : ''} • Actualizado automáticamente
+                  </small>
+                )}
+              </div>
+              <div className="d-flex gap-2">
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm"
+                  onClick={refreshActivities}
+                  disabled={activitiesLoading}
+                  title="Actualizar actividades"
+                  className="refresh-btn"
+                >
+                  <FiActivity className={activitiesLoading ? 'spinning' : ''} />
+                </Button>
+                <Button 
+                  variant="outline-primary" 
+                  size="sm"
+                  onClick={() => navigate('/actividades')}
+                  title="Ver todas las actividades"
+                >
+                  <FiEye className="me-1" />
+                  Ver todas
+                </Button>
+              </div>
             </Card.Header>
             <Card.Body>
               {activitiesLoading ? (

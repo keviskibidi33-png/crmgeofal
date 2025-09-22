@@ -30,6 +30,7 @@ const Exportaciones = lazy(() => import('./pages/Exportaciones'));
 const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
+const Activities = lazy(() => import('./pages/Activities'));
 
 // Rutas protegidas por autenticación
 function PrivateRoute({ children }) {
@@ -74,6 +75,7 @@ function App() {
                   <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
+                  <Route path="/actividades" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio","soporte","gerencia"]}><Activities /></RequireRole></ErrorBoundary>} />
                   {/* Fallback a dashboard si la ruta no existe */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
