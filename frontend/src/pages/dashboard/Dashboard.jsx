@@ -13,6 +13,7 @@ import { listUsers } from '../../services/users';
 import { listProjects } from '../../services/projects';
 import { listQuotes } from '../../services/quotes';
 import { listTickets } from '../../services/tickets';
+import { getRecentActivities } from '../../services/activities';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +23,16 @@ const Dashboard = () => {
   const { data: projectsData } = useQuery(['projects'], listProjects);
   const { data: quotesData } = useQuery(['quotes'], listQuotes);
   const { data: ticketsData } = useQuery(['tickets'], listTickets);
+  
+  // Obtener actividades recientes
+  const { data: activitiesData, isLoading: activitiesLoading } = useQuery(
+    ['recentActivities'],
+    () => getRecentActivities({ limit: 4 }),
+    {
+      refetchInterval: 30000, // Refrescar cada 30 segundos
+      staleTime: 10000
+    }
+  );
 
   // Calcular estadísticas
   const stats = {
@@ -35,11 +46,94 @@ const Dashboard = () => {
     completedProjects: projectsData?.projects?.filter(p => p.status === 'completado')?.length || 0
   };
 
-  // Datos de ejemplo para gráficos (en un proyecto real vendrían del backend)
-  const recentActivities = [
+  // Función para formatear tiempo de actividad
+  const formatActivityTime = (createdAt) => {
+    const now = new Date();
+    const activityTime = new Date(createdAt);
+    const diffInMinutes = Math.floor((now - activityTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Ahora';
+    if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return `Hace ${Math.floor(diffInMinutes / 60)} h`;
+    return `Hace ${Math.floor(diffInMinutes / 1440)} días`;
+  };
+
+  // Función para obtener icono según tipo de actividad
+  const getActivityIcon = (type) => {
+    const icons = {
+      quote_created: FiFileText,
+      quote_assigned: FiFileText,
+      quote_approved: FiCheckCircle,
+      quote_rejected: FiX,
+      quote_completed: FiCheckCircle,
+      project_created: FiHome,
+      project_assigned: FiHome,
+      project_started: FiArrowUp,
+      project_completed: FiCheckCircle,
+      project_delayed: FiClock,
+      ticket_created: FiMessageSquare,
+      ticket_assigned: FiMessageSquare,
+      ticket_resolved: FiCheckCircle,
+      ticket_escalated: FiAlertTriangle,
+      evidence_uploaded: FiPaperclip,
+      evidence_approved: FiCheckCircle,
+      evidence_rejected: FiX,
+      user_registered: FiUsers,
+      user_assigned: FiUsers,
+      user_role_changed: FiSettings,
+      client_created: FiUser,
+      client_updated: FiUser,
+      system_maintenance: FiSettings,
+      system_update: FiSettings
+    };
+    return icons[type] || FiActivity;
+  };
+
+  // Función para obtener color según tipo de actividad
+  const getActivityColor = (type) => {
+    const colors = {
+      quote_created: 'primary',
+      quote_assigned: 'primary',
+      quote_approved: 'success',
+      quote_rejected: 'danger',
+      quote_completed: 'success',
+      project_created: 'info',
+      project_assigned: 'info',
+      project_started: 'info',
+      project_completed: 'success',
+      project_delayed: 'warning',
+      ticket_created: 'warning',
+      ticket_assigned: 'warning',
+      ticket_resolved: 'success',
+      ticket_escalated: 'danger',
+      evidence_uploaded: 'secondary',
+      evidence_approved: 'success',
+      evidence_rejected: 'danger',
+      user_registered: 'info',
+      user_assigned: 'info',
+      user_role_changed: 'secondary',
+      client_created: 'primary',
+      client_updated: 'primary',
+      system_maintenance: 'secondary',
+      system_update: 'secondary'
+    };
+    return colors[type] || 'secondary';
+  };
+
+  // Usar datos reales o fallback a datos de ejemplo
+  const recentActivities = activitiesData?.activities?.map(activity => ({
+    id: activity.id,
+    type: activity.type,
+    title: activity.title,
+    description: activity.description,
+    time: formatActivityTime(activity.created_at),
+    icon: getActivityIcon(activity.type),
+    color: getActivityColor(activity.type),
+    user: activity.user_name
+  })) || [
     {
       id: 1,
-      type: 'quote',
+      type: 'quote_created',
       title: 'Nueva cotización creada',
       description: 'Cotización #2024-001 para Proyecto ABC',
       time: 'Hace 2 horas',
@@ -48,7 +142,7 @@ const Dashboard = () => {
     },
     {
       id: 2,
-      type: 'project',
+      type: 'project_completed',
       title: 'Proyecto completado',
       description: 'Proyecto XYZ finalizado exitosamente',
       time: 'Hace 4 horas',
@@ -57,7 +151,7 @@ const Dashboard = () => {
     },
     {
       id: 3,
-      type: 'ticket',
+      type: 'ticket_created',
       title: 'Nuevo ticket de soporte',
       description: 'Solicitud de soporte técnico',
       time: 'Hace 6 horas',
@@ -66,7 +160,7 @@ const Dashboard = () => {
     },
     {
       id: 4,
-      type: 'user',
+      type: 'user_registered',
       title: 'Usuario registrado',
       description: 'Nuevo usuario agregado al sistema',
       time: 'Hace 8 horas',
@@ -170,23 +264,37 @@ const Dashboard = () => {
               </Button>
             </Card.Header>
             <Card.Body>
-              <div className="activity-list">
-                {recentActivities.map((activity) => {
-                  const Icon = activity.icon;
-                  return (
-                    <div key={activity.id} className="activity-item d-flex align-items-start mb-3">
-                      <div className={`activity-icon bg-${activity.color} bg-opacity-10 rounded-circle p-2 me-3`}>
-                        <Icon size={20} className={`text-${activity.color}`} />
+              {activitiesLoading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Cargando actividades...</span>
+                  </div>
+                  <p className="mt-2 text-muted">Cargando actividades recientes...</p>
+                </div>
+              ) : (
+                <div className="activity-list">
+                  {recentActivities.map((activity) => {
+                    const Icon = activity.icon;
+                    return (
+                      <div key={activity.id} className="activity-item d-flex align-items-start mb-3">
+                        <div className={`activity-icon bg-${activity.color} bg-opacity-10 rounded-circle p-2 me-3`}>
+                          <Icon size={20} className={`text-${activity.color}`} />
+                        </div>
+                        <div className="flex-grow-1">
+                          <h6 className="mb-1">{activity.title}</h6>
+                          <p className="text-muted mb-1 small">{activity.description}</p>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-muted">{activity.time}</small>
+                            {activity.user && (
+                              <small className="text-muted">por {activity.user}</small>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-grow-1">
-                        <h6 className="mb-1">{activity.title}</h6>
-                        <p className="text-muted mb-1 small">{activity.description}</p>
-                        <small className="text-muted">{activity.time}</small>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
