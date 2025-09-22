@@ -1,150 +1,304 @@
-import React, { useEffect, useState } from 'react';
-import ModuloBase from '../components/ModuloBase';
-import Modal from '../components/Modal';
-import Toolbar from '../components/Toolbar';
-import Toast from '../components/Toast';
-import TableEmpty from '../components/TableEmpty';
-import CompanySelect from '../components/CompanySelect';
+import React, { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
+import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX } from 'react-icons/fi';
+import PageHeader from '../components/common/PageHeader';
+import DataTable from '../components/common/DataTable';
+import ModalForm from '../components/common/ModalForm';
+import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject } from '../services/projects';
 
-const PAGE_LIMIT = 20;
-const emptyForm = { company_id: '', name: '', location: '' };
+const emptyForm = { company_id: '', name: '', location: '', vendedor_id: '', laboratorio_id: '' };
 
-const Proyectos = () => {
-  const [rows, setRows] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'success' });
+export default function Proyectos() {
+  const [showModal, setShowModal] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(null);
+  const navigate = useNavigate();
 
-  const load = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await listProjects({ page, limit: PAGE_LIMIT, search });
-      setRows(data?.data || []);
-      setTotal(Number(data?.total || 0));
-    } catch (e) {
-      setError(e.message || 'Error al cargar proyectos');
-    } finally {
-      setLoading(false);
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery(
+    ['projects'],
+    () => listProjects(),
+    { keepPreviousData: true }
+  );
+
+  const handleMutationSuccess = (message) => {
+    queryClient.invalidateQueries('projects');
+    setShowModal(false);
+    setEditingProject(null);
+    setDeletingProject(null);
+  };
+
+  const createMutation = useMutation(createProject, {
+    onSuccess: () => handleMutationSuccess('Proyecto creado exitosamente'),
+    onError: (error) => console.error('Error creating project:', error)
+  });
+
+  const updateMutation = useMutation(updateProject, {
+    onSuccess: () => handleMutationSuccess('Proyecto actualizado exitosamente'),
+    onError: (error) => console.error('Error updating project:', error)
+  });
+
+  const deleteMutation = useMutation(deleteProject, {
+    onSuccess: () => handleMutationSuccess('Proyecto eliminado exitosamente'),
+    onError: (error) => console.error('Error deleting project:', error)
+  });
+
+  const handleCreate = () => {
+    setEditingProject(emptyForm);
+    setShowModal(true);
+  };
+
+  const handleEdit = (project) => {
+    setEditingProject(project);
+    setShowModal(true);
+  };
+
+  const handleDelete = (project) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.name}"?`)) {
+      deleteMutation.mutate(project.id);
     }
   };
-  useEffect(() => { load(); }, [page, search]);
 
-  const onNew = () => { setEditing(null); setForm(emptyForm); setShowForm(true); };
-  const onEdit = (p) => { setEditing(p); setForm({ company_id: p.company_id || '', name: p.name || '', location: p.location || '' }); setShowForm(true); };
-  const onDelete = async (p) => {
-    const conf = window.prompt(`Para eliminar el proyecto "${p.name}", escribe ELIMINAR`);
-    if (conf !== 'ELIMINAR') return;
-    try { await deleteProject(p.id); await load(); } catch (e) { alert(e.message || 'Error al eliminar proyecto'); }
+  const handleSubmit = async (formData) => {
+    if (editingProject.id) {
+      await updateMutation.mutateAsync({ id: editingProject.id, ...formData });
+    } else {
+      await createMutation.mutateAsync(formData);
+    }
   };
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const payload = { ...form };
-    try {
-      setSaving(true);
-      if (editing) await updateProject(editing.id, { name: payload.name, location: payload.location });
-      else await createProject(payload);
-      setShowForm(false); setEditing(null); setForm(emptyForm); await load();
-      setToast({ message: editing ? 'Proyecto actualizado' : 'Proyecto creado', type: 'success' });
-    } catch (e) { setToast({ message: e.message || 'Error al guardar', type: 'error' }); }
-    finally { setSaving(false); }
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      'activo': { bg: 'success', text: 'Activo' },
+      'pendiente': { bg: 'warning', text: 'Pendiente' },
+      'completado': { bg: 'primary', text: 'Completado' },
+      'cancelado': { bg: 'danger', text: 'Cancelado' }
+    };
+    
+    const config = statusConfig[status] || { bg: 'secondary', text: status };
+    return <Badge bg={config.bg} className="status-badge">{config.text}</Badge>;
   };
+
+  const columns = [
+    {
+      header: 'ID',
+      accessor: 'id',
+      width: '80px'
+    },
+    {
+      header: 'Proyecto',
+      accessor: 'name',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.name}</div>
+          {row.location && (
+            <small className="text-muted">
+              <FiMapPin size={12} className="me-1" />
+              {row.location}
+            </small>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Empresa',
+      accessor: 'company',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.company?.name || 'Sin empresa'}</div>
+          {row.company?.ruc && (
+            <small className="text-muted">RUC: {row.company.ruc}</small>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Estado',
+      accessor: 'status',
+      render: (value) => getStatusBadge(value || 'activo')
+    },
+    {
+      header: 'Asignado a',
+      accessor: 'vendedor',
+      render: (value, row) => (
+        <div>
+          {row.vendedor && (
+            <div className="d-flex align-items-center">
+              <FiUser size={14} className="me-1 text-muted" />
+              <span>{row.vendedor.name}</span>
+            </div>
+          )}
+          {row.laboratorio && (
+            <div className="d-flex align-items-center mt-1">
+              <FiHome size={14} className="me-1 text-muted" />
+              <span className="small text-muted">{row.laboratorio.name}</span>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Fecha Creación',
+      accessor: 'created_at',
+      type: 'date'
+    }
+  ];
+
+  const formFields = [
+    {
+      name: 'company_id',
+      label: 'Empresa',
+      type: 'select',
+      required: true,
+      options: data?.companies?.map(company => ({
+        value: company.id,
+        label: `${company.name} (${company.ruc})`
+      })) || []
+    },
+    {
+      name: 'name',
+      label: 'Nombre del Proyecto',
+      type: 'text',
+      required: true,
+      placeholder: 'Ingresa el nombre del proyecto'
+    },
+    {
+      name: 'location',
+      label: 'Ubicación',
+      type: 'text',
+      placeholder: 'Ingresa la ubicación del proyecto'
+    },
+    {
+      name: 'vendedor_id',
+      label: 'Vendedor Asignado',
+      type: 'select',
+      options: data?.users?.filter(user => 
+        ['vendedor_comercial', 'jefa_comercial'].includes(user.role)
+      ).map(user => ({
+        value: user.id,
+        label: `${user.name} ${user.apellido}`
+      })) || []
+    },
+    {
+      name: 'laboratorio_id',
+      label: 'Responsable de Laboratorio',
+      type: 'select',
+      options: data?.users?.filter(user => 
+        ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(user.role)
+      ).map(user => ({
+        value: user.id,
+        label: `${user.name} ${user.apellido}`
+      })) || []
+    }
+  ];
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    const projects = data?.projects || [];
+    return {
+      total: projects.length,
+      activos: projects.filter(p => p.status === 'activo').length,
+      completados: projects.filter(p => p.status === 'completado').length,
+      pendientes: projects.filter(p => p.status === 'pendiente').length,
+      cancelados: projects.filter(p => p.status === 'cancelado').length
+    };
+  }, [data]);
 
   return (
-    <ModuloBase titulo="Gestión de Proyectos" descripcion="Administra los proyectos por cliente, ubicación y responsables.">
-      <Toolbar
-        left={(
-          <>
-            <input
-              placeholder="Buscar por nombre o ubicación"
-              value={search}
-              onChange={(e)=>{ setSearch(e.target.value); setPage(1); }}
-              style={{ padding:'0.6rem 0.8rem', border:'1px solid #ddd', borderRadius:8, minWidth:260 }}
+    <Container fluid className="py-4">
+      <div className="fade-in">
+        <PageHeader
+          title="Gestión de Proyectos"
+          subtitle="Crear, editar y gestionar proyectos del sistema"
+          icon={FiHome}
+          actions={
+            <Button variant="primary" onClick={handleCreate}>
+              <FiPlus className="me-2" />
+              Nuevo Proyecto
+            </Button>
+          }
+        />
+
+        {/* Estadísticas */}
+        <Row className="g-4 mb-4">
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Total Proyectos"
+              value={stats.total}
+              icon={FiHome}
+              color="primary"
+              subtitle="Proyectos registrados"
             />
-            {loading && <span style={{ color:'#888' }}>Cargando...</span>}
-            {error && <span style={{ color:'red' }}>{error}</span>}
-          </>
-        )}
-        right={<button onClick={onNew} className="btn btn-primary">+ Agregar proyecto</button>}
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Proyectos Activos"
+              value={stats.activos}
+              icon={FiCheckCircle}
+              color="success"
+              subtitle="En desarrollo"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Completados"
+              value={stats.completados}
+              icon={FiCheckCircle}
+              color="info"
+              subtitle="Finalizados"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Pendientes"
+              value={stats.pendientes}
+              icon={FiClock}
+              color="warning"
+              subtitle="Por iniciar"
+            />
+          </Col>
+        </Row>
+
+        {/* Tabla de proyectos */}
+        <Card className="shadow-sm border-0">
+          <Card.Header className="bg-white border-bottom">
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                <FiHome className="me-2 text-primary" />
+                Lista de Proyectos
+              </h5>
+              <Badge bg="light" text="dark" className="px-3 py-2">
+                {stats.total} proyectos
+              </Badge>
+            </div>
+          </Card.Header>
+          <Card.Body className="p-0">
+            <DataTable
+              data={data?.projects || []}
+              columns={columns}
+              loading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              emptyMessage="No hay proyectos registrados"
+            />
+          </Card.Body>
+        </Card>
+
+      <ModalForm
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        title={editingProject?.id ? 'Editar Proyecto' : 'Nuevo Proyecto'}
+        data={editingProject || emptyForm}
+        fields={formFields}
+        onSubmit={handleSubmit}
+        loading={createMutation.isLoading || updateMutation.isLoading}
+        submitText={editingProject?.id ? 'Actualizar' : 'Crear'}
       />
-
-      <div className="table-responsive">
-        <table className="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Nombre</th>
-              <th>Ubicación</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && <TableEmpty colSpan={5} message="Sin proyectos" />}
-            {rows.map((p) => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>{p.company_name || p.company_id}</td>
-                <td>{p.name}</td>
-                <td>{p.location}</td>
-                <td>
-                  <button className="btn btn-sm btn-secondary me-1" onClick={()=>onEdit(p)}>Editar</button>
-                  <button className="btn btn-sm btn-danger" onClick={()=>onDelete(p)}>Eliminar</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <button className="btn btn-outline-secondary" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Anterior</button>
-        <span>Página {page} de {Math.ceil((total||0)/PAGE_LIMIT)||1}</span>
-        <button className="btn btn-outline-secondary" disabled={page*PAGE_LIMIT>=total} onClick={()=>setPage(p=>p+1)}>Siguiente</button>
-      </div>
-
-      {showForm && (
-        <Modal open={showForm} onClose={()=>setShowForm(false)}>
-          <form onSubmit={onSubmit}>
-            <h3 style={{ marginBottom: 8 }}>{editing ? 'Editar proyecto' : 'Nuevo proyecto'}</h3>
-            <div style={{ color:'#888', marginBottom: 16 }}>{editing ? 'Actualiza los datos del proyecto.' : 'Completa los datos del nuevo proyecto.'}</div>
-
-            <div className="row g-3">
-              {!editing && (
-                <div className="col-md-6">
-                  <label className="form-label">Cliente</label>
-                  <CompanySelect value={form.company_id} onChange={(id)=>setForm({ ...form, company_id: id })} />
-                </div>
-              )}
-              <div className="col-md-6">
-                <label className="form-label">Nombre del proyecto</label>
-                <input className="form-control" value={form.name} onChange={(e)=>setForm({ ...form, name: e.target.value })} required />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Ubicación</label>
-                <input className="form-control" value={form.location} onChange={(e)=>setForm({ ...form, location: e.target.value })} required />
-              </div>
-            </div>
-
-            <div className="mt-3 d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-secondary" onClick={()=>setShowForm(false)} disabled={saving}>Cancelar</button>
-              <button type="submit" className="btn btn-success" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      <Toast message={toast.message} type={toast.type} onClose={()=>setToast({ message:'', type:'success' })} />
-    </ModuloBase>
+    </Container>
   );
 };
-
-export default Proyectos;

@@ -1,75 +1,78 @@
 
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Nav, Accordion, Button } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
-import { FaTachometerAlt, FaUsers, FaUser, FaBuilding, FaFileAlt, FaPaperclip, FaTicketAlt, FaChartBar, FaCog, FaLayerGroup, FaListAlt, FaHistory, FaWhatsapp, FaCogs, FaFileInvoice, FaBoxes, FaList, FaCheckCircle, FaFileExport, FaShieldAlt } from 'react-icons/fa';
+import { 
+  FiHome, FiUsers, FiUser, FiFileText, FiPaperclip, 
+  FiMessageSquare, FiBarChart2, FiSettings, FiLayers, FiList, 
+  FiClock, FiFileText as FiInvoice, 
+  FiPackage, FiCheckCircle, FiDownload, FiShield, FiChevronRight,
+  FiChevronDown, FiMenu, FiX
+} from 'react-icons/fi';
 
 const sectionsByRole = {
   admin: [
     {
       title: 'General',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
       ]
     },
     {
       title: 'Gestión',
       items: [
-        { path: '/usuarios', label: 'Usuarios', icon: <FaUsers /> },
-        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
+        { path: '/usuarios', label: 'Usuarios', icon: FiUsers },
+        { path: '/clientes', label: 'Clientes', icon: FiUser },
         {
           label: 'Proyectos',
-          icon: <FaBuilding />,
+          icon: FiHome,
           children: [
-            { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
-            { path: '/categorias', label: 'Categorías', icon: <FaLayerGroup /> },
-            { path: '/subcategorias', label: 'Subcategorías', icon: <FaListAlt /> },
-            { path: '/historial-proyectos', label: 'Historial Proyectos', icon: <FaHistory /> },
+            { path: '/proyectos', label: 'Proyectos', icon: FiHome },
+            { path: '/categorias', label: 'Categorías', icon: FiLayers },
+            { path: '/subcategorias', label: 'Subcategorías', icon: FiList },
+            { path: '/historial-proyectos', label: 'Historial Proyectos', icon: FiClock },
           ]
         },
-        // Agrupación Cotizaciones
         {
           label: 'Cotizaciones',
-          icon: <FaFileAlt />,
+          icon: FiFileText,
           children: [
-            { path: '/cotizaciones', label: 'Cotizaciones', icon: <FaFileAlt /> },
-            { path: '/variantes-cotizacion', label: 'Variantes Cotización', icon: <FaList /> },
-            { path: '/items-cotizacion', label: 'Items Cotización', icon: <FaListAlt /> },
+            { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+            { path: '/variantes-cotizacion', label: 'Variantes Cotización', icon: FiList },
+            { path: '/items-cotizacion', label: 'Items Cotización', icon: FiList },
           ]
         },
-        { path: '/adjuntos', label: 'Adjuntos', icon: <FaPaperclip /> },
+        { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
         {
           label: 'Tickets',
-          icon: <FaTicketAlt />,
+          icon: FiMessageSquare,
           children: [
-            { path: '/tickets', label: 'Tickets', icon: <FaTicketAlt /> },
-            { path: '/historial-tickets', label: 'Historial Tickets', icon: <FaHistory /> },
+            { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
+            { path: '/historial-tickets', label: 'Historial Tickets', icon: FiClock },
           ]
         },
-  { path: '/recuperados', label: 'Recuperados', icon: <FaCheckCircle /> },
-  { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
-        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: <FaWhatsapp /> },
-        // Agrupación Servicios
+        { path: '/recuperados', label: 'Recuperados', icon: FiCheckCircle },
+        { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
+        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: FiMessageSquare },
         {
           label: 'Servicios',
-          icon: <FaCogs />,
+          icon: FiSettings,
           children: [
-            { path: '/servicios', label: 'Servicios', icon: <FaCogs /> },
-            { path: '/subservicios', label: 'Subservicios', icon: <FaBoxes /> },
+            { path: '/servicios', label: 'Servicios', icon: FiSettings },
+            { path: '/subservicios', label: 'Subservicios', icon: FiPackage },
           ]
         },
-        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
-        { path: '/facturas', label: 'Facturas', icon: <FaFileInvoice /> },
-        { path: '/historial-tickets', label: 'Historial Tickets', icon: <FaHistory /> },
-        { path: '/auditoria', label: 'Auditoría', icon: <FaShieldAlt /> },
-        { path: '/exportaciones', label: 'Exportaciones', icon: <FaFileExport /> },
+        { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
+        { path: '/facturas', label: 'Facturas', icon: FiInvoice },
+        { path: '/auditoria', label: 'Auditoría', icon: FiShield },
+        { path: '/exportaciones', label: 'Exportaciones', icon: FiDownload },
       ]
     },
     {
       title: 'Cuenta',
       items: [
-        { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> },
+        { path: '/ajustes', label: 'Ajustes', icon: FiSettings },
       ]
     }
   ],
@@ -77,269 +80,233 @@ const sectionsByRole = {
     {
       title: 'General',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
       ]
     },
     {
       title: 'Gestión',
       items: [
-        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
-        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
-        { path: '/cotizaciones', label: 'Cotizaciones', icon: <FaFileAlt /> },
-        { path: '/facturas', label: 'Facturas', icon: <FaFileInvoice /> },
-        { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
-        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: <FaWhatsapp /> },
+        { path: '/clientes', label: 'Clientes', icon: FiUser },
+        { path: '/proyectos', label: 'Proyectos', icon: FiHome },
+        { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/facturas', label: 'Facturas', icon: FiInvoice },
+        { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
+        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: FiMessageSquare },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   vendedor_comercial: [
     {
       title: 'General',
-      items: [ { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> } ]
+      items: [ { path: '/dashboard', label: 'Dashboard', icon: FiHome } ]
     },
     {
       title: 'Gestión',
       items: [
-        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
-        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
-        { path: '/cotizaciones', label: 'Cotizaciones', icon: <FaFileAlt /> },
-        { path: '/tickets', label: 'Tickets', icon: <FaTicketAlt /> },
+        { path: '/clientes', label: 'Clientes', icon: FiUser },
+        { path: '/proyectos', label: 'Proyectos', icon: FiHome },
+        { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   jefe_laboratorio: [
     {
       title: 'Laboratorio',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/variantes-cotizacion', label: 'Variantes', icon: <FaList /> },
-        { path: '/items-cotizacion', label: 'Items', icon: <FaListAlt /> },
-        { path: '/servicios', label: 'Servicios', icon: <FaCogs /> },
-        { path: '/subservicios', label: 'Subservicios', icon: <FaBoxes /> },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
-        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/variantes-cotizacion', label: 'Variantes', icon: FiList },
+        { path: '/items-cotizacion', label: 'Items', icon: FiList },
+        { path: '/servicios', label: 'Servicios', icon: FiSettings },
+        { path: '/subservicios', label: 'Subservicios', icon: FiPackage },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
+        { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   usuario_laboratorio: [
     {
       title: 'Laboratorio',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
-        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
+        { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   laboratorio: [
     {
       title: 'Laboratorio',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: <FaFileAlt /> },
-        { path: '/evidencias', label: 'Evidencias', icon: <FaCheckCircle /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
+        { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   soporte: [
     {
       title: 'Operación',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/tickets', label: 'Tickets', icon: <FaTicketAlt /> },
-        { path: '/historial-tickets', label: 'Historial Tickets', icon: <FaHistory /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
+        { path: '/historial-tickets', label: 'Historial Tickets', icon: FiClock },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
   gerencia: [
     {
       title: 'Dirección',
       items: [
-        { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/reportes', label: 'Reportes', icon: <FaChartBar /> },
-        { path: '/clientes', label: 'Clientes', icon: <FaUser /> },
-        { path: '/proyectos', label: 'Proyectos', icon: <FaBuilding /> },
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
+        { path: '/clientes', label: 'Clientes', icon: FiUser },
+        { path: '/proyectos', label: 'Proyectos', icon: FiHome },
       ]
     },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: <FaCog /> } ] },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
 };
 
-const sidebarStyles = {
-  aside: (collapsed) => ({
-    width: collapsed ? 64 : 240,
-    background: '#fff',
-    color: '#232946',
-    minHeight: '100vh',
-    height: '100vh',
-    padding: 0,
-    boxShadow: '2px 0 8px rgba(0,0,0,0.06)',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRight: '2px solid #ececec',
-    zIndex: 2,
-    overflow: 'hidden',
-    transition: 'width 0.2s cubic-bezier(0.4,0,0.2,1)',
-  }),
-  nav: {
-    flex: 1,
-    marginTop: 8,
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    scrollbarWidth: 'thin',
-    scrollbarColor: '#ececec #fff',
-  },
-  section: {
-    marginBottom: 18,
-  },
-  sectionTitle: (collapsed) => ({
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    color: '#888',
-    padding: collapsed ? '10px 0 4px 0' : '10px 0 4px 32px',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    transition: 'padding 0.2s',
-  }),
-  ul: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-  },
-  li: {
-    margin: 0,
-  },
-  link: (active, collapsed) => ({
-    display: 'flex',
-    alignItems: 'center',
-    color: active ? '#ff5722' : '#232946',
-    textDecoration: 'none',
-    padding: collapsed ? '10px 0 10px 0' : '10px 24px',
-    fontSize: '1.08rem',
-    borderLeft: active ? '4px solid #ff5722' : '4px solid transparent',
-    background: active ? 'rgba(255,87,34,0.08)' : 'none',
-    transition: 'background 0.18s, color 0.18s, border-color 0.18s, padding 0.2s',
-    gap: collapsed ? 0 : 14,
-    cursor: 'pointer',
-    fontWeight: active ? 600 : 400,
-    justifyContent: collapsed ? 'center' : 'flex-start',
-  }),
-  icon: (collapsed) => ({
-    fontSize: '1.18em',
-    marginRight: collapsed ? 0 : 6,
-    display: 'flex',
-    alignItems: 'center',
-    color: '#ff5722',
-    transition: 'margin 0.2s',
-  }),
-  collapseBtn: (collapsed) => ({
-    width: '100%',
-    border: 'none',
-    background: 'none',
-    color: '#ff5722',
-    fontWeight: 700,
-    fontSize: 22,
-    padding: collapsed ? '16px 0' : '16px 0 16px 0',
-    cursor: 'pointer',
-    borderTop: '2px solid #ececec',
-    outline: 'none',
-    transition: 'background 0.18s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  })
-};
-
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  if (!user) return null;
-  const sections = sectionsByRole[user.role] || [];
-  // Estado para controlar qué acordeón está abierto
   const [openAccordion, setOpenAccordion] = useState(null);
+
+  if (!user) return null;
+
+  const sections = sectionsByRole[user.role] || [];
+
   const handleAccordion = (label) => {
     setOpenAccordion(openAccordion === label ? null : label);
   };
-  return (
-    <aside style={sidebarStyles.aside(collapsed)}>
-      <nav style={sidebarStyles.nav}>
-        {sections.map((section, idx) => (
-          <div key={section.title || idx} style={sidebarStyles.section}>
-            {section.title && !collapsed && (
-              <div style={sidebarStyles.sectionTitle(collapsed)}>{section.title}</div>
+
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
+  const renderNavItem = (item, level = 0) => {
+    const Icon = item.icon;
+    const active = location.pathname === item.path;
+    const isAccordionOpen = openAccordion === item.label && !collapsed;
+
+    if (item.children) {
+      return (
+        <div key={item.label} className="nav-item">
+          <div
+            className={`nav-link accordion-toggle ${collapsed ? 'collapsed' : ''}`}
+            onClick={() => handleAccordion(item.label)}
+            title={collapsed ? item.label : undefined}
+          >
+            <Icon size={20} className="nav-icon" />
+            {!collapsed && (
+              <>
+                <span className="nav-label">{item.label}</span>
+                <FiChevronRight 
+                  size={16} 
+                  className={`accordion-arrow ${isAccordionOpen ? 'open' : ''}`}
+                />
+              </>
             )}
-            <ul style={sidebarStyles.ul}>
-              {section.items.map((item) => {
-                // Si el item tiene hijos, renderiza como acordeón
-                if (item.children) {
-                  const isOpen = openAccordion === item.label && !collapsed;
-                  return (
-                    <li key={item.label} style={sidebarStyles.li}>
-                      <div
-                        style={{ ...sidebarStyles.link(false, collapsed), userSelect: 'none', position: 'relative' }}
-                        onClick={() => handleAccordion(item.label)}
-                        title={collapsed ? item.label : undefined}
-                      >
-                        <span style={sidebarStyles.icon(collapsed)}>{item.icon}</span>
-                        {!collapsed && item.label}
-                        {!collapsed && (
-                          <span style={{ marginLeft: 'auto', fontSize: 14, color: '#ff5722', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>&#9654;</span>
-                        )}
-                      </div>
-                      {isOpen && (
-                        <ul style={{ ...sidebarStyles.ul, background: '#faf9f6', marginLeft: 0 }}>
-                          {item.children.map((child) => {
-                            const active = location.pathname === child.path;
-                            return (
-                              <li key={child.path} style={sidebarStyles.li}>
-                                <Link to={child.path} style={{ ...sidebarStyles.link(active, collapsed), paddingLeft: collapsed ? 0 : 44 }} title={collapsed ? child.label : undefined}>
-                                  <span style={sidebarStyles.icon(collapsed)}>{child.icon}</span>
-                                  {!collapsed && child.label}
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </li>
-                  );
-                }
-                // Item normal
-                const active = location.pathname === item.path;
-                return (
-                  <li key={item.path} style={sidebarStyles.li}>
-                    <Link to={item.path} style={sidebarStyles.link(active, collapsed)} title={collapsed ? item.label : undefined}>
-                      <span style={sidebarStyles.icon(collapsed)}>{item.icon}</span>
-                      {!collapsed && item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
           </div>
-        ))}
-      </nav>
-      {/* Botón de colapsar/expandir */}
-      <button
-        style={sidebarStyles.collapseBtn(collapsed)}
-        onClick={() => setCollapsed((c) => !c)}
-        aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-        title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-      >
-        {collapsed ? <span>&#9654;</span> : <span>&#9664;</span>}
-      </button>
-    </aside>
+          
+          {isAccordionOpen && (
+            <div className="nav-children">
+              {item.children.map(child => renderNavItem(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div key={item.path} className="nav-item">
+        <Link
+          to={item.path}
+          className={`nav-link ${active ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}
+          style={{ paddingLeft: level > 0 ? `${1.5 + level * 0.5}rem` : '1rem' }}
+          title={collapsed ? item.label : undefined}
+        >
+          <Icon size={20} className="nav-icon" />
+          {!collapsed && <span className="nav-label">{item.label}</span>}
+        </Link>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {/* Overlay para móvil */}
+      {isOpen && (
+        <div 
+          className="sidebar-overlay d-lg-none" 
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${isOpen ? 'show' : ''}`}>
+        {/* Header del sidebar */}
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <span className="brand-text">CRMGeoFal</span>
+          </div>
+          <Button
+            variant="link"
+            size="sm"
+            className="collapse-btn d-none d-lg-block"
+            onClick={toggleCollapse}
+            title={collapsed ? 'Expandir' : 'Colapsar'}
+          >
+            {collapsed ? <FiChevronRight size={16} /> : <FiChevronDown size={16} />}
+          </Button>
+          <Button
+            variant="link"
+            size="sm"
+            className="close-btn d-lg-none"
+            onClick={onClose}
+          >
+            <FiX size={16} />
+          </Button>
+        </div>
+
+        {/* Navegación */}
+        <nav className="sidebar-nav">
+          {sections.map((section, idx) => (
+            <div key={section.title || idx} className="nav-section">
+              {section.title && !collapsed && (
+                <div className="nav-section-title">{section.title}</div>
+              )}
+              <div className="nav-items">
+                {section.items.map(item => renderNavItem(item))}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer del sidebar */}
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <div className="user-avatar">
+              <FiUser size={16} />
+            </div>
+            {!collapsed && (
+              <div className="user-details">
+                <div className="user-name">{user.name}</div>
+                <div className="user-role">{user.role}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 

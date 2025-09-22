@@ -1,2 +1,0 @@
-import{b as i}from"./index-BFrTSJXc.js";const c=(e={})=>{const s=new URLSearchParams(e).toString(),t=s?`/api/services?${s}`:"/api/services";return i(t)},a=e=>i("/api/services",{method:"POST",body:JSON.stringify(e)}),o=(e,s)=>i(`/api/services/${e}`,{method:"PUT",body:JSON.stringify(s)}),n=e=>i(`/api/services/${e}`,{method:"DELETE"});export{a as c,n as d,c as l,o as u};
-//# sourceMappingURL=services-f6-NAC_H.js.map

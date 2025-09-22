@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import ModuloBase from '../components/ModuloBase';
-import Modal from '../components/Modal';
-import Toolbar from '../components/Toolbar';
-import Toast from '../components/Toast';
-import TableEmpty from '../components/TableEmpty';
+import React, { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
+import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding } from 'react-icons/fi';
+import PageHeader from '../components/common/PageHeader';
+import DataTable from '../components/common/DataTable';
+import ModalForm from '../components/common/ModalForm';
+import StatsCard from '../components/common/StatsCard';
 import { listCompanies, createCompany, updateCompany, deleteCompany } from '../services/companies';
 
-const PAGE_LIMIT = 20;
-
 const emptyForm = {
-  type: 'empresa', // 'empresa' | 'persona_natural'
+  type: 'empresa',
   ruc: '',
   dni: '',
   name: '',
@@ -19,210 +19,311 @@ const emptyForm = {
   contact_name: '',
 };
 
-const Clientes = () => {
-  const [rows, setRows] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+export default function Clientes() {
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [deletingClient, setDeletingClient] = useState(null);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'success' });
+  const queryClient = useQueryClient();
 
-  const load = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await listCompanies({ page, limit: PAGE_LIMIT, search });
-      setRows(data?.data || []);
-      setTotal(Number(data?.total || 0));
-    } catch (e) {
-      setError(e.message || 'Error al cargar clientes');
-    } finally {
-      setLoading(false);
+  const { data, isLoading } = useQuery(
+    ['clients'],
+    () => listCompanies(),
+    { keepPreviousData: true }
+  );
+
+  const handleMutationSuccess = (message) => {
+    queryClient.invalidateQueries('clients');
+    setShowModal(false);
+    setEditingClient(null);
+    setDeletingClient(null);
+  };
+
+  const createMutation = useMutation(createCompany, {
+    onSuccess: () => handleMutationSuccess('Cliente creado exitosamente'),
+    onError: (error) => console.error('Error creating client:', error)
+  });
+
+  const updateMutation = useMutation(updateCompany, {
+    onSuccess: () => handleMutationSuccess('Cliente actualizado exitosamente'),
+    onError: (error) => console.error('Error updating client:', error)
+  });
+
+  const deleteMutation = useMutation(deleteCompany, {
+    onSuccess: () => handleMutationSuccess('Cliente eliminado exitosamente'),
+    onError: (error) => console.error('Error deleting client:', error)
+  });
+
+  const handleCreate = () => {
+    setEditingClient(emptyForm);
+    setShowModal(true);
+  };
+
+  const handleEdit = (client) => {
+    setEditingClient(client);
+    setShowModal(true);
+  };
+
+  const handleDelete = (client) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar el cliente "${client.name}"?`)) {
+      deleteMutation.mutate(client.id);
     }
   };
 
-  useEffect(() => { load(); }, [page, search]);
-
-  const onNew = () => {
-    setEditing(null);
-    setForm(emptyForm);
-    setShowForm(true);
-  };
-  const onEdit = (c) => {
-    setEditing(c);
-    setForm({
-      type: c.type || 'empresa',
-      ruc: c.ruc || '',
-      dni: c.dni || '',
-      name: c.name || '',
-      address: c.address || '',
-      email: c.email || '',
-      phone: c.phone || '',
-      contact_name: c.contact_name || '',
-    });
-    setShowForm(true);
-  };
-  const onDelete = async (c) => {
-    const conf = window.prompt(`Para eliminar al cliente "${c.name}", escribe ELIMINAR`);
-    if (conf !== 'ELIMINAR') return;
-    try {
-      await deleteCompany(c.id);
-      await load();
-    } catch (e) {
-      alert(e.message || 'Error al eliminar cliente');
-    }
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const payload = { ...form };
-    if (payload.type === 'empresa') {
-      if (!payload.ruc) return alert('RUC es obligatorio para empresa');
-      payload.dni = '';
+  const handleSubmit = async (formData) => {
+    if (editingClient.id) {
+      await updateMutation.mutateAsync({ id: editingClient.id, ...formData });
     } else {
-      if (!payload.dni) return alert('DNI es obligatorio para persona natural');
-      payload.ruc = '';
+      await createMutation.mutateAsync(formData);
     }
-    try {
-      setSaving(true);
-      if (editing) await updateCompany(editing.id, payload);
-      else await createCompany(payload);
-      setShowForm(false);
-      setEditing(null);
-      setForm(emptyForm);
-      await load();
-      setToast({ message: editing ? 'Cliente actualizado' : 'Cliente creado', type: 'success' });
-    } catch (e) {
-      setToast({ message: e.message || 'Error al guardar', type: 'error' });
-    }
-    finally { setSaving(false); }
   };
+
+  const getTypeBadge = (type) => {
+    const typeConfig = {
+      'empresa': { bg: 'primary', text: 'Empresa', icon: FiHome },
+      'persona': { bg: 'info', text: 'Persona Natural', icon: FiUser }
+    };
+    
+    const config = typeConfig[type] || { bg: 'secondary', text: type, icon: FiUser };
+    const Icon = config.icon;
+    
+    return (
+      <Badge bg={config.bg} className="status-badge d-flex align-items-center">
+        <Icon size={12} className="me-1" />
+        {config.text}
+      </Badge>
+    );
+  };
+
+  const columns = [
+    {
+      header: 'ID',
+      accessor: 'id',
+      width: '80px'
+    },
+    {
+      header: 'Cliente',
+      accessor: 'name',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.name}</div>
+          <div className="d-flex align-items-center gap-2 mt-1">
+            {getTypeBadge(row.type)}
+            {row.ruc && (
+              <small className="text-muted">RUC: {row.ruc}</small>
+            )}
+            {row.dni && (
+              <small className="text-muted">DNI: {row.dni}</small>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Contacto',
+      accessor: 'contact',
+      render: (value, row) => (
+        <div>
+          {row.contact_name && (
+            <div className="fw-medium">{row.contact_name}</div>
+          )}
+          {row.email && (
+            <div className="d-flex align-items-center mt-1">
+              <FiMail size={12} className="me-1 text-muted" />
+              <small className="text-muted">{row.email}</small>
+            </div>
+          )}
+          {row.phone && (
+            <div className="d-flex align-items-center mt-1">
+              <FiPhone size={12} className="me-1 text-muted" />
+              <small className="text-muted">{row.phone}</small>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Dirección',
+      accessor: 'address',
+      render: (value) => (
+        value ? (
+          <div className="d-flex align-items-center">
+            <FiMapPin size={12} className="me-1 text-muted" />
+            <small className="text-muted">{value}</small>
+          </div>
+        ) : (
+          <small className="text-muted">Sin dirección</small>
+        )
+      )
+    },
+    {
+      header: 'Fecha Registro',
+      accessor: 'created_at',
+      type: 'date'
+    }
+  ];
+
+  const formFields = [
+    {
+      name: 'type',
+      label: 'Tipo de Cliente',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'empresa', label: 'Empresa' },
+        { value: 'persona', label: 'Persona Natural' }
+      ]
+    },
+    {
+      name: 'name',
+      label: 'Nombre/Razón Social',
+      type: 'text',
+      required: true,
+      placeholder: 'Ingresa el nombre o razón social'
+    },
+    {
+      name: 'ruc',
+      label: 'RUC',
+      type: 'text',
+      placeholder: 'Ingresa el RUC (solo para empresas)',
+      help: 'Solo para empresas'
+    },
+    {
+      name: 'dni',
+      label: 'DNI',
+      type: 'text',
+      placeholder: 'Ingresa el DNI (solo para personas)',
+      help: 'Solo para personas naturales'
+    },
+    {
+      name: 'contact_name',
+      label: 'Nombre de Contacto',
+      type: 'text',
+      placeholder: 'Ingresa el nombre del contacto'
+    },
+    {
+      name: 'email',
+      label: 'Email',
+      type: 'email',
+      placeholder: 'contacto@empresa.com'
+    },
+    {
+      name: 'phone',
+      label: 'Teléfono',
+      type: 'text',
+      placeholder: '+51 999 999 999'
+    },
+    {
+      name: 'address',
+      label: 'Dirección',
+      type: 'textarea',
+      placeholder: 'Ingresa la dirección completa'
+    }
+  ];
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    const companies = data?.companies || [];
+    return {
+      total: companies.length,
+      empresas: companies.filter(c => c.type === 'empresa').length,
+      personas: companies.filter(c => c.type === 'persona').length,
+      conEmail: companies.filter(c => c.email).length,
+      conTelefono: companies.filter(c => c.phone).length
+    };
+  }, [data]);
 
   return (
-    <ModuloBase titulo="Gestión de Clientes" descripcion="Administra clientes: empresas o personas naturales, contactos y datos de facturación.">
-      <Toolbar
-        left={(
-          <>
-            <input
-              placeholder="Buscar por nombre, RUC o DNI"
-              value={search}
-              onChange={(e)=>{ setSearch(e.target.value); setPage(1); }}
-              style={{ padding:'0.6rem 0.8rem', border:'1px solid #ddd', borderRadius:8, minWidth:260 }}
+    <Container fluid className="py-4">
+      <div className="fade-in">
+        <PageHeader
+          title="Gestión de Clientes"
+          subtitle="Crear, editar y gestionar clientes del sistema"
+          icon={FiUsers}
+          actions={
+            <Button variant="primary" onClick={handleCreate}>
+              <FiPlus className="me-2" />
+              Nuevo Cliente
+            </Button>
+          }
+        />
+
+        {/* Estadísticas */}
+        <Row className="g-4 mb-4">
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Total Clientes"
+              value={stats.total}
+              icon={FiUsers}
+              color="primary"
+              subtitle="Clientes registrados"
             />
-            {loading && <span style={{ color:'#888' }}>Cargando...</span>}
-            {error && <span style={{ color:'red' }}>{error}</span>}
-          </>
-        )}
-        right={<button onClick={onNew} className="btn btn-primary">+ Agregar cliente</button>}
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Empresas"
+              value={stats.empresas}
+              icon={FiBuilding}
+              color="success"
+              subtitle="Clientes corporativos"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Personas"
+              value={stats.personas}
+              icon={FiUser}
+              color="info"
+              subtitle="Clientes individuales"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Con Contacto"
+              value={stats.conEmail}
+              icon={FiMail}
+              color="warning"
+              subtitle="Con email registrado"
+            />
+          </Col>
+        </Row>
+
+        {/* Tabla de clientes */}
+        <Card className="shadow-sm border-0">
+          <Card.Header className="bg-white border-bottom">
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                <FiUsers className="me-2 text-primary" />
+                Lista de Clientes
+              </h5>
+              <Badge bg="light" text="dark" className="px-3 py-2">
+                {stats.total} clientes
+              </Badge>
+            </div>
+          </Card.Header>
+          <Card.Body className="p-0">
+            <DataTable
+              data={data?.companies || []}
+              columns={columns}
+              loading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              emptyMessage="No hay clientes registrados"
+            />
+          </Card.Body>
+        </Card>
+
+      <ModalForm
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        title={editingClient?.id ? 'Editar Cliente' : 'Nuevo Cliente'}
+        data={editingClient || emptyForm}
+        fields={formFields}
+        onSubmit={handleSubmit}
+        loading={createMutation.isLoading || updateMutation.isLoading}
+        submitText={editingClient?.id ? 'Actualizar' : 'Crear'}
       />
-
-      <div className="table-responsive">
-        <table className="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tipo</th>
-              <th>RUC/DNI</th>
-              <th>Nombre</th>
-              <th>Contacto</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>Dirección</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (<TableEmpty colSpan={9} message="Sin clientes" />)}
-            {rows.map((c) => (
-              <tr key={c.id}>
-                <td>{c.id}</td>
-                <td>{c.type}</td>
-                <td>{c.type === 'empresa' ? (c.ruc || '-') : (c.dni || '-')}</td>
-                <td>{c.name}</td>
-                <td>{c.contact_name || '-'}</td>
-                <td>{c.email}</td>
-                <td>{c.phone}</td>
-                <td style={{ maxWidth: 260 }}>{c.address}</td>
-                <td>
-                  <button className="btn btn-sm btn-secondary me-1" onClick={()=>onEdit(c)}>Editar</button>
-                  <button className="btn btn-sm btn-danger" onClick={()=>onDelete(c)}>Eliminar</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <button className="btn btn-outline-secondary" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Anterior</button>
-        <span>Página {page} de {Math.ceil((total||0)/PAGE_LIMIT)||1}</span>
-        <button className="btn btn-outline-secondary" disabled={page*PAGE_LIMIT>=total} onClick={()=>setPage(p=>p+1)}>Siguiente</button>
-      </div>
-
-      {showForm && (
-        <Modal open={showForm} onClose={()=>setShowForm(false)}>
-          <form onSubmit={onSubmit}>
-            <h3 style={{ marginBottom: 8 }}>{editing ? 'Editar cliente' : 'Nuevo cliente'}</h3>
-            <div style={{ color:'#888', marginBottom: 16 }}>{editing ? 'Actualiza los datos del cliente.' : 'Completa los datos del nuevo cliente.'}</div>
-
-            <div className="row g-3">
-              <div className="col-md-4">
-                <label className="form-label">Tipo</label>
-                <select className="form-select" value={form.type} onChange={(e)=>setForm({ ...form, type: e.target.value })}>
-                  <option value="empresa">Empresa</option>
-                  <option value="persona_natural">Persona Natural</option>
-                </select>
-              </div>
-              {form.type === 'empresa' ? (
-                <div className="col-md-4">
-                  <label className="form-label">RUC</label>
-                  <input className="form-control" value={form.ruc} onChange={(e)=>setForm({ ...form, ruc: e.target.value })} required />
-                </div>
-              ) : (
-                <div className="col-md-4">
-                  <label className="form-label">DNI</label>
-                  <input className="form-control" value={form.dni} onChange={(e)=>setForm({ ...form, dni: e.target.value })} required />
-                </div>
-              )}
-              <div className="col-md-8">
-                <label className="form-label">Nombre / Razón Social</label>
-                <input className="form-control" value={form.name} onChange={(e)=>setForm({ ...form, name: e.target.value })} required />
-              </div>
-              <div className="col-md-12">
-                <label className="form-label">Dirección</label>
-                <input className="form-control" value={form.address} onChange={(e)=>setForm({ ...form, address: e.target.value })} required />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Correo</label>
-                <input type="email" className="form-control" value={form.email} onChange={(e)=>setForm({ ...form, email: e.target.value })} required />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Teléfono</label>
-                <input className="form-control" value={form.phone} onChange={(e)=>setForm({ ...form, phone: e.target.value })} required />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Contacto</label>
-                <input className="form-control" value={form.contact_name} onChange={(e)=>setForm({ ...form, contact_name: e.target.value })} required />
-              </div>
-            </div>
-
-            <div className="mt-3 d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-secondary" onClick={()=>setShowForm(false)} disabled={saving}>Cancelar</button>
-              <button type="submit" className="btn btn-success" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      <Toast message={toast.message} type={toast.type} onClose={()=>setToast({ message:'', type:'success' })} />
-    </ModuloBase>
+    </Container>
   );
 };
-
-export default Clientes;

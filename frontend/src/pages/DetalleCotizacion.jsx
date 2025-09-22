@@ -34,7 +34,7 @@ export default function DetalleCotizacion() {
   const subtotal = useMemo(() => {
     return items.reduce((acc, it) => acc + Number(it.partial_price || 0), 0);
   }, [items]);
-  // If row has explicit igv, use it; otherwise derive from toggle of 18% stored in meta. Default to derived when missing
+  
   const derivedIgv = useMemo(() => Number((subtotal * 0.18).toFixed(2)), [subtotal]);
   const igvAmount = useMemo(() => {
     if (!row) return 0;
@@ -53,7 +53,6 @@ export default function DetalleCotizacion() {
     setItems((prev) => {
       const next = [...prev];
       const cur = { ...next[idx], [field]: field === 'quantity' || field === 'unit_price' ? Number(value) : value };
-      // recalc partial
       const qty = Number(cur.quantity || 0);
       const unit = Number(cur.unit_price || 0);
       cur.partial_price = Number((qty * unit).toFixed(2));
@@ -71,7 +70,6 @@ export default function DetalleCotizacion() {
       setSaving(true);
       setError('');
       setMessage('');
-      // Persist items first
       for (const it of items) {
         await updateQuoteItem(it.id, {
           code: it.code,
@@ -82,7 +80,6 @@ export default function DetalleCotizacion() {
           partial_price: Number(it.partial_price || 0),
         });
       }
-      // Update header with recomputed totals
       const payload = {
         client_contact: row?.client_contact || null,
         client_email: row?.client_email || null,
@@ -106,7 +103,7 @@ export default function DetalleCotizacion() {
   };
 
   return (
-    <ModuloBase titulo={`Cotización #${id}`} descripcion="Detalle y edición básica de la cotización">
+    <ModuloBase titulo={`Cotización #${id}`} descripcion="Detalle y edición de la cotización.">
       {loading && <div>Cargando...</div>}
       {error && <div className="alert alert-danger">{error}</div>}
       {row && (
@@ -180,12 +177,12 @@ export default function DetalleCotizacion() {
               </tbody>
             </table>
           </div>
-          <div className="d-flex justify-content-between align-items-start gap-4">
+          <div className="d-flex justify-content-between align-items-start gap-4 mt-3">
             <div>
               {message && <div className="alert alert-success py-1 px-2 mb-2">{message}</div>}
               {error && <div className="alert alert-danger py-1 px-2 mb-2">{error}</div>}
-              <button className="btn btn-primary btn-sm" onClick={saveAll} disabled={saving}>
-                {saving ? 'Guardando...' : 'Guardar cambios'}
+              <button className="btn btn-primary" onClick={saveAll} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </div>
             <div className="text-end">
@@ -193,8 +190,10 @@ export default function DetalleCotizacion() {
               <div>IGV: S/ {igvAmount.toFixed(2)}</div>
               <div><strong>Total: S/ {total.toFixed(2)}</strong></div>
             </div>
-            <a className="btn btn-outline-secondary" href={exportUrl('pdf')} target="_blank" rel="noreferrer">PDF</a>
-            <a className="btn btn-outline-secondary" href={exportUrl('excel')} target="_blank" rel="noreferrer">Excel</a>
+            <div className="d-flex gap-2">
+              <a className="btn btn-outline-secondary" href={exportUrl('pdf')} target="_blank" rel="noreferrer">Exportar PDF</a>
+              <a className="btn btn-outline-secondary" href={exportUrl('excel')} target="_blank" rel="noreferrer">Exportar Excel</a>
+            </div>
           </div>
         </>
       )}

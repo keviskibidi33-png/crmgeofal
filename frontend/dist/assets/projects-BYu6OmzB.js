@@ -1,2 +1,0 @@
-import{b as e}from"./index-BFrTSJXc.js";const c=(t={})=>{const o=new URLSearchParams(t).toString(),s=o?`/api/projects?${o}`:"/api/projects";return e(s)},a=t=>e("/api/projects",{method:"POST",body:JSON.stringify(t)}),p=(t,o)=>e(`/api/projects/${t}`,{method:"PATCH",body:JSON.stringify(o)}),i=t=>e(`/api/projects/${t}`,{method:"DELETE"});export{a as c,i as d,c as l,p as u};
-//# sourceMappingURL=projects-BYu6OmzB.js.map

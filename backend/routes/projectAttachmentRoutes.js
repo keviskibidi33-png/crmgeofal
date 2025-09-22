@@ -5,7 +5,9 @@ const auth = require('../middlewares/auth');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
-// Ventas, jefes, gerencia y admin pueden ver adjuntos
+// Global list of attachments
+router.get('/', auth(['vendedor_comercial','jefa_comercial','jefe_comercial','gerencia','admin']), projectAttachmentController.getAll);
+// Ventas, jefes, gerencia y admin pueden ver adjuntos por proyecto
 router.get('/project/:project_id', auth(['vendedor_comercial','jefa_comercial','jefe_comercial','gerencia','admin']), projectAttachmentController.getAllByProject);
 // Solo ventas y jefes pueden adjuntar
 router.post('/', auth(['vendedor_comercial','jefa_comercial','jefe_comercial']), upload.single('file'), projectAttachmentController.create);

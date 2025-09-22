@@ -1,2 +1,0 @@
-import{b as a}from"./index-BFrTSJXc.js";const r=(t={})=>{const e=new URLSearchParams(t).toString(),o=e?`/api/categories?${e}`:"/api/categories";return a(o)},i=t=>a("/api/categories",{method:"POST",body:JSON.stringify(t)}),c=(t,e)=>a(`/api/categories/${t}`,{method:"PUT",body:JSON.stringify(e)}),g=t=>a(`/api/categories/${t}`,{method:"DELETE"});export{i as c,g as d,r as l,c as u};
-//# sourceMappingURL=categories-Dw-2LaeZ.js.map

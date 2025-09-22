@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS evidences (
   uploaded_by INTEGER REFERENCES users(id),
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+

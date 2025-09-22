@@ -1,4 +1,15 @@
 const ProjectAttachment = require('../models/projectAttachment');
+const Audit = require('../models/audit');
+
+exports.getAll = async (req, res) => {
+  try {
+    const { page, limit, q } = req.query;
+    const { rows, total } = await ProjectAttachment.getAll({ page: Number(page) || 1, limit: Number(limit) || 20, q });
+    res.json({ data: rows, total });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener adjuntos' });
+  }
+};
 
 exports.getAllByProject = async (req, res) => {
   try {
@@ -10,7 +21,6 @@ exports.getAllByProject = async (req, res) => {
   }
 };
 
-const Audit = require('../models/audit');
 exports.create = async (req, res) => {
   try {
     const { project_id } = req.body;
@@ -37,12 +47,12 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    const user_id = req.user.id;
-    const deleted = await ProjectAttachment.delete(id, user_id);
+    const user = req.user;
+    const deleted = await ProjectAttachment.delete(id, user);
     if (!deleted) return res.status(403).json({ error: 'No autorizado para eliminar este archivo' });
     // Auditoría
     await Audit.log({
-      user_id,
+      user_id: user.id,
       action: 'eliminar',
       entity: 'project_attachment',
       entity_id: id,

@@ -1,244 +1,315 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import ModuloBase from '../components/ModuloBase';
-import TableEmpty from '../components/TableEmpty';
-import Toolbar from '../components/Toolbar';
-import { listQuotes, createQuote, listQuoteItems, addQuoteItem } from '../services/quotes';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
+import { 
+  FiPlus, FiEdit, FiTrash2, FiFileText, FiDollarSign, 
+  FiCalendar, FiUser, FiHome, FiCopy, FiDownload,
+  FiEye, FiCheckCircle, FiClock, FiX
+} from 'react-icons/fi';
+import PageHeader from '../components/common/PageHeader';
+import DataTable from '../components/common/DataTable';
+import StatsCard from '../components/common/StatsCard';
+import { listQuotes, createQuote, listQuoteItems, addQuoteItem, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
 import { listProjects } from '../services/projects';
-import { Link, useNavigate } from 'react-router-dom';
 
 export default function ListaCotizaciones() {
-  const [companies, setCompanies] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [filters, setFilters] = useState({ company_id: '', project_id: '', status: '', date_from: '', date_to: '' });
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [deletingQuote, setDeletingQuote] = useState(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [cRes, pRes] = await Promise.all([
-          listCompanies({ page: 1, limit: 100 }),
-          listProjects({ page: 1, limit: 200 }),
-        ]);
-        setCompanies(Array.isArray(cRes?.data) ? cRes.data : (cRes || []));
-        setProjects(Array.isArray(pRes?.data) ? pRes.data : (pRes || []));
-      } catch (e) {
-        // ignore
-      }
-    })();
-  }, []);
+  const { data: companiesData } = useQuery('companiesList', () => listCompanies({ page: 1, limit: 200 }), { staleTime: Infinity });
+  const { data: projectsData } = useQuery('projectsList', () => listProjects({ page: 1, limit: 500 }), { staleTime: Infinity });
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError('');
-  const params = {};
-      if (filters.company_id) params.company_id = filters.company_id;
-      if (filters.project_id) params.project_id = filters.project_id;
-  if (filters.status) params.status = filters.status;
-  if (filters.date_from) params.date_from = filters.date_from;
-  if (filters.date_to) params.date_to = filters.date_to;
-      const resp = await listQuotes(params);
-      const arr = Array.isArray(resp)
-        ? resp
-        : Array.isArray(resp?.data)
-        ? resp.data
-        : Array.isArray(resp?.rows)
-        ? resp.rows
-        : [];
-      setRows(arr);
-    } catch (e) {
-      setError(e.message || 'No se pudo cargar cotizaciones');
-    } finally {
-      setLoading(false);
+  const { data, isLoading } = useQuery(
+    ['quotes'],
+    () => listQuotes(),
+    { keepPreviousData: true }
+  );
+
+  const deleteMutation = useMutation(deleteQuote, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('quotes');
+      setDeletingQuote(null);
+    },
+    onError: (error) => console.error('Error deleting quote:', error)
+  });
+
+  const handleCreate = () => {
+    navigate('/cotizaciones/nueva');
+  };
+
+  const handleEdit = (quote) => {
+    navigate(`/cotizaciones/${quote.id}/editar`);
+  };
+
+  const handleView = (quote) => {
+    navigate(`/cotizaciones/${quote.id}`);
+  };
+
+  const handleDelete = (quote) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar la cotización "${quote.code || quote.id}"?`)) {
+      deleteMutation.mutate(quote.id);
     }
   };
 
-  useEffect(() => { loadData(); }, []); // initial
-
-  const filteredProjects = useMemo(() => {
-    if (!filters.company_id) return projects;
-    const cid = Number(filters.company_id);
-    return projects.filter(p => Number(p.company_id) === cid);
-  }, [projects, filters.company_id]);
-
-  const onClone = async (row) => {
+  const handleClone = async (quote) => {
     try {
       const payload = {
-        project_id: row.project_id,
-        variant_id: row.variant_id || null,
-        client_contact: row.client_contact,
-        client_email: row.client_email,
-        client_phone: row.client_phone,
-        issue_date: new Date().toISOString().slice(0,10),
-        subtotal: row.subtotal,
-        igv: row.igv,
-        total: row.total,
+        project_id: quote.project_id,
+        variant_id: quote.variant_id || null,
+        client_contact: quote.client_contact,
+        client_email: quote.client_email,
+        client_phone: quote.client_phone,
+        issue_date: new Date().toISOString().slice(0, 10),
+        subtotal: quote.subtotal,
+        igv: quote.igv,
+        total: quote.total,
         status: 'borrador',
-        meta: { from_quote_id: row.id, ...row.meta }
+        meta: { from_quote_id: quote.id, ...quote.meta }
       };
       const created = await createQuote(payload);
-      // Copiar ítems
-      const its = await listQuoteItems(row.id);
-      const items = Array.isArray(its?.data) ? its.data : (its || []);
-      for (const it of items) {
+      const itemsResponse = await listQuoteItems(quote.id);
+      const items = Array.isArray(itemsResponse?.data) ? itemsResponse.data : (itemsResponse || []);
+      for (const item of items) {
         await addQuoteItem({
           quote_id: created.id,
-          code: it.code,
-          description: it.description,
-          norm: it.norm,
-          unit_price: Number(it.unit_price || 0),
-          quantity: Number(it.quantity || 0),
-          partial_price: Number(it.partial_price || 0),
+          code: item.code,
+          description: item.description,
+          norm: item.norm,
+          unit_price: Number(item.unit_price || 0),
+          quantity: Number(item.quantity || 0),
+          partial_price: Number(item.partial_price || 0),
         });
       }
-      navigate(`/cotizaciones/${created.id}`);
-    } catch (e) {
-      alert('No se pudo clonar');
+      queryClient.invalidateQueries('quotes');
+      navigate(`/cotizaciones/${created.id}/editar`);
+    } catch (error) {
+      console.error('Error cloning quote:', error);
     }
   };
 
-  const exportUrl = (row, type) => {
-    const base = import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || '';
-    const path = `/api/quotes/${row.id}/export/${type}`;
-    return base && /\/api$/i.test(base) ? `${base}${path.replace(/^\/api/, '')}` : `${base}${path}`;
-  };
-
-  const setPreset = (preset) => {
-    const today = new Date();
-    if (preset === 'today') {
-      const d = today.toISOString().slice(0,10);
-      setFilters(f => ({ ...f, date_from: d, date_to: d }));
-      return;
-    }
-    if (preset === '7d') {
-      const to = today.toISOString().slice(0,10);
-      const fromDate = new Date(today); fromDate.setDate(today.getDate() - 6);
-      const from = fromDate.toISOString().slice(0,10);
-      setFilters(f => ({ ...f, date_from: from, date_to: to }));
-      return;
-    }
-    if (preset === 'month') {
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, '0');
-      const first = `${y}-${m}-01`;
-      const nextMonth = new Date(y, today.getMonth() + 1, 1);
-      const last = new Date(nextMonth - 1);
-      const lastStr = last.toISOString().slice(0,10);
-      setFilters(f => ({ ...f, date_from: first, date_to: lastStr }));
-    }
-  };
-
-  const StatusBadge = ({ status }) => {
-    const map = {
-      borrador: 'secondary',
-      enviado: 'primary',
-      aceptado: 'success',
-      rechazado: 'danger',
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      'borrador': { bg: 'secondary', text: 'Borrador', icon: FiClock },
+      'enviada': { bg: 'primary', text: 'Enviada', icon: FiFileText },
+      'aprobada': { bg: 'success', text: 'Aprobada', icon: FiCheckCircle },
+      'rechazada': { bg: 'danger', text: 'Rechazada', icon: FiX },
+      'cancelada': { bg: 'warning', text: 'Cancelada', icon: FiX }
     };
-    const cls = map[String(status || '').toLowerCase()] || 'secondary';
-    return <span className={`badge text-bg-${cls} text-capitalize`}>{status || '—'}</span>;
+    
+    const config = statusConfig[status] || { bg: 'secondary', text: status, icon: FiFileText };
+    const Icon = config.icon;
+    
+    return (
+      <Badge bg={config.bg} className="status-badge d-flex align-items-center">
+        <Icon size={12} className="me-1" />
+        {config.text}
+      </Badge>
+    );
   };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(amount || 0);
+  };
+
+  const columns = [
+    {
+      header: 'ID',
+      accessor: 'id',
+      width: '80px'
+    },
+    {
+      header: 'Código',
+      accessor: 'code',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{value || `COT-${row.id}`}</div>
+          <small className="text-muted">
+            <FiCalendar size={12} className="me-1" />
+            {new Date(row.issue_date).toLocaleDateString('es-ES')}
+          </small>
+        </div>
+      )
+    },
+    {
+      header: 'Cliente',
+      accessor: 'client',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.client_contact || 'Sin contacto'}</div>
+          {row.client_email && (
+            <small className="text-muted">
+              <FiUser size={12} className="me-1" />
+              {row.client_email}
+            </small>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Proyecto',
+      accessor: 'project',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.project?.name || 'Sin proyecto'}</div>
+          {row.project?.company && (
+            <small className="text-muted">
+              <FiHome size={12} className="me-1" />
+              {row.project.company.name}
+            </small>
+          )}
+        </div>
+      )
+    },
+    {
+      header: 'Estado',
+      accessor: 'status',
+      render: (value) => getStatusBadge(value)
+    },
+    {
+      header: 'Total',
+      accessor: 'total',
+      render: (value) => (
+        <div className="text-end">
+          <div className="fw-bold text-success">{formatCurrency(value)}</div>
+          <small className="text-muted">IGV: {formatCurrency(value * 0.18)}</small>
+        </div>
+      )
+    }
+  ];
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    const quotes = data?.quotes || [];
+    const totalValue = quotes.reduce((sum, quote) => sum + (quote.total || 0), 0);
+    return {
+      total: quotes.length,
+      borrador: quotes.filter(q => q.status === 'borrador').length,
+      enviadas: quotes.filter(q => q.status === 'enviada').length,
+      aprobadas: quotes.filter(q => q.status === 'aprobada').length,
+      rechazadas: quotes.filter(q => q.status === 'rechazada').length,
+      totalValue: totalValue
+    };
+  }, [data]);
 
   return (
-    <ModuloBase titulo="Cotizaciones" descripcion="Lista de cotizaciones por cliente y proyecto">
-      <Toolbar
-        compact
-        left={
-          <div className="row g-2 w-100">
-            <div className="col-12 col-md-3">
-              <label className="form-label">Cliente</label>
-              <select className="form-select" value={filters.company_id} onChange={e=>setFilters({ ...filters, company_id: e.target.value, project_id: '' })}>
-                <option value="">Todos</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+    <Container fluid className="py-4">
+      <div className="fade-in">
+        <PageHeader
+          title="Gestión de Cotizaciones"
+          subtitle="Crear, editar y gestionar cotizaciones del sistema"
+          icon={FiFileText}
+          actions={
+            <div className="d-flex gap-2">
+              <Button variant="outline-primary" onClick={() => navigate('/cotizaciones/nueva/lem')}>
+                <FiPlus className="me-2" />
+                Nueva LEM
+              </Button>
+              <Button variant="primary" onClick={handleCreate}>
+                <FiPlus className="me-2" />
+                Nueva Cotización
+              </Button>
             </div>
-            <div className="col-12 col-md-3">
-              <label className="form-label">Proyecto</label>
-              <select className="form-select" value={filters.project_id} onChange={e=>setFilters({ ...filters, project_id: e.target.value })}>
-                <option value="">Todos</option>
-                {filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-            <div className="col-6 col-md-2">
-              <label className="form-label">Estado</label>
-              <select className="form-select" value={filters.status} onChange={e=>setFilters({ ...filters, status: e.target.value })}>
-                <option value="">Todos</option>
-                <option value="borrador">Borrador</option>
-                <option value="enviado">Enviado</option>
-                <option value="aceptado">Aceptado</option>
-                <option value="rechazado">Rechazado</option>
-              </select>
-            </div>
-            <div className="col-6 col-md-2">
-              <label className="form-label">Desde</label>
-              <input type="date" className="form-control" value={filters.date_from} onChange={e=>setFilters({ ...filters, date_from: e.target.value })} />
-            </div>
-            <div className="col-6 col-md-2">
-              <label className="form-label">Hasta</label>
-              <input type="date" className="form-control" value={filters.date_to} onChange={e=>setFilters({ ...filters, date_to: e.target.value })} />
-            </div>
-            <div className="col-6 col-md-3">
-              <label className="form-label">Presets</label>
-              <div className="d-flex gap-2 flex-wrap">
-                <button className="btn btn-sm btn-outline-secondary" type="button" onClick={()=>setPreset('today')}>Hoy</button>
-                <button className="btn btn-sm btn-outline-secondary" type="button" onClick={()=>setPreset('7d')}>7 días</button>
-                <button className="btn btn-sm btn-outline-secondary" type="button" onClick={()=>setPreset('month')}>Este mes</button>
-              </div>
-            </div>
-          </div>
-        }
-        right={
-          <div className="d-flex gap-2 flex-wrap">
-            <button className="btn btn-outline-primary" onClick={loadData} disabled={loading}>{loading ? 'Cargando...' : 'Filtrar'}</button>
-            <Link to="/cotizaciones/nueva/lem" className="btn btn-primary">Nueva LEM</Link>
-          </div>
-        }
-      />
+          }
+        />
 
-      {error && <div className="alert alert-danger mt-3">{error}</div>}
+        {/* Estadísticas */}
+        <Row className="g-4 mb-4">
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Total Cotizaciones"
+              value={stats.total}
+              icon={FiFileText}
+              color="primary"
+              subtitle="Cotizaciones registradas"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Enviadas"
+              value={stats.enviadas}
+              icon={FiCheckCircle}
+              color="success"
+              subtitle="Enviadas a clientes"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Aprobadas"
+              value={stats.aprobadas}
+              icon={FiCheckCircle}
+              color="info"
+              subtitle="Aceptadas por clientes"
+            />
+          </Col>
+          <Col md={6} lg={3}>
+            <StatsCard
+              title="Valor Total"
+              value={`S/ ${stats.totalValue.toLocaleString()}`}
+              icon={FiDollarSign}
+              color="warning"
+              subtitle="Valor acumulado"
+            />
+          </Col>
+        </Row>
 
-      <div className="table-responsive mt-3">
-        <table className="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Proyecto</th>
-              <th>Fecha</th>
-              <th>Subtotal</th>
-              <th>IGV</th>
-              <th>Total</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(Array.isArray(rows) ? rows : []).map(row => (
-              <tr key={row.id}>
-                <td>{row.id}</td>
-                <td>{row.project_name || row.project_id}</td>
-                <td>{row.issue_date?.slice(0,10)}</td>
-                <td>S/ {Number(row.subtotal||0).toFixed(2)}</td>
-                <td>S/ {Number(row.igv||0).toFixed(2)}</td>
-                <td><strong>S/ {Number(row.total||0).toFixed(2)}</strong></td>
-                <td><StatusBadge status={row.status} /></td>
-                <td className="d-flex gap-2">
-                  <Link to={`/cotizaciones/${row.id}`} className="btn btn-sm btn-outline-secondary">Ver/Editar</Link>
-                  <button className="btn btn-sm btn-outline-primary" onClick={() => onClone(row)}>Clonar</button>
-                  <a className="btn btn-sm btn-outline-success" href={exportUrl(row, 'pdf')} target="_blank" rel="noreferrer">PDF</a>
-                  <a className="btn btn-sm btn-outline-success" href={exportUrl(row, 'excel')} target="_blank" rel="noreferrer">Excel</a>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 && !loading && (
-              <TableEmpty colSpan={8} label="Sin resultados" />
-            )}
-          </tbody>
-        </table>
+        {/* Tabla de cotizaciones */}
+        <Card className="shadow-sm border-0">
+          <Card.Header className="bg-white border-bottom">
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                <FiFileText className="me-2 text-primary" />
+                Lista de Cotizaciones
+              </h5>
+              <Badge bg="light" text="dark" className="px-3 py-2">
+                {stats.total} cotizaciones
+              </Badge>
+            </div>
+          </Card.Header>
+          <Card.Body className="p-0">
+            <DataTable
+              data={data?.quotes || []}
+              columns={columns}
+              loading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onView={handleView}
+              emptyMessage="No hay cotizaciones registradas"
+              actions={[
+                {
+                  label: 'Ver',
+                  icon: FiEye,
+                  onClick: handleView,
+                  variant: 'outline-info'
+                },
+                {
+                  label: 'Editar',
+                  icon: FiEdit,
+                  onClick: handleEdit,
+                  variant: 'outline-primary'
+                },
+                {
+                  label: 'Clonar',
+                  icon: FiCopy,
+                  onClick: handleClone,
+                  variant: 'outline-secondary'
+                },
+                {
+                  label: 'Eliminar',
+                  icon: FiTrash2,
+                  onClick: handleDelete,
+                  variant: 'outline-danger'
+                }
+              ]}
+            />
+          </Card.Body>
+        </Card>
       </div>
-    </ModuloBase>
+    </Container>
   );
-}
+};
