@@ -214,6 +214,33 @@ a:hover {
   transform: none;
 }
 
+/* Estilos para estado vacío de actividades */
+.activity-empty-state {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background-clip: padding-box;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.activity-empty-state .icon {
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.activity-empty-state:hover .icon {
+  opacity: 0.8;
+}
+
+.activity-empty-state .btn {
+  transition: all 0.2s ease;
+}
+
+.activity-empty-state .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
 .sidebar-overlay {
   position: fixed;
   top: 0;

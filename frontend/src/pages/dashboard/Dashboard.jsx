@@ -265,7 +265,7 @@ const Dashboard = () => {
           <Card className="h-100">
             <Card.Header className="d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Actividades Recientes</h5>
+              <h5 className="mb-0">Actividades Recientes</h5>
                 {activitiesCount > 0 && (
                   <small className="text-muted">
                     {activitiesCount} actividad{activitiesCount !== 1 ? 'es' : ''} • Actualizado automáticamente
@@ -295,9 +295,9 @@ const Dashboard = () => {
                     onClick={() => navigate('/actividades')}
                     title="Ver todas las actividades (Solo Admin)"
                   >
-                    <FiEye className="me-1" />
-                    Ver todas
-                  </Button>
+                <FiEye className="me-1" />
+                Ver todas
+              </Button>
                 )}
               </div>
             </Card.Header>
@@ -309,29 +309,51 @@ const Dashboard = () => {
                   </div>
                   <p className="mt-2 text-muted">Cargando actividades recientes...</p>
                 </div>
+              ) : recentActivities.length === 0 ? (
+                <div className="activity-empty-state text-center">
+                  <div className="mb-3">
+                    <FiActivity size={48} className="text-muted icon" />
+                  </div>
+                  <h6 className="text-muted mb-2">No hay actividades recientes</h6>
+                  <p className="text-muted small mb-3">
+                    {user?.role === 'admin' 
+                      ? 'Aún no hay actividades registradas en el sistema.'
+                      : 'No hay actividades relevantes a tu rol en este momento.'
+                    }
+                  </p>
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={refreshActivities}
+                    className="mt-2"
+                  >
+                    <FiActivity className="me-1" />
+                    Actualizar
+                  </Button>
+                </div>
               ) : (
-                <div className="activity-list">
-                  {recentActivities.map((activity) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={activity.id} className="activity-item d-flex align-items-start mb-3">
-                        <div className={`activity-icon bg-${activity.color} bg-opacity-10 rounded-circle p-2 me-3`}>
-                          <Icon size={20} className={`text-${activity.color}`} />
-                        </div>
-                        <div className="flex-grow-1">
-                          <h6 className="mb-1">{activity.title}</h6>
-                          <p className="text-muted mb-1 small">{activity.description}</p>
+              <div className="activity-list">
+                {recentActivities.map((activity) => {
+                  const Icon = activity.icon;
+                  return (
+                    <div key={activity.id} className="activity-item d-flex align-items-start mb-3">
+                      <div className={`activity-icon bg-${activity.color} bg-opacity-10 rounded-circle p-2 me-3`}>
+                        <Icon size={20} className={`text-${activity.color}`} />
+                      </div>
+                      <div className="flex-grow-1">
+                        <h6 className="mb-1">{activity.title}</h6>
+                        <p className="text-muted mb-1 small">{activity.description}</p>
                           <div className="d-flex justify-content-between align-items-center">
-                            <small className="text-muted">{activity.time}</small>
+                        <small className="text-muted">{activity.time}</small>
                             {activity.user && (
                               <small className="text-muted">por {activity.user}</small>
                             )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
+              </div>
               )}
             </Card.Body>
           </Card>
