@@ -43,12 +43,6 @@ export default function Proyectos() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
 
-  // Log cuando cambia el estado del Toast
-  React.useEffect(() => {
-    console.log('🔔 Toast State - showToast:', showToast);
-    console.log('🔔 Toast State - message:', toastMessage);
-    console.log('🔔 Toast State - variant:', toastVariant);
-  }, [showToast, toastMessage, toastVariant]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -106,21 +100,9 @@ export default function Proyectos() {
   };
 
   const showNotification = (message, variant = 'success') => {
-    console.log('🔔 showNotification - Message:', message);
-    console.log('🔔 showNotification - Variant:', variant);
     setToastMessage(message);
     setToastVariant(variant);
     setShowToast(true);
-    console.log('🔔 showNotification - Toast activado');
-    
-    // Forzar re-render del componente
-    setTimeout(() => {
-      console.log('🔔 showNotification - Forzando re-render');
-      setShowToast(false);
-      setTimeout(() => {
-        setShowToast(true);
-      }, 100);
-    }, 100);
   };
 
   // Función para manejar búsqueda
@@ -685,10 +667,10 @@ export default function Proyectos() {
                   Cliente: {selectedClient.name}
                 </Badge>
               )}
-              <Button variant="primary" onClick={handleCreate}>
-                <FiPlus className="me-2" />
+            <Button variant="primary" onClick={handleCreate}>
+              <FiPlus className="me-2" />
                 {selectedClient ? 'Crear Proyecto' : 'Nuevo Proyecto'}
-              </Button>
+            </Button>
             </div>
           }
         />
@@ -755,9 +737,9 @@ export default function Proyectos() {
                 >
                   <FiRefreshCw className={`${isLoading ? 'spinning' : ''}`} />
                 </Button>
-                <Badge bg="light" text="dark" className="px-3 py-2">
-                  {stats.total} proyectos
-                </Badge>
+              <Badge bg="light" text="dark" className="px-3 py-2">
+                {stats.total} proyectos
+              </Badge>
               </div>
             </div>
           </Card.Header>
@@ -1003,58 +985,45 @@ export default function Proyectos() {
                       </div>
                     </div>
                     <div className="col-12">
-                      <div className="d-flex gap-2">
-                        <Button 
-                          variant="primary" 
-                          onClick={() => {
-                            const projectId = selectedProject?.id;
-                            console.log('🔍 selectedProject:', selectedProject);
-                            console.log('🔍 projectId:', projectId);
-                            console.log('🔍 typeof projectId:', typeof projectId);
-                            
-                            if (!projectId) {
-                              console.error('No se encontró el ID del proyecto');
-                              showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                              return;
+                      <Button 
+                        variant="primary" 
+                        onClick={() => {
+                          const projectId = selectedProject?.id;
+                          console.log('🔍 selectedProject:', selectedProject);
+                          console.log('🔍 projectId:', projectId);
+                          console.log('🔍 typeof projectId:', typeof projectId);
+                          
+                          if (!projectId) {
+                            console.error('No se encontró el ID del proyecto');
+                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
+                            return;
+                          }
+                          
+                          // Asegurar que projectId sea un número
+                          const numericId = typeof projectId === 'object' ? projectId.id : projectId;
+                          console.log('🔍 numericId:', numericId);
+                          
+                          console.log('🔍 Guardando cambios del proyecto:', editingData);
+                          
+                          // Llamar a la mutación con manejo de respuesta
+                          updateMutation.mutate({ 
+                            id: numericId, 
+                            data: editingData
+                          }, {
+                            onSuccess: (data) => {
+                              console.log('✅ Guardar Cambios - Éxito:', data);
+                              showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+                            },
+                            onError: (error) => {
+                              console.error('❌ Guardar Cambios - Error:', error);
+                              showNotification('❌ Error al actualizar proyecto', 'danger');
                             }
-                            
-                            // Asegurar que projectId sea un número
-                            const numericId = typeof projectId === 'object' ? projectId.id : projectId;
-                            console.log('🔍 numericId:', numericId);
-                            
-                            console.log('🔍 Guardando cambios del proyecto:', editingData);
-                            
-                            // Llamar a la mutación con manejo de respuesta
-                            updateMutation.mutate({ 
-                              id: numericId, 
-                              data: editingData
-                            }, {
-                              onSuccess: (data) => {
-                                console.log('✅ Guardar Cambios - Éxito:', data);
-                                showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-                              },
-                              onError: (error) => {
-                                console.error('❌ Guardar Cambios - Error:', error);
-                                showNotification('❌ Error al actualizar proyecto', 'danger');
-                              }
-                            });
-                          }}
-                          disabled={updateMutation.isLoading}
-                        >
-                          {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
-                        </Button>
-                        
-                        <Button 
-                          variant="outline-success" 
-                          size="sm"
-                          onClick={() => {
-                            console.log('🧪 Probando Toast...');
-                            showNotification('🧪 ¡Toast de prueba funcionando!', 'success');
-                          }}
-                        >
-                          🧪 Probar Toast
-                        </Button>
-                      </div>
+                          });
+                        }}
+                        disabled={updateMutation.isLoading}
+                      >
+                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                      </Button>
                     </div>
                   </div>
                 </Tab>
@@ -1368,14 +1337,10 @@ export default function Proyectos() {
       <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
         <Toast 
           show={showToast} 
-          onClose={() => {
-            console.log('🔔 Toast - Cerrando notificación');
-            setShowToast(false);
-          }} 
+          onClose={() => setShowToast(false)} 
           delay={5000} 
           autohide
           bg={toastVariant}
-          onShow={() => console.log('🔔 Toast - Mostrando notificación')}
           style={{ 
             minWidth: '300px',
             backgroundColor: toastVariant === 'success' ? '#28a745' : '#dc3545'
