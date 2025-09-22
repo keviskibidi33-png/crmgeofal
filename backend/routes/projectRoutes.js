@@ -9,6 +9,7 @@ router.get('/stats', auth(), projectController.getStats);
 router.get('/:id', auth(), projectController.getById);
 router.post('/', auth(['jefa_comercial','vendedor_comercial']), projectController.create);
 router.put('/:id', auth(['jefa_comercial','vendedor_comercial']), projectController.update);
+router.patch('/:id', auth(['jefa_comercial','vendedor_comercial']), projectController.update);
 router.put('/:id/status', auth(['jefa_comercial','vendedor_comercial','admin']), projectController.updateStatus);
 router.put('/:id/categories', auth(['jefa_comercial','vendedor_comercial','admin']), projectController.updateCategories);
 router.put('/:id/queries', auth(['jefa_comercial','vendedor_comercial','admin']), projectController.updateQueries);

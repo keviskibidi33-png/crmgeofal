@@ -985,14 +985,22 @@ export default function Proyectos() {
                         variant="primary" 
                         onClick={() => {
                           const projectId = selectedProject?.id;
+                          console.log('🔍 selectedProject:', selectedProject);
+                          console.log('🔍 projectId:', projectId);
+                          console.log('🔍 typeof projectId:', typeof projectId);
+                          
                           if (!projectId) {
                             console.error('No se encontró el ID del proyecto');
                             return;
                           }
                           
+                          // Asegurar que projectId sea un número
+                          const numericId = typeof projectId === 'object' ? projectId.id : projectId;
+                          console.log('🔍 numericId:', numericId);
+                          
                           console.log('🔍 Guardando cambios del proyecto:', editingData);
                           updateMutation.mutate({ 
-                            id: projectId, 
+                            id: numericId, 
                             ...editingData
                           });
                           // No cerrar el modal para ver los cambios

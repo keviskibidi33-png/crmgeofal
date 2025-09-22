@@ -32,11 +32,16 @@ export const createProject = (payload) =>
 
 export const getProject = (id) => apiFetch(`/api/projects/${id}`);
 
-export const updateProject = (id, payload) =>
-  apiFetch(`/api/projects/${id}`, {
+export const updateProject = (id, payload) => {
+  console.log('🔍 updateProject - ID:', id);
+  console.log('🔍 updateProject - Payload:', payload);
+  console.log('🔍 updateProject - URL:', `/api/projects/${id}`);
+  
+  return apiFetch(`/api/projects/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
+};
 
 export const updateProjectStatus = (id, payload) =>
   apiFetch(`/api/projects/${id}/status`, {
