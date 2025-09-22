@@ -41,7 +41,6 @@ export default function Recuperados() {
   return (
     <ModuloBase titulo="Clientes Recuperados" descripcion="Empresas sin proyectos en los últimos meses (seguimiento comercial)">
       <Toolbar
-        compact
         left={
           <div className="row g-2 w-100">
             <div className="col-6 col-md-3">
