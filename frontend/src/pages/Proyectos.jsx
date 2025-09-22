@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -15,6 +15,9 @@ export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [showQueriesModal, setShowQueriesModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -153,6 +156,27 @@ export default function Proyectos() {
   const handleDelete = (project) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.name}"?`)) {
       deleteMutation.mutate(project.id);
+    }
+  };
+
+  const handleViewCategories = (project) => {
+    setSelectedProject(project);
+    setShowCategoriesModal(true);
+  };
+
+  const handleViewQueries = (project) => {
+    setSelectedProject(project);
+    setShowQueriesModal(true);
+  };
+
+  const handleToggleMark = async (project) => {
+    try {
+      // Aquí implementarías la lógica para marcar/desmarcar
+      console.log('Marcar/desmarcar proyecto:', project);
+      // Por ahora solo mostramos un mensaje
+      alert(`Proyecto ${project.marked ? 'desmarcado' : 'marcado'}: ${project.name}`);
+    } catch (error) {
+      console.error('Error al marcar proyecto:', error);
     }
   };
 
@@ -541,6 +565,13 @@ export default function Proyectos() {
               loading={isLoading || isSearching}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              actions={[
+                { label: 'Editar', icon: FiEdit, onClick: handleEdit, variant: 'outline-primary' },
+                { label: 'Categorías', icon: FiFolder, onClick: handleViewCategories, variant: 'outline-info' },
+                { label: 'Consultas', icon: FiMessageCircle, onClick: handleViewQueries, variant: 'outline-warning' },
+                { label: 'Marcar', icon: FiCheck, onClick: handleToggleMark, variant: 'outline-success' },
+                { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
+              ]}
               emptyMessage="No hay proyectos registrados"
               // Props para paginación del backend
               totalItems={data?.total || 0}
@@ -564,6 +595,55 @@ export default function Proyectos() {
         onSubmit={handleSubmit}
         loading={createMutation.isLoading || updateMutation.isLoading}
         submitText={editingProject?.id ? 'Actualizar' : 'Crear'}
+      />
+
+      {/* Modal para Categorías */}
+      <ModalForm
+        show={showCategoriesModal}
+        onHide={() => setShowCategoriesModal(false)}
+        title={`Categorías - ${selectedProject?.name || ''}`}
+        data={selectedProject || {}}
+        fields={[
+          {
+            name: 'categories',
+            label: 'Categorías del Proyecto',
+            type: 'checkbox-group',
+            options: [
+              { value: 'laboratorio', label: 'Laboratorio' },
+              { value: 'ingenieria', label: 'Ingeniería' },
+              { value: 'consultoria', label: 'Consultoría' },
+              { value: 'capacitacion', label: 'Capacitación' },
+              { value: 'auditoria', label: 'Auditoría' }
+            ]
+          }
+        ]}
+        onSubmit={(data) => {
+          console.log('Categorías actualizadas:', data);
+          setShowCategoriesModal(false);
+        }}
+        submitText="Guardar Categorías"
+      />
+
+      {/* Modal para Consultas */}
+      <ModalForm
+        show={showQueriesModal}
+        onHide={() => setShowQueriesModal(false)}
+        title={`Consultas - ${selectedProject?.name || ''}`}
+        data={selectedProject || {}}
+        fields={[
+          {
+            name: 'queries',
+            label: 'Consultas y Dudas',
+            type: 'textarea',
+            placeholder: 'Ingresa las consultas o dudas del cliente...',
+            rows: 5
+          }
+        ]}
+        onSubmit={(data) => {
+          console.log('Consultas actualizadas:', data);
+          setShowQueriesModal(false);
+        }}
+        submitText="Guardar Consultas"
       />
       </div>
     </Container>
