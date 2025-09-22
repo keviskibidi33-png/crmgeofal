@@ -2,33 +2,66 @@ import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Dropdown, Badge, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings, FiCheck, FiX } from 'react-icons/fi';
+import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings, FiCheck, FiX, FiWifi, FiWifiOff } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { getNotifications, getNotificationStats, markNotificationAsRead, markAllNotificationsAsRead } from '../services/notifications';
+import { useSocket, useSocketNotification } from '../hooks/useSocket';
 
 const Header = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [realTimeNotifications, setRealTimeNotifications] = useState([]);
+  const [realTimeUnreadCount, setRealTimeUnreadCount] = useState(0);
 
-  // Obtener notificaciones del usuario
+  // WebSocket connection
+  const { isConnected, connectionError } = useSocket();
+
+  // Obtener notificaciones del usuario (solo carga inicial)
   const { data: notificationsData, isLoading: notificationsLoading } = useQuery(
     ['notifications', user?.id],
     () => getNotifications({ limit: 5, unreadOnly: false }),
     {
       enabled: !!user,
-      refetchInterval: 30000, // Refrescar cada 30 segundos
-      staleTime: 10000 // Considerar datos frescos por 10 segundos
+      refetchInterval: false, // ❌ Deshabilitado: ya no necesitamos polling
+      staleTime: Infinity, // Los datos se actualizan via WebSocket
+      onSuccess: (data) => {
+        setRealTimeNotifications(data.notifications || []);
+        setRealTimeUnreadCount(data.unreadCount || 0);
+      }
     }
   );
 
-  // Obtener estadísticas de notificaciones
+  // Obtener estadísticas de notificaciones (solo carga inicial)
   const { data: statsData } = useQuery(
     ['notificationStats', user?.id],
     getNotificationStats,
     {
       enabled: !!user,
-      refetchInterval: 30000
+      refetchInterval: false, // ❌ Deshabilitado: ya no necesitamos polling
+      staleTime: Infinity,
+      onSuccess: (data) => {
+        setRealTimeUnreadCount(data.unreadCount || 0);
+      }
+    }
+  );
+
+  // WebSocket listeners para notificaciones en tiempo real
+  useSocketNotification(
+    // Nueva notificación recibida
+    (notification) => {
+      console.log('Nueva notificación en tiempo real:', notification);
+      setRealTimeNotifications(prev => [notification, ...prev.slice(0, 4)]);
+      setRealTimeUnreadCount(prev => prev + 1);
+      
+      // Invalidar queries para sincronizar datos
+      queryClient.invalidateQueries(['notifications', user?.id]);
+      queryClient.invalidateQueries(['notificationStats', user?.id]);
+    },
+    // Actualización de contador
+    (data) => {
+      console.log('Actualización de contador en tiempo real:', data);
+      setRealTimeUnreadCount(data.count);
     }
   );
 
@@ -113,8 +146,9 @@ const Header = ({ onToggleSidebar }) => {
     return icons[type] || '🔔';
   };
 
-  const notifications = notificationsData?.notifications || [];
-  const unreadCount = statsData?.unreadCount || 0;
+  // Usar datos en tiempo real o fallback a datos de la query
+  const notifications = realTimeNotifications.length > 0 ? realTimeNotifications : (notificationsData?.notifications || []);
+  const unreadCount = realTimeUnreadCount > 0 ? realTimeUnreadCount : (statsData?.unreadCount || 0);
 
   const getRoleBadgeColor = (role) => {
     const colors = {
@@ -167,6 +201,15 @@ const Header = ({ onToggleSidebar }) => {
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto align-items-center">
+            {/* Indicador de conexión WebSocket */}
+            <div className="me-3 d-flex align-items-center">
+              {isConnected ? (
+                <FiWifi className="text-success" size={16} title="Conectado en tiempo real" />
+              ) : (
+                <FiWifiOff className="text-warning" size={16} title="Modo offline - notificaciones limitadas" />
+              )}
+            </div>
+
             {/* Notificaciones */}
             <Dropdown className="me-3">
               <Dropdown.Toggle variant="outline-secondary" size="sm" className="position-relative">
@@ -217,37 +260,37 @@ const Header = ({ onToggleSidebar }) => {
                         className={`${!notification.read_at ? 'bg-light' : ''}`}
                         style={{ cursor: 'pointer' }}
                       >
-                        <div className="d-flex align-items-start">
-                          <div className="me-2">
-                            <div className="bg-primary bg-opacity-10 rounded-circle p-1">
+                  <div className="d-flex align-items-start">
+                    <div className="me-2">
+                      <div className="bg-primary bg-opacity-10 rounded-circle p-1">
                               <span style={{ fontSize: '12px' }}>
                                 {getNotificationIcon(notification.type)}
                               </span>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
                           <div className="flex-grow-1">
                             <div className={`fw-medium ${!notification.read_at ? 'text-dark' : 'text-muted'}`}>
                               {notification.title}
-                            </div>
+                    </div>
                             <div className="text-muted small">
                               {notification.message}
-                            </div>
+                  </div>
                             <small className="text-muted">
                               {formatNotificationTime(notification.created_at)}
                             </small>
-                          </div>
+                      </div>
                           {!notification.read_at && (
                             <div className="ms-2">
                               <div className="bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></div>
-                            </div>
+                    </div>
                           )}
-                        </div>
-                      </Dropdown.Item>
+                  </div>
+                </Dropdown.Item>
                     ))}
-                    <Dropdown.Divider />
+                <Dropdown.Divider />
                     <Dropdown.Item className="text-center text-primary" onClick={() => navigate('/notificaciones')}>
-                      Ver todas las notificaciones
-                    </Dropdown.Item>
+                  Ver todas las notificaciones
+                </Dropdown.Item>
                   </>
                 )}
               </Dropdown.Menu>

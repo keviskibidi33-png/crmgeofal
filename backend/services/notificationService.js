@@ -1,4 +1,5 @@
 const Notification = require('../models/notification');
+const socketService = require('./socketService');
 
 class NotificationService {
   // Crear notificación cuando se asigna una cotización
@@ -12,6 +13,10 @@ class NotificationService {
         data: { quoteId, assignedByUserId },
         priority: 'normal'
       });
+
+      // Enviar notificación en tiempo real via WebSocket
+      socketService.sendNotificationToUser(assignedToUserId, notification);
+      
       return notification;
     } catch (error) {
       console.error('Error creating quote assigned notification:', error);

@@ -9,6 +9,8 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 4000;
+const http = require('http');
+const socketService = require('./services/socketService');
 const fs = require('fs');
 const dbPath = require('path');
 
@@ -88,7 +90,13 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-module.exports = app;
+// Crear servidor HTTP
+const server = http.createServer(app);
+
+// Inicializar WebSocket
+socketService.initialize(server);
+
+module.exports = { app, server };
 
 if (require.main === module) {
   // Only test DB connection and run schema when starting the server directly (not when running tests)
@@ -125,8 +133,9 @@ if (require.main === module) {
       if (!process.env.JWT_SECRET) {
         throw new Error('Falta la variable de entorno JWT_SECRET');
       }
-      app.listen(PORT, () => {
+      server.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
+        console.log(`WebSocket habilitado para notificaciones en tiempo real`);
       });
     } catch (err) {
       console.error('Startup error:', err);
