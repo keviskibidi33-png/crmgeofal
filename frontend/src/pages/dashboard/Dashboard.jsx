@@ -1,5 +1,6 @@
 import React from 'react';
 import { Row, Col, Card, Button, Container } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { 
   FiUsers, FiHome, FiFileText, FiMessageSquare, 
   FiArrowUp, FiDollarSign, FiCalendar, FiCheckCircle,
@@ -14,6 +15,8 @@ import { listQuotes } from '../../services/quotes';
 import { listTickets } from '../../services/tickets';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   // Consultas para obtener estadísticas
   const { data: usersData } = useQuery(['users'], listUsers);
   const { data: projectsData } = useQuery(['projects'], listProjects);
@@ -78,28 +81,28 @@ const Dashboard = () => {
       description: 'Crear un nuevo proyecto',
       icon: FiHome,
       color: 'primary',
-      href: '/proyectos'
+      onClick: () => navigate('/proyectos')
     },
     {
       title: 'Nueva Cotización',
       description: 'Generar cotización',
       icon: FiFileText,
       color: 'success',
-      href: '/cotizaciones'
+      onClick: () => navigate('/cotizaciones/nueva/lem')
     },
     {
       title: 'Nuevo Ticket',
       description: 'Crear ticket de soporte',
       icon: FiMessageSquare,
       color: 'warning',
-      href: '/tickets'
+      onClick: () => navigate('/tickets')
     },
     {
       title: 'Ver Reportes',
       description: 'Analizar datos del sistema',
       icon: FiArrowUp,
       color: 'info',
-      href: '/reportes'
+      onClick: () => navigate('/reportes')
     }
   ];
 
@@ -203,7 +206,7 @@ const Dashboard = () => {
                       key={index}
                       variant={`outline-${action.color}`}
                       className="w-100 mb-3 d-flex align-items-center justify-content-start"
-                      href={action.href}
+                      onClick={action.onClick}
                     >
                       <div className={`me-3 bg-${action.color} bg-opacity-10 rounded-circle p-2`}>
                         <Icon size={20} className={`text-${action.color}`} />
