@@ -1,0 +1,57 @@
+/* Estilos para el autocompletado */
+.autocomplete-suggestions {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background: white;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.autocomplete-suggestions .list-group {
+  margin-bottom: 0;
+}
+
+.autocomplete-suggestions .list-group-item {
+  border: none;
+  border-bottom: 1px solid #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.autocomplete-suggestions .list-group-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-suggestions .list-group-item:hover {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.autocomplete-suggestions .list-group-item:focus {
+  background-color: #e9ecef;
+  color: #495057;
+  outline: none;
+}
+
+/* Animación suave para las sugerencias */
+.autocomplete-suggestions {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilo para el campo con autocompletado */
+.form-control:focus + .autocomplete-suggestions {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}

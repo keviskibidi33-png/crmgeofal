@@ -38,6 +38,19 @@ export const getCompanyStats = () => {
   });
 };
 
+export const getCompanyFilterOptions = () => {
+  console.log('🔍 getCompanyFilterOptions - Llamando a: /api/companies/filter-options');
+  console.log('🔍 getCompanyFilterOptions - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  
+  return apiFetch('/api/companies/filter-options').then(data => {
+    console.log('✅ getCompanyFilterOptions - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ getCompanyFilterOptions - Error:', error);
+    throw error;
+  });
+};
+
 export const createCompany = (payload) =>
   apiFetch('/api/companies', {
     method: 'POST',

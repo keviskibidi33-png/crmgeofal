@@ -36,7 +36,7 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { type, ruc, dni, name, address, email, phone, contact_name } = req.body;
+    const { type, ruc, dni, name, address, email, phone, contact_name, city, sector } = req.body;
     // Validación básica
     if (!type || !name) {
       return res.status(400).json({ error: 'Tipo y nombre son obligatorios' });
@@ -49,22 +49,24 @@ exports.create = async (req, res) => {
       }
     }
     // TODO: Validar duplicidad por DNI si es persona natural
-    const company = await Company.create({ type, ruc, dni, name, address, email, phone, contact_name });
+    const company = await Company.create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector });
     res.status(201).json(company);
   } catch (err) {
+    console.error('Error creating company:', err);
     res.status(500).json({ error: 'Error al crear empresa' });
   }
 };
 
 exports.update = async (req, res) => {
   try {
-    const { type, ruc, dni, name, address, email, phone, contact_name } = req.body;
-    if (!type || !name || !address || !email || !phone || !contact_name || (type === 'empresa' && !ruc) || (type === 'persona_natural' && !dni)) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+    const { type, ruc, dni, name, address, email, phone, contact_name, city, sector } = req.body;
+    if (!type || !name) {
+      return res.status(400).json({ error: 'Tipo y nombre son obligatorios' });
     }
-    const company = await Company.update(req.params.id, { type, ruc, dni, name, address, email, phone, contact_name });
+    const company = await Company.update(req.params.id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector });
     res.json(company);
   } catch (err) {
+    console.error('Error updating company:', err);
     res.status(500).json({ error: 'Error al actualizar empresa' });
   }
 };
@@ -95,5 +97,18 @@ exports.getStats = async (req, res) => {
   } catch (err) {
     console.error('❌ getCompanyStats - Error:', err);
     res.status(500).json({ error: 'Error getting company stats: ' + err.message });
+  }
+};
+
+exports.getFilterOptions = async (req, res) => {
+  try {
+    console.log('🔍 getFilterOptions - Obteniendo opciones de filtros...');
+    
+    const filterOptions = await Company.getFilterOptions();
+    console.log('✅ getFilterOptions - Opciones obtenidas:', filterOptions);
+    res.json(filterOptions);
+  } catch (err) {
+    console.error('❌ getFilterOptions - Error:', err);
+    res.status(500).json({ error: 'Error getting filter options: ' + err.message });
   }
 };

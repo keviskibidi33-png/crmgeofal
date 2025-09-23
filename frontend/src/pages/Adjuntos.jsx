@@ -2,16 +2,28 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Container, Row, Col, Card, Badge, Button, Form, Alert, Spinner, ProgressBar } from 'react-bootstrap';
-import { FiUpload, FiDownload, FiTrash2, FiFile, FiFolder, FiSearch, FiFilter, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiClock, FiUsers } from 'react-icons/fi';
+import { FiUpload, FiDownload, FiTrash2, FiFile, FiFolder, FiSearch, FiFilter, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiClock, FiUsers, FiEdit } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
-import { listProjectAttachments, getAllAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
+import { listProjectAttachments, getAllAttachments, uploadAttachment, updateAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 import { listProjects } from '../services/projects';
+import { listCategories, listSubcategories } from '../services/categories';
 
-const emptyForm = { project_id: '', description: '', file: null };
+const emptyForm = { 
+  project_id: '', 
+  description: '', 
+  file: null, 
+  category_id: '', 
+  subcategory_id: '',
+  requiere_laboratorio: false,
+  requiere_ingenieria: false,
+  requiere_consultoria: false,
+  requiere_capacitacion: false,
+  requiere_auditoria: false
+};
 
 export default function Adjuntos() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +36,9 @@ export default function Adjuntos() {
 
   // State for modals
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [uploadForm, setUploadForm] = useState(emptyForm);
+  const [editingAttachment, setEditingAttachment] = useState(null);
   const [deletingAttachment, setDeletingAttachment] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -57,11 +71,51 @@ export default function Adjuntos() {
   const { data: projectsData } = useQuery('projectsList', () => listProjects({ page: 1, limit: 500 }), { staleTime: Infinity });
   const projects = useMemo(() => projectsData?.data || [], [projectsData]);
 
+  // Obtener todas las categorías disponibles
+  const { data: categoriesData, refetch: refetchCategories } = useQuery('categoriesList', listCategories, { 
+    staleTime: 30000, // 30 segundos
+    refetchOnWindowFocus: true 
+  });
+  const categories = useMemo(() => categoriesData || [], [categoriesData]);
+
+  // Obtener todas las subcategorías disponibles
+  const { data: subcategoriesData, refetch: refetchSubcategories } = useQuery('subcategoriesList', listSubcategories, { 
+    staleTime: 30000, // 30 segundos
+    refetchOnWindowFocus: true 
+  });
+  const subcategories = useMemo(() => subcategoriesData || [], [subcategoriesData]);
+
+  // Obtener el proyecto seleccionado para sus categorías
+  const selectedProjectData = useMemo(() => {
+    return projects.find(p => p.id === parseInt(uploadForm.project_id));
+  }, [projects, uploadForm.project_id]);
+
+  // Obtener el proyecto del archivo que se está editando
+  const selectedProjectDataForEdit = useMemo(() => {
+    if (!editingAttachment) return null;
+    return projects.find(p => p.id === parseInt(editingAttachment.project_id));
+  }, [projects, editingAttachment]);
+
+  // Función helper para actualizar categorías y subcategorías
+  const refreshCategoriesAndSubcategories = () => {
+    refetchCategories();
+    refetchSubcategories();
+  };
+
+  // Actualizar categorías cuando se abra el modal
+  useEffect(() => {
+    if (showUploadModal || showEditModal) {
+      refreshCategoriesAndSubcategories();
+    }
+  }, [showUploadModal, showEditModal, refetchCategories, refetchSubcategories]);
+
   const handleMutationSuccess = (message) => {
     setToast({ message, type: 'success', show: true });
     queryClient.invalidateQueries('allAttachments');
     setShowUploadModal(false);
+    setShowEditModal(false);
     setUploadForm(emptyForm);
+    setEditingAttachment(null);
     setDeletingAttachment(null);
     setUploadProgress(0);
   };
@@ -76,6 +130,14 @@ export default function Adjuntos() {
     {
       onSuccess: () => handleMutationSuccess('Archivo subido correctamente.'),
       onError: (err) => handleMutationError(err, 'Error al subir archivo.'),
+    }
+  );
+
+  const updateMutation = useMutation(
+    ({ id, formData }) => updateAttachment(id, formData),
+    {
+      onSuccess: () => handleMutationSuccess('Archivo actualizado correctamente.'),
+      onError: (err) => handleMutationError(err, 'Error al actualizar archivo.'),
     }
   );
 
@@ -94,8 +156,75 @@ export default function Adjuntos() {
     const formData = new FormData();
     formData.append('file', uploadForm.file);
     formData.append('description', uploadForm.description || '');
+    if (uploadForm.category_id) formData.append('category_id', uploadForm.category_id);
+    if (uploadForm.subcategory_id) formData.append('subcategory_id', uploadForm.subcategory_id);
+    formData.append('requiere_laboratorio', uploadForm.requiere_laboratorio);
+    formData.append('requiere_ingenieria', uploadForm.requiere_ingenieria);
+    formData.append('requiere_consultoria', uploadForm.requiere_consultoria);
+    formData.append('requiere_capacitacion', uploadForm.requiere_capacitacion);
+    formData.append('requiere_auditoria', uploadForm.requiere_auditoria);
     
     createMutation.mutate(formData);
+  };
+
+  const handleEdit = (attachment) => {
+    setEditingAttachment(attachment);
+    setUploadForm({
+      project_id: attachment.project_id,
+      description: attachment.description || '',
+      file: null,
+      category_id: attachment.category_id || '',
+      subcategory_id: attachment.subcategory_id || '',
+      requiere_laboratorio: attachment.requiere_laboratorio || false,
+      requiere_ingenieria: attachment.requiere_ingenieria || false,
+      requiere_consultoria: attachment.requiere_consultoria || false,
+      requiere_capacitacion: attachment.requiere_capacitacion || false,
+      requiere_auditoria: attachment.requiere_auditoria || false
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (!editingAttachment) return;
+
+    const updateData = {
+      description: uploadForm.description || '',
+      category_id: uploadForm.category_id || null,
+      subcategory_id: uploadForm.subcategory_id || null,
+      requiere_laboratorio: uploadForm.requiere_laboratorio,
+      requiere_ingenieria: uploadForm.requiere_ingenieria,
+      requiere_consultoria: uploadForm.requiere_consultoria,
+      requiere_capacitacion: uploadForm.requiere_capacitacion,
+      requiere_auditoria: uploadForm.requiere_auditoria
+    };
+
+    console.log('🔄 handleEditSubmit - Editing attachment ID:', editingAttachment.id);
+    console.log('🔄 handleEditSubmit - Upload form data:', uploadForm);
+    console.log('🔄 handleEditSubmit - Update data:', updateData);
+
+    // Siempre usar FormData para mantener consistencia
+    const formData = new FormData();
+    
+    // Si hay un nuevo archivo, lo agregamos
+    if (uploadForm.file) {
+      formData.append('file', uploadForm.file);
+    }
+    
+    // Agregar todos los datos de actualización
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== null && updateData[key] !== undefined) {
+        formData.append(key, updateData[key]);
+        console.log(`🔄 FormData - ${key}:`, updateData[key]);
+      }
+    });
+    
+    console.log('🔄 FormData entries:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value);
+    }
+    
+    updateMutation.mutate({ id: editingAttachment.id, formData });
   };
 
   const handleDeleteConfirm = () => {
@@ -375,7 +504,7 @@ export default function Adjuntos() {
     { 
       header: 'Acciones', 
       accessor: 'actions',
-      width: 150,
+      width: 180,
       render: (value, row) => (
         <div className="d-flex gap-1">
           <Button
@@ -385,6 +514,14 @@ export default function Adjuntos() {
             title="Descargar"
           >
             <FiDownload />
+          </Button>
+          <Button
+            variant="outline-success"
+            size="sm"
+            onClick={() => handleEdit(row)}
+            title="Editar"
+          >
+            <FiEdit />
           </Button>
           <Button
             variant="outline-danger"
@@ -583,7 +720,7 @@ export default function Adjuntos() {
       {/* Upload Modal */}
       {showUploadModal && (
         <Modal open={showUploadModal} onClose={() => setShowUploadModal(false)} size="lg">
-          <div>
+          <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
             <div className="d-flex align-items-center mb-4">
               <FiUpload className="me-2 text-primary" size={24} />
               <h4 className="mb-0">Subir Archivo Adjunto</h4>
@@ -595,7 +732,16 @@ export default function Adjuntos() {
                   <Form.Label className="fw-medium">Proyecto *</Form.Label>
                   <Form.Select
                     value={uploadForm.project_id}
-                    onChange={(e) => setUploadForm(f => ({ ...f, project_id: e.target.value }))}
+                    onChange={(e) => {
+                      const projectId = e.target.value;
+                      const project = projects.find(p => p.id === parseInt(projectId));
+                      setUploadForm(f => ({ 
+                        ...f, 
+                        project_id: projectId,
+                        category_id: project?.category_id || '',
+                        subcategory_id: project?.subcategory_id || ''
+                      }));
+                    }}
                     required
                     className="form-select-lg"
                   >
@@ -607,6 +753,82 @@ export default function Adjuntos() {
                     ))}
                   </Form.Select>
                 </Col>
+
+                {/* Categorías disponibles */}
+                <Col md={12}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Form.Label className="fw-medium mb-0">Categorías Disponibles</Form.Label>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={refreshCategoriesAndSubcategories}
+                      title="Actualizar lista de categorías"
+                    >
+                      🔄 Actualizar
+                    </Button>
+                  </div>
+                  <div className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {categories.length > 0 ? (
+                      categories.map(category => (
+                        <Form.Check
+                          key={category.id}
+                          type="checkbox"
+                          id={`category-${category.id}`}
+                          label={`📁 ${category.name}`}
+                          checked={uploadForm.category_id === category.id}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            category_id: e.target.checked ? category.id : ''
+                          }))}
+                          className="mb-2"
+                        />
+                      ))
+                    ) : (
+                      <p className="text-muted mb-0">No hay categorías disponibles</p>
+                    )}
+                  </div>
+                  <Form.Text className="text-muted d-block mt-1">
+                    Selecciona una categoría para asignar al archivo
+                  </Form.Text>
+                </Col>
+
+                {/* Subcategorías disponibles */}
+                <Col md={12}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Form.Label className="fw-medium mb-0">Subcategorías Disponibles</Form.Label>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={refreshCategoriesAndSubcategories}
+                      title="Actualizar lista de subcategorías"
+                    >
+                      🔄 Actualizar
+                    </Button>
+                  </div>
+                  <div className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {subcategories.length > 0 ? (
+                      subcategories.map(subcategory => (
+                        <Form.Check
+                          key={subcategory.id}
+                          type="checkbox"
+                          id={`subcategory-${subcategory.id}`}
+                          label={`📂 ${subcategory.name}`}
+                          checked={uploadForm.subcategory_id === subcategory.id}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            subcategory_id: e.target.checked ? subcategory.id : ''
+                          }))}
+                          className="mb-2"
+                        />
+                      ))
+                    ) : (
+                      <p className="text-muted mb-0">No hay subcategorías disponibles</p>
+                    )}
+                  </div>
+                  <Form.Text className="text-muted d-block mt-1">
+                    Selecciona una subcategoría para asignar al archivo
+                  </Form.Text>
+                </Col>
                 
                 <Col md={12}>
                   <Form.Label className="fw-medium">Descripción (Opcional)</Form.Label>
@@ -617,6 +839,78 @@ export default function Adjuntos() {
                     onChange={(e) => setUploadForm(f => ({ ...f, description: e.target.value }))}
                     placeholder="Describe el contenido del archivo..."
                   />
+                </Col>
+
+                {/* Servicios del archivo */}
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Servicios Requeridos</Form.Label>
+                  <div className="border rounded p-3 bg-light">
+                    <Row>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="upload-requiere-laboratorio"
+                          label="🧪 Laboratorio"
+                          checked={uploadForm.requiere_laboratorio}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_laboratorio: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="upload-requiere-ingenieria"
+                          label="⚙️ Ingeniería"
+                          checked={uploadForm.requiere_ingenieria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_ingenieria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="upload-requiere-consultoria"
+                          label="💼 Consultoría"
+                          checked={uploadForm.requiere_consultoria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_consultoria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="upload-requiere-capacitacion"
+                          label="🎓 Capacitación"
+                          checked={uploadForm.requiere_capacitacion}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_capacitacion: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="upload-requiere-auditoria"
+                          label="📋 Auditoría"
+                          checked={uploadForm.requiere_auditoria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_auditoria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                    </Row>
+                    <Form.Text className="text-muted d-block mt-2">
+                      Marca los servicios que requiere este archivo
+                    </Form.Text>
+                  </div>
                 </Col>
                 
                 <Col md={12}>
@@ -697,6 +991,246 @@ export default function Adjuntos() {
                     <>
                       <FiUpload className="me-2" />
                       Subir Archivo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && editingAttachment && (
+        <Modal open={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+          <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <div className="d-flex align-items-center mb-4">
+              <FiEdit className="me-2 text-success" size={24} />
+              <h4 className="mb-0">Editar Archivo Adjunto</h4>
+            </div>
+            
+            <form onSubmit={handleEditSubmit}>
+              <Row className="g-3">
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Proyecto</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={editingAttachment.project_name || 'Sin proyecto'}
+                    readOnly
+                    className="bg-light"
+                  />
+                </Col>
+                
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Archivo Actual</Form.Label>
+                  <div className="d-flex align-items-center p-3 bg-light rounded">
+                    <span className="me-2" style={{ fontSize: '1.2em' }}>
+                      {getFileIcon(editingAttachment.original_name)}
+                    </span>
+                    <div>
+                      <div className="fw-medium">{editingAttachment.original_name}</div>
+                      <small className="text-muted">
+                        {(editingAttachment.file_size / 1024 / 1024).toFixed(2)} MB
+                      </small>
+                    </div>
+                  </div>
+                </Col>
+                
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Nuevo Archivo (Opcional)</Form.Label>
+                  <Form.Control
+                    type="file"
+                    onChange={(e) => setUploadForm(f => ({ ...f, file: e.target.files[0] }))}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                  />
+                  <Form.Text className="text-muted">
+                    Deja vacío para mantener el archivo actual
+                  </Form.Text>
+                </Col>
+                
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Descripción</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={uploadForm.description}
+                    onChange={(e) => setUploadForm(f => ({ ...f, description: e.target.value }))}
+                    placeholder="Describe el contenido del archivo..."
+                  />
+                </Col>
+
+                {/* Categorías disponibles en edición */}
+                <Col md={12}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Form.Label className="fw-medium mb-0">Categorías Disponibles</Form.Label>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={refreshCategoriesAndSubcategories}
+                      title="Actualizar lista de categorías"
+                    >
+                      🔄 Actualizar
+                    </Button>
+                  </div>
+                  <div className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {categories.length > 0 ? (
+                      categories.map(category => (
+                        <Form.Check
+                          key={category.id}
+                          type="checkbox"
+                          id={`edit-category-${category.id}`}
+                          label={`📁 ${category.name}`}
+                          checked={uploadForm.category_id === category.id}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            category_id: e.target.checked ? category.id : ''
+                          }))}
+                          className="mb-2"
+                        />
+                      ))
+                    ) : (
+                      <p className="text-muted mb-0">No hay categorías disponibles</p>
+                    )}
+                  </div>
+                  <Form.Text className="text-muted d-block mt-1">
+                    Selecciona una categoría para asignar al archivo
+                  </Form.Text>
+                </Col>
+
+                {/* Subcategorías disponibles en edición */}
+                <Col md={12}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Form.Label className="fw-medium mb-0">Subcategorías Disponibles</Form.Label>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      onClick={refreshCategoriesAndSubcategories}
+                      title="Actualizar lista de subcategorías"
+                    >
+                      🔄 Actualizar
+                    </Button>
+                  </div>
+                  <div className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {subcategories.length > 0 ? (
+                      subcategories.map(subcategory => (
+                        <Form.Check
+                          key={subcategory.id}
+                          type="checkbox"
+                          id={`edit-subcategory-${subcategory.id}`}
+                          label={`📂 ${subcategory.name}`}
+                          checked={uploadForm.subcategory_id === subcategory.id}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            subcategory_id: e.target.checked ? subcategory.id : ''
+                          }))}
+                          className="mb-2"
+                        />
+                      ))
+                    ) : (
+                      <p className="text-muted mb-0">No hay subcategorías disponibles</p>
+                    )}
+                  </div>
+                  <Form.Text className="text-muted d-block mt-1">
+                    Selecciona una subcategoría para asignar al archivo
+                  </Form.Text>
+                </Col>
+
+                {/* Servicios del archivo */}
+                <Col md={12}>
+                  <Form.Label className="fw-medium">Servicios Requeridos</Form.Label>
+                  <div className="border rounded p-3 bg-light">
+                    <Row>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="requiere-laboratorio"
+                          label="🧪 Laboratorio"
+                          checked={uploadForm.requiere_laboratorio}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_laboratorio: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="requiere-ingenieria"
+                          label="⚙️ Ingeniería"
+                          checked={uploadForm.requiere_ingenieria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_ingenieria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="requiere-consultoria"
+                          label="💼 Consultoría"
+                          checked={uploadForm.requiere_consultoria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_consultoria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="requiere-capacitacion"
+                          label="🎓 Capacitación"
+                          checked={uploadForm.requiere_capacitacion}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_capacitacion: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                      <Col md={6}>
+                        <Form.Check
+                          type="checkbox"
+                          id="requiere-auditoria"
+                          label="📋 Auditoría"
+                          checked={uploadForm.requiere_auditoria}
+                          onChange={(e) => setUploadForm(f => ({ 
+                            ...f, 
+                            requiere_auditoria: e.target.checked
+                          }))}
+                        />
+                      </Col>
+                    </Row>
+                    <Form.Text className="text-muted d-block mt-2">
+                      Marca los servicios que requiere este archivo
+                    </Form.Text>
+                  </div>
+                </Col>
+              </Row>
+              
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <Button
+                  type="button"
+                  variant="outline-secondary"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={updateMutation.isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="success"
+                  disabled={updateMutation.isLoading}
+                >
+                  {updateMutation.isLoading ? (
+                    <>
+                      <Spinner size="sm" className="me-2" />
+                      Actualizando...
+                    </>
+                  ) : (
+                    <>
+                      <FiEdit className="me-2" />
+                      Actualizar Archivo
                     </>
                   )}
                 </Button>

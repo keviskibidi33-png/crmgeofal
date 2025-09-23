@@ -40,10 +40,21 @@ export const uploadAttachment = (projectId, formData) => {
 };
 
 export const updateAttachment = (id, data) => {
-  return apiFetch(`/api/attachments/${id}`, {
+  // Si data es FormData, no agregar Content-Type header
+  const options = {
     method: 'PUT',
-    body: JSON.stringify(data),
-  });
+    body: data,
+  };
+  
+  // Solo agregar Content-Type si no es FormData
+  if (!(data instanceof FormData)) {
+    options.headers = {
+      'Content-Type': 'application/json',
+    };
+    options.body = JSON.stringify(data);
+  }
+  
+  return apiFetch(`/api/attachments/${id}`, options);
 };
 
 export const deleteAttachment = (id) => {

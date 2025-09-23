@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import { FiSave, FiX } from 'react-icons/fi';
+import '../../styles/autocomplete.css';
 
 const ModalForm = ({
   show,
@@ -19,6 +20,8 @@ const ModalForm = ({
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [suggestions, setSuggestions] = useState({});
+  const [showSuggestions, setShowSuggestions] = useState({});
 
   useEffect(() => {
     if (show) {
@@ -41,6 +44,27 @@ const ModalForm = ({
         [name]: null
       }));
     }
+
+    // Manejar autocompletado
+    const field = fields.find(f => f.name === name);
+    if (field && field.autocomplete && field.suggestions && value.length > 0) {
+      const filteredSuggestions = field.suggestions.filter(suggestion =>
+        suggestion.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(prev => ({
+        ...prev,
+        [name]: filteredSuggestions.slice(0, 5) // Mostrar máximo 5 sugerencias
+      }));
+      setShowSuggestions(prev => ({
+        ...prev,
+        [name]: true
+      }));
+    } else {
+      setShowSuggestions(prev => ({
+        ...prev,
+        [name]: false
+      }));
+    }
   };
 
   const handleBlur = (name) => {
@@ -48,6 +72,14 @@ const ModalForm = ({
       ...prev,
       [name]: true
     }));
+
+    // Ocultar sugerencias al perder el foco
+    setTimeout(() => {
+      setShowSuggestions(prev => ({
+        ...prev,
+        [name]: false
+      }));
+    }, 200);
 
     // Validar campo
     if (validation[name]) {
@@ -59,6 +91,17 @@ const ModalForm = ({
         }));
       }
     }
+  };
+
+  const handleSuggestionClick = (name, suggestion) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: suggestion
+    }));
+    setShowSuggestions(prev => ({
+      ...prev,
+      [name]: false
+    }));
   };
 
   const validateForm = () => {
@@ -104,7 +147,7 @@ const ModalForm = ({
       case 'email':
       case 'password':
         return (
-          <Form.Group key={field.name} className="mb-3">
+          <Form.Group key={field.name} className="mb-3 position-relative">
             <Form.Label>
               {field.label}
               {field.required && <span className="text-danger ms-1">*</span>}
@@ -128,6 +171,24 @@ const ModalForm = ({
               <Form.Text className="text-muted">
                 {field.help}
               </Form.Text>
+            )}
+            {/* Sugerencias de autocompletado */}
+            {field.autocomplete && showSuggestions[field.name] && suggestions[field.name] && suggestions[field.name].length > 0 && (
+              <div className="autocomplete-suggestions position-absolute w-100" style={{ zIndex: 1000, top: '100%' }}>
+                <div className="list-group">
+                  {suggestions[field.name].map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="list-group-item list-group-item-action"
+                      onClick={() => handleSuggestionClick(field.name, suggestion)}
+                      style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </Form.Group>
         );

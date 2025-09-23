@@ -135,11 +135,11 @@ const ProjectAttachment = {
         p.location as project_location,
         p.status as project_status,
         p.priority as project_priority,
-        p.requiere_laboratorio,
-        p.requiere_ingenieria,
-        p.requiere_consultoria,
-        p.requiere_capacitacion,
-        p.requiere_auditoria,
+        pa.requiere_laboratorio,
+        pa.requiere_ingenieria,
+        pa.requiere_consultoria,
+        pa.requiere_capacitacion,
+        pa.requiere_auditoria,
         c.name as company_name,
         c.ruc as company_ruc,
         v.name as vendedor_name,
@@ -187,6 +187,56 @@ const ProjectAttachment = {
       limit,
       totalPages: Math.ceil(parseInt(total.rows[0].count) / limit)
     };
+  },
+
+  // Actualizar adjunto
+  async update(id, updateData) {
+    try {
+      console.log('🔄 ProjectAttachment.update - Actualizando adjunto:', id, updateData);
+      
+      // Construir la consulta dinámicamente
+      const fields = [];
+      const values = [];
+      let paramIndex = 1;
+
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] !== undefined && updateData[key] !== null) {
+          fields.push(`${key} = $${paramIndex}`);
+          values.push(updateData[key]);
+          paramIndex++;
+        }
+      });
+
+      if (fields.length === 0) {
+        throw new Error('No hay campos para actualizar');
+      }
+
+      // Agregar updated_at
+      fields.push(`updated_at = NOW()`);
+      
+      values.push(id);
+      const query = `
+        UPDATE project_attachments 
+        SET ${fields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `;
+
+      console.log('🔄 ProjectAttachment.update - Query:', query);
+      console.log('🔄 ProjectAttachment.update - Values:', values);
+
+      const result = await pool.query(query, values);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Adjunto no encontrado');
+      }
+
+      console.log('✅ ProjectAttachment.update - Adjunto actualizado:', result.rows[0]);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ ProjectAttachment.update - Error:', error);
+      throw error;
+    }
   }
 };
 

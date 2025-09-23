@@ -54,18 +54,18 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE ruc = $1', [ruc]);
     return res.rows[0];
   },
-  async create({ type, ruc, dni, name, address, email, phone, contact_name }) {
+  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
     const res = await pool.query(
-      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name]
+      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector]
     );
     return res.rows[0];
   },
-  async update(id, { type, ruc, dni, name, address, email, phone, contact_name }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
     const res = await pool.query(
-      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8 WHERE id = $9 RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10 WHERE id = $11 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, id]
     );
     return res.rows[0];
   },
@@ -126,6 +126,63 @@ const Company = {
       return stats;
     } catch (error) {
       console.error('❌ Company.getStats - Error:', error);
+      throw error;
+    }
+  },
+
+  async getFilterOptions() {
+    try {
+      console.log('🔍 Company.getFilterOptions - Obteniendo opciones de filtros...');
+      
+      // Obtener ciudades únicas
+      const citiesResult = await pool.query(`
+        SELECT DISTINCT city, COUNT(*) as count
+        FROM companies 
+        WHERE city IS NOT NULL AND city <> ''
+        GROUP BY city
+        ORDER BY count DESC, city ASC
+      `);
+      
+      // Obtener sectores únicos
+      const sectorsResult = await pool.query(`
+        SELECT DISTINCT sector, COUNT(*) as count
+        FROM companies 
+        WHERE sector IS NOT NULL AND sector <> ''
+        GROUP BY sector
+        ORDER BY count DESC, sector ASC
+      `);
+      
+      // Obtener tipos únicos
+      const typesResult = await pool.query(`
+        SELECT DISTINCT type, COUNT(*) as count
+        FROM companies 
+        WHERE type IS NOT NULL AND type <> ''
+        GROUP BY type
+        ORDER BY count DESC, type ASC
+      `);
+      
+      const filterOptions = {
+        cities: citiesResult.rows.map(row => ({
+          value: row.city,
+          label: row.city,
+          count: parseInt(row.count)
+        })),
+        sectors: sectorsResult.rows.map(row => ({
+          value: row.sector,
+          label: row.sector,
+          count: parseInt(row.count)
+        })),
+        types: typesResult.rows.map(row => ({
+          value: row.type,
+          label: row.type === 'empresa' ? 'Empresa' : 'Persona Natural',
+          count: parseInt(row.count)
+        }))
+      };
+      
+      console.log('✅ Company.getFilterOptions - Opciones obtenidas:', filterOptions);
+      return filterOptions;
+    } catch (error) {
+      console.error('❌ Company.getFilterOptions - Error:', error);
       throw error;
     }
   },

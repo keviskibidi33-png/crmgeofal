@@ -7,7 +7,8 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats } from '../services/companies';
+import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats, getCompanyFilterOptions } from '../services/companies';
+import { getCurrentUser, canCreateClient, logUserInfo } from '../utils/authHelper';
 
 const emptyForm = {
   type: 'empresa',
@@ -18,12 +19,23 @@ const emptyForm = {
   email: '',
   phone: '',
   contact_name: '',
+  city: '',
+  sector: '',
 };
 
 export default function Clientes() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
+  
+  // Información del usuario actual
+  const currentUser = getCurrentUser();
+  const userCanCreateClient = canCreateClient();
+  
+  // Log de información de usuario al cargar el componente
+  React.useEffect(() => {
+    logUserInfo();
+  }, []);
   
   // Estado para paginación y filtros
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,9 +79,22 @@ export default function Clientes() {
     }
   );
 
+  // Consulta para opciones de filtros dinámicos
+  const { data: filterOptionsData, isLoading: filterOptionsLoading } = useQuery(
+    ['clientFilterOptions'],
+    getCompanyFilterOptions,
+    {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 60000, // 1 minuto
+      cacheTime: 300000  // 5 minutos
+    }
+  );
+
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('clients');
     queryClient.invalidateQueries('clientStats'); // Invalidar también las estadísticas
+    queryClient.invalidateQueries('clientFilterOptions'); // Invalidar también las opciones de filtros
     setShowModal(false);
     setEditingClient(null);
     setDeletingClient(null);
@@ -95,47 +120,55 @@ export default function Clientes() {
     setCurrentPage(1); // Resetear a la primera página
   };
 
-  // Opciones de filtros específicas para clientes
-  const clientFilterOptions = [
-    {
-      title: 'Por Tipo de Cliente',
-      options: [
-        { label: 'Empresas', filter: { type: 'empresa' } },
-        { label: 'Personas Naturales', filter: { type: 'persona' } }
-      ]
-    },
-    {
-      title: 'Por Sector',
-      options: [
-        { label: 'General', filter: { sector: 'General' } },
-        { label: 'Construcción', filter: { sector: 'Construcción' } },
-        { label: 'Minería', filter: { sector: 'Minería' } },
-        { label: 'Ingeniería', filter: { sector: 'Ingeniería' } },
-        { label: 'Laboratorio', filter: { sector: 'Laboratorio' } },
-        { label: 'Consultoría', filter: { sector: 'Consultoría' } },
-        { label: 'Tecnología', filter: { sector: 'Tecnología' } },
-        { label: 'Ambiental', filter: { sector: 'Ambiental' } },
-        { label: 'Geología', filter: { sector: 'Geología' } }
-      ]
-    },
-    {
-      title: 'Por Ciudad',
-      options: [
-        { label: 'Lima', filter: { city: 'Lima' } },
-        { label: 'Arequipa', filter: { city: 'Arequipa' } },
-        { label: 'Cusco', filter: { city: 'Cusco' } },
-        { label: 'Trujillo', filter: { city: 'Trujillo' } },
-        { label: 'Piura', filter: { city: 'Piura' } },
-        { label: 'Chiclayo', filter: { city: 'Chiclayo' } },
-        { label: 'Iquitos', filter: { city: 'Iquitos' } },
-        { label: 'Huancayo', filter: { city: 'Huancayo' } }
-      ]
+  // Opciones de filtros dinámicas basadas en datos reales
+  const clientFilterOptions = useMemo(() => {
+    if (!filterOptionsData) {
+      return [
+        {
+          title: 'Por Tipo de Cliente',
+          options: [
+            { label: 'Empresas', filter: { type: 'empresa' } },
+            { label: 'Personas Naturales', filter: { type: 'persona' } }
+          ]
+        }
+      ];
     }
-  ];
+
+    return [
+      {
+        title: 'Por Tipo de Cliente',
+        options: filterOptionsData.types?.map(type => ({
+          label: `${type.label} (${type.count})`,
+          filter: { type: type.value }
+        })) || []
+      },
+      {
+        title: 'Por Sector',
+        options: filterOptionsData.sectors?.map(sector => ({
+          label: `${sector.label} (${sector.count})`,
+          filter: { sector: sector.value }
+        })) || []
+      },
+      {
+        title: 'Por Ciudad',
+        options: filterOptionsData.cities?.map(city => ({
+          label: `${city.label} (${city.count})`,
+          filter: { city: city.value }
+        })) || []
+      }
+    ];
+  }, [filterOptionsData]);
 
   const createMutation = useMutation(createCompany, {
     onSuccess: () => handleMutationSuccess('Cliente creado exitosamente'),
-    onError: (error) => console.error('Error creating client:', error)
+    onError: (error) => {
+      console.error('Error creating client:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        body: error.body
+      });
+    }
   });
 
   const updateMutation = useMutation(updateCompany, {
@@ -447,6 +480,65 @@ export default function Clientes() {
       label: 'Dirección',
       type: 'textarea',
       placeholder: 'Ingresa la dirección completa'
+    },
+    {
+      name: 'city',
+      label: 'Ciudad',
+      type: 'text',
+      placeholder: 'Escribe la ciudad (ej: Lima, Arequipa, Cusco...)',
+      autocomplete: true,
+      suggestions: [
+        'Lima', 'Arequipa', 'Cusco', 'Trujillo', 'Piura', 'Chiclayo', 'Iquitos', 'Huancayo',
+        'Tacna', 'Cajamarca', 'Ayacucho', 'Puno', 'Juliaca', 'Chimbote', 'Huaraz', 'Abancay',
+        'Andahuaylas', 'Tumbes', 'Pucallpa', 'Tarapoto', 'Moyobamba', 'Cerro de Pasco', 'Huánuco',
+        'Ica', 'Nazca', 'Chincha', 'Cañete', 'Barranca', 'Huaral', 'Callao', 'Ventanilla',
+        'San Juan de Miraflores', 'Villa El Salvador', 'San Martín de Porres', 'Comas',
+        'Los Olivos', 'San Miguel', 'Pueblo Libre', 'Jesús María', 'Magdalena', 'San Isidro',
+        'Miraflores', 'Surco', 'La Molina', 'Ate', 'Santa Anita', 'El Agustino', 'San Juan de Lurigancho',
+        'Lurigancho', 'Chosica', 'Chaclacayo', 'Cieneguilla', 'Pachacámac', 'Punta Hermosa',
+        'Punta Negra', 'San Bartolo', 'Santa María del Mar', 'Pucusana', 'Asia', 'Mala',
+        'San Vicente de Cañete', 'Imperial', 'Nuevo Imperial', 'Quilmaná', 'San Luis',
+        'San Pedro de Lloc', 'Pacasmayo', 'Guadalupe', 'Jequetepeque', 'Chepén', 'Cascas',
+        'Contumazá', 'Cupisnique', 'Guzmango', 'San Benito', 'San Diego', 'San José',
+        'San Pablo', 'Tembladera', 'Yonán', 'Zaña', 'Cajabamba', 'Cajamarca', 'Celendín',
+        'Chota', 'Contumazá', 'Cutervo', 'Hualgayoc', 'Jaén', 'San Ignacio', 'San Marcos',
+        'San Miguel', 'San Pablo', 'Santa Cruz', 'Bagua', 'Bongará', 'Condorcanqui',
+        'Luya', 'Rodríguez de Mendoza', 'Utcubamba', 'Chachapoyas', 'Asunción', 'Balsas',
+        'Cheto', 'Chiliquín', 'Chuquibamba', 'Granada', 'Huancas', 'La Jalca', 'Leimebamba',
+        'Levanto', 'Magdalena', 'Mariscal Castilla', 'Molinopampa', 'Montevideo', 'Olleros',
+        'Quinjalca', 'San Francisco de Daguas', 'San Isidro de Maino', 'Soloco', 'Sonche',
+        'Abancay', 'Andahuaylas', 'Antabamba', 'Aymaraes', 'Chincheros', 'Cotabambas',
+        'Grau', 'Huancarama', 'Huancaray', 'Huanipaca', 'Kishuara', 'Lambrama', 'Pacobamba',
+        'Pacucha', 'Pampachiri', 'Pomacocha', 'San Antonio de Cachi', 'San Jerónimo',
+        'San Miguel de Chaccrampa', 'Santa María de Chicmo', 'Talavera', 'Tamburco',
+        'Andahuaylas', 'Antabamba', 'Aymaraes', 'Chincheros', 'Cotabambas', 'Grau',
+        'Huancarama', 'Huancaray', 'Huanipaca', 'Kishuara', 'Lambrama', 'Pacobamba',
+        'Pacucha', 'Pampachiri', 'Pomacocha', 'San Antonio de Cachi', 'San Jerónimo',
+        'San Miguel de Chaccrampa', 'Santa María de Chicmo', 'Talavera', 'Tamburco'
+      ]
+    },
+    {
+      name: 'sector',
+      label: 'Sector',
+      type: 'text',
+      placeholder: 'Escribe el sector (ej: Construcción, Minería, Tecnología...)',
+      autocomplete: true,
+      suggestions: [
+        'General', 'Construcción', 'Minería', 'Ingeniería', 'Laboratorio', 'Consultoría', 
+        'Tecnología', 'Ambiental', 'Geología', 'Agricultura', 'Ganadería', 'Pesca',
+        'Manufactura', 'Textil', 'Alimentario', 'Farmacéutico', 'Químico', 'Petroquímico',
+        'Energía', 'Electricidad', 'Gas', 'Agua', 'Saneamiento', 'Transporte', 'Logística',
+        'Comercio', 'Retail', 'Mayorista', 'Distribución', 'Servicios Financieros', 'Banca',
+        'Seguros', 'Inversiones', 'Bienes Raíces', 'Inmobiliaria', 'Turismo', 'Hotelería',
+        'Restaurantes', 'Entretenimiento', 'Medios', 'Comunicaciones', 'Telecomunicaciones',
+        'Software', 'Hardware', 'Sistemas', 'Internet', 'E-commerce', 'Marketing', 'Publicidad',
+        'Educación', 'Capacitación', 'Investigación', 'Desarrollo', 'Salud', 'Medicina',
+        'Farmacéutica', 'Biotecnología', 'Gobierno', 'Público', 'Defensa', 'Seguridad',
+        'Legal', 'Jurídico', 'Contable', 'Auditoría', 'Recursos Humanos', 'Administración',
+        'Gestión', 'Consultoría Empresarial', 'Outsourcing', 'Servicios Profesionales',
+        'Arquitectura', 'Diseño', 'Arte', 'Cultura', 'Deportes', 'Recreación', 'ONG',
+        'Fundaciones', 'Religioso', 'Espiritual', 'Otro'
+      ]
     }
   ];
 
@@ -484,12 +576,25 @@ export default function Clientes() {
           subtitle="Crear, editar y gestionar clientes del sistema"
           icon={FiUsers}
           actions={
-            <Button variant="primary" onClick={handleCreate}>
+            <Button 
+              variant="primary" 
+              onClick={handleCreate}
+              disabled={!userCanCreateClient}
+              title={!userCanCreateClient ? `No tienes permisos para crear clientes. Rol actual: ${currentUser?.role || 'No autenticado'}` : 'Crear nuevo cliente'}
+            >
               <FiPlus className="me-2" />
               Nuevo Cliente
             </Button>
           }
         />
+
+        {/* Información de depuración */}
+        {!userCanCreateClient && (
+          <div className="alert alert-warning mb-4" role="alert">
+            <strong>⚠️ Permisos insuficientes:</strong> Tu rol actual ({currentUser?.role || 'No autenticado'}) no tiene permisos para crear clientes. 
+            Solo los roles <code>admin</code>, <code>jefa_comercial</code> y <code>vendedor_comercial</code> pueden crear clientes.
+          </div>
+        )}
 
         {/* Estadísticas */}
         <Row className="g-4 mb-4">

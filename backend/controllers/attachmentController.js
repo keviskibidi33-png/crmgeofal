@@ -128,15 +128,65 @@ const attachmentController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { description } = req.body;
+      const { 
+        description, 
+        category_id, 
+        subcategory_id,
+        requiere_laboratorio,
+        requiere_ingenieria,
+        requiere_consultoria,
+        requiere_capacitacion,
+        requiere_auditoria
+      } = req.body;
+
+      console.log('🔄 update - ID:', id);
+      console.log('🔄 update - Body:', req.body);
+      console.log('🔄 update - Category ID:', category_id);
+      console.log('🔄 update - Subcategory ID:', subcategory_id);
+      console.log('🔄 update - Servicios:', {
+        requiere_laboratorio,
+        requiere_ingenieria,
+        requiere_consultoria,
+        requiere_capacitacion,
+        requiere_auditoria
+      });
 
       const attachment = await ProjectAttachment.getById(id);
       if (!attachment) {
         return res.status(404).json({ error: 'Adjunto no encontrado' });
       }
 
-      // Actualizar solo la descripción por ahora
-      const updatedAttachment = await ProjectAttachment.update(id, { description });
+      // Preparar datos de actualización
+      const updateData = {
+        description: description || attachment.description,
+        category_id: category_id || null,
+        subcategory_id: subcategory_id || null,
+        requiere_laboratorio: requiere_laboratorio === 'true' || requiere_laboratorio === true,
+        requiere_ingenieria: requiere_ingenieria === 'true' || requiere_ingenieria === true,
+        requiere_consultoria: requiere_consultoria === 'true' || requiere_consultoria === true,
+        requiere_capacitacion: requiere_capacitacion === 'true' || requiere_capacitacion === true,
+        requiere_auditoria: requiere_auditoria === 'true' || requiere_auditoria === true
+      };
+
+      // Si hay un nuevo archivo, manejarlo
+      if (req.file) {
+        // Eliminar archivo anterior si existe
+        if (attachment.file_path) {
+          try {
+            await fs.unlink(attachment.file_path);
+          } catch (error) {
+            console.log('Archivo anterior no encontrado o ya eliminado');
+          }
+        }
+
+        // Actualizar información del archivo
+        updateData.file_path = req.file.path;
+        updateData.original_name = req.file.originalname;
+        updateData.file_size = req.file.size;
+        updateData.mime_type = req.file.mimetype;
+      }
+
+      const updatedAttachment = await ProjectAttachment.update(id, updateData);
       res.json(updatedAttachment);
     } catch (error) {
       console.error('Error al actualizar adjunto:', error);
