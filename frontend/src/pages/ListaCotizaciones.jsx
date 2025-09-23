@@ -174,10 +174,10 @@ export default function ListaCotizaciones() {
     {
       header: 'Total',
       accessor: 'total',
-      render: (value) => (
+      render: (value, row) => (
         <div className="text-end">
           <div className="fw-bold text-success">{formatCurrency(value)}</div>
-          <small className="text-muted">IGV: {formatCurrency(value * 0.18)}</small>
+          <small className="text-muted">IGV: {formatCurrency(row.igv || 0)}</small>
         </div>
       )
     }
@@ -186,7 +186,12 @@ export default function ListaCotizaciones() {
   // Calcular estadísticas
   const stats = useMemo(() => {
     const quotes = data?.quotes || [];
-    const totalValue = quotes.reduce((sum, quote) => sum + (quote.total || 0), 0);
+    
+    const totalValue = quotes.reduce((sum, quote) => {
+      const quoteTotal = parseFloat(quote.total) || 0;
+      return sum + quoteTotal;
+    }, 0);
+    
     return {
       total: quotes.length,
       borrador: quotes.filter(q => q.status === 'borrador').length,
@@ -205,16 +210,21 @@ export default function ListaCotizaciones() {
           subtitle="Crear, editar y gestionar cotizaciones del sistema"
           icon={FiFileText}
           actions={
-            <div className="d-flex gap-2">
-              <Button variant="outline-primary" onClick={() => navigate('/cotizaciones/nueva/lem')}>
-                <FiPlus className="me-2" />
-                Nueva LEM
-              </Button>
-              <Button variant="primary" onClick={handleCreate}>
-                <FiPlus className="me-2" />
-                Nueva Cotización
-              </Button>
-            </div>
+            <Button 
+              variant="primary" 
+              size="lg"
+              onClick={handleCreate}
+              className="px-4 py-2 shadow-sm"
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                fontWeight: '600',
+                fontSize: '1.1rem'
+              }}
+            >
+              <FiPlus className="me-2" size={20} />
+              Nueva Cotización
+            </Button>
           }
         />
 
@@ -250,7 +260,7 @@ export default function ListaCotizaciones() {
           <Col md={6} lg={3}>
             <StatsCard
               title="Valor Total"
-              value={`S/ ${stats.totalValue.toLocaleString()}`}
+              value={`S/ ${Number(stats.totalValue).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               icon={FiDollarSign}
               color="warning"
               subtitle="Valor acumulado"

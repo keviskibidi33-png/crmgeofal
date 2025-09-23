@@ -70,6 +70,7 @@ export default function CotizacionNuevaLEM() {
   const [conditionsText, setConditionsText] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Cliente/Proyecto, 2: Condiciones, 3: Ítems, 4: Resumen
   const [lastSavedId, setLastSavedId] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Cargar variantes desde API con fallback local
   useEffect(() => {
@@ -105,6 +106,28 @@ export default function CotizacionNuevaLEM() {
         ]);
       }
     })();
+  }, []);
+
+  // Detectar estado del sidebar
+  useEffect(() => {
+    const checkSidebarState = () => {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        setSidebarCollapsed(sidebar.classList.contains('collapsed'));
+      }
+    };
+
+    // Verificar estado inicial
+    checkSidebarState();
+
+    // Observar cambios en el sidebar
+    const observer = new MutationObserver(checkSidebarState);
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    return () => observer.disconnect();
   }, []);
 
   const subtotal = useMemo(() => items.reduce((acc, it) => acc + computePartial(it), 0), [items]);
@@ -421,7 +444,7 @@ export default function CotizacionNuevaLEM() {
         )}
 
         {currentStep === 4 && (
-          <div className="card shadow-sm mt-3">
+          <div className="card shadow-sm mt-3 mb-2">
             <div className="card-header py-2">
               <strong>Resumen y Acciones</strong>
               <div className="lem-subtitle">Revisa montos y genera tus archivos.</div>
@@ -448,19 +471,44 @@ export default function CotizacionNuevaLEM() {
           </div>
         )}
 
-        {/* Sticky action bar */}
-        <div className="lem-sticky-actions">
-          <div className="container-fluid px-0 d-flex justify-content-between align-items-center gap-2 flex-wrap">
-            <div className="d-flex gap-2">
-              <button type="button" className="btn btn-outline-secondary" onClick={()=>setCurrentStep(Math.max(1, currentStep-1))} disabled={currentStep===1}>Anterior</button>
-              <button type="button" className="btn btn-primary" onClick={()=> currentStep<4 ? setCurrentStep(currentStep+1) : onSubmit({ preventDefault: () => {} })}>
-                {currentStep<4 ? 'Siguiente' : (saving ? 'Guardando...' : 'Guardar borrador')}
-              </button>
-            </div>
-            <div className="d-flex gap-2">
-              <button type="button" className="btn btn-outline-warning" onClick={exportDraft}>PDF Borrador</button>
-              <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('pdf')}>Exportar PDF</button>
-              <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>Exportar Excel</button>
+        {/* Sticky action bar integrada */}
+        <div className={`lem-sticky-actions ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <div className="lem-action-content">
+            <div className="container-fluid px-0">
+              <div className="row align-items-center">
+                <div className="col-md-6">
+                  <div className="d-flex gap-3">
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary" 
+                      onClick={()=>setCurrentStep(Math.max(1, currentStep-1))} 
+                      disabled={currentStep===1}
+                    >
+                      ← Anterior
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn btn-primary" 
+                      onClick={()=> currentStep<4 ? setCurrentStep(currentStep+1) : onSubmit({ preventDefault: () => {} })}
+                    >
+                      {currentStep<4 ? 'Siguiente →' : (saving ? 'Guardando...' : 'Guardar borrador')}
+                    </button>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+                    <button type="button" className="btn btn-outline-warning" onClick={exportDraft}>
+                      📄 PDF Borrador
+                    </button>
+                    <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('pdf')}>
+                      📋 Exportar PDF
+                    </button>
+                    <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>
+                      📊 Exportar Excel
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

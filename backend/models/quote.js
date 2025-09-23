@@ -12,14 +12,46 @@ const Quote = {
     if (date_to) { where.push('q.issue_date <= $' + (params.length + 1)); params.push(date_to); }
     const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const offset = (page - 1) * limit;
-    const select = `SELECT q.* FROM quotes q LEFT JOIN projects p ON p.id = q.project_id ${whereClause} ORDER BY q.id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    
+    const select = `
+      SELECT 
+        q.*,
+        p.name as project_name,
+        p.location as project_location,
+        c.name as company_name,
+        c.ruc as company_ruc,
+        u.name as created_by_name,
+        u.role as created_by_role
+      FROM quotes q 
+      LEFT JOIN projects p ON p.id = q.project_id 
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users u ON q.created_by = u.id
+      ${whereClause} 
+      ORDER BY q.created_at DESC 
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+    
     const count = `SELECT COUNT(*) FROM quotes q LEFT JOIN projects p ON p.id = q.project_id ${whereClause}`;
     const data = await pool.query(select, [...params, limit, offset]);
     const total = await pool.query(count, params);
-    return { rows: data.rows, total: parseInt(total.rows[0].count) };
+    return { quotes: data.rows, total: parseInt(total.rows[0].count) };
   },
   async getById(id) {
-    const res = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
+    const res = await pool.query(`
+      SELECT 
+        q.*,
+        p.name as project_name,
+        p.location as project_location,
+        c.name as company_name,
+        c.ruc as company_ruc,
+        u.name as created_by_name,
+        u.role as created_by_role
+      FROM quotes q 
+      LEFT JOIN projects p ON p.id = q.project_id 
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users u ON q.created_by = u.id
+      WHERE q.id = $1
+    `, [id]);
     return res.rows[0];
   },
   async create({ project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, meta = null }) {

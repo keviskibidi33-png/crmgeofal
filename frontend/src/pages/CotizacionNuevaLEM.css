@@ -5,6 +5,8 @@
 .lem-quote-page {
   /* mejora el ritmo vertical y legibilidad */
   line-height: 1.5;
+  padding-bottom: 100px; /* Espacio para la barra de acciones fija */
+  min-height: calc(100vh - 200px); /* Altura mínima para llenar la pantalla */
 }
 
 /* Espaciado mayor entre secciones grandes */
@@ -97,14 +99,161 @@
 /* Sticky action bar at the bottom */
 .lem-sticky-actions {
   position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-top: 1px solid #e9ecef;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  z-index: 1030;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Ajustar para desktop con sidebar */
+@media (min-width: 992px) {
+  .lem-sticky-actions {
+    left: 280px; /* Respetar el ancho del sidebar */
+    transition: left 0.3s ease; /* Transición suave */
+  }
+}
+
+/* Clase para cuando el sidebar está colapsado */
+.lem-sticky-actions.sidebar-collapsed {
+  left: 80px !important;
+}
+
+.lem-sticky-actions .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.lem-sticky-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.lem-sticky-actions .btn:active {
+  transform: translateY(0);
+}
+
+/* Botón Siguiente mejorado */
+.lem-sticky-actions .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 1rem;
+  padding: 0.875rem 2rem;
+}
+
+.lem-sticky-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  color: white;
+}
+
+/* Botón Anterior mejorado */
+.lem-sticky-actions .btn-outline-secondary {
+  background: white;
+  color: #6c757d;
+  border: 2px solid #e9ecef;
+  font-size: 1rem;
+  padding: 0.875rem 1.5rem;
+}
+
+.lem-sticky-actions .btn-outline-secondary:hover {
+  background: #f8f9fa;
+  color: #495057;
+  border-color: #dee2e6;
+}
+
+/* Botones de exportación mejorados */
+.lem-sticky-actions .btn-outline-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+  border: 2px solid #ffc107;
+  font-weight: 600;
+}
+
+.lem-sticky-actions .btn-outline-warning:hover {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  color: #664d03;
+  border-color: #ffb300;
+}
+
+.lem-sticky-actions .btn-outline-secondary:not(.btn-outline-secondary:first-of-type) {
+  background: white;
+  color: #6c757d;
+  border: 2px solid #e9ecef;
+}
+
+.lem-sticky-actions .btn-outline-secondary:not(.btn-outline-secondary:first-of-type):hover {
+  background: #f8f9fa;
+  color: #495057;
+  border-color: #dee2e6;
+}
+
+/* Mejoras adicionales para la barra de acciones */
+.lem-sticky-actions .row {
+  margin: 0;
+}
+
+.lem-sticky-actions .col-md-6 {
+  padding: 0;
+}
+
+/* Responsive para móviles */
+@media (max-width: 767.98px) {
+  .lem-action-content {
+    padding: 0.75rem 1rem;
+  }
+  
+  .lem-sticky-actions .btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .lem-sticky-actions .col-md-6 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .lem-sticky-actions .col-md-6:last-child {
+    margin-bottom: 0;
+  }
+  
+  .lem-sticky-actions .d-flex {
+    justify-content: center;
+  }
+  
+  .lem-sticky-actions .justify-content-md-end {
+    justify-content: center !important;
+  }
+  
+  .lem-quote-page {
+    padding-bottom: 120px; /* Más espacio en móvil para la barra */
+  }
+}
+
+/* Contenido de la barra de acciones */
+.lem-action-content {
+  padding: 1rem 1.5rem;
+}
+
+/* Efecto de glassmorphism sutil */
+.lem-sticky-actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.98);
-  border-top: 1px solid #e9ecef;
-  padding: 0.5rem 1rem;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-  z-index: 1040;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: -1;
+  border-radius: 0;
 }
 
 /* Softer cards */
