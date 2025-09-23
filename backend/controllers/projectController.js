@@ -341,3 +341,15 @@ exports.getStats = async (req, res) => {
     res.status(500).json({ error: 'Error getting project stats: ' + err.message });
   }
 };
+
+exports.getExistingServices = async (req, res) => {
+  try {
+    console.log('🔍 getExistingServices - Obteniendo servicios existentes...');
+    const services = await Project.getExistingServices();
+    console.log('✅ getExistingServices - Servicios obtenidos:', services.length);
+    res.json(services);
+  } catch (err) {
+    console.error('❌ getExistingServices - Error:', err);
+    res.status(500).json({ error: 'Error al obtener servicios existentes: ' + err.message });
+  }
+};

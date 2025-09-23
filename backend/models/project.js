@@ -405,6 +405,32 @@ const Project = {
       throw error;
     }
   },
+
+  // Obtener servicios únicos de proyectos existentes
+  async getExistingServices() {
+    try {
+      console.log('🔍 Project.getExistingServices - Obteniendo servicios existentes...');
+      
+      const result = await pool.query(`
+        SELECT DISTINCT 
+          p.name as service_name,
+          COUNT(*) as usage_count
+        FROM projects p
+        WHERE p.name IS NOT NULL 
+          AND p.name != ''
+          AND LENGTH(TRIM(p.name)) > 0
+        GROUP BY p.name
+        ORDER BY usage_count DESC, p.name ASC
+        LIMIT 50
+      `);
+      
+      console.log('✅ Project.getExistingServices - Servicios encontrados:', result.rows.length);
+      return result.rows;
+    } catch (error) {
+      console.error('❌ Project.getExistingServices - Error:', error);
+      throw error;
+    }
+  },
 };
 
 module.exports = Project;

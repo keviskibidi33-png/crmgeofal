@@ -54,17 +54,17 @@ const Quote = {
     `, [id]);
     return res.rows[0];
   },
-  async create({ project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, meta = null }) {
+  async create({ project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, reference_type = null, meta = null }) {
     const res = await pool.query(
-      'INSERT INTO quotes (project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, meta) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
-      [project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, meta]
+      'INSERT INTO quotes (project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
+      [project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta]
     );
     return res.rows[0];
   },
-  async update(id, { client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, meta = null }) {
+  async update(id, { client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, reference_type = null, meta = null }) {
     const res = await pool.query(
-      'UPDATE quotes SET client_contact=$1, client_email=$2, client_phone=$3, issue_date=$4, subtotal=$5, igv=$6, total=$7, status=$8, reference=$9, meta=$10 WHERE id=$11 RETURNING *',
-      [client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, meta, id]
+      'UPDATE quotes SET client_contact=$1, client_email=$2, client_phone=$3, issue_date=$4, subtotal=$5, igv=$6, total=$7, status=$8, reference=$9, reference_type=$10, meta=$11, updated_at=NOW() WHERE id=$12 RETURNING *',
+      [client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta, id]
     );
     return res.rows[0];
   },

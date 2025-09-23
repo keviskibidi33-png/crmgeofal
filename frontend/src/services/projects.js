@@ -100,4 +100,15 @@ export const getProjectStats = () => {
   });
 };
 
-export default { listProjects, createProject, getProject, updateProject, deleteProject, getProjectStats };
+export const getExistingServices = () => {
+  console.log('🔍 getExistingServices - Llamando a: /api/projects/services');
+  return apiFetch('/api/projects/services').then(data => {
+    console.log('✅ getExistingServices - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ getExistingServices - Error:', error);
+    throw error;
+  });
+};
+
+export default { listProjects, createProject, getProject, updateProject, deleteProject, getProjectStats, getExistingServices };

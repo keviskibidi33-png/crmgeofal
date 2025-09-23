@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ModuloBase from '../components/ModuloBase';
 import { listVariants } from '../services/quoteVariants';
 import { createQuote, addQuoteItem } from '../services/quotes';
+import { getExistingServices, listProjects } from '../services/projects';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
 import './CotizacionNuevaLEM.css';
+import '../styles/autocomplete.css';
 
 const emptyClient = {
   company_name: '', ruc: '', contact_name: '', contact_phone: '', contact_email: '',
@@ -11,7 +13,7 @@ const emptyClient = {
 };
 
 const emptyQuote = {
-  request_date: '', issue_date: '', commercial_name: '', payment_terms: 'adelantado', acceptance: false, reference: '', igv: true,
+  request_date: '', issue_date: '', commercial_name: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true,
 };
 
 const emptyItem = { code: '', description: '', norm: '', unit_price: 0, quantity: 1 };
@@ -71,6 +73,25 @@ export default function CotizacionNuevaLEM() {
   const [currentStep, setCurrentStep] = useState(1); // 1: Cliente/Proyecto, 2: Condiciones, 3: Ítems, 4: Resumen
   const [lastSavedId, setLastSavedId] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [allServices, setAllServices] = useState([]);
+  const [serviceSuggestions, setServiceSuggestions] = useState([]);
+  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
+  const [allProjects, setAllProjects] = useState([]);
+  const [projectSuggestions, setProjectSuggestions] = useState([]);
+  const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
+  const [suggestedFileName, setSuggestedFileName] = useState('');
+  
+  // Etiquetas predefinidas para referencia
+  const referenceTypes = [
+    { value: 'email', label: '📧 Correo electrónico', icon: '📧' },
+    { value: 'phone', label: '📞 Llamada telefónica', icon: '📞' },
+    { value: 'whatsapp', label: '💬 WhatsApp', icon: '💬' },
+    { value: 'ticket', label: '🎯 Sistema de tickets', icon: '🎯' },
+    { value: 'meeting', label: '🤝 Reunión presencial', icon: '🤝' },
+    { value: 'form', label: '📋 Formulario web', icon: '📋' },
+    { value: 'referral', label: '👥 Referido', icon: '👥' },
+    { value: 'other', label: '📝 Otro', icon: '📝' }
+  ];
 
   // Cargar variantes desde API con fallback local
   useEffect(() => {
@@ -108,6 +129,72 @@ export default function CotizacionNuevaLEM() {
     })();
   }, []);
 
+  // Cargar servicios existentes para autocompletado
+  useEffect(() => {
+    (async () => {
+      try {
+        const services = await getExistingServices();
+        // Combinar servicios de proyectos con servicios predefinidos
+        const predefinedServices = [
+          { service_name: 'Ensayos de suelo y agregado', usage_count: 0 },
+          { service_name: 'Extracción de diamantina', usage_count: 0 },
+          { service_name: 'Control de calidad de concreto fresco', usage_count: 0 },
+          { service_name: 'Densidad de campo y muestreo', usage_count: 0 },
+          { service_name: 'Probetas de concreto', usage_count: 0 },
+          { service_name: 'Viga Beckelman', usage_count: 0 },
+          { service_name: 'Albañilería', usage_count: 0 },
+          { service_name: 'Diamantina para pases', usage_count: 0 },
+          { service_name: 'Consultoría geotécnica', usage_count: 0 },
+          { service_name: 'Capacitación técnica', usage_count: 0 },
+          { service_name: 'Auditoría de calidad', usage_count: 0 },
+          { service_name: 'Estudios de suelos', usage_count: 0 },
+          { service_name: 'Análisis de materiales', usage_count: 0 },
+          { service_name: 'Inspección de obras', usage_count: 0 },
+          { service_name: 'Certificación de materiales', usage_count: 0 }
+        ];
+        
+        // Combinar y eliminar duplicados
+        const allServicesCombined = [...predefinedServices];
+        services.forEach(service => {
+          if (!allServicesCombined.find(s => s.service_name === service.service_name)) {
+            allServicesCombined.push(service);
+          }
+        });
+        
+        setAllServices(allServicesCombined);
+        setServiceSuggestions(allServicesCombined);
+      } catch (e) {
+        console.warn('No se pudieron cargar servicios existentes:', e);
+        // Usar solo servicios predefinidos como fallback
+        const fallbackServices = [
+          { service_name: 'Ensayos de suelo y agregado', usage_count: 0 },
+          { service_name: 'Extracción de diamantina', usage_count: 0 },
+          { service_name: 'Control de calidad de concreto fresco', usage_count: 0 },
+          { service_name: 'Densidad de campo y muestreo', usage_count: 0 },
+          { service_name: 'Probetas de concreto', usage_count: 0 }
+        ];
+        setAllServices(fallbackServices);
+        setServiceSuggestions(fallbackServices);
+      }
+    })();
+  }, []);
+
+  // Cargar proyectos existentes para autocompletado
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await listProjects({ page: 1, limit: 100 });
+        const projects = response.data || [];
+        setAllProjects(projects);
+        setProjectSuggestions(projects);
+      } catch (e) {
+        console.warn('No se pudieron cargar proyectos existentes:', e);
+        setAllProjects([]);
+        setProjectSuggestions([]);
+      }
+    })();
+  }, []);
+
   // Detectar estado del sidebar
   useEffect(() => {
     const checkSidebarState = () => {
@@ -129,6 +216,159 @@ export default function CotizacionNuevaLEM() {
 
     return () => observer.disconnect();
   }, []);
+
+  // Autocompletar datos del cliente cuando se selecciona en CompanyProjectPicker
+  useEffect(() => {
+    if (selection.company) {
+      setClient(prev => ({
+        ...prev,
+        company_name: selection.company.name || prev.company_name,
+        ruc: selection.company.ruc || prev.ruc,
+        contact_name: selection.company.contact_name || prev.contact_name,
+        contact_phone: selection.company.phone || prev.contact_phone,
+        contact_email: selection.company.email || prev.contact_email,
+        project_location: selection.project?.location || prev.project_location,
+        project_name: selection.project?.name || prev.project_name
+      }));
+    }
+  }, [selection.company, selection.project]);
+
+  // Auto-completar datos del asesor comercial según el usuario logueado
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.name) {
+          setQuote(prev => ({
+            ...prev,
+            commercial_name: payload.name
+          }));
+        }
+      } catch (e) {
+        console.warn('No se pudo decodificar el token:', e);
+      }
+    }
+  }, []);
+
+  // Generar nombre de archivo automáticamente cuando cambien los datos del cliente
+  useEffect(() => {
+    if (client.company_name) {
+      const fileName = generateFileName();
+      setSuggestedFileName(fileName);
+    }
+  }, [client.company_name]);
+
+  // Generar texto de referencia automáticamente cuando cambien las etiquetas
+  useEffect(() => {
+    if (quote.reference_type && quote.reference_type.length > 0) {
+      const referenceText = generateReferenceText(quote.reference_type);
+      setQuote(prev => ({ ...prev, reference: referenceText }));
+    }
+  }, [quote.reference_type]);
+
+  // Inicializar texto de referencia por defecto
+  useEffect(() => {
+    if (quote.reference_type && quote.reference_type.length > 0 && !quote.reference) {
+      const referenceText = generateReferenceText(quote.reference_type);
+      setQuote(prev => ({ ...prev, reference: referenceText }));
+    }
+  }, []);
+
+  // Funciones para manejar autocompletado de servicios
+  const handleServiceInputChange = (e) => {
+    const value = e.target.value;
+    setClient(prev => ({ ...prev, service_name: value }));
+    
+    if (value.length > 0) {
+      const filtered = allServices.filter(service => 
+        service.service_name.toLowerCase().includes(value.toLowerCase())
+      );
+      setServiceSuggestions(filtered);
+      setShowServiceSuggestions(true);
+    } else {
+      setServiceSuggestions(allServices);
+      setShowServiceSuggestions(false);
+    }
+  };
+
+  const handleServiceSuggestionClick = (serviceName) => {
+    setClient(prev => ({ ...prev, service_name: serviceName }));
+    setShowServiceSuggestions(false);
+  };
+
+  const handleServiceBlur = () => {
+    // Delay para permitir que se ejecute el click en la sugerencia
+    setTimeout(() => setShowServiceSuggestions(false), 200);
+  };
+
+  // Funciones para manejar autocompletado de proyectos
+  const handleProjectInputChange = (e) => {
+    const value = e.target.value;
+    setClient(prev => ({ ...prev, project_name: value }));
+    
+    if (value.length > 0) {
+      const filtered = allProjects.filter(project => 
+        project.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setProjectSuggestions(filtered);
+      setShowProjectSuggestions(true);
+    } else {
+      setProjectSuggestions(allProjects);
+      setShowProjectSuggestions(false);
+    }
+  };
+
+  const handleProjectSuggestionClick = (projectName) => {
+    setClient(prev => ({ ...prev, project_name: projectName }));
+    setShowProjectSuggestions(false);
+  };
+
+  const handleProjectBlur = () => {
+    // Delay para permitir que se ejecute el click en la sugerencia
+    setTimeout(() => setShowProjectSuggestions(false), 200);
+  };
+
+  // Generar nombre de archivo automáticamente
+  const generateFileName = () => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    const currentDay = String(new Date().getDate()).padStart(2, '0');
+    
+    // Generar código de cotización
+    const quoteCode = `COT-${currentYear}-${currentMonth}${currentDay}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+    
+    // Obtener nombre del cliente (limpio para archivo)
+    const clientName = client.company_name || 'CLIENTE';
+    const cleanClientName = clientName
+      .replace(/[^a-zA-Z0-9\s]/g, '') // Remover caracteres especiales
+      .replace(/\s+/g, '_') // Reemplazar espacios con guiones bajos
+      .toUpperCase()
+      .substring(0, 30); // Limitar longitud
+    
+    return `${quoteCode} LEM-GEOFAL-${cleanClientName}`;
+  };
+
+  // Generar texto de referencia automáticamente
+  const generateReferenceText = (selectedTypes) => {
+    if (!selectedTypes || selectedTypes.length === 0) {
+      return 'SEGÚN LO SOLICITADO';
+    }
+    
+    const typeLabels = selectedTypes.map(type => {
+      const refType = referenceTypes.find(rt => rt.value === type);
+      return refType ? refType.label.replace(/^[^\s]+\s/, '') : type; // Remover emoji
+    });
+    
+    if (typeLabels.length === 1) {
+      return `SEGÚN LO SOLICITADO VÍA ${typeLabels[0].toUpperCase()}`;
+    } else if (typeLabels.length === 2) {
+      return `SEGÚN LO SOLICITADO VÍA ${typeLabels[0].toUpperCase()} / ${typeLabels[1].toUpperCase()}`;
+    } else {
+      const lastType = typeLabels.pop();
+      return `SEGÚN LO SOLICITADO VÍA ${typeLabels.join(', ').toUpperCase()} Y ${lastType.toUpperCase()}`;
+    }
+  };
 
   const subtotal = useMemo(() => items.reduce((acc, it) => acc + computePartial(it), 0), [items]);
   const igvAmount = useMemo(() => (quote.igv ? Number((subtotal * 0.18).toFixed(2)) : 0), [subtotal, quote.igv]);
@@ -174,10 +414,20 @@ export default function CotizacionNuevaLEM() {
     setSaving(true);
     setError('');
     try {
+      console.log('🔍 onSubmit - Iniciando creación de cotización...');
+      console.log('🔍 onSubmit - Selection:', selection);
+      console.log('🔍 onSubmit - Client:', client);
+      console.log('🔍 onSubmit - Quote:', quote);
+      
+      // Validar que tenemos un proyecto seleccionado
+      if (!selection.project?.id && !selection.project_id) {
+        throw new Error('Debe seleccionar un proyecto para crear la cotización');
+      }
+      
       // Construir payload de cotización base
       const numericVariantId = /^\d+$/.test(String(variantId)) ? Number(variantId) : null;
       const payload = {
-        project_id: selection.project?.id || selection.project_id || null,
+        project_id: selection.project?.id || selection.project_id,
         variant_id: numericVariantId,
         client_contact: client.contact_name,
         client_email: client.contact_email,
@@ -187,6 +437,8 @@ export default function CotizacionNuevaLEM() {
         igv: igvAmount,
         total,
         status: 'borrador',
+        reference: quote.reference,
+        reference_type: quote.reference_type,
         // campos adicionales útiles
         meta: {
           customer: client,
@@ -194,30 +446,36 @@ export default function CotizacionNuevaLEM() {
           conditions_text: conditionsText,
           payment_terms: quote.payment_terms,
           acceptance: quote.acceptance,
-          reference: quote.reference,
-          subtotal,
-          igv: igvAmount,
-          file_name: suggestedFileName('xxx-XX', client.company_name),
+          file_name: suggestedFileName || generateFileName(),
         }
       };
+      
+      console.log('🔍 onSubmit - Payload:', payload);
+      
       const saved = await createQuote(payload);
+      console.log('✅ onSubmit - Cotización creada:', saved);
+      
       // Añadir ítems
       for (const it of items) {
-        await addQuoteItem({
-          quote_id: saved.id,
-          code: it.code,
-          description: it.description,
-          norm: it.norm,
-          unit_price: Number(it.unit_price || 0),
-          quantity: Number(it.quantity || 0),
-          partial_price: computePartial(it),
-        });
+        if (it.code && it.description) { // Solo agregar ítems con datos
+          await addQuoteItem({
+            quote_id: saved.id,
+            code: it.code,
+            description: it.description,
+            norm: it.norm,
+            unit_price: Number(it.unit_price || 0),
+            quantity: Number(it.quantity || 0),
+            partial_price: computePartial(it),
+          });
+        }
       }
-      alert('Cotización creada');
+      
+      alert('Cotización creada exitosamente');
       // Guardar id para exportaciones
       setLastSavedId(saved.id);
       // Redirigir a detalle/edición en el futuro
     } catch (e) {
+      console.error('❌ onSubmit - Error:', e);
       setError(e.message || 'Error al crear cotización');
     } finally {
       setSaving(false);
@@ -302,6 +560,11 @@ export default function CotizacionNuevaLEM() {
                 <div className="card-header py-2">
                   <strong>Datos del Cliente</strong>
                   <div className="lem-subtitle">Información del cliente vinculada a esta cotización.</div>
+                  {selection.company && (
+                    <div className="alert alert-info py-1 mt-2 mb-0">
+                      <small>✅ Datos autocompletados desde la selección de cliente</small>
+                    </div>
+                  )}
                 </div>
                 <div className="card-body">
                   <div className="mb-3"><label className="form-label">Empresa</label><input className="form-control" value={client.company_name} onChange={e=>setClient({...client, company_name:e.target.value})} required/><div className="form-text">Razón social o nombre comercial del cliente.</div></div>
@@ -309,9 +572,56 @@ export default function CotizacionNuevaLEM() {
                   <div className="mb-3"><label className="form-label">Contacto</label><input className="form-control" value={client.contact_name} onChange={e=>setClient({...client, contact_name:e.target.value})} required/><div className="form-text">Nombre de la persona que solicita la cotización.</div></div>
                   <div className="mb-3"><label className="form-label">Teléfono</label><input className="form-control" value={client.contact_phone} onChange={e=>setClient({...client, contact_phone:e.target.value})} /><div className="form-text">Teléfono del contacto para coordinaciones.</div></div>
                   <div className="mb-3"><label className="form-label">Correo</label><input type="email" className="form-control" value={client.contact_email} onChange={e=>setClient({...client, contact_email:e.target.value})} /><div className="form-text">Correo del contacto para envío de la cotización.</div></div>
-                  <div className="mb-3"><label className="form-label">Ubicación del proyecto</label><input className="form-control" value={client.project_location} onChange={e=>setClient({...client, project_location:e.target.value})} /></div>
-                  <div className="mb-3"><label className="form-label">Nombre del proyecto</label><input className="form-control" value={client.project_name} onChange={e=>setClient({...client, project_name:e.target.value})} /></div>
-                  <div className="mb-0"><label className="form-label">Nombre del servicio</label><input className="form-control" value={client.service_name} onChange={e=>setClient({...client, service_name:e.target.value})} /><div className="form-text">Ej.: Ensayos de suelo y agregado, Extracción de diamantina, etc.</div></div>
+                  <div className="mb-3">
+                    <label className="form-label">Ubicación del proyecto</label>
+                    <input 
+                      className="form-control" 
+                      value={client.project_location} 
+                      readOnly
+                      style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                    />
+                    <div className="form-text">Se actualiza automáticamente desde la selección de arriba</div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Nombre del proyecto</label>
+                    <input 
+                      className="form-control" 
+                      value={client.project_name} 
+                      readOnly
+                      style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                    />
+                    <div className="form-text">Se actualiza automáticamente desde la selección de arriba</div>
+                  </div>
+                  <div className="mb-0">
+                    <label className="form-label">Nombre del servicio</label>
+                    <div className="position-relative">
+                      <input 
+                        className="form-control" 
+                        value={client.service_name} 
+                        onChange={handleServiceInputChange}
+                        onBlur={handleServiceBlur}
+                        placeholder="Escriba para buscar servicios existentes..."
+                      />
+                      {showServiceSuggestions && serviceSuggestions.length > 0 && (
+                        <div className="autocomplete-suggestions position-absolute w-100" style={{ zIndex: 1000, top: '100%', left: 0 }}>
+                          {serviceSuggestions.slice(0, 10).map((service, index) => (
+                            <div 
+                              key={index}
+                              className="list-group-item list-group-item-action py-2 px-3"
+                              onClick={() => handleServiceSuggestionClick(service.service_name)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <div className="fw-medium">{service.service_name}</div>
+                              <small className="text-muted">
+                                {service.usage_count > 0 ? `Usado ${service.usage_count} veces` : 'Servicio estándar'}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-text">Ej.: Ensayos de suelo y agregado, Extracción de diamantina, etc.</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -325,7 +635,63 @@ export default function CotizacionNuevaLEM() {
                   <div className="mb-3"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
-                  <div className="mb-3"><label className="form-label">Referencia</label><input className="form-control" placeholder="SEGÚN LO SOLICITADO VÍA correo / llamada" value={quote.reference} onChange={e=>setQuote({...quote, reference:e.target.value})} /><div className="form-text">Contexto corto de la solicitud (llamada, correo, OS, etc.).</div></div>
+                  <div className="mb-3">
+                    <label className="form-label">Referencia</label>
+                    <div className="mb-2">
+                      <div className="row g-2">
+                        {referenceTypes.map(type => (
+                          <div key={type.value} className="col-md-3 col-sm-4 col-6">
+                            <div className="form-check">
+                              <input 
+                                className="form-check-input" 
+                                type="checkbox" 
+                                id={`ref-${type.value}`}
+                                checked={quote.reference_type?.includes(type.value) || false}
+                                onChange={(e) => {
+                                  const currentTypes = quote.reference_type || [];
+                                  if (e.target.checked) {
+                                    setQuote({
+                                      ...quote, 
+                                      reference_type: [...currentTypes, type.value]
+                                    });
+                                  } else {
+                                    setQuote({
+                                      ...quote, 
+                                      reference_type: currentTypes.filter(t => t !== type.value)
+                                    });
+                                  }
+                                }}
+                              />
+                              <label className="form-check-label" htmlFor={`ref-${type.value}`}>
+                                {type.label}
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <input 
+                        className="form-control" 
+                        value={quote.reference} 
+                        onChange={e => setQuote({...quote, reference: e.target.value})} 
+                        readOnly
+                        style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                      />
+                      <button 
+                        className="btn btn-outline-secondary" 
+                        type="button"
+                        onClick={() => {
+                          const referenceText = generateReferenceText(quote.reference_type);
+                          setQuote(prev => ({ ...prev, reference: referenceText }));
+                        }}
+                        title="Regenerar texto de referencia"
+                      >
+                        🔄
+                      </button>
+                    </div>
+                    <div className="form-text">Se genera automáticamente basado en las etiquetas seleccionadas. Puedes editarlo si necesitas.</div>
+                  </div>
                   <div className="mb-3">
                     <label className="form-label">Variante</label>
                     <div className="d-flex gap-2 align-items-center">
@@ -368,8 +734,25 @@ export default function CotizacionNuevaLEM() {
                     <input className="form-check-input" type="checkbox" id="acceptance" checked={quote.acceptance} onChange={e=>setQuote({...quote, acceptance:e.target.checked})}/>
                     <label className="form-check-label" htmlFor="acceptance">Aceptación de cotización</label>
                   </div>
-                  <div className="mb-0"><label className="form-label">Nombre de archivo sugerido</label>
-                    <input className="form-control" value={suggestedFileName('xxx-XX', client.company_name)} readOnly />
+                  <div className="mb-0">
+                    <label className="form-label">Nombre de archivo sugerido</label>
+                    <div className="input-group">
+                      <input 
+                        className="form-control" 
+                        value={suggestedFileName} 
+                        onChange={(e) => setSuggestedFileName(e.target.value)}
+                        placeholder="Se genera automáticamente..."
+                      />
+                      <button 
+                        className="btn btn-outline-secondary" 
+                        type="button"
+                        onClick={() => setSuggestedFileName(generateFileName())}
+                        title="Regenerar nombre automáticamente"
+                      >
+                        🔄
+                      </button>
+                    </div>
+                    <div className="form-text">Se genera automáticamente basado en el cliente. Puedes editarlo si necesitas.</div>
                   </div>
                 </div>
               </div>
@@ -505,8 +888,8 @@ export default function CotizacionNuevaLEM() {
                     </button>
                     <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>
                       📊 Exportar Excel
-                    </button>
-                  </div>
+              </button>
+            </div>
                 </div>
               </div>
             </div>

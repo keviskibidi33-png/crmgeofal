@@ -1,0 +1,88 @@
+/* Estilos para modales de adjuntos - Forma más cuadrado */
+.adjuntos-modal {
+  max-width: 1000px !important;
+  width: 80vw !important;
+  height: 80vh !important;
+  margin: 10vh auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.adjuntos-modal > div {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.adjuntos-modal .modal-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 1.5rem !important;
+  height: calc(80vh - 140px) !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e0 #f7fafc !important;
+}
+
+/* Estilos para el scrollbar en WebKit (Chrome, Safari, Edge) */
+.adjuntos-modal .modal-body::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.adjuntos-modal .modal-body::-webkit-scrollbar-track {
+  background: #f7fafc !important;
+  border-radius: 4px !important;
+}
+
+.adjuntos-modal .modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e0 !important;
+  border-radius: 4px !important;
+}
+
+.adjuntos-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0 !important;
+}
+
+.adjuntos-modal .modal-header {
+  flex-shrink: 0 !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.adjuntos-modal .modal-footer {
+  flex-shrink: 0 !important;
+  padding: 1rem 1.5rem !important;
+  border-top: 1px solid #dee2e6 !important;
+  height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+/* Asegurar que el contenido interno tenga el ancho completo */
+.adjuntos-modal .modal-body > div {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Responsive para pantallas más pequeñas */
+@media (max-width: 1200px) {
+  .adjuntos-modal {
+    width: 85vw !important;
+    height: 85vh !important;
+    margin: 7.5vh auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .adjuntos-modal {
+    width: 90vw !important;
+    height: 90vh !important;
+    margin: 5vh auto !important;
+  }
+}

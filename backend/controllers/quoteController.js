@@ -24,14 +24,23 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
+    console.log('🔍 Quote.create - Datos recibidos:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 Quote.create - Usuario:', req.user);
+    
     const data = req.body || {};
     // basic validation: require at least project_id or client info
     if (!data || Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'Datos de cotización requeridos' });
     }
-  // set created_by when user present (tests may call without token)
-  if (req.user && req.user.id) data.created_by = req.user.id;
+    
+    // set created_by when user present (tests may call without token)
+    if (req.user && req.user.id) data.created_by = req.user.id;
+    
+    console.log('🔍 Quote.create - Datos procesados:', JSON.stringify(data, null, 2));
+    
     const quote = await Quote.create(data);
+    console.log('✅ Quote.create - Cotización creada:', quote);
+    
     await AuditQuote.log({
       user_id: req.user?.id || null,
       action: 'crear',
@@ -41,7 +50,8 @@ exports.create = async (req, res) => {
     });
     res.status(201).json(quote);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear cotización' });
+    console.error('❌ Quote.create - Error:', err);
+    res.status(500).json({ error: 'Error al crear cotización: ' + err.message });
   }
 };
 

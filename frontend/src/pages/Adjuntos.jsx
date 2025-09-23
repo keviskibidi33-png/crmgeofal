@@ -8,12 +8,19 @@ import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
 import Modal from '../components/Modal';
 import Toast from '../components/Toast';
+import './Adjuntos.css';
 import { listProjectAttachments, getAllAttachments, uploadAttachment, updateAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 import { listProjects } from '../services/projects';
 import { listCategories, listSubcategories } from '../services/categories';
+import CompanyProjectPicker from '../components/CompanyProjectPicker';
 
 const emptyForm = { 
   project_id: '', 
+  company_id: '',
+  company: null,
+  project: null,
+  project_name: '',
+  location: '',
   description: '', 
   file: null, 
   category_id: '', 
@@ -34,6 +41,16 @@ export default function Adjuntos() {
   const [toast, setToast] = useState({ message: '', type: 'success', show: false });
   const location = useLocation();
 
+  // Estado para el selector de cliente/proyecto
+  const [clientProjectSelection, setClientProjectSelection] = useState({
+    company_id: null,
+    company: null,
+    project_id: null,
+    project: null,
+    project_name: '',
+    location: ''
+  });
+
   // State for modals
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -53,12 +70,12 @@ export default function Adjuntos() {
 
   // Obtener todos los adjuntos de todos los proyectos
   const { data, isLoading, refetch } = useQuery(
-    ['allAttachments', currentPage, limit, searchTerm, selectedProject, selectedFileType],
+    ['allAttachments', currentPage, limit, searchTerm, selectedProject, selectedFileType, clientProjectSelection.project_id],
     () => getAllAttachments({ 
       page: currentPage, 
       limit, 
       search: searchTerm,
-      project_id: selectedProject,
+      project_id: clientProjectSelection.project_id || selectedProject,
       file_type: selectedFileType
     }),
     { 
@@ -653,6 +670,32 @@ export default function Adjuntos() {
           </Col>
         </Row>
 
+        {/* Selector de Cliente y Proyecto */}
+        <Card className="mb-4">
+          <Card.Body>
+            <Row>
+              <Col md={12}>
+                <h6 className="mb-3">Filtro por Cliente y Proyecto</h6>
+                <CompanyProjectPicker 
+                  value={clientProjectSelection} 
+                  onChange={setClientProjectSelection} 
+                />
+                {clientProjectSelection.project && (
+                  <div className="mt-3">
+                    <Alert variant="info" className="py-2">
+                      <small>
+                        <strong>Proyecto seleccionado:</strong> {clientProjectSelection.project.name} | 
+                        <strong> Cliente:</strong> {clientProjectSelection.company?.name} | 
+                        <strong> Ubicación:</strong> {clientProjectSelection.project.location}
+                      </small>
+                    </Alert>
+                  </div>
+                )}
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
+
         {/* Barra de herramientas */}
         <Card className="mb-4">
           <Card.Body>
@@ -719,39 +762,43 @@ export default function Adjuntos() {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <Modal open={showUploadModal} onClose={() => setShowUploadModal(false)} size="lg">
-          <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-            <div className="d-flex align-items-center mb-4">
+        <Modal open={showUploadModal} onClose={() => setShowUploadModal(false)} size="xl" className="adjuntos-modal">
+          <div className="modal-header">
+            <div className="d-flex align-items-center">
               <FiUpload className="me-2 text-primary" size={24} />
               <h4 className="mb-0">Subir Archivo Adjunto</h4>
             </div>
+            </div>
+          
+          <div className="modal-body">
             
             <form onSubmit={handleUploadSubmit}>
               <Row className="g-3">
                 <Col md={12}>
-                  <Form.Label className="fw-medium">Proyecto *</Form.Label>
-                  <Form.Select
-                    value={uploadForm.project_id}
-                    onChange={(e) => {
-                      const projectId = e.target.value;
-                      const project = projects.find(p => p.id === parseInt(projectId));
+                  <Form.Label className="fw-medium">Cliente y Proyecto *</Form.Label>
+                  <CompanyProjectPicker 
+                    value={{
+                      company_id: uploadForm.company_id || null,
+                      company: uploadForm.company || null,
+                      project_id: uploadForm.project_id || null,
+                      project: uploadForm.project || null,
+                      project_name: uploadForm.project_name || '',
+                      location: uploadForm.location || ''
+                    }}
+                    onChange={(selection) => {
                       setUploadForm(f => ({ 
                         ...f, 
-                        project_id: projectId,
-                        category_id: project?.category_id || '',
-                        subcategory_id: project?.subcategory_id || ''
+                        company_id: selection.company_id,
+                        company: selection.company,
+                        project_id: selection.project_id,
+                        project: selection.project,
+                        project_name: selection.project_name,
+                        location: selection.location,
+                        category_id: selection.project?.category_id || '',
+                        subcategory_id: selection.project?.subcategory_id || ''
                       }));
                     }}
-                    required
-                    className="form-select-lg"
-                  >
-                    <option value="">Seleccione un proyecto...</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} - {p.location}
-                      </option>
-                    ))}
-                  </Form.Select>
+                  />
                 </Col>
 
                 {/* Categorías disponibles */}
@@ -997,17 +1044,51 @@ export default function Adjuntos() {
               </div>
             </form>
           </div>
+          
+          <div className="modal-footer">
+            <div className="d-flex gap-2 justify-content-end">
+              <Button
+                type="button"
+                variant="outline-secondary"
+                onClick={() => setShowUploadModal(false)}
+                disabled={createMutation.isLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={createMutation.isLoading}
+                onClick={handleUploadSubmit}
+              >
+                {createMutation.isLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Subiendo...
+                  </>
+                ) : (
+                  <>
+                    <FiUpload className="me-2" />
+                    Subir Archivo
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
 
       {/* Edit Modal */}
       {showEditModal && editingAttachment && (
-        <Modal open={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
-          <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-            <div className="d-flex align-items-center mb-4">
+        <Modal open={showEditModal} onClose={() => setShowEditModal(false)} size="xl" className="adjuntos-modal">
+          <div className="modal-header">
+            <div className="d-flex align-items-center">
               <FiEdit className="me-2 text-success" size={24} />
               <h4 className="mb-0">Editar Archivo Adjunto</h4>
             </div>
+          </div>
+          
+          <div className="modal-body">
             
             <form onSubmit={handleEditSubmit}>
               <Row className="g-3">
@@ -1236,6 +1317,37 @@ export default function Adjuntos() {
                 </Button>
               </div>
             </form>
+          </div>
+          
+          <div className="modal-footer">
+            <div className="d-flex gap-2 justify-content-end">
+              <Button
+                type="button"
+                variant="outline-secondary"
+                onClick={() => setShowEditModal(false)}
+                disabled={updateMutation.isLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="success"
+                disabled={updateMutation.isLoading}
+                onClick={handleEditSubmit}
+              >
+                {updateMutation.isLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Actualizando...
+                  </>
+                ) : (
+                  <>
+                    <FiEdit className="me-2" />
+                    Actualizar Archivo
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}
