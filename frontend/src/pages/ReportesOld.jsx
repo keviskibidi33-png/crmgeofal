@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import { useQuery, useQueryClient } from 'react-query';
-import { Row, Col, Card, Button, Form, InputGroup, Spinner, Badge } from 'react-bootstrap';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from 'react-query';
+import { Row, Col, Card, Button, Form, InputGroup, Badge, Alert, Spinner } from 'react-bootstrap';
 import { 
   FiBarChart2, FiDownload, FiCalendar, FiUsers, FiDollarSign, 
-  FiFileText, FiFilter, FiRefreshCw, FiHome, FiTrendingUp, FiPieChart
+  FiArrowUp, FiFileText, FiFilter, FiRefreshCw, FiEye,
+  FiHome, FiCheckCircle, FiClock, FiX, FiTrendingUp, FiTrendingDown
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
+import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
 import { 
   getSystemStats, 
   getVendedores,
-  getDashboardTop10,
-  getMonthlyGoal,
-  setMonthlyGoal,
   exportReport 
 } from '../services/reports';
 import { 
@@ -21,11 +20,170 @@ import {
   CotizacionesReport, 
   ClientesReport 
 } from '../components/reports/ReportComponents';
-import { SalesBarChart, SalesDistributionChart, GoalProgressChart } from '../components/reports/DashboardCharts';
-import GoalConfigModal from '../components/reports/GoalConfigModal';
+
+const VentasPorVendedorReport = ({ dateRange, selectedVendedor }) => {
+  const { data, isLoading, error } = useQuery(
+    ['ventasPorVendedor', dateRange, selectedVendedor],
+    () => getVentasPorVendedor({
+      start_date: `${dateRange.start}-01`,
+      end_date: `${dateRange.end}-31`,
+      vendedor_id: selectedVendedor || undefined
+    }),
+    { staleTime: 30000 }
+  );
+
+  const columns = [
+    {
+      header: 'Vendedor',
+      accessor: 'name',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.name}</div>
+          <small className="text-muted">{row.email}</small>
+        </div>
+      )
+    },
+    {
+      header: 'Período',
+      accessor: 'period',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{row.month}/{row.year}</div>
+          <small className="text-muted">Mes/Año</small>
+        </div>
+      )
+    },
+    {
+      header: 'Total Proyectos',
+      accessor: 'total_projects',
+      render: (value) => (
+        <Badge bg="primary" className="status-badge">
+          {value} proyectos
+        </Badge>
+      )
+    },
+    {
+      header: 'Total Ventas',
+      accessor: 'total_sales',
+      render: (value) => (
+        <div className="fw-bold text-success">
+          S/ {Number(value).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div>
+      )
+    },
+    {
+      header: 'Cotizaciones',
+      accessor: 'total_quotes',
+      render: (value, row) => (
+        <div>
+          <div className="fw-medium">{value} total</div>
+          <small className="text-muted">{row.approved_quotes} aprobadas</small>
+        </div>
+      )
+    },
+    {
+      header: 'Tasa Aprobación',
+      accessor: 'approval_rate',
+      render: (value) => (
+        <Badge bg={value >= 50 ? 'success' : value >= 30 ? 'warning' : 'danger'}>
+          {value}%
+        </Badge>
+      )
+    },
+    {
+      header: 'Acciones',
+      accessor: 'actions',
+      render: (value, row) => (
+        <Button variant="outline-primary" size="sm">
+          <FiEye className="me-1" />
+          Ver Detalles
+        </Button>
+      )
+    }
+  ];
+
+  if (isLoading) return <Alert variant="info">Cargando reporte...</Alert>;
+  if (error) return <Alert variant="danger">Error al cargar el reporte: {error.message}</Alert>;
+
+  return (
+    <DataTable
+      data={data || []}
+      columns={columns}
+      loading={isLoading}
+      emptyMessage="No hay datos de ventas disponibles"
+    />
+  );
+};
+
+const ProyectosPorEstadoReport = () => {
+  // Simulamos datos para el reporte
+  const mockData = [
+    { estado: 'activo', cantidad: 45, porcentaje: 60 },
+    { estado: 'pendiente', cantidad: 20, porcentaje: 27 },
+    { estado: 'completado', cantidad: 8, porcentaje: 11 },
+    { estado: 'cancelado', cantidad: 2, porcentaje: 2 }
+  ];
+
+  const getStatusBadge = (estado) => {
+    const statusConfig = {
+      'activo': { bg: 'success', text: 'Activo', icon: FiCheckCircle },
+      'pendiente': { bg: 'warning', text: 'Pendiente', icon: FiClock },
+      'completado': { bg: 'primary', text: 'Completado', icon: FiCheckCircle },
+      'cancelado': { bg: 'danger', text: 'Cancelado', icon: FiX }
+    };
+    
+    const config = statusConfig[estado] || { bg: 'secondary', text: estado, icon: FiCheckCircle };
+    const Icon = config.icon;
+    
+    return (
+      <Badge bg={config.bg} className="status-badge d-flex align-items-center">
+        <Icon size={12} className="me-1" />
+        {config.text}
+      </Badge>
+    );
+  };
+
+  const columns = [
+    {
+      header: 'Estado',
+      accessor: 'estado',
+      render: (value) => getStatusBadge(value)
+    },
+    {
+      header: 'Cantidad',
+      accessor: 'cantidad',
+      render: (value) => (
+        <div className="fw-bold text-primary">{value}</div>
+      )
+    },
+    {
+      header: 'Porcentaje',
+      accessor: 'porcentaje',
+      render: (value) => (
+        <div className="d-flex align-items-center">
+          <div className="progress flex-grow-1 me-2" style={{ height: '8px' }}>
+            <div 
+              className="progress-bar bg-primary" 
+              style={{ width: `${value}%` }}
+            ></div>
+          </div>
+          <span className="fw-medium">{value}%</span>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <DataTable
+      data={mockData}
+      columns={columns}
+      loading={false}
+      emptyMessage="No hay datos de proyectos disponibles"
+    />
+  );
+};
 
 export default function Reportes() {
-  const queryClient = useQueryClient();
   const [activeReport, setActiveReport] = useState('ventas');
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().slice(0, 7), // YYYY-MM
@@ -33,64 +191,64 @@ export default function Reportes() {
   });
   const [selectedVendedor, setSelectedVendedor] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [sortBy, setSortBy] = useState('total_quotes'); // total_sales, total_projects, total_quotes, approval_rate
-  const [showGoalModal, setShowGoalModal] = useState(false);
-  const [isSavingGoal, setIsSavingGoal] = useState(false);
-
-  // Función para obtener el último día del mes
-  const getLastDayOfMonth = (yearMonth) => {
-    const [year, month] = yearMonth.split('-');
-    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-    return `${yearMonth}-${lastDay.toString().padStart(2, '0')}`;
-  };
 
   // Consultas de datos reales
   const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useQuery(
     ['systemStats', dateRange],
     () => getSystemStats({
       start_date: `${dateRange.start}-01`,
-      end_date: getLastDayOfMonth(dateRange.end)
+      end_date: `${dateRange.end}-31`
     }),
     { staleTime: 30000 }
   );
 
   const { data: vendedoresData } = useQuery('vendedores', getVendedores, { staleTime: 300000 });
 
-  // Consulta para el dashboard top 10
-  const { data: dashboardData, isLoading: dashboardLoading } = useQuery(
-    ['dashboardTop10', dateRange, sortBy, selectedVendedor],
-    () => getDashboardTop10({
+  const { data: ventasData, isLoading: ventasLoading, refetch: refetchVentas } = useQuery(
+    ['ventasPorVendedor', dateRange, selectedVendedor],
+    () => getVentasPorVendedor({
       start_date: `${dateRange.start}-01`,
-      end_date: getLastDayOfMonth(dateRange.end),
-      sort_by: sortBy,
+      end_date: `${dateRange.end}-31`,
       vendedor_id: selectedVendedor || undefined
     }),
-    { 
-      staleTime: 30000,
-      enabled: showDashboard 
-    }
+    { staleTime: 30000 }
   );
 
-  // Estado para el período de la meta
-  const [goalPeriod, setGoalPeriod] = useState({
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1
-  });
+  const { data: proyectosData, isLoading: proyectosLoading, refetch: refetchProyectos } = useQuery(
+    ['proyectosPorEstado', dateRange],
+    () => getProyectosPorEstado({
+      start_date: `${dateRange.start}-01`,
+      end_date: `${dateRange.end}-31`
+    }),
+    { staleTime: 30000 }
+  );
 
-  // Consulta para la meta mensual
-  const { data: goalData, isLoading: goalLoading } = useQuery(
-    ['monthlyGoal', goalPeriod.year, goalPeriod.month],
-    () => getMonthlyGoal(goalPeriod.year, goalPeriod.month),
-    { 
-      staleTime: 30000,
-      enabled: showDashboard 
-    }
+  const { data: cotizacionesData, isLoading: cotizacionesLoading, refetch: refetchCotizaciones } = useQuery(
+    ['cotizacionesPorPeriodo', dateRange, selectedVendedor],
+    () => getCotizacionesPorPeriodo({
+      start_date: `${dateRange.start}-01`,
+      end_date: `${dateRange.end}-31`,
+      vendedor_id: selectedVendedor || undefined
+    }),
+    { staleTime: 30000 }
+  );
+
+  const { data: clientesData, isLoading: clientesLoading, refetch: refetchClientes } = useQuery(
+    ['clientesActivos', dateRange],
+    () => getClientesActivos({
+      start_date: `${dateRange.start}-01`,
+      end_date: `${dateRange.end}-31`
+    }),
+    { staleTime: 30000 }
   );
 
   // Función para actualizar todos los datos
   const handleRefresh = () => {
     refetchStats();
+    refetchVentas();
+    refetchProyectos();
+    refetchCotizaciones();
+    refetchClientes();
   };
 
   // Función para exportar reporte
@@ -99,48 +257,13 @@ export default function Reportes() {
     try {
       await exportReport(activeReport, {
         start_date: `${dateRange.start}-01`,
-        end_date: getLastDayOfMonth(dateRange.end),
+        end_date: `${dateRange.end}-31`,
         vendedor_id: selectedVendedor || undefined
       });
     } catch (error) {
       console.error('Error al exportar:', error);
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  // Función para guardar meta mensual
-  const handleSaveGoal = async (goalData) => {
-    setIsSavingGoal(true);
-    try {
-      await setMonthlyGoal({
-        year: goalData.year,
-        month: goalData.month,
-        goal_quantity: parseInt(goalData.goal_quantity)
-      });
-      
-      // Actualizar el período de la meta para refrescar los datos
-      setGoalPeriod({
-        year: goalData.year,
-        month: goalData.month
-      });
-      
-      // Invalidar las queries para refrescar los datos
-      queryClient.invalidateQueries(['monthlyGoal']);
-      queryClient.invalidateQueries(['dashboardTop10']);
-      
-      console.log('Meta guardada:', {
-        year: goalData.year,
-        month: goalData.month,
-        goal_quantity: goalData.goal_quantity
-      });
-      
-      setShowGoalModal(false);
-    } catch (error) {
-      console.error('Error al guardar meta:', error);
-      alert('Error al guardar la meta. Intente nuevamente.');
-    } finally {
-      setIsSavingGoal(false);
     }
   };
 
@@ -178,7 +301,7 @@ export default function Reportes() {
   const renderReport = () => {
     switch (activeReport) {
       case 'ventas':
-        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} sortBy={sortBy} />;
+        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} />;
       case 'proyectos':
         return <ProyectosPorEstadoReport dateRange={dateRange} />;
       case 'cotizaciones':
@@ -186,7 +309,7 @@ export default function Reportes() {
       case 'clientes':
         return <ClientesReport dateRange={dateRange} />;
       default:
-        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} sortBy={sortBy} />;
+        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} />;
     }
   };
 
@@ -198,6 +321,10 @@ export default function Reportes() {
         icon={FiBarChart2}
         actions={
           <div className="d-flex gap-2">
+            <Button variant="outline-primary">
+              <FiDownload className="me-2" />
+              Exportar
+            </Button>
             <Button variant="primary" onClick={handleRefresh}>
               <FiRefreshCw className="me-2" />
               Actualizar
@@ -223,12 +350,12 @@ export default function Reportes() {
         }
       />
 
-      {/* Filtros de análisis */}
+      {/* Filtros de fecha */}
       <Card className="mb-4">
         <Card.Body>
           <Row className="align-items-center">
-            <Col md={2}>
-              <Form.Label>Período</Form.Label>
+            <Col md={3}>
+              <Form.Label>Período de Análisis</Form.Label>
               <InputGroup>
                 <InputGroup.Text><FiCalendar /></InputGroup.Text>
                 <Form.Control
@@ -238,7 +365,7 @@ export default function Reportes() {
                 />
               </InputGroup>
             </Col>
-            <Col md={2}>
+            <Col md={3}>
               <Form.Label>Hasta</Form.Label>
               <InputGroup>
                 <InputGroup.Text><FiCalendar /></InputGroup.Text>
@@ -249,43 +376,24 @@ export default function Reportes() {
                 />
               </InputGroup>
             </Col>
-            <Col md={2}>
-              <Form.Label>Ordenar por</Form.Label>
-              <Form.Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="total_quotes">Cotizaciones</option>
-                <option value="total_sales">Total Ventas</option>
-                <option value="total_projects">Total Proyectos</option>
-                <option value="approval_rate">Tasa Aprobación</option>
-              </Form.Select>
-            </Col>
-            <Col md={2}>
+            <Col md={3}>
               <Form.Label>Vendedor</Form.Label>
               <Form.Select
                 value={selectedVendedor}
                 onChange={(e) => setSelectedVendedor(e.target.value)}
               >
                 <option value="">Todos los vendedores</option>
-                {Array.isArray(vendedoresData?.data) && vendedoresData.data.map((vendedor) => (
+                {vendedoresData?.data?.map((vendedor) => (
                   <option key={vendedor.id} value={vendedor.id}>
-                    {vendedor.name}
+                    {vendedor.name} ({vendedor.role})
                   </option>
                 ))}
               </Form.Select>
             </Col>
-            <Col md={4} className="d-flex align-items-end gap-2">
-              <Button variant="outline-secondary">
+            <Col md={3} className="d-flex align-items-end">
+              <Button variant="outline-secondary" className="me-2">
                 <FiFilter className="me-2" />
                 Aplicar Filtros
-              </Button>
-              <Button 
-                variant="primary" 
-                onClick={() => setShowDashboard(!showDashboard)}
-              >
-                <FiPieChart className="me-2" />
-                Dashboard Top 10
               </Button>
             </Col>
           </Row>
@@ -336,87 +444,6 @@ export default function Reportes() {
         </Col>
       </Row>
 
-      {/* Dashboard Top 10 Vendedores */}
-      {showDashboard && (
-        <Card className="mb-4">
-          <Card.Header>
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">
-                <FiTrendingUp className="me-2" />
-                Dashboard - Top 10 Vendedores
-              </h5>
-              <div className="d-flex gap-2">
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => setShowGoalModal(true)}
-                >
-                  <FiCalendar className="me-1" />
-                  Configurar Meta
-                </Button>
-              </div>
-            </div>
-          </Card.Header>
-          <Card.Body className="py-3">
-            {dashboardLoading ? (
-              <div className="text-center py-4">
-                <Spinner animation="border" />
-                <div className="mt-2">Cargando datos del dashboard...</div>
-              </div>
-            ) : (
-              <div>
-                {/* Primera fila: Gráfico de barras */}
-                <div className="mb-3" style={{ height: '280px' }}>
-                  <SalesBarChart 
-                    data={dashboardData?.data || []} 
-                    sortBy={sortBy}
-                    goalData={goalData?.data}
-                  />
-                </div>
-                
-                {/* Segunda fila: Gráficos circulares y estadísticas */}
-                <Row className="g-3">
-                  <Col md={4}>
-                    <div style={{ height: '200px' }}>
-                      <GoalProgressChart 
-                        currentSales={dashboardData?.stats?.totalQuotes || 0}
-                        goalQuantity={goalData?.data?.goal_quantity || 0}
-                      />
-                    </div>
-                  </Col>
-                  <Col md={4}>
-                    <div style={{ height: '200px' }}>
-                      <SalesDistributionChart 
-                        stats={dashboardData?.stats}
-                      />
-                    </div>
-                  </Col>
-                  <Col md={4}>
-                    <div className="d-flex flex-column justify-content-center h-100">
-                      <div className="text-center mb-3">
-                        <div className="fw-bold fs-3 text-primary">
-                          {dashboardData?.stats?.totalQuotes || 0}
-                        </div>
-                        <small className="text-muted">Total Ventas</small>
-                      </div>
-                      <div className="text-center">
-                        <div className="fw-bold fs-3 text-success">
-                          {dashboardData?.stats?.avgApprovalRate ? 
-                            `${dashboardData.stats.avgApprovalRate.toFixed(1)}%` : 
-                            '0%'
-                          }
-                        </div>
-                        <small className="text-muted">Tasa Promedio</small>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-      )}
-
       {/* Selector de reportes */}
       <Card className="mb-4">
         <Card.Body>
@@ -455,17 +482,6 @@ export default function Reportes() {
           {renderReport()}
         </Card.Body>
       </Card>
-
-            {/* Modal para configurar meta */}
-            <GoalConfigModal
-              show={showGoalModal}
-              onHide={() => setShowGoalModal(false)}
-              currentGoal={goalData?.data}
-              onSave={handleSaveGoal}
-              year={goalPeriod.year}
-              month={goalPeriod.month}
-              isLoading={isSavingGoal}
-            />
     </div>
   );
 }

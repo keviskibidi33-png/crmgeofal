@@ -6,6 +6,9 @@ const subcategoryController = {
     try {
       const { category_id } = req.query;
       
+      console.log('🔍 Subcategorías - category_id recibido:', category_id);
+      console.log('🔍 Subcategorías - tipo de category_id:', typeof category_id);
+      
       let subcategories;
       if (category_id) {
         subcategories = await ProjectSubcategory.getByCategory(category_id);

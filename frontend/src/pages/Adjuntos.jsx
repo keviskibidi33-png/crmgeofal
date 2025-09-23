@@ -96,7 +96,7 @@ export default function Adjuntos() {
   const categories = useMemo(() => categoriesData || [], [categoriesData]);
 
   // Obtener todas las subcategorías disponibles
-  const { data: subcategoriesData, refetch: refetchSubcategories } = useQuery('subcategoriesList', listSubcategories, { 
+  const { data: subcategoriesData, refetch: refetchSubcategories } = useQuery('subcategoriesList', () => listSubcategories(), { 
     staleTime: 30000, // 30 segundos
     refetchOnWindowFocus: true 
   });

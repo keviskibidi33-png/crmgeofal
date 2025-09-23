@@ -350,7 +350,7 @@ const DataTable = ({
                   variant="outline-secondary"
                   size="sm"
                   disabled={currentPage === 1}
-                  onClick={() => onPageChange ? onPageChange(1) : setCurrentPage(1)}
+                  onClick={() => onPageChange && onPageChange(1)}
                   title="Primera página"
                 >
                   ««
@@ -361,7 +361,7 @@ const DataTable = ({
                   variant="outline-secondary"
                   size="sm"
                   disabled={currentPage === 1}
-                  onClick={() => onPageChange ? onPageChange(currentPage - 1) : setCurrentPage(currentPage - 1)}
+                  onClick={() => onPageChange && onPageChange(currentPage - 1)}
                   title="Página anterior"
                 >
                   «
@@ -379,7 +379,7 @@ const DataTable = ({
                         key={i}
                         variant={currentPage === i ? "primary" : "outline-secondary"}
                         size="sm"
-                        onClick={() => onPageChange ? onPageChange(i) : setCurrentPage(i)}
+                        onClick={() => onPageChange && onPageChange(i)}
                         className="px-3"
                       >
                         {i}
@@ -394,7 +394,7 @@ const DataTable = ({
                   variant="outline-secondary"
                   size="sm"
                   disabled={currentPage === totalPages}
-                  onClick={() => onPageChange ? onPageChange(currentPage + 1) : setCurrentPage(currentPage + 1)}
+                  onClick={() => onPageChange && onPageChange(currentPage + 1)}
                   title="Página siguiente"
                 >
                   »
@@ -405,7 +405,7 @@ const DataTable = ({
                   variant="outline-secondary"
                   size="sm"
                   disabled={currentPage === totalPages}
-                  onClick={() => onPageChange ? onPageChange(totalPages) : setCurrentPage(totalPages)}
+                  onClick={() => onPageChange && onPageChange(totalPages)}
                   title="Última página"
                 >
                   »»
@@ -425,11 +425,11 @@ const DataTable = ({
                       if (e.key === 'Enter') {
                         const page = parseInt(e.target.value);
                         if (page >= 1 && page <= totalPages) {
-                          onPageChange ? onPageChange(page) : setCurrentPage(page);
+                          onPageChange && onPageChange(page);
                           e.target.value = '';
                         } else {
                           // Si la página no existe, ir a la última página
-                          onPageChange ? onPageChange(totalPages) : setCurrentPage(totalPages);
+                          onPageChange && onPageChange(totalPages);
                           e.target.value = '';
                         }
                       }

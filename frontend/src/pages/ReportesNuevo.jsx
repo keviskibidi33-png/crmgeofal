@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from 'react-query';
-import { Row, Col, Card, Button, Form, InputGroup, Spinner, Badge } from 'react-bootstrap';
+import { useQuery } from 'react-query';
+import { Row, Col, Card, Button, Form, InputGroup, Spinner } from 'react-bootstrap';
 import { 
   FiBarChart2, FiDownload, FiCalendar, FiUsers, FiDollarSign, 
-  FiFileText, FiFilter, FiRefreshCw, FiHome, FiTrendingUp, FiPieChart
+  FiFileText, FiFilter, FiRefreshCw, FiHome
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import StatsCard from '../components/common/StatsCard';
 import { 
   getSystemStats, 
   getVendedores,
-  getDashboardTop10,
-  getMonthlyGoal,
-  setMonthlyGoal,
   exportReport 
 } from '../services/reports';
 import { 
@@ -21,11 +18,8 @@ import {
   CotizacionesReport, 
   ClientesReport 
 } from '../components/reports/ReportComponents';
-import { SalesBarChart, SalesDistributionChart, GoalProgressChart } from '../components/reports/DashboardCharts';
-import GoalConfigModal from '../components/reports/GoalConfigModal';
 
 export default function Reportes() {
-  const queryClient = useQueryClient();
   const [activeReport, setActiveReport] = useState('ventas');
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().slice(0, 7), // YYYY-MM
@@ -33,60 +27,18 @@ export default function Reportes() {
   });
   const [selectedVendedor, setSelectedVendedor] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [sortBy, setSortBy] = useState('total_quotes'); // total_sales, total_projects, total_quotes, approval_rate
-  const [showGoalModal, setShowGoalModal] = useState(false);
-  const [isSavingGoal, setIsSavingGoal] = useState(false);
-
-  // Función para obtener el último día del mes
-  const getLastDayOfMonth = (yearMonth) => {
-    const [year, month] = yearMonth.split('-');
-    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-    return `${yearMonth}-${lastDay.toString().padStart(2, '0')}`;
-  };
 
   // Consultas de datos reales
   const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useQuery(
     ['systemStats', dateRange],
     () => getSystemStats({
       start_date: `${dateRange.start}-01`,
-      end_date: getLastDayOfMonth(dateRange.end)
+      end_date: `${dateRange.end}-31`
     }),
     { staleTime: 30000 }
   );
 
   const { data: vendedoresData } = useQuery('vendedores', getVendedores, { staleTime: 300000 });
-
-  // Consulta para el dashboard top 10
-  const { data: dashboardData, isLoading: dashboardLoading } = useQuery(
-    ['dashboardTop10', dateRange, sortBy, selectedVendedor],
-    () => getDashboardTop10({
-      start_date: `${dateRange.start}-01`,
-      end_date: getLastDayOfMonth(dateRange.end),
-      sort_by: sortBy,
-      vendedor_id: selectedVendedor || undefined
-    }),
-    { 
-      staleTime: 30000,
-      enabled: showDashboard 
-    }
-  );
-
-  // Estado para el período de la meta
-  const [goalPeriod, setGoalPeriod] = useState({
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1
-  });
-
-  // Consulta para la meta mensual
-  const { data: goalData, isLoading: goalLoading } = useQuery(
-    ['monthlyGoal', goalPeriod.year, goalPeriod.month],
-    () => getMonthlyGoal(goalPeriod.year, goalPeriod.month),
-    { 
-      staleTime: 30000,
-      enabled: showDashboard 
-    }
-  );
 
   // Función para actualizar todos los datos
   const handleRefresh = () => {
@@ -99,48 +51,13 @@ export default function Reportes() {
     try {
       await exportReport(activeReport, {
         start_date: `${dateRange.start}-01`,
-        end_date: getLastDayOfMonth(dateRange.end),
+        end_date: `${dateRange.end}-31`,
         vendedor_id: selectedVendedor || undefined
       });
     } catch (error) {
       console.error('Error al exportar:', error);
     } finally {
       setIsExporting(false);
-    }
-  };
-
-  // Función para guardar meta mensual
-  const handleSaveGoal = async (goalData) => {
-    setIsSavingGoal(true);
-    try {
-      await setMonthlyGoal({
-        year: goalData.year,
-        month: goalData.month,
-        goal_quantity: parseInt(goalData.goal_quantity)
-      });
-      
-      // Actualizar el período de la meta para refrescar los datos
-      setGoalPeriod({
-        year: goalData.year,
-        month: goalData.month
-      });
-      
-      // Invalidar las queries para refrescar los datos
-      queryClient.invalidateQueries(['monthlyGoal']);
-      queryClient.invalidateQueries(['dashboardTop10']);
-      
-      console.log('Meta guardada:', {
-        year: goalData.year,
-        month: goalData.month,
-        goal_quantity: goalData.goal_quantity
-      });
-      
-      setShowGoalModal(false);
-    } catch (error) {
-      console.error('Error al guardar meta:', error);
-      alert('Error al guardar la meta. Intente nuevamente.');
-    } finally {
-      setIsSavingGoal(false);
     }
   };
 
@@ -178,7 +95,7 @@ export default function Reportes() {
   const renderReport = () => {
     switch (activeReport) {
       case 'ventas':
-        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} sortBy={sortBy} />;
+        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} />;
       case 'proyectos':
         return <ProyectosPorEstadoReport dateRange={dateRange} />;
       case 'cotizaciones':
@@ -186,7 +103,7 @@ export default function Reportes() {
       case 'clientes':
         return <ClientesReport dateRange={dateRange} />;
       default:
-        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} sortBy={sortBy} />;
+        return <VentasPorVendedorReport dateRange={dateRange} selectedVendedor={selectedVendedor} />;
     }
   };
 
@@ -223,12 +140,12 @@ export default function Reportes() {
         }
       />
 
-      {/* Filtros de análisis */}
+      {/* Filtros de fecha */}
       <Card className="mb-4">
         <Card.Body>
           <Row className="align-items-center">
-            <Col md={2}>
-              <Form.Label>Período</Form.Label>
+            <Col md={3}>
+              <Form.Label>Período de Análisis</Form.Label>
               <InputGroup>
                 <InputGroup.Text><FiCalendar /></InputGroup.Text>
                 <Form.Control
@@ -238,7 +155,7 @@ export default function Reportes() {
                 />
               </InputGroup>
             </Col>
-            <Col md={2}>
+            <Col md={3}>
               <Form.Label>Hasta</Form.Label>
               <InputGroup>
                 <InputGroup.Text><FiCalendar /></InputGroup.Text>
@@ -249,43 +166,24 @@ export default function Reportes() {
                 />
               </InputGroup>
             </Col>
-            <Col md={2}>
-              <Form.Label>Ordenar por</Form.Label>
-              <Form.Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="total_quotes">Cotizaciones</option>
-                <option value="total_sales">Total Ventas</option>
-                <option value="total_projects">Total Proyectos</option>
-                <option value="approval_rate">Tasa Aprobación</option>
-              </Form.Select>
-            </Col>
-            <Col md={2}>
+            <Col md={3}>
               <Form.Label>Vendedor</Form.Label>
               <Form.Select
                 value={selectedVendedor}
                 onChange={(e) => setSelectedVendedor(e.target.value)}
               >
                 <option value="">Todos los vendedores</option>
-                {Array.isArray(vendedoresData?.data) && vendedoresData.data.map((vendedor) => (
+                {vendedoresData?.data?.map((vendedor) => (
                   <option key={vendedor.id} value={vendedor.id}>
-                    {vendedor.name}
+                    {vendedor.name} ({vendedor.role})
                   </option>
                 ))}
               </Form.Select>
             </Col>
-            <Col md={4} className="d-flex align-items-end gap-2">
-              <Button variant="outline-secondary">
+            <Col md={3} className="d-flex align-items-end">
+              <Button variant="outline-secondary" className="me-2">
                 <FiFilter className="me-2" />
                 Aplicar Filtros
-              </Button>
-              <Button 
-                variant="primary" 
-                onClick={() => setShowDashboard(!showDashboard)}
-              >
-                <FiPieChart className="me-2" />
-                Dashboard Top 10
               </Button>
             </Col>
           </Row>
@@ -336,87 +234,6 @@ export default function Reportes() {
         </Col>
       </Row>
 
-      {/* Dashboard Top 10 Vendedores */}
-      {showDashboard && (
-        <Card className="mb-4">
-          <Card.Header>
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">
-                <FiTrendingUp className="me-2" />
-                Dashboard - Top 10 Vendedores
-              </h5>
-              <div className="d-flex gap-2">
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => setShowGoalModal(true)}
-                >
-                  <FiCalendar className="me-1" />
-                  Configurar Meta
-                </Button>
-              </div>
-            </div>
-          </Card.Header>
-          <Card.Body className="py-3">
-            {dashboardLoading ? (
-              <div className="text-center py-4">
-                <Spinner animation="border" />
-                <div className="mt-2">Cargando datos del dashboard...</div>
-              </div>
-            ) : (
-              <div>
-                {/* Primera fila: Gráfico de barras */}
-                <div className="mb-3" style={{ height: '280px' }}>
-                  <SalesBarChart 
-                    data={dashboardData?.data || []} 
-                    sortBy={sortBy}
-                    goalData={goalData?.data}
-                  />
-                </div>
-                
-                {/* Segunda fila: Gráficos circulares y estadísticas */}
-                <Row className="g-3">
-                  <Col md={4}>
-                    <div style={{ height: '200px' }}>
-                      <GoalProgressChart 
-                        currentSales={dashboardData?.stats?.totalQuotes || 0}
-                        goalQuantity={goalData?.data?.goal_quantity || 0}
-                      />
-                    </div>
-                  </Col>
-                  <Col md={4}>
-                    <div style={{ height: '200px' }}>
-                      <SalesDistributionChart 
-                        stats={dashboardData?.stats}
-                      />
-                    </div>
-                  </Col>
-                  <Col md={4}>
-                    <div className="d-flex flex-column justify-content-center h-100">
-                      <div className="text-center mb-3">
-                        <div className="fw-bold fs-3 text-primary">
-                          {dashboardData?.stats?.totalQuotes || 0}
-                        </div>
-                        <small className="text-muted">Total Ventas</small>
-                      </div>
-                      <div className="text-center">
-                        <div className="fw-bold fs-3 text-success">
-                          {dashboardData?.stats?.avgApprovalRate ? 
-                            `${dashboardData.stats.avgApprovalRate.toFixed(1)}%` : 
-                            '0%'
-                          }
-                        </div>
-                        <small className="text-muted">Tasa Promedio</small>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-      )}
-
       {/* Selector de reportes */}
       <Card className="mb-4">
         <Card.Body>
@@ -455,17 +272,6 @@ export default function Reportes() {
           {renderReport()}
         </Card.Body>
       </Card>
-
-            {/* Modal para configurar meta */}
-            <GoalConfigModal
-              show={showGoalModal}
-              onHide={() => setShowGoalModal(false)}
-              currentGoal={goalData?.data}
-              onSave={handleSaveGoal}
-              year={goalPeriod.year}
-              month={goalPeriod.month}
-              isLoading={isSavingGoal}
-            />
     </div>
   );
 }
