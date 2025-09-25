@@ -21,7 +21,6 @@ async function cleanDatabase() {
       'quote_items',
       'quotes',
       'quote_variants',
-      'project_whatsapp_notices',
       'project_attachments',
       'project_history',
       'projects',

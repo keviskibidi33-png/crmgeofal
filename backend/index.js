@@ -72,9 +72,6 @@ app.use('/api/quote-items', require('./routes/quoteItemRoutes'));
 app.use('/api/quote-variants', require('./routes/quoteVariantRoutes'));
 app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 app.use('/api/project-attachments', require('./routes/projectAttachmentRoutes'));
-app.use('/api/project-whatsapp-notices', require('./routes/projectWhatsappNoticeRoutes'));
-// Alias para vista global solicitada: /api/whatsapp-notices
-app.use('/api/whatsapp-notices', require('./routes/projectWhatsappNoticeRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));

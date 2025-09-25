@@ -10,9 +10,4 @@ export const listServices = (params = {}) => {
   return apiFetch(path);
 };
 
-export const createService = (payload) => apiFetch('/api/services', { method: 'POST', body: JSON.stringify(payload) });
-
-export const updateService = (id, payload) => apiFetch(`/api/services/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-export const deleteService = (id) => apiFetch(`/api/services/${id}`, { method: 'DELETE' });
-
-export default { listServices, createService, updateService, deleteService };
+export default { listServices };

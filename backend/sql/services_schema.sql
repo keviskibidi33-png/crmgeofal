@@ -1,8 +1,8 @@
--- Tabla de servicios generales (ingeniería y laboratorio)
+-- Tabla de servicios fijos (solo Laboratorio e Ingeniería)
 CREATE TABLE IF NOT EXISTS services (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
-  area VARCHAR(50) NOT NULL, -- 'ingenieria' o 'laboratorio'
+  area VARCHAR(50) NOT NULL CHECK (area IN ('laboratorio', 'ingenieria')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -85,7 +85,6 @@ export default function CotizacionNuevaLEM() {
   const referenceTypes = [
     { value: 'email', label: '📧 Correo electrónico', icon: '📧' },
     { value: 'phone', label: '📞 Llamada telefónica', icon: '📞' },
-    { value: 'whatsapp', label: '💬 WhatsApp', icon: '💬' },
     { value: 'ticket', label: '🎯 Sistema de tickets', icon: '🎯' },
     { value: 'meeting', label: '🤝 Reunión presencial', icon: '🤝' },
     { value: 'form', label: '📋 Formulario web', icon: '📋' },

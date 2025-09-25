@@ -23,6 +23,24 @@ const subcategoryController = {
     }
   },
 
+  // Obtener subcategorías por categoría
+  async getByCategory(req, res) {
+    try {
+      const { category_id } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+      
+      console.log('🔍 Subcategorías - category_id recibido:', category_id);
+      console.log('🔍 Subcategorías - page:', page, 'limit:', limit);
+      
+      const subcategories = await ProjectSubcategory.getByCategory(category_id, { page: parseInt(page), limit: parseInt(limit) });
+      
+      res.json(subcategories);
+    } catch (error) {
+      console.error('Error al obtener subcategorías por categoría:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+
   // Obtener subcategoría por ID
   async getById(req, res) {
     try {

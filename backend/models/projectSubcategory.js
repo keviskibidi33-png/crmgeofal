@@ -15,12 +15,34 @@ const ProjectSubcategory = {
   },
 
   // Obtener subcategorías por categoría
-  async getByCategory(categoryId) {
-    const result = await pool.query(
-      'SELECT * FROM project_subcategories WHERE category_id = $1 ORDER BY name',
+  async getByCategory(categoryId, options = {}) {
+    const { page = 1, limit = 10 } = options;
+    const offset = (page - 1) * limit;
+    
+    // Consulta principal con paginación
+    const dataResult = await pool.query(`
+      SELECT 
+        ps.*,
+        pc.name as category_name
+      FROM project_subcategories ps
+      LEFT JOIN project_categories pc ON ps.category_id = pc.id
+      WHERE ps.category_id = $1
+      ORDER BY ps.name
+      LIMIT $2 OFFSET $3
+    `, [categoryId, limit, offset]);
+    
+    // Consulta de conteo
+    const countResult = await pool.query(
+      'SELECT COUNT(*) as total FROM project_subcategories WHERE category_id = $1',
       [categoryId]
     );
-    return result.rows;
+    
+    return {
+      data: dataResult.rows,
+      total: parseInt(countResult.rows[0].total),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    };
   },
 
   // Obtener subcategoría por ID

@@ -9,15 +9,6 @@ CREATE TABLE IF NOT EXISTS project_attachments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de avisos de WhatsApp (solo ventas)
-CREATE TABLE IF NOT EXISTS project_whatsapp_notices (
-  id SERIAL PRIMARY KEY,
-  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  sent_by INTEGER REFERENCES users(id),
-  sent_to VARCHAR(100), -- número o nombre de contacto
-  message TEXT NOT NULL,
-  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 -- Tabla de clientes (empresas y personas naturales) - ya definida en crm_schema.sql, solo agregamos columnas
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS type VARCHAR(20) DEFAULT 'empresa';

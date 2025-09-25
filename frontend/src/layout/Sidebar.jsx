@@ -54,15 +54,7 @@ const sectionsByRole = {
         },
         { path: '/recuperados', label: 'Recuperados', icon: FiCheckCircle },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
-        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: FiMessageSquare },
-        {
-          label: 'Servicios',
-          icon: FiSettings,
-          children: [
-            { path: '/servicios', label: 'Servicios', icon: FiSettings },
-            { path: '/subservicios', label: 'Subservicios', icon: FiPackage },
-          ]
-        },
+        { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/auditoria', label: 'Auditoría', icon: FiShield },
@@ -92,7 +84,6 @@ const sectionsByRole = {
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
-        { path: '/notificaciones-whatsapp', label: 'Notificaciones WhatsApp', icon: FiMessageSquare },
       ]
     },
     { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
@@ -121,7 +112,6 @@ const sectionsByRole = {
         { path: '/variantes-cotizacion', label: 'Variantes', icon: FiList },
         { path: '/items-cotizacion', label: 'Items', icon: FiList },
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
-        { path: '/subservicios', label: 'Subservicios', icon: FiPackage },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]

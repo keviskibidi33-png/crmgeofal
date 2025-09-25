@@ -17,9 +17,7 @@ const Reportes = lazy(() => import('./pages/Reportes'));
 const Categorias = lazy(() => import('./pages/Categorias'));
 const Subcategorias = lazy(() => import('./pages/Subcategorias'));
 const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
-const NotificacionesWhatsapp = lazy(() => import('./pages/NotificacionesWhatsapp'));
 const Servicios = lazy(() => import('./pages/Servicios'));
-const Subservicios = lazy(() => import('./pages/Subservicios'));
 const Evidencias = lazy(() => import('./pages/Evidencias'));
 const Facturas = lazy(() => import('./pages/Facturas'));
 const VariantesCotizacion = lazy(() => import('./pages/VariantesCotizacion'));
@@ -67,9 +65,7 @@ function App() {
                   <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} />
                   <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} />
                   <Route path="/historial-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><HistorialProyectos /></RequireRole></ErrorBoundary>} />
-                  <Route path="/notificaciones-whatsapp" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><NotificacionesWhatsapp /></RequireRole></ErrorBoundary>} />
                   <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
-                  <Route path="/subservicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Subservicios /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
                   <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Facturas /></RequireRole></ErrorBoundary>} />
                   <Route path="/variantes-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><VariantesCotizacion /></RequireRole></ErrorBoundary>} />
