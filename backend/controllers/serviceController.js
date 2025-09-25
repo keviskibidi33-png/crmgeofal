@@ -4,10 +4,14 @@ const Service = require('../models/service');
 exports.getAll = async (req, res) => {
   try {
     const { type, search, page = 1, limit = 20 } = req.query;
+    console.log('🔍 ServiceController.getAll - Parámetros:', { type, search, page, limit });
+    
     const { rows, total } = await Service.getAll({ type, search, page, limit });
+    console.log('✅ ServiceController.getAll - Resultados:', { count: rows.length, total });
+    
     res.json({ data: rows, total });
   } catch (err) {
-    console.error('Error obteniendo servicios:', err);
+    console.error('❌ ServiceController.getAll - Error:', err);
     res.status(500).json({ error: 'Error al obtener servicios' });
   }
 };

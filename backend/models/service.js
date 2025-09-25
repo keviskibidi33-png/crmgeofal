@@ -9,9 +9,9 @@ const Service = {
       let queryParams = [];
       let paramIndex = 1;
 
-      // Filtro por tipo
+      // Filtro por tipo (usando campo 'area' en lugar de 'type')
       if (type) {
-        whereConditions.push(`type = $${paramIndex}`);
+        whereConditions.push(`area = $${paramIndex}`);
         queryParams.push(type);
         paramIndex++;
       }
@@ -180,11 +180,11 @@ const Service = {
       // Total de servicios
       const totalServices = await pool.query('SELECT COUNT(*) as total FROM services');
       
-      // Servicios por tipo
+      // Servicios por tipo (usando campo 'area')
       const servicesByType = await pool.query(`
-        SELECT type, COUNT(*) as count 
+        SELECT area as type, COUNT(*) as count 
         FROM services 
-        GROUP BY type
+        GROUP BY area
       `);
       
       // Total de subservicios

@@ -186,6 +186,54 @@ const Company = {
       throw error;
     }
   },
+
+  // Búsqueda inteligente por tipo y texto
+  async searchByType(type, searchTerm) {
+    try {
+      console.log(`🔍 Company.searchByType - Buscando ${type} con término: "${searchTerm}"`);
+      
+      let query = `
+        SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, created_at
+        FROM companies 
+        WHERE type = $1
+      `;
+      
+      const params = [type];
+      
+      if (searchTerm && searchTerm.trim()) {
+        // Búsqueda en múltiples campos según el tipo
+        if (type === 'empresa') {
+          // Para empresas: buscar por nombre, RUC, contacto
+          query += ` AND (
+            LOWER(name) LIKE LOWER($2) OR 
+            LOWER(ruc) LIKE LOWER($2) OR 
+            LOWER(contact_name) LIKE LOWER($2) OR
+            LOWER(email) LIKE LOWER($2)
+          )`;
+        } else if (type === 'persona_natural') {
+          // Para personas: buscar por nombre, DNI, contacto
+          query += ` AND (
+            LOWER(name) LIKE LOWER($2) OR 
+            LOWER(dni) LIKE LOWER($2) OR 
+            LOWER(contact_name) LIKE LOWER($2) OR
+            LOWER(email) LIKE LOWER($2)
+          )`;
+        }
+        
+        params.push(`%${searchTerm}%`);
+      }
+      
+      query += ` ORDER BY name ASC LIMIT 20`;
+      
+      const result = await pool.query(query, params);
+      
+      console.log(`✅ Company.searchByType - Encontrados ${result.rows.length} resultados`);
+      return result.rows;
+    } catch (error) {
+      console.error('❌ Company.searchByType - Error:', error);
+      throw error;
+    }
+  },
 };
 
 module.exports = Company;
