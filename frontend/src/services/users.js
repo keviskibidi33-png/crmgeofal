@@ -1,72 +1,90 @@
 import { apiFetch } from './api';
 
-export const listUsers = (params = {}) => {
-  const searchParams = new URLSearchParams();
-  if (params.page) searchParams.set('page', params.page);
-  if (params.limit) searchParams.set('limit', params.limit);
-  if (params.search) searchParams.set('search', params.search);
-  if (params.area) searchParams.set('area', params.area);
-  if (params.role) searchParams.set('role', params.role);
-  const qs = searchParams.toString();
-  const path = qs ? `/api/users?${qs}` : '/api/users';
+// Obtener lista de usuarios
+export const listUsers = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.page) queryParams.append('page', params.page);
+  if (params.limit) queryParams.append('limit', params.limit);
+  if (params.search) queryParams.append('search', params.search);
   
-  console.log('🔍 listUsers - Llamando a:', path);
-  console.log('🔍 listUsers - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
-  
-  return apiFetch(path).then(data => {
-    console.log('✅ listUsers - Respuesta recibida:', data);
-    return data;
-  }).catch(error => {
-    console.error('❌ listUsers - Error:', error);
-    throw error;
-  });
+  const response = await apiFetch(`/api/users?${queryParams.toString()}`);
+  return response;
 };
 
-export const getUserStats = () => {
-  console.log('📊 getUserStats - Llamando a: /api/users/stats');
-  console.log('📊 getUserStats - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
-  
-  return apiFetch('/api/users/stats').then(data => {
-    console.log('✅ getUserStats - Respuesta recibida:', data);
-    return data;
-  }).catch(error => {
-    console.error('❌ getUserStats - Error:', error);
-    throw error;
-  });
+// Obtener usuario por ID
+export const getUserById = async (id) => {
+  const response = await apiFetch(`/api/users/${id}`);
+  return response;
 };
 
-export const createUser = (payload) =>
-  apiFetch('/api/users', {
+// Obtener usuarios para mapeo de auditoría
+export const getUsersForAudit = async () => {
+  try {
+    const response = await apiFetch('/api/users?limit=100');
+    return response.data || response.rows || response || [];
+  } catch (error) {
+    console.error('Error obteniendo usuarios para auditoría:', error);
+    return [];
+  }
+};
+
+// Crear nuevo usuario
+export const createUser = async (userData) => {
+  const response = await apiFetch('/api/users', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(userData)
   });
+  return response;
+};
 
-export const updateUser = (id, payload) =>
-  apiFetch(`/api/users/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload),
+// Actualizar usuario
+export const updateUser = async (id, userData) => {
+  const response = await apiFetch(`/api/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(userData)
   });
+  return response;
+};
 
-export const deleteUser = (id) =>
-  apiFetch(`/api/users/${id}`, { method: 'DELETE' });
-
-export const resetPassword = (id, password) =>
-  apiFetch(`/api/users/${id}/reset-password`, {
-    method: 'POST',
-    body: JSON.stringify({ password }),
+// Eliminar usuario
+export const deleteUser = async (id) => {
+  const response = await apiFetch(`/api/users/${id}`, {
+    method: 'DELETE'
   });
+  return response;
+};
 
-export const setNotificationEnabled = (id, enabled) =>
-  apiFetch(`/api/users/${id}/notification`, {
-    method: 'PATCH',
-    body: JSON.stringify({ enabled }),
-  });
+// Mapear ID de usuario a nombre real
+export const mapUserIdToName = async (userId) => {
+  try {
+    if (!userId) return 'Sistema';
+    
+    // Cache local para evitar múltiples requests
+    if (!window.userCache) {
+      window.userCache = new Map();
+    }
+    
+    if (window.userCache.has(userId)) {
+      return window.userCache.get(userId);
+    }
+    
+    const user = await getUserById(userId);
+    const userName = user?.name || user?.full_name || user?.username || `Usuario ${userId}`;
+    
+    window.userCache.set(userId, userName);
+    return userName;
+  } catch (error) {
+    console.error('Error mapeando usuario:', error);
+    return `Usuario ${userId}`;
+  }
+};
 
 export default {
   listUsers,
+  getUserById,
+  getUsersForAudit,
   createUser,
   updateUser,
   deleteUser,
-  resetPassword,
-  setNotificationEnabled,
+  mapUserIdToName
 };

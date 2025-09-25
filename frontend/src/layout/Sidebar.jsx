@@ -29,8 +29,6 @@ const sectionsByRole = {
           icon: FiHome,
           children: [
             { path: '/proyectos', label: 'Proyectos', icon: FiHome },
-            { path: '/categorias', label: 'Categorías', icon: FiLayers },
-            { path: '/subcategorias', label: 'Subcategorías', icon: FiList },
             { path: '/historial-proyectos', label: 'Historial Proyectos', icon: FiClock },
           ]
         },

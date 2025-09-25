@@ -8,8 +8,10 @@ import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
-import { listCategories, listSubcategories } from '../services/categories';
+// import { listCategories, listSubcategories } from '../services/categories'; // Eliminado - sistema antiguo
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
+import ProjectServiceForm from '../components/ProjectServiceForm';
+import ProjectFormRedesigned from '../components/ProjectFormRedesigned';
 
 const emptyForm = { 
   company_id: '', 
@@ -27,11 +29,8 @@ const emptyForm = {
   contact_email: '',
   queries: '',
   priority: 'normal',
-  marked: false,
-  category_id: '',
-  subcategory_id: '',
-  category_name: '',
-  subcategory_name: ''
+  marked: false
+  // category_id, subcategory_id, category_name, subcategory_name eliminados - sistema antiguo
 };
 
 export default function Proyectos() {
@@ -49,15 +48,20 @@ export default function Proyectos() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
   
-  // Estados para categorías
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  // Estados para categorías eliminados - reemplazados por sistema de servicios
   
   // Estados para adjuntos
   const [attachments, setAttachments] = useState([]);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  // Estados para servicios
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [showServiceForm, setShowServiceForm] = useState(false);
+  
+  // Estados para formulario rediseñado
+  const [useNewForm, setUseNewForm] = useState(true);
+  const [showNewForm, setShowNewForm] = useState(false);
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,35 +118,9 @@ export default function Proyectos() {
     }
   );
 
-  // Cargar categorías al montar el componente
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const categoriesData = await listCategories();
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error al cargar categorías:', error);
-      }
-    };
-    loadCategories();
-  }, []);
+  // Código de carga de categorías eliminado - sistema antiguo removido
 
-  // Cargar subcategorías cuando cambie la categoría seleccionada
-  useEffect(() => {
-    const loadSubcategories = async () => {
-      if (selectedCategoryId) {
-        try {
-          const subcategoriesData = await listSubcategories(selectedCategoryId);
-          setSubcategories(subcategoriesData);
-        } catch (error) {
-          console.error('Error al cargar subcategorías:', error);
-        }
-      } else {
-        setSubcategories([]);
-      }
-    };
-    loadSubcategories();
-  }, [selectedCategoryId]);
+  // Código de categorías eliminado - sistema antiguo removido
 
   // Cargar adjuntos cuando se abra el modal de gestión
   useEffect(() => {
@@ -734,36 +712,7 @@ export default function Proyectos() {
       placeholder: 'Ingresa la ubicación del proyecto',
       required: true
     },
-    {
-      name: 'category_id',
-      label: 'Categoría del Proyecto',
-      type: 'select',
-      options: categories.map(category => ({
-        value: category.id,
-        label: category.name
-      })),
-      description: 'Selecciona la categoría principal del proyecto',
-      onChange: (value) => {
-        setSelectedCategoryId(value);
-        // Limpiar subcategoría cuando cambie la categoría
-        setEditingProject(prev => ({
-          ...prev,
-          subcategory_id: '',
-          subcategory_name: ''
-        }));
-      }
-    },
-    {
-      name: 'subcategory_id',
-      label: 'Subcategoría del Proyecto',
-      type: 'select',
-      options: subcategories.map(subcategory => ({
-        value: subcategory.id,
-        label: subcategory.name
-      })),
-      description: 'Selecciona la subcategoría específica del proyecto',
-      disabled: !selectedCategoryId
-    },
+    // Categorías antiguas eliminadas - reemplazadas por sistema de servicios
     {
       name: 'contact_name',
       label: 'Persona de Contacto',
@@ -823,6 +772,74 @@ export default function Proyectos() {
       description: 'Preguntas o dudas específicas del cliente sobre el proyecto'
     },
     {
+      name: 'services',
+      label: 'Servicios del Proyecto',
+      type: 'custom',
+      component: (
+        <div>
+          <div className="mb-3">
+            <Button 
+              variant="outline-primary" 
+              onClick={() => setShowServiceForm(true)}
+              className="w-100"
+            >
+              <FiSettings className="me-2" />
+              {selectedServices.length > 0 
+                ? `Configurar Servicios (${selectedServices.length} seleccionados)` 
+                : 'Seleccionar Servicios'
+              }
+            </Button>
+          </div>
+          {selectedServices.length > 0 && (
+            <div className="border rounded p-3 bg-light">
+              <h6 className="mb-2">Servicios Seleccionados:</h6>
+              {selectedServices.map((service, index) => (
+                <div key={index} className="mb-2 p-2 border rounded bg-white">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <strong>{service.ensayo.name}</strong>
+                      <div className="small text-muted">
+                        {service.subservices.map(sub => sub.codigo).join(', ')}
+                      </div>
+                    </div>
+                    <div className="text-end">
+                      <div className="fw-bold text-success">
+                        S/ {service.total.toFixed(2)}
+                      </div>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => {
+                          const newServices = selectedServices.filter((_, i) => i !== index);
+                          setSelectedServices(newServices);
+                        }}
+                      >
+                        <FiX size={12} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="mt-2 pt-2 border-top">
+                <div className="d-flex justify-content-between">
+                  <strong>Subtotal:</strong>
+                  <strong>S/ {selectedServices.reduce((sum, service) => sum + service.total, 0).toFixed(2)}</strong>
+                </div>
+                <div className="d-flex justify-content-between">
+                  <span>IGV (18%):</span>
+                  <span>S/ {(selectedServices.reduce((sum, service) => sum + service.total, 0) * 0.18).toFixed(2)}</span>
+                </div>
+                <div className="d-flex justify-content-between fw-bold text-success">
+                  <span>Total:</span>
+                  <span>S/ {(selectedServices.reduce((sum, service) => sum + service.total, 0) * 1.18).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       name: 'priority',
       label: 'Prioridad del Proyecto',
       type: 'select',
@@ -856,18 +873,7 @@ export default function Proyectos() {
         label: `${user.name} ${user.apellido}`
       })) || []
     },
-    {
-      name: 'requiere_laboratorio',
-      label: 'Requiere Servicios de Laboratorio',
-      type: 'checkbox',
-      description: 'Marcar si el proyecto necesita análisis o pruebas de laboratorio'
-    },
-    {
-      name: 'requiere_ingenieria',
-      label: 'Requiere Servicios de Ingeniería',
-      type: 'checkbox',
-      description: 'Marcar si el proyecto necesita estudios o consultoría de ingeniería'
-    }
+    // Campos duplicados eliminados - ya existen arriba en el formulario
   ];
 
   // Calcular estadísticas
@@ -912,7 +918,7 @@ export default function Proyectos() {
                     Cliente: {selectedClient.name}
                   </Badge>
                 )}
-                <Button variant="primary" onClick={handleCreate}>
+                <Button variant="primary" onClick={() => setShowNewForm(true)}>
                   <FiPlus className="me-2" />
                   {selectedClient ? 'Crear Proyecto' : 'Nuevo Proyecto'}
                 </Button>
@@ -1765,6 +1771,72 @@ export default function Proyectos() {
         <div>{toastMessage}</div>
       </div>
     )}
+
+      {/* Modal para selección de servicios */}
+      <ModalForm
+        show={showServiceForm}
+        onHide={() => setShowServiceForm(false)}
+        title="Seleccionar Servicios del Proyecto"
+        size="xl"
+        data={{}}
+        fields={[]}
+        onSubmit={() => setShowServiceForm(false)}
+        loading={false}
+        submitText="Cerrar"
+        customBody={
+          <ProjectServiceForm
+            selectedServices={selectedServices}
+            onServicesChange={setSelectedServices}
+            serviceType="laboratorio"
+          />
+        }
+      />
+
+      {/* Nuevo Formulario Rediseñado */}
+      {showNewForm && (
+        <div className="modal-backdrop" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1050,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div className="modal-content bg-white rounded shadow-lg" style={{
+            width: '90%',
+            maxWidth: '1200px',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }}>
+            <div className="modal-header p-4 border-bottom d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">Crear Nuevo Proyecto</h5>
+              <Button 
+                variant="outline-secondary" 
+                size="sm"
+                onClick={() => setShowNewForm(false)}
+              >
+                <FiX />
+              </Button>
+            </div>
+            <div className="modal-body p-4">
+              <ProjectFormRedesigned
+                data={selectedClient ? { company_id: selectedClient.id } : {}}
+                onSubmit={(formData) => {
+                  console.log('Datos del formulario:', formData);
+                  // Aquí se procesaría la creación del proyecto
+                  setShowNewForm(false);
+                }}
+                onCancel={() => setShowNewForm(false)}
+                loading={createMutation.isLoading}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

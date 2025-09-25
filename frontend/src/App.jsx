@@ -14,8 +14,8 @@ const Cotizaciones = lazy(() => import('./pages/Cotizaciones'));
 const Adjuntos = lazy(() => import('./pages/Adjuntos'));
 const Tickets = lazy(() => import('./pages/Tickets'));
 const Reportes = lazy(() => import('./pages/Reportes'));
-const Categorias = lazy(() => import('./pages/Categorias'));
-const Subcategorias = lazy(() => import('./pages/Subcategorias'));
+// const Categorias = lazy(() => import('./pages/Categorias')); // Eliminado
+// const Subcategorias = lazy(() => import('./pages/Subcategorias')); // Eliminado
 const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
 const Servicios = lazy(() => import('./pages/Servicios'));
 const Evidencias = lazy(() => import('./pages/Evidencias'));
@@ -29,7 +29,7 @@ const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
 const FileManagement = lazy(() => import('./pages/FileManagement'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
-const Activities = lazy(() => import('./pages/Activities'));
+// const Activities = lazy(() => import('./pages/Activities')); // Eliminado - redirigir a auditoría
 
 // Rutas protegidas por autenticación
 function PrivateRoute({ children }) {
@@ -62,8 +62,8 @@ function App() {
                   <Route path="/adjuntos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Adjuntos /></RequireRole></ErrorBoundary>} />
                   <Route path="/tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte","jefa_comercial","vendedor_comercial"]}><Tickets /></RequireRole></ErrorBoundary>} />
                   <Route path="/reportes" element={<ErrorBoundary><RequireRole roles={["admin","gerencia","jefa_comercial"]}><Reportes /></RequireRole></ErrorBoundary>} />
-                  <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} />
-                  <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} />
+                  {/* <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} /> */}
+                  {/* <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} /> */}
                   <Route path="/historial-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><HistorialProyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
@@ -73,7 +73,7 @@ function App() {
                   <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
-                  <Route path="/actividades" element={<ErrorBoundary><RequireRole roles={["admin"]}><Activities /></RequireRole></ErrorBoundary>} />
+                  <Route path="/actividades" element={<Navigate to="/auditoria" replace />} />
                   <Route path="/gestion-archivos" element={<ErrorBoundary><RequireRole roles={["admin"]}><FileManagement /></RequireRole></ErrorBoundary>} />
                   {/* Fallback a dashboard si la ruta no existe */}
                   <Route path="*" element={<Navigate to="/" replace />} />
