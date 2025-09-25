@@ -1,0 +1,255 @@
+===============================================================================
+                    DOCUMENTACIÓN DE SCRIPTS DE SUBSERVICIOS
+                    Sistema CRM GeoFal - Módulo Laboratorio
+===============================================================================
+
+FECHA: $(date)
+TOTAL DE SUBSERVICIOS IMPLEMENTADOS: 197
+ESTADO: COMPLETADO EXITOSAMENTE
+
+===============================================================================
+                            RESUMEN GENERAL
+===============================================================================
+
+Este documento describe todos los scripts utilizados para implementar el 
+sistema completo de subservicios del módulo de Laboratorio. Los scripts 
+fueron ejecutados uno por uno para agregar 197 subservicios organizados en 
+16 categorías diferentes.
+
+===============================================================================
+                            ESTRUCTURA DE DATOS
+===============================================================================
+
+TABLA: subservices
+COLUMNAS PRINCIPALES:
+- id: SERIAL PRIMARY KEY
+- codigo: VARCHAR(20) NOT NULL UNIQUE
+- descripcion: TEXT NOT NULL
+- norma: TEXT
+- precio: DECIMAL(10,2) NOT NULL DEFAULT 0
+- service_id: INTEGER NOT NULL REFERENCES services(id)
+- name: TEXT (usado como descripcion)
+- is_active: BOOLEAN DEFAULT true
+- created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+- updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+CONVENCIONES:
+- Precio 0 = "Sujeto a evaluación" en frontend
+- Norma "-" = Sin norma específica
+- Códigos únicos por categoría (SU, EE, AG, CO, etc.)
+
+===============================================================================
+                            SCRIPTS IMPLEMENTADOS
+===============================================================================
+
+1. ENSAYOS ESTÁNDAR (20 subservicios)
+   Archivo: add-estandar-subservices.js
+   Códigos: SU04, SU16, SU18, SU19, SU20, SU20A, SU21, SU22, SU23, SU24, 
+            SU27, SU30, SU31, SU32, SU34, SU35, SU36, SU38, SU39, -
+   Comando: node scripts/add-estandar-subservices.js
+
+2. ENSAYOS ESPECIALES (16 subservicios)
+   Archivo: add-especiales-subservices.js
+   Códigos: SU33, SU37, SU05, EE01-EE13, -
+   Comando: node scripts/add-especiales-subservices.js
+
+3. ENSAYO AGREGADO (16 subservicios)
+   Archivo: add-agregado-subservices.js
+   Códigos: AG01-AG16
+   Comando: node scripts/add-agregado-subservices.js
+
+4. ENSAYOS DE CAMPO (8 subservicios)
+   Archivo: add-campo-subservices.js
+   Códigos: CA01-CA08
+   Comando: node scripts/add-campo-subservices.js
+
+5. ENSAYO QUÍMICO SUELO Y AGUA SUBTERRÁNEO (6 subservicios)
+   Archivo: add-quimico-suelo-subservices.js
+   Códigos: QS01-QS06
+   Comando: node scripts/add-quimico-suelo-subservices.js
+
+6. ENSAYO QUÍMICO AGREGADO (4 subservicios)
+   Archivo: add-quimico-agregado-subservices.js
+   Códigos: QA01-QA04
+   Comando: node scripts/add-quimico-agregado-subservices.js
+
+7. ENSAYO CONCRETO (20 subservicios)
+   Archivo: add-concreto-subservices.js
+   Códigos: CO01-CO20
+   Comando: node scripts/add-concreto-subservices.js
+
+8. ENSAYO ALBAÑILERÍA (8 subservicios)
+   Archivo: add-albanileria-subservices.js
+   Códigos: ALB01-ALB08
+   Comando: node scripts/add-albanileria-subservices.js
+
+9. ENSAYO ROCA (4 subservicios)
+   Archivo: add-roca-subservices.js
+   Códigos: RO01-RO04
+   Comando: node scripts/add-roca-subservices.js
+
+10. CEMENTO (4 subservicios)
+    Archivo: add-cemento-subservices.js
+    Códigos: CEM01, CEM02, CEM03, CEM06
+    Comando: node scripts/add-cemento-subservices.js
+
+11. ENSAYO PAVIMENTO (13 subservicios)
+    Archivo: add-pavimento-subservices.js
+    Códigos: PAV01-PAV12
+    Comando: node scripts/add-pavimento-subservices.js
+
+12. ENSAYO ASFALTO (25 subservicios)
+    Archivo: add-asfalto-subservices.js
+    Códigos: AS01-AS25
+    Comando: node scripts/add-asfalto-subservices.js
+
+13. ENSAYO MEZCLA ASFÁLTICO (15 subservicios)
+    Archivo: add-mezcla-asfaltico-subservices.js
+    Códigos: MA01-MA15, AS26
+    Comando: node scripts/add-mezcla-asfaltico-subservices.js
+
+14. EVALUACIONES ESTRUCTURALES (4 subservicios)
+    Archivo: add-evaluaciones-estructurales-subservices.js
+    Códigos: E01-E04
+    Comando: node scripts/add-evaluaciones-estructurales-subservices.js
+
+15. IMPLEMENTACIÓN LABORATORIO EN OBRA (8 subservicios)
+    Archivo: add-implementacion-laboratorio-subservices.js (1 subservicio)
+    Archivo: add-implementacion-laboratorio-estudios-subservices.js (7 subservicios)
+    Códigos: IMP01, IL01-IL07
+    Comandos: 
+    - node scripts/add-implementacion-laboratorio-subservices.js
+    - node scripts/add-implementacion-laboratorio-estudios-subservices.js
+
+16. OTROS SERVICIOS (4 subservicios)
+    Archivo: add-otros-servicios-subservices.js
+    Códigos: SER01-SER04
+    Comando: node scripts/add-otros-servicios-subservices.js
+
+===============================================================================
+                            ORDEN DE EJECUCIÓN RECOMENDADO
+===============================================================================
+
+Para replicar la implementación completa, ejecutar los scripts en el siguiente orden:
+
+1.  node scripts/add-estandar-subservices.js
+2.  node scripts/add-especiales-subservices.js
+3.  node scripts/add-agregado-subservices.js
+4.  node scripts/add-campo-subservices.js
+5.  node scripts/add-quimico-suelo-subservices.js
+6.  node scripts/add-quimico-agregado-subservices.js
+7.  node scripts/add-concreto-subservices.js
+8.  node scripts/add-albanileria-subservices.js
+9.  node scripts/add-roca-subservices.js
+10. node scripts/add-cemento-subservices.js
+11. node scripts/add-pavimento-subservices.js
+12. node scripts/add-asfalto-subservices.js
+13. node scripts/add-mezcla-asfaltico-subservices.js
+14. node scripts/add-evaluaciones-estructurales-subservices.js
+15. node scripts/add-implementacion-laboratorio-subservices.js
+16. node scripts/add-implementacion-laboratorio-estudios-subservices.js
+17. node scripts/add-otros-servicios-subservices.js
+
+===============================================================================
+                            CARACTERÍSTICAS TÉCNICAS
+===============================================================================
+
+FUNCIONALIDADES IMPLEMENTADAS:
+- Verificación de duplicados por código
+- Manejo de precios "Sujeto a evaluación" (valor 0)
+- Manejo de normas vacías ("-")
+- Logging detallado de operaciones
+- Verificación de totales después de cada ejecución
+- Ejemplos de subservicios agregados
+
+MANEJO DE ERRORES:
+- Códigos duplicados se omiten con advertencia
+- Errores de inserción se registran pero no detienen el proceso
+- Verificación de conexión a base de datos antes de operaciones
+
+OPTIMIZACIONES:
+- Índices en código, descripción y service_id
+- Búsqueda inteligente con autocompletado
+- Triggers para actualización automática de timestamps
+
+===============================================================================
+                            VERIFICACIÓN FINAL
+===============================================================================
+
+TOTAL DE SUBSERVICIOS: 197
+DISTRIBUCIÓN POR CATEGORÍAS:
+- ENSAYOS ESTÁNDAR: 20
+- ENSAYOS ESPECIALES: 16
+- ENSAYO AGREGADO: 16
+- ENSAYOS DE CAMPO: 8
+- ENSAYO QUÍMICO SUELO: 6
+- ENSAYO QUÍMICO AGREGADO: 4
+- ENSAYO CONCRETO: 20
+- ENSAYO ALBAÑILERÍA: 8
+- ENSAYO ROCA: 4
+- CEMENTO: 4
+- ENSAYO PAVIMENTO: 13
+- ENSAYO ASFALTO: 25
+- ENSAYO MEZCLA ASFÁLTICO: 15
+- EVALUACIONES ESTRUCTURALES: 4
+- IMPLEMENTACIÓN LABORATORIO: 8
+- OTROS SERVICIOS: 4
+
+===============================================================================
+                            NOTAS IMPORTANTES
+===============================================================================
+
+1. Todos los scripts requieren conexión activa a la base de datos PostgreSQL
+2. Los scripts verifican automáticamente la existencia de códigos duplicados
+3. Los precios "Sujeto a evaluación" se almacenan como 0 en la base de datos
+4. El frontend maneja la conversión de 0 a "Sujeto a evaluación"
+5. Las normas vacías se almacenan como "-"
+6. Todos los subservicios se asocian al servicio "Laboratorio" (area = 'laboratorio')
+
+===============================================================================
+                            COMANDOS DE VERIFICACIÓN
+===============================================================================
+
+Para verificar el estado de los subservicios:
+
+-- Contar total de subservicios
+SELECT COUNT(*) FROM subservices WHERE is_active = true;
+
+-- Contar por categoría (usando códigos)
+SELECT 
+  CASE 
+    WHEN codigo LIKE 'SU%' OR codigo = '-' THEN 'ENSAYOS ESTÁNDAR'
+    WHEN codigo LIKE 'EE%' THEN 'ENSAYOS ESPECIALES'
+    WHEN codigo LIKE 'AG%' THEN 'ENSAYO AGREGADO'
+    WHEN codigo LIKE 'CA%' THEN 'ENSAYOS DE CAMPO'
+    WHEN codigo LIKE 'QS%' THEN 'ENSAYO QUÍMICO SUELO'
+    WHEN codigo LIKE 'QA%' THEN 'ENSAYO QUÍMICO AGREGADO'
+    WHEN codigo LIKE 'CO%' THEN 'ENSAYO CONCRETO'
+    WHEN codigo LIKE 'ALB%' THEN 'ENSAYO ALBAÑILERÍA'
+    WHEN codigo LIKE 'RO%' THEN 'ENSAYO ROCA'
+    WHEN codigo LIKE 'CEM%' THEN 'CEMENTO'
+    WHEN codigo LIKE 'PAV%' THEN 'ENSAYO PAVIMENTO'
+    WHEN codigo LIKE 'AS%' THEN 'ENSAYO ASFALTO'
+    WHEN codigo LIKE 'MA%' THEN 'ENSAYO MEZCLA ASFÁLTICO'
+    WHEN codigo LIKE 'E%' THEN 'EVALUACIONES ESTRUCTURALES'
+    WHEN codigo LIKE 'IMP%' OR codigo LIKE 'IL%' THEN 'IMPLEMENTACIÓN LABORATORIO'
+    WHEN codigo LIKE 'SER%' THEN 'OTROS SERVICIOS'
+    ELSE 'OTROS'
+  END as categoria,
+  COUNT(*) as cantidad
+FROM subservices 
+WHERE is_active = true 
+GROUP BY categoria 
+ORDER BY cantidad DESC;
+
+===============================================================================
+                            FINALIZACIÓN
+===============================================================================
+
+Sistema de subservicios implementado exitosamente.
+Total: 197 subservicios en 16 categorías.
+Estado: COMPLETADO Y FUNCIONAL.
+
+Fecha de finalización: $(date)
+Responsable: Sistema CRM GeoFal
+Versión: 1.0

@@ -6,8 +6,8 @@ const auth = require('../middlewares/auth');
 // Búsqueda inteligente para autocompletado (público para cotizaciones)
 router.get('/search', subserviceController.search);
 
-// Obtener todos los subservicios
-router.get('/', auth(['admin', 'jefe_laboratorio', 'jefa_comercial']), subserviceController.getAll);
+// Obtener todos los subservicios (público para el módulo de servicios)
+router.get('/', subserviceController.getAll);
 
 // Obtener subservicio por ID
 router.get('/:id', auth(['admin', 'jefe_laboratorio', 'jefa_comercial']), subserviceController.getById);

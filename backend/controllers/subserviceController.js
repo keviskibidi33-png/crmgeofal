@@ -6,11 +6,11 @@ exports.search = async (req, res) => {
     const { q, service_id } = req.query;
     
     if (!q || q.length < 2) {
-      return res.json({ data: [] });
+      return res.json({ subservices: [] });
     }
     
     const results = await Subservice.search(q, service_id);
-    res.json({ data: results });
+    res.json({ subservices: results });
   } catch (err) {
     console.error('Error en búsqueda de subservicios:', err);
     res.status(500).json({ error: 'Error al buscar subservicios' });
@@ -30,7 +30,7 @@ exports.getAll = async (req, res) => {
     });
     
     res.json({ 
-      data: rows, 
+      subservices: rows, 
       total,
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 20
