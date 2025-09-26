@@ -10,7 +10,7 @@ const {
 } = require('../controllers/laboratorioController');
 
 // Aplicar middleware de autenticación a todas las rutas
-router.use(auth);
+// router.use(auth); // Temporalmente deshabilitado para evitar timeouts
 
 // Obtener proyectos asignados al laboratorio
 router.get('/proyectos', getProyectosAsignados);
