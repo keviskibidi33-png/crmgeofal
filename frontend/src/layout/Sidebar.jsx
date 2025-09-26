@@ -8,7 +8,7 @@ import {
   FiMessageSquare, FiBarChart2, FiSettings, FiLayers, FiList, 
   FiClock, FiFileText as FiInvoice, 
   FiPackage, FiCheckCircle, FiDownload, FiShield, FiChevronRight,
-  FiChevronDown, FiMenu, FiX, FiHardDrive
+  FiChevronDown, FiMenu, FiX, FiHardDrive, FiActivity
 } from 'react-icons/fi';
 
 const sectionsByRole = {
@@ -53,6 +53,7 @@ const sectionsByRole = {
         { path: '/recuperados', label: 'Recuperados', icon: FiCheckCircle },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
+        { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/auditoria', label: 'Auditoría', icon: FiShield },
@@ -107,6 +108,7 @@ const sectionsByRole = {
       title: 'Laboratorio',
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/variantes-cotizacion', label: 'Variantes', icon: FiList },
         { path: '/items-cotizacion', label: 'Items', icon: FiList },
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
@@ -121,6 +123,7 @@ const sectionsByRole = {
       title: 'Laboratorio',
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
@@ -132,6 +135,7 @@ const sectionsByRole = {
       title: 'Laboratorio',
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]

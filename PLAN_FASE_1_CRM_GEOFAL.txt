@@ -1,0 +1,175 @@
+================================================================================
+                    PLAN DE DESARROLLO FASE 1 - CRM GEOFAL
+                    BASE SÓLIDA DEL SISTEMA
+================================================================================
+
+FECHA: 26 de Septiembre 2025
+ESTADO: EN DESARROLLO
+OBJETIVO: Completar flujo principal del CRM con trazabilidad completa
+
+================================================================================
+1. FLUJO PRINCIPAL IDENTIFICADO
+================================================================================
+
+USUARIOS (Base del sistema)
+    ↓
+CLIENTES (Empresas/Personas)
+    ↓
+PROYECTOS (Vinculados a clientes)
+    ↓
+COTIZACIONES (Vinculadas a proyectos)
+    ↓
+LABORATORIO (Procesamiento y entrega)
+
+================================================================================
+2. MÓDULOS ACTUALES - ESTADO
+================================================================================
+
+✅ COMPLETADOS:
+- Usuarios: Funcionando correctamente (1004 usuarios)
+- Clientes: Funcionando correctamente (101 clientes)
+- Subservicios: 197 subservicios implementados
+- Base de datos: Backup creado y verificado
+
+🔄 EN DESARROLLO:
+- Proyectos: Estructura base implementada
+- Cotizaciones: Estructura base implementada
+- Laboratorio: Pendiente de implementación
+
+❌ PENDIENTES:
+- Módulo de borradores
+- Flujo completo de laboratorio
+- Trazabilidad completa
+- Reportes básicos
+
+================================================================================
+3. TAREAS PRIORITARIAS FASE 1
+================================================================================
+
+3.1 COMPLETAR MÓDULO PROYECTOS
+- Verificar funcionalidad completa
+- Asegurar vinculación con clientes
+- Implementar estados de proyecto
+- Agregar adjuntos a proyectos
+
+3.2 COMPLETAR MÓDULO COTIZACIONES
+- Verificar funcionalidad completa
+- Asegurar vinculación con proyectos
+- Implementar estados de cotización
+- Agregar items y variantes
+
+3.3 IMPLEMENTAR MÓDULO LABORATORIO
+- Dashboard específico para laboratorio
+- Estados: 'recibido' → 'en_proceso' → 'completado'
+- Notificaciones automáticas
+- Trazabilidad de tiempos
+- Documentos adjuntos
+
+3.4 MÓDULO BORRADORES
+- Cotizaciones en desarrollo
+- No afectan reportes hasta enviarse
+- Gestión de trabajos en progreso
+- Vinculación con usuarios
+
+3.5 TRAZABILIDAD COMPLETA
+- Auditoría en todos los módulos
+- Historial de cambios
+- Responsables por acción
+- Timestamps completos
+
+3.6 REPORTES BÁSICOS
+- Dashboard principal
+- Reportes por módulo
+- Métricas básicas
+- Exportación de datos
+
+================================================================================
+4. ESTRUCTURA DE DATOS REQUERIDA
+================================================================================
+
+4.1 ESTADOS DE COTIZACIÓN:
+- 'borrador': En desarrollo
+- 'enviada': Enviada al cliente
+- 'aprobada': Aprobada por cliente
+- 'en_laboratorio': Enviada a laboratorio
+- 'completada': Terminada y entregada
+- 'cancelada': Cancelada
+
+4.2 FLUJO DE LABORATORIO:
+- Fecha de envío a laboratorio
+- Usuario responsable en laboratorio
+- Fecha de inicio de proceso
+- Fecha de finalización
+- Documentos generados
+- Observaciones
+
+4.3 MÓDULO BORRADORES:
+- ID, cliente_id, usuario_id
+- Contenido de la cotización
+- Fecha de creación
+- Fecha de última modificación
+- Estado: 'borrador' | 'enviado'
+
+================================================================================
+5. CRITERIOS DE ÉXITO FASE 1
+================================================================================
+
+✅ FUNCIONALIDADES:
+- Flujo completo: Usuario → Cliente → Proyecto → Cotización → Laboratorio
+- Módulo de borradores funcional
+- Trazabilidad completa en todos los módulos
+- Reportes básicos operativos
+
+✅ CALIDAD:
+- Sin errores de importación
+- APIs funcionando correctamente
+- Base de datos optimizada
+- Backup automático
+
+✅ USABILIDAD:
+- Interfaz intuitiva
+- Navegación fluida
+- Permisos correctos por rol
+- Notificaciones apropiadas
+
+================================================================================
+6. PRÓXIMOS PASOS INMEDIATOS
+================================================================================
+
+1. Verificar estado actual de módulos Proyectos y Cotizaciones
+2. Implementar flujo de laboratorio
+3. Crear módulo de borradores
+4. Completar trazabilidad
+5. Desarrollar reportes básicos
+6. Pruebas integrales del flujo completo
+
+================================================================================
+7. MÓDULOS FUTUROS (FASE 2 Y 3)
+================================================================================
+
+FASE 2 - ANÁLISIS:
+- Dashboard de subcategorías por mes
+- Métricas de servicios más/menos vendidos
+- Análisis de tendencias
+- KPIs de productividad
+
+FASE 3 - FINANCIERO:
+- Módulo de facturación
+- Control de pagos
+- Reportes financieros
+- Integración contable
+
+================================================================================
+8. NOTAS TÉCNICAS
+================================================================================
+
+- Base de datos: PostgreSQL
+- Backend: Node.js + Express
+- Frontend: React + Vite
+- Estado actual: 197 subservicios implementados
+- Backup disponible: backend/backups/
+- Servidor: Puerto 4000 (funcionando)
+
+================================================================================
+FIN DEL PLAN FASE 1
+================================================================================

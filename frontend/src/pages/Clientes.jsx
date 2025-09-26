@@ -68,7 +68,7 @@ export default function Clientes() {
   );
 
   // Consulta separada para estadísticas reales
-  const { data: statsData, isLoading: statsLoading } = useQuery(
+  const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery(
     ['clientStats'],
     getCompanyStats,
     {
@@ -78,6 +78,17 @@ export default function Clientes() {
       cacheTime: 60000  // 1 minuto
     }
   );
+
+  // Debug: Log de estadísticas (simplificado)
+  React.useEffect(() => {
+    if (statsData && statsData.data) {
+      console.log('✅ Estadísticas cargadas correctamente:', {
+        total: statsData.data.total,
+        empresas: statsData.data.empresas,
+        personas: statsData.data.personas
+      });
+    }
+  }, [statsData]);
 
   // Consulta para opciones de filtros dinámicos
   const { data: filterOptionsData, isLoading: filterOptionsLoading } = useQuery(
@@ -545,14 +556,15 @@ export default function Clientes() {
   // Calcular estadísticas
   const stats = useMemo(() => {
     // Usar estadísticas reales del backend si están disponibles
-    if (statsData) {
+    if (statsData && statsData.data) {
       console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
+      console.log('📊 Stats - Datos extraídos:', statsData.data);
       return {
-        total: statsData.total || 0,
-        empresas: statsData.empresas || 0,
-        personas: statsData.personas || 0,
-        conEmail: statsData.withEmail || 0,
-        conTelefono: statsData.withPhone || 0
+        total: statsData.data.total || 0,
+        empresas: statsData.data.empresas || 0,
+        personas: statsData.data.personas || 0,
+        conEmail: statsData.data.withEmail || 0,
+        conTelefono: statsData.data.withPhone || 0
       };
     }
     

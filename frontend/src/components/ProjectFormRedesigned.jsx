@@ -6,6 +6,7 @@ import {
   FiHome, FiTool, FiBookOpen, FiShield, FiCheckCircle
 } from 'react-icons/fi';
 import ProjectServiceForm from './ProjectServiceForm';
+import { searchCompanies } from '../services/companySearch';
 
 export default function ProjectFormRedesigned({ 
   data = {}, 
@@ -14,7 +15,13 @@ export default function ProjectFormRedesigned({
   onCancel 
 }) {
   const [formData, setFormData] = useState({
-    company_id: '',
+    // Tipo de cliente
+    clientType: '', // 'empresa' o 'persona_natural'
+    client_id: '',
+    client_name: '',
+    client_info: {},
+    
+    // Datos del proyecto
     name: '',
     location: '',
     vendedor_id: '',
@@ -33,6 +40,12 @@ export default function ProjectFormRedesigned({
   const [currentStep, setCurrentStep] = useState(1);
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // Estados para búsqueda inteligente
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const totalSteps = 4;
 
@@ -69,12 +82,71 @@ export default function ProjectFormRedesigned({
     }));
   };
 
+  // Búsqueda inteligente de clientes
+  const handleSearch = async (searchTerm) => {
+    if (!searchTerm || searchTerm.length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    if (!formData.clientType) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await searchCompanies(formData.clientType, searchTerm);
+      if (response.success) {
+        setSearchResults(response.data || []);
+        setShowSearchResults(true);
+      } else {
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
+    } catch (error) {
+      console.error('Error en búsqueda:', error);
+      setSearchResults([]);
+      setShowSearchResults(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Seleccionar cliente
+  const handleSelectClient = (client) => {
+    setFormData(prev => ({
+      ...prev,
+      client_id: client.id,
+      client_name: client.name,
+      client_info: client
+    }));
+    setSearchTerm(client.name);
+    setShowSearchResults(false);
+  };
+
+  // Limpiar selección
+  const handleClearClient = () => {
+    setFormData(prev => ({
+      ...prev,
+      client_id: '',
+      client_name: '',
+      client_info: {}
+    }));
+    setSearchTerm('');
+    setSearchResults([]);
+    setShowSearchResults(false);
+  };
+
   const validateStep = (step) => {
     const newErrors = {};
     
     switch (step) {
       case 1:
-        if (!formData.company_id) newErrors.company_id = 'Selecciona un cliente';
+        if (!formData.clientType) newErrors.clientType = 'Selecciona el tipo de cliente';
+        if (!formData.client_id) newErrors.client_id = 'Selecciona un cliente';
         if (!formData.name) newErrors.name = 'Nombre del proyecto es requerido';
         if (!formData.location) newErrors.location = 'Ubicación es requerida';
         break;
@@ -137,25 +209,145 @@ export default function ProjectFormRedesigned({
       </h5>
       
       <Row className="g-3">
+        {/* Selección de tipo de cliente */}
         <Col md={12}>
           <Form.Group>
-            <Form.Label className="fw-bold">Cliente/Empresa *</Form.Label>
-            <Form.Select
-              value={formData.company_id}
-              onChange={(e) => handleInputChange('company_id', e.target.value)}
-              isInvalid={!!errors.company_id}
-            >
-              <option value="">Selecciona un cliente</option>
-              {/* Aquí se cargarían los clientes */}
-            </Form.Select>
-            {errors.company_id && (
+            <Form.Label className="fw-bold">Tipo de Cliente *</Form.Label>
+            <div className="d-flex gap-3">
+              <Form.Check
+                type="radio"
+                id="empresa"
+                name="clientType"
+                label="Empresa"
+                checked={formData.clientType === 'empresa'}
+                onChange={() => handleInputChange('clientType', 'empresa')}
+                className="d-flex align-items-center"
+              />
+              <Form.Check
+                type="radio"
+                id="persona_natural"
+                name="clientType"
+                label="Persona Natural"
+                checked={formData.clientType === 'persona_natural'}
+                onChange={() => handleInputChange('clientType', 'persona_natural')}
+                className="d-flex align-items-center"
+              />
+            </div>
+            {errors.clientType && (
               <Form.Control.Feedback type="invalid">
-                {errors.company_id}
+                {errors.clientType}
               </Form.Control.Feedback>
             )}
           </Form.Group>
         </Col>
         
+        {/* Búsqueda inteligente */}
+        {formData.clientType && (
+          <Col md={12}>
+            <Form.Group>
+              <Form.Label className="fw-bold">
+                Buscar {formData.clientType === 'empresa' ? 'Empresa' : 'Persona Natural'} *
+              </Form.Label>
+              <div className="position-relative">
+                <Form.Control
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchTerm(value);
+                    handleSearch(value);
+                  }}
+                  placeholder={`Buscar ${formData.clientType === 'empresa' ? 'empresa' : 'persona natural'}...`}
+                  isInvalid={!!errors.client_id}
+                />
+                {isSearching && (
+                  <div className="position-absolute top-50 end-0 translate-middle-y me-3">
+                    <div className="spinner-border spinner-border-sm" role="status">
+                      <span className="visually-hidden">Buscando...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Resultados de búsqueda */}
+                {showSearchResults && searchTerm && (
+                  <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '300px', overflowY: 'auto'}}>
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result, index) => (
+                        <div 
+                          key={index}
+                          className="p-3 border-bottom cursor-pointer hover-bg-light"
+                          onClick={() => handleSelectClient(result)}
+                        >
+                          <div className="fw-bold">{result.name}</div>
+                          <div className="text-muted small">
+                            {formData.clientType === 'empresa' ? result.ruc : result.dni} • {result.address}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-muted text-center">
+                        No se encontraron resultados
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {errors.client_id && (
+                <Form.Control.Feedback type="invalid">
+                  {errors.client_id}
+                </Form.Control.Feedback>
+              )}
+            </Form.Group>
+          </Col>
+        )}
+        
+        {/* Información del cliente seleccionado */}
+        {formData.client_id && (
+          <Col md={12}>
+            <Card className="border-success">
+              <Card.Header className="bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 className="mb-0">
+                  <FiCheckCircle className="me-2" />
+                  Cliente Seleccionado
+                </h6>
+                <Button 
+                  variant="outline-light" 
+                  size="sm" 
+                  onClick={handleClearClient}
+                  className="d-flex align-items-center"
+                >
+                  <FiX className="me-1" />
+                  Cambiar
+                </Button>
+              </Card.Header>
+              <Card.Body>
+                <div className="row">
+                  <div className="col-md-6">
+                    <strong>Nombre:</strong> {formData.client_name}
+                  </div>
+                  <div className="col-md-6">
+                    <strong>{formData.clientType === 'empresa' ? 'RUC' : 'DNI'}:</strong> {formData.client_info.ruc || formData.client_info.dni}
+                  </div>
+                  <div className="col-md-12 mt-2">
+                    <strong>Dirección:</strong> {formData.client_info.address}
+                  </div>
+                  {formData.client_info.phone && (
+                    <div className="col-md-6 mt-2">
+                      <strong>Teléfono:</strong> {formData.client_info.phone}
+                    </div>
+                  )}
+                  {formData.client_info.email && (
+                    <div className="col-md-6 mt-2">
+                      <strong>Email:</strong> {formData.client_info.email}
+                    </div>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        )}
+        
+        {/* Datos del proyecto */}
         <Col md={12}>
           <Form.Group>
             <Form.Label className="fw-bold">Nombre del Proyecto *</Form.Label>

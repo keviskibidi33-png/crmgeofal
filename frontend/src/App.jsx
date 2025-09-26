@@ -29,6 +29,7 @@ const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
 const FileManagement = lazy(() => import('./pages/FileManagement'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
+const Laboratorio = lazy(() => import('./pages/Laboratorio'));
 // const Activities = lazy(() => import('./pages/Activities')); // Eliminado - redirigir a auditoría
 
 // Rutas protegidas por autenticación
@@ -66,6 +67,7 @@ function App() {
                   {/* <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} /> */}
                   <Route path="/historial-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><HistorialProyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
+                  <Route path="/laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Laboratorio /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
                   <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Facturas /></RequireRole></ErrorBoundary>} />
                   <Route path="/variantes-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><VariantesCotizacion /></RequireRole></ErrorBoundary>} />

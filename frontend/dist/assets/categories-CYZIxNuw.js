@@ -1,2 +1,0 @@
-import{b as t}from"./index-VjS0hY4d.js";const a=()=>t("/api/project-categories"),s=e=>t("/api/project-categories",{method:"POST",body:JSON.stringify(e)}),i=(e,r)=>t(`/api/project-categories/${e}`,{method:"PUT",body:JSON.stringify(r)}),c=e=>t(`/api/project-categories/${e}`,{method:"DELETE"}),p=(e=null)=>{const r=e?`/api/project-subcategories?category_id=${e}`:"/api/project-subcategories";return t(r)};export{p as a,s as c,c as d,a as l,i as u};
-//# sourceMappingURL=categories-CYZIxNuw.js.map

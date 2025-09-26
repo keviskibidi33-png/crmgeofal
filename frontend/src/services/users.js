@@ -54,6 +54,34 @@ export const deleteUser = async (id) => {
   return response;
 };
 
+// Obtener estadísticas de usuarios
+export const getUserStats = async () => {
+  try {
+    console.log('📊 getUserStats - Llamando a: /api/users/stats');
+    const response = await apiFetch('/api/users/stats');
+    console.log('✅ getUserStats - Respuesta recibida:', response);
+    return response;
+  } catch (error) {
+    console.error('❌ getUserStats - Error:', error);
+    throw error;
+  }
+};
+
+// Resetear contraseña de usuario
+export const resetPassword = async (userId) => {
+  try {
+    console.log('🔐 resetPassword - Llamando a: /api/users/reset-password');
+    const response = await apiFetch(`/api/users/${userId}/reset-password`, {
+      method: 'POST'
+    });
+    console.log('✅ resetPassword - Respuesta recibida:', response);
+    return response;
+  } catch (error) {
+    console.error('❌ resetPassword - Error:', error);
+    throw error;
+  }
+};
+
 // Mapear ID de usuario a nombre real
 export const mapUserIdToName = async (userId) => {
   try {
@@ -86,5 +114,7 @@ export default {
   createUser,
   updateUser,
   deleteUser,
+  getUserStats,
+  resetPassword,
   mapUserIdToName
 };

@@ -6,7 +6,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listUsers, createUser, updateUser, deleteUser, resetPassword, getUserStats } from '../services/users';
+import { listUsers, createUser, updateUser, deleteUser, getUserStats, resetPassword } from '../services/users';
 
 const emptyForm = { name: '', apellido: '', email: '', role: 'vendedor_comercial', area: 'Comercial', password: '' };
 
