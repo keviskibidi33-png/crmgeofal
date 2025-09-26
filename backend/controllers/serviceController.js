@@ -3,10 +3,10 @@ const Service = require('../models/service');
 // Obtener todos los servicios
 exports.getAll = async (req, res) => {
   try {
-    const { type, search, page = 1, limit = 20 } = req.query;
-    console.log('🔍 ServiceController.getAll - Parámetros:', { type, search, page, limit });
+    const { search, page = 1, limit = 20 } = req.query;
+    console.log('🔍 ServiceController.getAll - Parámetros:', { search, page, limit });
     
-    const { rows, total } = await Service.getAll({ type, search, page, limit });
+    const { rows, total } = await Service.getAll({ search, page, limit });
     console.log('✅ ServiceController.getAll - Resultados:', { count: rows.length, total });
     
     res.json({ data: rows, total });

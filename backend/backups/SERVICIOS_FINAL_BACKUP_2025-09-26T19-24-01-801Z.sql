@@ -1,0 +1,553 @@
+-- ================================================
+-- BACKUP FINAL Y DEFINITIVO DE SERVICIOS ESTRUCTURADOS
+-- Fecha: 26/9/2025, 2:24:01 p. m.
+-- Total Servicios: 17
+-- Total Subservicios: 178
+-- ================================================
+
+-- NOTA IMPORTANTE: 
+-- Este backup contiene la estructura FINAL y DEFINITIVA de servicios.
+-- Los datos NO deben modificarse, solo se pueden AGREGAR nuevos.
+-- El orden de las categorías NO debe cambiar.
+
+-- ================================================
+-- ESTRUCTURA DE SERVICIOS
+-- ================================================
+
+-- SERVICIOS ESTRUCTURADOS (ORDEN DEFINITIVO):
+-- 1. Ingeniería (ID: 2) - 0 subservicios
+-- 2. ENSAYO ESTÁNDAR (ID: 5) - 10 subservicios
+-- 3. ENSAYOS ESPECIALES (ID: 6) - 16 subservicios
+-- 4. ENSAYO AGREGADO (ID: 7) - 16 subservicios
+-- 5. ENSAYOS DE CAMPO (ID: 8) - 6 subservicios
+-- 6. ENSAYO QUÍMICO SUELO Y AGUA SUBTERRÁNEO (ID: 9) - 5 subservicios
+-- 7. ENSAYO QUÍMICO AGREGADO (ID: 10) - 9 subservicios
+-- 8. ENSAYO CONCRETO (ID: 11) - 28 subservicios
+-- 9. ENSAYO ALBAÑILERÍA (ID: 12) - 18 subservicios
+-- 10. ENSAYO ROCA (ID: 13) - 4 subservicios
+-- 11. CEMENTO (ID: 14) - 4 subservicios
+-- 12. ENSAYO PAVIMENTO (ID: 15) - 13 subservicios
+-- 13. ENSAYO ASFALTO (ID: 16) - 25 subservicios
+-- 14. ENSAYO MEZCLA ASFÁLTICO (ID: 17) - 16 subservicios
+-- 15. EVALUACIONES ESTRUCTURALES (ID: 18) - 0 subservicios
+-- 16. IMPLEMENTACIÓN LABORATORIO EN OBRA (ID: 19) - 8 subservicios
+-- 17. OTROS SERVICIOS (ID: 20) - 0 subservicios
+
+-- ================================================
+-- DETALLE COMPLETO DE SERVICIOS Y SUBSERVICIOS
+-- ================================================
+
+-- ================================================
+-- SERVICIO: INGENIERÍA
+-- ID: 2 | Área: ingenieria | Subservicios: 0
+-- ================================================
+
+-- Sin subservicios activos
+
+-- ================================================
+-- SERVICIO: ENSAYO ESTÁNDAR
+-- ID: 5 | Área: laboratorio | Subservicios: 10
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO ESTÁNDAR:
+-- 1. SU04: Contenido de humedad con Speedy.
+--    Norma: NTP 339.25 | Precio: S/ 30.00
+-- 2. SU16: Ensayo de Penetración Estándar (SPT).
+--    Norma: NTP 339.133 | Precio: S/ 0.00
+-- 3. SU18: Capacidad de carga del Suelo (Placa de Carga).
+--    Norma: ASTM D-1194 | Precio: S/ 2000.00
+-- 4. SU19: Próctor modificado (*).
+--    Norma: ASTM D1557-12 (Reapproved 2021) | Precio: S/ 150.00
+-- 5. SU22: Clasificación suelo SUCS - AASHTO (*).
+--    Norma: ASTM D2487-17 (Reapproved 2025) / ASTM D3282-24 | Precio: S/ 20.00
+-- 6. SU31: Límites de Atterberg (Límite Líquido, Plástico e Índice de Plasticidad).
+--    Norma: ASTM D4318-17ε1 | Precio: S/ 150.00
+-- 7. SU34: Densidad y peso unitario de muestra suelo
+--    Norma: ASTM D 7263 | Precio: S/ 70.00
+-- 8. SU39: Análisis granulométrico por hidrómetro (incl. Granulometría por tamizado).
+--    Norma: NTP 339.128 1999 (revisada el 2019) | Precio: S/ 350.00
+-- 9. SU40: Métodos de prueba estándar para el análisis del tamaño de partículas de materiales de escollera naturales y artificiales.
+--    Norma: ASTM D5334-14 | Precio: S/ 1500.00
+-- 10. SU41: Conductividad térmica / Resistividad térmica
+--    Norma: ASTM D5334-14 | Precio: S/ 1500.00
+
+-- ================================================
+-- SERVICIO: ENSAYOS ESPECIALES
+-- ID: 6 | Área: laboratorio | Subservicios: 16
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYOS ESPECIALES:
+-- 1. EE01: Conductividad eléctrica.
+--    Norma: - | Precio: S/ 250.00
+-- 2. EE02: Resistividad eléctrica.
+--    Norma: Electrodo | Precio: S/ 550.00
+-- 3. EE03: Compresión inconfinada en suelos cohesivos.
+--    Norma: ASTM D2166 | Precio: S/ 190.00
+-- 4. EE04: Compresión triaxial no consolidado no drenado UU.
+--    Norma: ASTM D2850 | Precio: S/ 1500.00
+-- 5. EE05: Compresión triaxial consolidado no drenado CU.
+--    Norma: ASTM D4767 | Precio: S/ 2000.00
+-- 6. EE06: Compresión triaxial consolidado drenado CD.
+--    Norma: ASTM D7181 | Precio: S/ 0.00
+-- 7. EE07: Colapso.
+--    Norma: ASTM D5333 | Precio: S/ 370.00
+-- 8. EE08: Consolidación unidimensional.
+--    Norma: ASTM D2435 | Precio: S/ 800.00
+-- 9. EE09: Expansión libre.
+--    Norma: ASTM D4546 | Precio: S/ 350.00
+-- 10. EE10: Expansión controlada Método A.
+--    Norma: ASTM D4546 | Precio: S/ 670.00
+-- 11. EE11: Conductividad hidráulica en pared flexible (Permeabilidad).
+--    Norma: ASTM D5084 | Precio: S/ 640.00
+-- 12. EE12: Conductividad hidráulica en pared rígida (Permeabilidad).
+--    Norma: ASTM D2434 | Precio: S/ 530.00
+-- 13. EE13: Ensayo resistividad eléctrica (5 perfiles).
+--    Norma: - | Precio: S/ 700.00
+-- 14. SU05: Corte Directo.
+--    Norma: NTP 339.171 | Precio: S/ 350.00
+-- 15. SU33: Compresión no confinada.
+--    Norma: NTP 339.167 | Precio: S/ 250.00
+-- 16. SU37: California Bearing Ratio (CBR) (*).
+--    Norma: ASTM D1883-21 | Precio: S/ 300.00
+
+-- ================================================
+-- SERVICIO: ENSAYO AGREGADO
+-- ID: 7 | Área: laboratorio | Subservicios: 16
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO AGREGADO:
+-- 1. AG08A: Inalterabilidad Agregado Grueso con Sulfato de Magnesio.
+--    Norma: NTP 400.016 | Precio: S/ 350.00
+-- 2. AG08B: Inalterabilidad Agregado Fino con Sulfato de Magnesio.
+--    Norma: NTP 400.016 | Precio: S/ 350.00
+-- 3. AG09: Índice de Durabilidad Agregado.
+--    Norma: MTC E-214 | Precio: S/ 350.00
+-- 4. AG18: Gravedad específica y absorción del agregado fino (*).
+--    Norma: ASTM C128-22 | Precio: S/ 150.00
+-- 5. AG19: Análisis granulométrico por tamizado en agregado (*).
+--    Norma: ASTM C136/C136M-19 | Precio: S/ 100.00
+-- 6. AG20: Contenido de humedad en agregado (*).
+--    Norma: ASTM C566-19 | Precio: S/ 30.00
+-- 7. AG22: Peso Unitario y Vacío de agregados (*).
+--    Norma: ASTM C29/C29M-23 | Precio: S/ 120.00
+-- 8. AG23: Pasante de la malla No.200 (*).
+--    Norma: ASTM C117-23 | Precio: S/ 120.00
+-- 9. AG26: Abrasión los Ángeles de agregado grueso de gran tamaño (*).
+--    Norma: ASTM C535-16 (Reapproved 2024) | Precio: S/ 350.00
+-- 10. AG28: Gravedad especifica y absorción de agregado grueso (*).
+--    Norma: ASTM C127-24 | Precio: S/ 120.00
+-- 11. AG31: Índice de espesor del agregado grueso.
+--    Norma: NTP 400.041 | Precio: S/ 90.00
+-- 12. AG32: Carbón y Lignito en agregado fino (OBSOLETO).
+--    Norma: MTC E215 | Precio: S/ 120.00
+-- 13. AG33: Angularidad del agregado fino.
+--    Norma: MTC E222 | Precio: S/ 120.00
+-- 14. AG34: Partículas planas y alargadas en agregado grueso (*).
+--    Norma: ASTM D4791-19 (Reapproved 2023) | Precio: S/ 120.00
+-- 15. AG35: Porcentaje de Caras fracturadas en agregado grueso (*).
+--    Norma: ASTM D5821-13 (Reapproved 2017) | Precio: S/ 120.00
+-- 16. AG36: Abrasión los Ángeles de agregado grueso de tamaño pequeño (*).
+--    Norma: ASTM C131/C131M-20 | Precio: S/ 250.00
+
+-- ================================================
+-- SERVICIO: ENSAYOS DE CAMPO
+-- ID: 8 | Área: laboratorio | Subservicios: 6
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYOS DE CAMPO:
+-- 1. SU02: Ensayo de penetración dinámica DPL.
+--    Norma: NTP 339.159 | Precio: S/ 0.00
+-- 2. SU06A: Densidad del suelo IN-SITU, Cono de Arena 6" (*).
+--    Norma: NTP 339.143:1999 (revisada el 2019) | Precio: S/ 50.00
+-- 3. SU06B: Densidad del suelo IN-SITU, Cono de Arena 12".
+--    Norma: NTP 339.143:1999 (revisada el 2019) | Precio: S/ 80.00
+-- 4. SU06C: Control de calidad de suelo con Cono de arena 6", contenido de humedad con equipo Speedy, y personal tecnico, por día.
+--    Norma: NTP 339.143:1999 (revisada el 2019) | Precio: S/ 400.00
+-- 5. SU28: Densidad del suelo y roca IN SITU por reemplazo de agua.
+--    Norma: ASTM D5030 | Precio: S/ 0.00
+-- 6. SU29: Infiltración de suelos en campo.
+--    Norma: ASTM D3385 | Precio: S/ 3500.00
+
+-- ================================================
+-- SERVICIO: ENSAYO QUÍMICO SUELO Y AGUA SUBTERRÁNEO
+-- ID: 9 | Área: laboratorio | Subservicios: 5
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO QUÍMICO SUELO Y AGUA SUBTERRÁNEO:
+-- 1. SU03: Determinación del PH en Suelo y Agua.
+--    Norma: NTP 339.176 | Precio: S/ 70.00
+-- 2. SU13: Sales solubles en Suelos y Agua.
+--    Norma: NTP 339.152 | Precio: S/ 80.00
+-- 3. SU14: Cloruros Solubles en Suelos y Agua.
+--    Norma: NTP 339.177 | Precio: S/ 80.00
+-- 4. SU15: Sulfatos Solubles en Suelos y Agua.
+--    Norma: NTP 339.178 | Precio: S/ 120.00
+-- 5. SU26: Contenido de materia orgánica.
+--    Norma: AASHTO T267 | Precio: S/ 120.00
+
+-- ================================================
+-- SERVICIO: ENSAYO QUÍMICO AGREGADO
+-- ID: 10 | Área: laboratorio | Subservicios: 9
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO QUÍMICO AGREGADO:
+-- 1. AG11: Contenido Sales solubles, fino o grueso.
+--    Norma: MTC E-219 | Precio: S/ 150.00
+-- 2. AG12: Adherencia en agregado fino - Riedel Weber.
+--    Norma: MTC E 220 | Precio: S/ 150.00
+-- 3. AG13: Impurezas Orgánicas en los áridos finos.
+--    Norma: ASTM C40-99 | Precio: S/ 150.00
+-- 4. AG16: Contenido de cloruros solubles.
+--    Norma: NTP 400.042 | Precio: S/ 90.00
+-- 5. AG17: Contenido de sulfatos solubles.
+--    Norma: NTP 400.042 | Precio: S/ 150.00
+-- 6. AG24: Partículas Liviana en los agregados (carbon y lignito), Fino o grueso.
+--    Norma: NTP 400.023 | Precio: S/ 220.00
+-- 7. AG25: Terrones de arcilla y partículas friables, Fino o grueso.
+--    Norma: NTP 400.015 | Precio: S/ 120.00
+-- 8. AG29: Valor de azul de metileno.
+--    Norma: AASHTO TP57 | Precio: S/ 150.00
+-- 9. AG30: Reactividad agregado alcálisis.
+--    Norma: ASTM C289-07 | Precio: S/ 650.00
+
+-- ================================================
+-- SERVICIO: ENSAYO CONCRETO
+-- ID: 11 | Área: laboratorio | Subservicios: 28
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO CONCRETO:
+-- 1. ABS01: Absorción / Unidades de adoquines de concreto.
+--    Norma: NTP 339.604 | Precio: S/ 150.00
+-- 2. CO01: Resistencia a la compresión de probetas cilíndricas de concreto (Incluye Curado)(*).
+--    Norma: ASTM C39/C39M-24 | Precio: S/ 15.00
+-- 3. CO01.01: Resistencia a la compresión de probetas cilíndricas de concreto, se ensayaran 3 probetas a 7 días y 3 probetas a 28 días, suministro equipo, curado y recojo. (*)
+--    Norma: ASTM C39/C39M-24 | Precio: S/ 90.00
+-- 4. CO03A: Extracción, tallado, refrentado y ensayo de compresión de testigos diamantino de concreto con BROCA de 2" o 3" o 4".
+--    Norma: NTP 339.059 | Precio: S/ 250.00
+-- 5. CO03B: Resane de estructura a causa de la extracción de diamantino.
+--    Norma: Sin norma | Precio: S/ 300.00
+-- 6. CO03C: Extracción de testigos diamantino de concreto con BROCA de 2" o 3" o 4".
+--    Norma: NTP 339.059 | Precio: S/ 200.00
+-- 7. CO03D: Tallado, refrentado y ensayo de compresión de testigos diamantino de concreto con BROCA de 2" o 3" o 4".
+--    Norma: NTP 339.059, ASTM C39/C39M-24 | Precio: S/ 100.00
+-- 8. CO03G: Extracción de diamantina de concreto asfaltico y su evaluación
+--    Norma: NTP 339.059 | Precio: S/ 140.00
+-- 9. CO04: Esclerometría.
+--    Norma: NTP 339.181 | Precio: S/ 80.00
+-- 10. CO05: Muestreo del concreto fresco
+--    Norma: NTP 339.036 | Precio: S/ 250.00
+-- 11. CO06: Procedimiento para la medicion asentamiento
+--    Norma: NTP 339-035 | Precio: S/ 0.00
+-- 12. CO07: Resistencia a la Flexión del concreto.
+--    Norma: NTP 339.078/079 | Precio: S/ 100.00
+-- 13. CO08: Resistencia a la compresión de mortero con especimen cubicos de 50 mm.
+--    Norma: NTP 334.051 | Precio: S/ 20.00
+-- 14. CO10: Determinación PH concreto endurecido / Carbonatación.
+--    Norma: ASTM D1293 | Precio: S/ 100.00
+-- 15. CO11: Control de calidad del concreto fresco en obra: * Muestreo de concreto fresco cant. 6 probetas * Ensayo asentamiento del concreto (Slump) * Control de temperatura en el concreto * Resistencia a la compresión
+--    Norma: Sin norma | Precio: S/ 250.00
+-- 16. CO12: Compresión de testigos cilíndricos de concreto (*).
+--    Norma: ASTM C39/C39M-24 | Precio: S/ 15.00
+-- 17. CO13: Ensayo Carbonatación.
+--    Norma: ASTM D129 | Precio: S/ 50.00
+-- 18. CO14: Resistencia tracción simple por compresión diametral.
+--    Norma: NTP 339.084 | Precio: S/ 25.00
+-- 19. CO15: Determinar el pH de las aguas usadas para elaborar morteros y concretos.
+--    Norma: NTP 334.190:2016 | Precio: S/ 100.00
+-- 20. CO16: Determinar el contenido de sulfatos en las aguas usadas en la elaboración de morteros y concretos de cemento Pórtland.
+--    Norma: NTP 339.227:2016 | Precio: S/ 120.00
+-- 21. CO17: Determinar el contenido del ion cloruro en las aguas usadas en la elaboración de concretos y morteros de cemento Pórtland.
+--    Norma: NTP 339.076:2017 | Precio: S/ 120.00
+-- 22. CO18: Corte y refrentado de Testigo de concreto
+--    Norma: Sin norma | Precio: S/ 20.00
+-- 23. CO19: Refrentado de probetas cilíndricas de concreto (por cara).
+--    Norma: ASTM C617/C617M-23 | Precio: S/ 15.00
+-- 24. COM01: Compresión / Unidades de adoquines de concreto.
+--    Norma: NTP 339.604 | Precio: S/ 150.00
+-- 25. DIS01: Verificación diseño de mezcla.
+--    Norma: Sin norma | Precio: S/ 250.00
+-- 26. DIS02: Verificación diseño de mezcla con aditivo.
+--    Norma: Sin norma | Precio: S/ 500.00
+-- 27. DIS03: Verificación de diseño de concreto, elaboración de 3 probetas que se ensayarán a 7 días.
+--    Norma: ACI 211 | Precio: S/ 200.00
+-- 28. DIS04: Diseño de mezcla Teórico.
+--    Norma: Sin norma | Precio: S/ 100.00
+
+-- ================================================
+-- SERVICIO: ENSAYO ALBAÑILERÍA
+-- ID: 12 | Área: laboratorio | Subservicios: 18
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO ALBAÑILERÍA:
+-- 1. ALB01: Absorción / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 130.00
+-- 2. ALB02: Alabeo / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 130.00
+-- 3. ALB03: Compresión / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 200.00
+-- 4. ALB04: Eflorescencia / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 130.00
+-- 5. ALB05: Dimensionamiento / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 130.00
+-- 6. ALB06: Medidas del área de vacíos en unidades perforadas.
+--    Norma: NTP 399.613 | Precio: S/ 150.00
+-- 7. ALB07: Ensayo de Compresión en pilas de ladrillo (prisma albañilería).
+--    Norma: NTP 399.605 | Precio: S/ 250.00
+-- 8. ALB08: Muestreo / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 350.00
+-- 9. ALB09: Resistencia a la compresión / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 250.00
+-- 10. ALB10: Dimensionamiento / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 150.00
+-- 11. ALB11: Absorción / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 150.00
+-- 12. ALB12: Absorción / Ladrillo pastelero.
+--    Norma: NTP 331.041 | Precio: S/ 130.00
+-- 13. ALB13: Modulo de rotura (Ensayo Flexión) / Unidades de albañilería de Arcilla.
+--    Norma: NTP 399.613 | Precio: S/ 200.00
+-- 14. ALB14: Contenido de humedad / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 100.00
+-- 15. ALB15: Densidad / Unidades de albañilería de concreto.
+--    Norma: NTP 399.604 | Precio: S/ 150.00
+-- 16. ALB16: Dimensionamiento / Ladrillo pastelero.
+--    Norma: NTP 331.041 | Precio: S/ 130.00
+-- 17. ALB17: Alabeo / Ladrillo pastelero.
+--    Norma: NTP 331.041 | Precio: S/ 130.00
+-- 18. ALB18: Carga de rotura por unidad de ancho / Ladrillo pastelero.
+--    Norma: NTP 331.041 | Precio: S/ 200.00
+
+-- ================================================
+-- SERVICIO: ENSAYO ROCA
+-- ID: 13 | Área: laboratorio | Subservicios: 4
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO ROCA:
+-- 1. RO01: Carga Puntual (incluye tallado y ensayo 10 especimenes).
+--    Norma: ASTM D 5731 | Precio: S/ 500.00
+-- 2. RO02: Gravedad especifica y absorción de roca.
+--    Norma: ASTM D 6473 | Precio: S/ 250.00
+-- 3. RO03: Densidad y peso unitario de muestra roca.
+--    Norma: ASTM D 7263 | Precio: S/ 250.00
+-- 4. RO04: Método de prueba para la resistencia a la compresión (uniaxial) - Método C
+--    Norma: ASTM D 7012-14e1 | Precio: S/ 400.00
+
+-- ================================================
+-- SERVICIO: CEMENTO
+-- ID: 14 | Área: laboratorio | Subservicios: 4
+-- ================================================
+
+-- SUBSERVICIOS DE CEMENTO:
+-- 1. CEM01: Densidad del cemento.
+--    Norma: NTP 334.005 | Precio: S/ 50.00
+-- 2. CEM02: Consistencia normal.
+--    Norma: NTP 334.003 | Precio: S/ 50.00
+-- 3. CEM03: Elaboración, curado y ensayo compresión de cubos (3,7 y 28 d).
+--    Norma: NTP 334.051 | Precio: S/ 100.00
+-- 4. CEM06: Flujo (Flow)
+--    Norma: NTP 334.003 | Precio: S/ 30.00
+
+-- ================================================
+-- SERVICIO: ENSAYO PAVIMENTO
+-- ID: 15 | Área: laboratorio | Subservicios: 13
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO PAVIMENTO:
+-- 1. PAV01: Medida de la Irregularidad superficial de un pavimento con el Rugosímetro Merlín.
+--    Norma: MTC E 1001 | Precio: S/ 2400.00
+-- 2. PAV02: Medida de la deflexión de un pavimento flexible (Viga Benkelman).
+--    Norma: MTC E 1002 | Precio: S/ 3000.00
+-- 3. PAV02A: Medida de la deflexión de un pavimento flexible (Viga Benkelman) Inc. Camión.
+--    Norma: MTC E 1002 | Precio: S/ 5000.00
+-- 4. PAV03: Determinacion del Coeficiente de Resistencia al Deslizamiento (Péndulo).
+--    Norma: MTC E 1004 | Precio: S/ 150.00
+-- 5. PAV04: Determinación la Textura Superficial del Pavimento (Círculo de Arena).
+--    Norma: MTC E 1005 | Precio: S/ 80.00
+-- 6. PAV05: Tasa de Imprimación y Riego de Liga.
+--    Norma: Sin norma | Precio: S/ 100.00
+-- 7. PAV06: Espesor de especímenes de mezcla asfálticas compactado.
+--    Norma: MTC E 507 | Precio: S/ 50.00
+-- 8. PAV07: Peso específico y peso unitario de mezcla asfálticas compactado en especímenes saturados con superficie seca.
+--    Norma: MTC E 514 | Precio: S/ 90.00
+-- 9. PAV08: Determinación de la resistencia de mezclas bituminosas empleando el aparato Marshall, incluye peso específico (3 briquetas), cliente proporcionara ensayo Rice.
+--    Norma: MTC E 504 | Precio: S/ 540.00
+-- 10. PAV09: Extracción cuantitativa de asfalto en mezclas para pavimentos (Lavado asfaltico), incl. Granulometría.
+--    Norma: MTC E 502 | Precio: S/ 450.00
+-- 11. PAV10: Grado de compactación de una mezcla Bituminosa.
+--    Norma: MTC E 509 | Precio: S/ 100.00
+-- 12. PAV11: Extracción de testigo diamantina con broca de 4" en pavimento flexible.
+--    Norma: NTP 339.059 | Precio: S/ 140.00
+-- 13. PAV12: Resane en pavimento asfáltico.
+--    Norma: Sin norma | Precio: S/ 50.00
+
+-- ================================================
+-- SERVICIO: ENSAYO ASFALTO
+-- ID: 16 | Área: laboratorio | Subservicios: 25
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO ASFALTO:
+-- 1. AS01: Penetración
+--    Norma: Sin norma | Precio: S/ 120.00
+-- 2. AS02: Punto de inflamación
+--    Norma: NTP 321.058 | Precio: S/ 0.00
+-- 3. AS03: Solubilidad en tricloroetileno
+--    Norma: Sin norma | Precio: S/ 85.00
+-- 4. AS04: Ensayo de la mancha (Oliensis)
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 5. AS05: Ductilidad
+--    Norma: Sin norma | Precio: S/ 125.00
+-- 6. AS06: Película delgada (Incluye: pérdida por calentamiento, penetración del residuo, ductilidad del residuo)
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 7. AS07: Punto de ablandamiento
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 8. AS08: Viscosidad Saybolt Furol
+--    Norma: NTP 321.07 | Precio: S/ 115.00
+-- 9. AS09: Índice de penetración (incluye 3 ensayos de penetración)
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 10. AS10: Control de calidad de asfalto emulsificado (Incluye: Viscosidad SF, estabilidad al almacenamiento, carga de partícula, tamizado, destilación, ensayos en residuo: penetración, ductilidad u solubilidad)
+--    Norma: NTP 321.059 | Precio: S/ 0.00
+-- 11. AS11: Peso específico
+--    Norma: NTP 321.084 | Precio: S/ 0.00
+-- 12. AS12: Viscosidad cinemática
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 13. AS13: Control de calidad de asfaltos líquidos (Incluye: viscosidad cinemática, punto de inflamación, destilación y determinación del residuo, ensayos en residuo: penetración, ductilidad u solubilidad: contenido de agua)
+--    Norma: NTP 321.026 321.027 321.028 | Precio: S/ 0.00
+-- 14. AS14: Ensayos al residuo de destilación (Incluye: destilación, penetración, ductilidad y solubilidad)
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 15. AS15: Contenido de agua
+--    Norma: NTP 321.067 | Precio: S/ 0.00
+-- 16. AS16: Control de calidad de cementos asfálticos (Incluye: penetración, punto de inflamación, solubilidad, ductilidad, pérdida por calentamiento, penetración retenida u ductilidad del residuo)
+--    Norma: NTP 321.051 | Precio: S/ 0.00
+-- 17. AS17: Pérdida por calentamiento
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 18. AS18: Estabilidad al almacenamiento
+--    Norma: NTP 321.082 | Precio: S/ 0.00
+-- 19. AS19: Carga de partícula
+--    Norma: NTP 321.061 | Precio: S/ 0.00
+-- 20. AS20: Tamizado malla N' 20
+--    Norma: NTP 321.073 | Precio: S/ 0.00
+-- 21. AS21: Destilación y determinación del residuo
+--    Norma: NTP 321.068 | Precio: S/ 0.00
+-- 22. AS22: Evaporación y determinación del residuo
+--    Norma: NTP 321.064 | Precio: S/ 0.00
+-- 23. AS23: Sedimentación a los 5 días
+--    Norma: NTP 321.076 | Precio: S/ 0.00
+-- 24. AS24: Ensayos al residuo de evaporación (Incluye: evaporación y determinación del residuo, penetración, solubilidad, punto de ablandamiento)
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 25. AS25: Control de calidad de emulsión catiónica modificada con polímeros (Incluye: Viscosidad SF, Estabilidad al almacenamiento, carga de partícula, tamizado, sedimentación, evaporación, ensayos en residuo: penetración, solubilidad u punto de ablandamiento)
+--    Norma: NTP 321.141 | Precio: S/ 0.00
+
+-- ================================================
+-- SERVICIO: ENSAYO MEZCLA ASFÁLTICO
+-- ID: 17 | Área: laboratorio | Subservicios: 16
+-- ================================================
+
+-- SUBSERVICIOS DE ENSAYO MEZCLA ASFÁLTICO:
+-- 1. AS26: Asphalt recovery by the Abson method.
+--    Norma: Sin norma | Precio: S/ 1200.00
+-- 2. MA01: Quantitative extraction of asphalt in pavement mixes (Asphalt washing), including Granulometry.
+--    Norma: ASTM D 2172 / MTC502 | Precio: S/ 450.00
+-- 3. MA01A: Asphalt washing (includes trichloroethylene).
+--    Norma: ASTM D 2172 / MTC502 | Precio: S/ 250.00
+-- 4. MA02: Determination of the resistance of bituminous mixes using the Marshall apparatus, includes Rice test and specific gravity.
+--    Norma: Sin norma | Precio: S/ 790.00
+-- 5. MA02A: Determination of the resistance of bituminous mixes using the Marshall apparatus, and includes specific gravity; the client will provide the Rice test.
+--    Norma: Sin norma | Precio: S/ 540.00
+-- 6. MA03: Marshall Stability (Includes: elaboration of 3 units of briquettes, stability, and flow).
+--    Norma: ASTM D1559 | Precio: S/ 350.00
+-- 7. MA04: Theoretical maximum density (Rice).
+--    Norma: ASTM D2041 | Precio: S/ 250.00
+-- 8. MA04A: Percentage of voids (includes: specimen density and theoretical maximum density (Rice)) (cost per briquette).
+--    Norma: Sin norma | Precio: S/ 100.00
+-- 9. MA05: Hot asphalt mix design (Marshall Design).
+--    Norma: Sin norma | Precio: S/ 5000.00
+-- 10. MA06: Elaboration of briquettes (set of 3).
+--    Norma: MTC E 504 | Precio: S/ 0.00
+-- 11. MA09: Cold mix design (theoretical, by equivalent areas).
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 12. MA11: Adhesion in coarse aggregate (Coating and stripping), includes Specific Gravity test.
+--    Norma: MTC E517 | Precio: S/ 250.00
+-- 13. MA12: Thickness or height of compacted asphalt mix specimens.
+--    Norma: MTC E 507 | Precio: S/ 150.00
+-- 14. MA13: Determination of the degree of compaction of bituminous mixes.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 15. MA14: Estimated degree of particle coverage in aggregate-Bitumen mixes.
+--    Norma: MTC E 519 | Precio: S/ 150.00
+-- 16. MA15: Temperature control in asphalt mix.
+--    Norma: Sin norma | Precio: S/ 70.00
+
+-- ================================================
+-- SERVICIO: EVALUACIONES ESTRUCTURALES
+-- ID: 18 | Área: laboratorio | Subservicios: 0
+-- ================================================
+
+-- Sin subservicios activos
+
+-- ================================================
+-- SERVICIO: IMPLEMENTACIÓN LABORATORIO EN OBRA
+-- ID: 19 | Área: laboratorio | Subservicios: 8
+-- ================================================
+
+-- SUBSERVICIOS DE IMPLEMENTACIÓN LABORATORIO EN OBRA:
+-- 1. IL01: Implemetación de personal técnico y equipo de laboratorio en obra en la especialidad SUELO, AGREGADO, CONCRETO, PAVIMENTO.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 2. IL02: Estudio de suelos con fines de cimentación superficial y profunda, edificaciones, puentes, plantas industriales.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 3. IL03: Estudio de suelos y diseño de pavimentación.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 4. IL04: Estudio de suelos con fines de estabilidad de taludes.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 5. IL05: Estudio de suelos confines de diseño de instalaciones sanitarias de agua y alcantarillado.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 6. IL06: Estudio de Potencial de licuación de suelos.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 7. IL07: Evaluación y caracterización del maciso rocoso.
+--    Norma: Sin norma | Precio: S/ 0.00
+-- 8. IL08: Evaluación de canteras.
+--    Norma: Sin norma | Precio: S/ 0.00
+
+-- ================================================
+-- SERVICIO: OTROS SERVICIOS
+-- ID: 20 | Área: laboratorio | Subservicios: 0
+-- ================================================
+
+-- Sin subservicios activos
+
+-- ================================================
+-- RESUMEN ESTADÍSTICO FINAL
+-- ================================================
+
+-- TOTAL DE SERVICIOS: 17
+-- TOTAL DE SUBSERVICIOS: 178
+
+-- DISTRIBUCIÓN POR ÁREA:
+-- ingenieria: 1 servicios, 0 subservicios
+-- laboratorio: 16 servicios, 178 subservicios
+
+-- ================================================
+-- CÓDIGOS DE SUBSERVICIOS POR CATEGORÍA
+-- ================================================
+
+-- AB*: ABS01
+-- AG*: AG08A, AG08B, AG09, AG11, AG12, AG13, AG16, AG17, AG18, AG19, AG20, AG22, AG23, AG24, AG25, AG26, AG28, AG29, AG30, AG31, AG32, AG33, AG34, AG35, AG36
+-- AL*: ALB01, ALB02, ALB03, ALB04, ALB05, ALB06, ALB07, ALB08, ALB09, ALB10, ALB11, ALB12, ALB13, ALB14, ALB15, ALB16, ALB17, ALB18
+-- AS*: AS01, AS02, AS03, AS04, AS05, AS06, AS07, AS08, AS09, AS10, AS11, AS12, AS13, AS14, AS15, AS16, AS17, AS18, AS19, AS20, AS21, AS22, AS23, AS24, AS25, AS26
+-- CE*: CEM01, CEM02, CEM03, CEM06
+-- CO*: CO01, CO01.01, CO03A, CO03B, CO03C, CO03D, CO03G, CO04, CO05, CO06, CO07, CO08, CO10, CO11, CO12, CO13, CO14, CO15, CO16, CO17, CO18, CO19, COM01
+-- DI*: DIS01, DIS02, DIS03, DIS04
+-- EE*: EE01, EE02, EE03, EE04, EE05, EE06, EE07, EE08, EE09, EE10, EE11, EE12, EE13
+-- IL*: IL01, IL02, IL03, IL04, IL05, IL06, IL07, IL08
+-- MA*: MA01, MA01A, MA02, MA02A, MA03, MA04, MA04A, MA05, MA06, MA09, MA11, MA12, MA13, MA14, MA15
+-- PA*: PAV01, PAV02, PAV02A, PAV03, PAV04, PAV05, PAV06, PAV07, PAV08, PAV09, PAV10, PAV11, PAV12
+-- RO*: RO01, RO02, RO03, RO04
+-- SU*: SU02, SU03, SU04, SU05, SU06A, SU06B, SU06C, SU13, SU14, SU15, SU16, SU18, SU19, SU22, SU26, SU28, SU29, SU31, SU33, SU34, SU37, SU39, SU40, SU41
+
+-- ================================================
+-- FIN DEL BACKUP FINAL Y DEFINITIVO
+-- ================================================
+
+-- IMPORTANTE: Este backup representa la estructura FINAL de servicios.
+-- Los datos están correctamente organizados y NO deben modificarse.
+-- Solo se pueden AGREGAR nuevos servicios/subservicios.
+-- El orden de las categorías es DEFINITIVO y NO debe cambiar.
+
+-- Backup creado exitosamente el 26/9/2025, 2:24:01 p. m.

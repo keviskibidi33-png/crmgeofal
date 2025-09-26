@@ -9,10 +9,16 @@ async function loadQuoteBundle(id) {
   const quoteRes = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
   const quote = quoteRes.rows[0];
   if (!quote) return null;
-  const itemsRes = await pool.query('SELECT * FROM quote_items WHERE quote_id = $1 ORDER BY id', [id]);
-  const projectRes = quote.project_id ? await pool.query('SELECT * FROM projects WHERE id = $1', [quote.project_id]) : { rows: [null] };
-  const companyRes = projectRes.rows[0]?.company_id ? await pool.query('SELECT * FROM companies WHERE id = $1', [projectRes.rows[0].company_id]) : { rows: [null] };
-  return { quote, items: itemsRes.rows, project: projectRes.rows[0], company: companyRes.rows[0] };
+  
+  // Los ítems se manejan en el frontend, no en el backend
+  // Crear ítems vacíos para compatibilidad
+  const items = [];
+  
+  const projectRes = quote.project_id ? await pool.query('SELECT * FROM projects WHERE id = $1', [quote.project_id]) : { rows: [] };
+  const project = projectRes.rows[0] || null;
+  const companyRes = project?.company_id ? await pool.query('SELECT * FROM companies WHERE id = $1', [project.company_id]) : { rows: [] };
+  const company = companyRes.rows[0] || null;
+  return { quote, items, project, company };
 }
 
 function buildFilename(bundle, ext = 'pdf') {
@@ -26,7 +32,18 @@ exports.exportPdf = async (req, res) => {
   try {
     const id = req.params.id;
     const bundle = await loadQuoteBundle(id);
+    console.log('🔍 exportPdf - Bundle cargado:', {
+      quoteId: bundle?.quote?.id,
+      projectId: bundle?.project?.id,
+      companyId: bundle?.company?.id
+    });
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
+    
+    // Agregar ítems del cuerpo de la petición si están disponibles
+    if (req.body && req.body.items && Array.isArray(req.body.items)) {
+      bundle.items = req.body.items;
+      console.log('✅ exportPdf - Ítems recibidos del frontend:', req.body.items.length);
+    }
     const tmp = path.join(__dirname, '../tmp');
     if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
     const fileName = buildFilename(bundle, 'pdf');
@@ -48,19 +65,29 @@ exports.exportPdf = async (req, res) => {
     }
     fs.copyFileSync(filePath, destPath);
     fs.unlink(filePath, () => {});
-    // Registrar adjunto
-    if (bundle.project?.id) {
-      await ProjectAttachment.create({
-        project_id: bundle.project.id,
-        uploaded_by: req.user?.id || null,
-        file_url: `/uploads/quotes/${fileName}`,
-        file_type: 'pdf',
-        description: `Exportación de cotización ${bundle.quote.id}`,
-      });
+    // Registrar adjunto solo si hay proyecto válido
+    if (bundle.project?.id && bundle.project.id !== null) {
+      try {
+        await ProjectAttachment.create({
+          project_id: bundle.project.id,
+          uploaded_by: req.user?.id || null,
+          file_url: `/uploads/quotes/${fileName}`,
+          file_type: 'pdf',
+          description: `Exportación de cotización ${bundle.quote.id}`,
+        });
+        console.log('✅ ProjectAttachment creado para proyecto:', bundle.project.id);
+      } catch (error) {
+        console.error('⚠️ Error creando ProjectAttachment:', error.message);
+        // No fallar la exportación por este error
+      }
+    } else {
+      console.log('⚠️ No hay proyecto válido, saltando ProjectAttachment');
     }
     res.download(destPath, fileName);
   } catch (e) {
-    res.status(500).json({ error: 'Error al exportar PDF' });
+    console.error('❌ exportPdfDraft - Error:', e.message);
+    console.error('❌ exportPdfDraft - Stack:', e.stack);
+    res.status(500).json({ error: 'Error al exportar PDF', details: e.message });
   }
 };
 
@@ -69,6 +96,12 @@ exports.exportExcel = async (req, res) => {
     const id = req.params.id;
     const bundle = await loadQuoteBundle(id);
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
+    
+    // Agregar ítems del cuerpo de la petición si están disponibles
+    if (req.body && req.body.items && Array.isArray(req.body.items)) {
+      bundle.items = req.body.items;
+      console.log('✅ exportExcel - Ítems recibidos del frontend:', req.body.items.length);
+    }
     const tmp = path.join(__dirname, '../tmp');
     if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
     const fileName = buildFilename(bundle, 'xlsx');
@@ -94,14 +127,21 @@ exports.exportExcel = async (req, res) => {
     }
     fs.copyFileSync(filePath, destPath);
     fs.unlink(filePath, () => {});
-    if (bundle.project?.id) {
-      await ProjectAttachment.create({
-        project_id: bundle.project.id,
-        uploaded_by: req.user?.id || null,
-        file_url: `/uploads/quotes/${fileName}`,
-        file_type: 'excel',
-        description: `Exportación de cotización ${bundle.quote.id}`,
-      });
+    if (bundle.project?.id && bundle.project.id !== null) {
+      try {
+        await ProjectAttachment.create({
+          project_id: bundle.project.id,
+          uploaded_by: req.user?.id || null,
+          file_url: `/uploads/quotes/${fileName}`,
+          file_type: 'excel',
+          description: `Exportación de cotización ${bundle.quote.id}`,
+        });
+        console.log('✅ ProjectAttachment creado para Excel, proyecto:', bundle.project.id);
+      } catch (error) {
+        console.error('⚠️ Error creando ProjectAttachment Excel:', error.message);
+      }
+    } else {
+      console.log('⚠️ No hay proyecto válido para Excel, saltando ProjectAttachment');
     }
     res.download(destPath, fileName);
   } catch (e) {
@@ -113,8 +153,22 @@ exports.exportExcel = async (req, res) => {
 exports.exportPdfDraft = async (req, res) => {
   try {
     const id = req.params.id;
+    console.log('🔍 exportPdfDraft - ID:', id);
     const bundle = await loadQuoteBundle(id);
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
+    
+    // Agregar ítems del cuerpo de la petición si están disponibles
+    if (req.body && req.body.items && Array.isArray(req.body.items)) {
+      bundle.items = req.body.items;
+      console.log('✅ exportPdfDraft - Ítems recibidos del frontend:', req.body.items.length);
+    }
+    
+    console.log('🔍 exportPdfDraft - Bundle:', {
+      quote: bundle.quote?.id,
+      items: bundle.items?.length,
+      project: bundle.project?.id,
+      company: bundle.company?.id
+    });
     const tmp = path.join(__dirname, '../tmp');
     if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
     const date = new Date().toISOString().slice(0,10);
@@ -122,7 +176,9 @@ exports.exportPdfDraft = async (req, res) => {
     const companyName = (bundle.company?.name || bundle.quote.meta?.customer?.company_name || 'cliente').toString().replace(/[^a-z0-9_\-]+/gi, '_');
     const fileName = `BORRADOR_${companyName}_${asesor}_${date}.pdf`;
     const filePath = path.join(tmp, fileName);
+    console.log('🔍 exportPdfDraft - Generando PDF:', filePath);
     await renderQuotePdf(bundle, filePath);
+    console.log('✅ exportPdfDraft - PDF generado exitosamente');
     const uploadsDir = path.join(__dirname, '../uploads/quotes/drafts');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     let destPath = path.join(uploadsDir, fileName);
@@ -134,14 +190,21 @@ exports.exportPdfDraft = async (req, res) => {
     }
     fs.copyFileSync(filePath, destPath);
     fs.unlink(filePath, () => {});
-    if (bundle.project?.id) {
-      await ProjectAttachment.create({
-        project_id: bundle.project.id,
-        uploaded_by: req.user?.id || null,
-        file_url: destPath.replace(path.join(__dirname, '..'), '').replace(/\\/g, '/'),
-        file_type: 'pdf',
-        description: `BORRADOR de cotización ${bundle.quote.id}`,
-      });
+    if (bundle.project?.id && bundle.project.id !== null) {
+      try {
+        await ProjectAttachment.create({
+          project_id: bundle.project.id,
+          uploaded_by: req.user?.id || null,
+          file_url: destPath.replace(path.join(__dirname, '..'), '').replace(/\\/g, '/'),
+          file_type: 'pdf',
+          description: `BORRADOR de cotización ${bundle.quote.id}`,
+        });
+        console.log('✅ ProjectAttachment creado para borrador, proyecto:', bundle.project.id);
+      } catch (error) {
+        console.error('⚠️ Error creando ProjectAttachment borrador:', error.message);
+      }
+    } else {
+      console.log('⚠️ No hay proyecto válido para borrador, saltando ProjectAttachment');
     }
     res.download(destPath, path.basename(destPath));
   } catch (e) {

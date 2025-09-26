@@ -10,7 +10,7 @@ import {
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
-import { listQuotes, createQuote, listQuoteItems, addQuoteItem, deleteQuote } from '../services/quotes';
+import { listQuotes, createQuote, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
 import { listProjects } from '../services/projects';
 
@@ -70,19 +70,7 @@ export default function ListaCotizaciones() {
         meta: { from_quote_id: quote.id, ...quote.meta }
       };
       const created = await createQuote(payload);
-      const itemsResponse = await listQuoteItems(quote.id);
-      const items = Array.isArray(itemsResponse?.data) ? itemsResponse.data : (itemsResponse || []);
-      for (const item of items) {
-        await addQuoteItem({
-          quote_id: created.id,
-          code: item.code,
-          description: item.description,
-          norm: item.norm,
-          unit_price: Number(item.unit_price || 0),
-          quantity: Number(item.quantity || 0),
-          partial_price: Number(item.partial_price || 0),
-        });
-      }
+      // Los ítems se manejan en el frontend, no se duplican en el backend
       queryClient.invalidateQueries('quotes');
       navigate(`/cotizaciones/${created.id}/editar`);
     } catch (error) {

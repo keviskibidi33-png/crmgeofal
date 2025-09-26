@@ -6,17 +6,16 @@ import { listServices, listSubservices } from '../services/services';
 
 export default function ServiceSelection({ 
   selectedServices = [], 
-  onServicesChange, 
-  serviceType = 'laboratorio' // 'laboratorio' o 'ingenieria'
+  onServicesChange
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEnsayo, setSelectedEnsayo] = useState(null);
   const [selectedSubservices, setSelectedSubservices] = useState([]);
 
-  // Obtener servicios (ensayos)
+  // Obtener todos los servicios (sin filtro de tipo)
   const { data: servicesData, isLoading: isLoadingServices } = useQuery(
-    ['services', serviceType],
-    () => listServices({ type: serviceType }),
+    ['services'],
+    () => listServices({}),
     {
       staleTime: 5 * 60 * 1000, // 5 minutos
       cacheTime: 10 * 60 * 1000, // 10 minutos
@@ -45,6 +44,20 @@ export default function ServiceSelection({
 
   // Manejar selección de ensayo
   const handleEnsayoSelect = (ensayo) => {
+    // Verificar si ya está seleccionado
+    const isAlreadySelected = selectedServices.some(service => service.ensayo.id === ensayo.id);
+    
+    if (isAlreadySelected) {
+      // Si ya está seleccionado, no hacer nada
+      return;
+    }
+    
+    // Verificar límite máximo (5 servicios)
+    if (selectedServices.length >= 5) {
+      alert('Máximo 5 servicios pueden ser seleccionados');
+      return;
+    }
+    
     setSelectedEnsayo(ensayo);
     setSelectedSubservices([]);
   };
@@ -84,17 +97,34 @@ export default function ServiceSelection({
     <div className="service-selection">
       <Card className="mb-4">
         <Card.Header>
-          <h6 className="mb-0">
-            <FiFilter className="me-2" />
-            Selección de {serviceType === 'laboratorio' ? 'Ensayos de Laboratorio' : 'Servicios de Ingeniería'}
-          </h6>
+          <div className="d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">
+              <FiFilter className="me-2" />
+              Selección de Servicios
+            </h6>
+            <div className="d-flex align-items-center gap-2">
+              <Badge bg="info">
+                {selectedServices.length}/5 seleccionados
+              </Badge>
+              {selectedServices.length > 0 && (
+                <Button 
+                  variant="outline-danger" 
+                  size="sm"
+                  onClick={() => onServicesChange([])}
+                >
+                  <FiX size={12} className="me-1" />
+                  Limpiar
+                </Button>
+              )}
+            </div>
+          </div>
         </Card.Header>
         <Card.Body>
           {/* Búsqueda */}
           <div className="mb-3">
             <Form.Control
               type="text"
-              placeholder={`Buscar ${serviceType === 'laboratorio' ? 'ensayos' : 'servicios'}...`}
+              placeholder="Buscar servicios..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -104,41 +134,53 @@ export default function ServiceSelection({
           {isLoadingServices ? (
             <div className="text-center py-4">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Cargando {serviceType === 'laboratorio' ? 'ensayos' : 'servicios'}...</p>
+              <p className="mt-2 text-muted">Cargando servicios...</p>
             </div>
           ) : (
             <Row className="g-3">
-              {filteredServices.map((service) => (
-                <Col md={6} lg={4} key={service.id}>
-                  <Card 
-                    className={`h-100 cursor-pointer ${selectedEnsayo?.id === service.id ? 'border-primary' : ''}`}
-                    onClick={() => handleEnsayoSelect(service)}
-                  >
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h6 className="mb-1">{service.name}</h6>
-                        {selectedEnsayo?.id === service.id && (
-                          <Badge bg="primary">
-                            <FiCheck size={14} />
+              {filteredServices.map((service) => {
+                const isSelected = selectedServices.some(s => s.ensayo.id === service.id);
+                const isCurrentlySelected = selectedEnsayo?.id === service.id;
+                
+                return (
+                  <Col md={6} lg={4} key={service.id}>
+                    <Card 
+                      className={`h-100 cursor-pointer ${
+                        isSelected ? 'border-success' : 
+                        isCurrentlySelected ? 'border-primary' : ''
+                      } ${isSelected ? 'bg-light' : ''}`}
+                      onClick={() => handleEnsayoSelect(service)}
+                    >
+                      <Card.Body>
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <h6 className="mb-1">{service.name}</h6>
+                          {isSelected ? (
+                            <Badge bg="success">
+                              <FiCheck size={14} />
+                            </Badge>
+                          ) : isCurrentlySelected ? (
+                            <Badge bg="primary">
+                              <FiCheck size={14} />
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="text-muted small mb-2">
+                          {service.description || 'Sin descripción'}
+                        </p>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <small className="text-muted">
+                            <FiClock className="me-1" size={12} />
+                            {service.norma || 'N/A'}
+                          </small>
+                          <Badge bg={service.subservices_count > 0 ? 'info' : 'secondary'}>
+                            {service.subservices_count || 0} subservicios
                           </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted small mb-2">
-                        {service.description || 'Sin descripción'}
-                      </p>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted">
-                          <FiClock className="me-1" size={12} />
-                          {service.norma || 'N/A'}
-                        </small>
-                        <Badge bg="secondary">
-                          {service.subservices_count || 0} subservicios
-                        </Badge>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                );
+              })}
             </Row>
           )}
 
@@ -195,7 +237,7 @@ export default function ServiceSelection({
                   </Row>
                 ) : (
                   <Alert variant="info" className="mb-0">
-                    No hay subservicios disponibles para este {serviceType === 'laboratorio' ? 'ensayo' : 'servicio'}.
+                    No hay subservicios disponibles para este servicio.
                   </Alert>
                 )}
 

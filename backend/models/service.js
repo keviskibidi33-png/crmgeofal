@@ -2,19 +2,14 @@ const pool = require('../config/db');
 
 const Service = {
   // Obtener todos los servicios
-  async getAll({ type, search, page = 1, limit = 20 }) {
+  async getAll({ search, page = 1, limit = 20 }) {
     try {
       const offset = (page - 1) * limit;
       let whereConditions = [];
       let queryParams = [];
       let paramIndex = 1;
 
-      // Filtro por tipo (usando campo 'area' en lugar de 'type')
-      if (type) {
-        whereConditions.push(`area = $${paramIndex}`);
-        queryParams.push(type);
-        paramIndex++;
-      }
+      // Solo filtro por búsqueda, sin filtro de tipo
 
       // Filtro por búsqueda
       if (search) {
@@ -28,7 +23,7 @@ const Service = {
         SELECT s.*, 
                COUNT(sub.id) as subservices_count
         FROM services s
-        LEFT JOIN subservices sub ON s.id = sub.service_id
+        LEFT JOIN subservices sub ON s.id = sub.service_id AND sub.is_active = true
       `;
 
       if (whereConditions.length > 0) {
@@ -68,7 +63,7 @@ const Service = {
         SELECT s.*, 
                COUNT(sub.id) as subservices_count
         FROM services s
-        LEFT JOIN subservices sub ON s.id = sub.service_id
+        LEFT JOIN subservices sub ON s.id = sub.service_id AND sub.is_active = true
         WHERE s.id = $1
         GROUP BY s.id
       `, [id]);

@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import { listServices } from '../services/services';
-import { listSubservices, searchSubservices } from '../services/subservices';
+import { searchSubservices, getAllSubservices } from '../services/subservices';
 
 export default function Servicios() {
   // Estados para búsqueda y filtros
@@ -27,7 +27,7 @@ export default function Servicios() {
     () => {
       const params = { area: 'laboratorio', limit: 1000 }; // Límite alto para obtener todos
       if (searchQuery) params.q = searchQuery;
-      return listSubservices(params);
+      return getAllSubservices(params);
     },
     { keepPreviousData: true }
   );
@@ -38,7 +38,7 @@ export default function Servicios() {
     () => {
       const params = { area: 'ingenieria', limit: 1000 }; // Límite alto para obtener todos
       if (searchQuery) params.q = searchQuery;
-      return listSubservices(params);
+      return getAllSubservices(params);
     },
     { keepPreviousData: true }
   );

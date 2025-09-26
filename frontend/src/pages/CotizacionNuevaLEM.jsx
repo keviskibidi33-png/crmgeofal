@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ModuloBase from '../components/ModuloBase';
-import { listVariants } from '../services/quoteVariants';
-import { createQuote, addQuoteItem } from '../services/quotes';
+// import { listVariants } from '../services/quoteVariants'; // Módulo eliminado
+import { createQuote } from '../services/quotes';
 import { getExistingServices, listProjects } from '../services/projects';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
+import SubserviceAutocomplete from '../components/SubserviceAutocomplete';
 import './CotizacionNuevaLEM.css';
 import '../styles/autocomplete.css';
 
@@ -96,7 +97,8 @@ export default function CotizacionNuevaLEM() {
   useEffect(() => {
     (async () => {
       try {
-        const v = await listVariants({ active: true });
+        // const v = await listVariants({ active: true }); // Módulo eliminado
+        const v = []; // Array vacío temporal
         const loaded = v || [];
         if (loaded.length > 0) {
           setVariants(loaded);
@@ -419,14 +421,17 @@ export default function CotizacionNuevaLEM() {
       console.log('🔍 onSubmit - Quote:', quote);
       
       // Validar que tenemos un proyecto seleccionado
-      if (!selection.project?.id && !selection.project_id) {
+      const projectId = selection.project?.id || selection.project_id;
+      if (!projectId) {
         throw new Error('Debe seleccionar un proyecto para crear la cotización');
       }
+      
+      console.log('🔍 onSubmit - Project ID validado:', projectId);
       
       // Construir payload de cotización base
       const numericVariantId = /^\d+$/.test(String(variantId)) ? Number(variantId) : null;
       const payload = {
-        project_id: selection.project?.id || selection.project_id,
+        project_id: projectId,
         variant_id: numericVariantId,
         client_contact: client.contact_name,
         client_email: client.contact_email,
@@ -437,37 +442,30 @@ export default function CotizacionNuevaLEM() {
         total,
         status: 'borrador',
         reference: quote.reference,
-        reference_type: quote.reference_type,
+        reference_type: JSON.stringify(quote.reference_type),
         // campos adicionales útiles
-        meta: {
+        meta: JSON.stringify({
           customer: client,
           quote,
           conditions_text: conditionsText,
           payment_terms: quote.payment_terms,
           acceptance: quote.acceptance,
           file_name: suggestedFileName || generateFileName(),
-        }
+        })
       };
       
       console.log('🔍 onSubmit - Payload:', payload);
+      console.log('🔍 onSubmit - Meta type:', typeof payload.meta);
+      console.log('🔍 onSubmit - Reference Type type:', typeof payload.reference_type);
+      console.log('🔍 onSubmit - Meta content:', payload.meta);
+      console.log('🔍 onSubmit - Reference Type content:', payload.reference_type);
       
       const saved = await createQuote(payload);
       console.log('✅ onSubmit - Cotización creada:', saved);
       
-      // Añadir ítems
-      for (const it of items) {
-        if (it.code && it.description) { // Solo agregar ítems con datos
-          await addQuoteItem({
-            quote_id: saved.id,
-            code: it.code,
-            description: it.description,
-            norm: it.norm,
-            unit_price: Number(it.unit_price || 0),
-            quantity: Number(it.quantity || 0),
-            partial_price: computePartial(it),
-          });
-        }
-      }
+      // Los ítems se manejan directamente en el frontend
+      // No es necesario enviarlos al backend por separado
+      console.log('📋 Ítems de la cotización:', items);
       
       alert('Cotización creada exitosamente');
       // Guardar id para exportaciones
@@ -485,13 +483,51 @@ export default function CotizacionNuevaLEM() {
     try {
       const id = lastSavedId; // en futuro usar id de ruta/estado
       if (!id) return alert('Guarde la cotización antes de exportar');
+      
       const base = import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || '';
       const path = `/api/quotes/${id}/export/${type}`;
       const url = base && /\/api$/i.test(base) ? `${base}${path.replace(/^\/api/, '')}` : `${base}${path}`;
-      // abre en nueva pestaña para descargar
-      window.open(url, '_blank');
+      
+      // Obtener token de autenticación
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+        return;
+      }
+      
+      // Crear enlace con token para descarga
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cotizacion_${id}.${type}`;
+      
+      // Enviar ítems junto con la petición
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: items // Enviar los ítems actuales
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      link.href = downloadUrl;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+      
     } catch (e) {
-      alert('No se pudo exportar');
+      console.error('Error al exportar:', e);
+      alert(`No se pudo exportar: ${e.message}`);
     }
   };
 
@@ -499,12 +535,51 @@ export default function CotizacionNuevaLEM() {
     try {
       const id = lastSavedId;
       if (!id) return alert('Guarde la cotización antes de generar el borrador');
+      
       const base = import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || '';
       const path = `/api/quotes/${id}/export/pdf-draft`;
       const url = base && /\/api$/i.test(base) ? `${base}${path.replace(/^\/api/, '')}` : `${base}${path}`;
-      window.open(url, '_blank');
-    } catch {
-      alert('No se pudo generar el borrador');
+      
+      // Obtener token de autenticación
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+        return;
+      }
+      
+      // Crear enlace con token para descarga
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `borrador_cotizacion_${id}.pdf`;
+      
+      // Enviar ítems junto con la petición
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: items // Enviar los ítems actuales
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      link.href = downloadUrl;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+      
+    } catch (e) {
+      console.error('Error al generar borrador:', e);
+      alert(`No se pudo generar el borrador: ${e.message}`);
     }
   };
 
@@ -805,7 +880,24 @@ export default function CotizacionNuevaLEM() {
                     {items.map((it, idx) => (
                       <tr key={idx}>
                         <td><input className="form-control" value={it.code} onChange={e=>onChangeItem(idx, { code: e.target.value })} /></td>
-                        <td><textarea className="form-control" rows={1} value={it.description} onChange={e=>onChangeItem(idx, { description: e.target.value })} /></td>
+                        <td>
+                          <SubserviceAutocomplete
+                            value={it.description}
+                            onChange={(value) => onChangeItem(idx, { description: value })}
+                            onSelect={(subservice) => {
+                              if (subservice) {
+                                onChangeItem(idx, {
+                                  code: subservice.codigo,
+                                  description: subservice.descripcion,
+                                  norm: subservice.norma,
+                                  unit_price: subservice.precio
+                                });
+                              }
+                            }}
+                            placeholder="Buscar por código, descripción o norma..."
+                            size="sm"
+                          />
+                        </td>
                         <td><input className="form-control" value={it.norm} onChange={e=>onChangeItem(idx, { norm: e.target.value })} /></td>
                         <td style={{ width: 120 }}><input type="number" step="0.01" className="form-control" value={it.unit_price} onChange={e=>onChangeItem(idx, { unit_price: e.target.value })} /></td>
                         <td style={{ width: 100 }}><input type="number" className="form-control" value={it.quantity} onChange={e=>onChangeItem(idx, { quantity: e.target.value })} /></td>
@@ -841,8 +933,21 @@ export default function CotizacionNuevaLEM() {
                   </div>
                 </div>
                 <div className="col-md-auto">
+                  {(!selection.project?.id && !selection.project_id) && (
+                    <div className="alert alert-warning mb-2" style={{fontSize: '0.875rem'}}>
+                      <i className="fas fa-exclamation-triangle me-1"></i>
+                      Debe seleccionar un proyecto para poder guardar la cotización
+                    </div>
+                  )}
                   <div className="d-flex flex-wrap gap-2 lem-actions">
-                    <button type="submit" className="btn btn-success" disabled={saving || (!selection.project?.id && !selection.project_id)}>{saving ? 'Guardando...' : 'Guardar borrador'}</button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-success" 
+                      disabled={saving || (!selection.project?.id && !selection.project_id)}
+                      title={(!selection.project?.id && !selection.project_id) ? 'Debe seleccionar un proyecto primero' : ''}
+                    >
+                      {saving ? 'Guardando...' : 'Guardar borrador'}
+                    </button>
                     <button type="button" className="btn btn-outline-warning" onClick={exportDraft}>PDF Borrador</button>
                     <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('pdf')}>Exportar PDF</button>
                     <button type="button" className="btn btn-outline-secondary" onClick={()=>exportFile('excel')}>Exportar Excel</button>

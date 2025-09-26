@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
-import { getQuote, listQuoteItems, updateQuote, updateQuoteItem } from '../services/quotes';
+import { getQuote, updateQuote } from '../services/quotes';
 
 export default function DetalleCotizacion() {
   const { id } = useParams();
@@ -17,12 +17,10 @@ export default function DetalleCotizacion() {
       try {
         setLoading(true);
         setError('');
-        const [q, its] = await Promise.all([
-          getQuote(id),
-          listQuoteItems(id)
-        ]);
+        const q = await getQuote(id);
         setRow(q);
-        setItems(Array.isArray(its?.data) ? its.data : (its || []));
+        // Los ítems se manejan en el frontend, no se cargan del backend
+        setItems([]);
       } catch (e) {
         setError(e.message || 'No se pudo cargar la cotización');
       } finally {
@@ -70,16 +68,7 @@ export default function DetalleCotizacion() {
       setSaving(true);
       setError('');
       setMessage('');
-      for (const it of items) {
-        await updateQuoteItem(it.id, {
-          code: it.code,
-          description: it.description,
-          norm: it.norm,
-          unit_price: Number(it.unit_price || 0),
-          quantity: Number(it.quantity || 0),
-          partial_price: Number(it.partial_price || 0),
-        });
-      }
+      // Los ítems se manejan en el frontend, no se guardan en el backend
       const payload = {
         client_contact: row?.client_contact || null,
         client_email: row?.client_email || null,

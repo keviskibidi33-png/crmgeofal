@@ -33,8 +33,7 @@ export default function ProjectFormRedesigned({
     priority: 'normal',
     marked: false,
     // Servicios seleccionados
-    selectedServices: [],
-    serviceType: 'laboratorio'
+    selectedServices: []
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -54,8 +53,7 @@ export default function ProjectFormRedesigned({
       setFormData(prev => ({
         ...prev,
         ...data,
-        selectedServices: data.selectedServices || [],
-        serviceType: data.serviceType || 'laboratorio'
+        selectedServices: data.selectedServices || []
       }));
     }
   }, [data]);
@@ -777,7 +775,6 @@ export default function ProjectFormRedesigned({
               <ProjectServiceForm
                 selectedServices={formData.selectedServices}
                 onServicesChange={handleServicesChange}
-                serviceType={formData.serviceType}
               />
             </div>
             <div className="modal-footer p-4 border-top">

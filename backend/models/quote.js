@@ -55,9 +55,15 @@ const Quote = {
     return res.rows[0];
   },
   async create({ project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal = 0, igv = 0, total, status, reference = null, reference_type = null, meta = null }) {
+    // Convertir objetos a JSON strings si es necesario
+    const metaJson = meta ? (typeof meta === 'string' ? meta : JSON.stringify(meta)) : null;
+    const referenceTypeJson = reference_type ? (typeof reference_type === 'string' ? reference_type : JSON.stringify(reference_type)) : null;
+    
+    const values = [project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, referenceTypeJson, metaJson];
+    
     const res = await pool.query(
-      'INSERT INTO quotes (project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
-      [project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta]
+      'INSERT INTO quotes (project_id, variant_id, created_by, client_contact, client_email, client_phone, issue_date, subtotal, igv, total, status, reference, reference_type, meta) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+      values
     );
     return res.rows[0];
   },

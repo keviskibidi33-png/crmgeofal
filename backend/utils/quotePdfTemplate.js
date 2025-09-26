@@ -99,13 +99,18 @@ exports.renderQuotePdf = async function renderQuotePdf(bundle, outFilePath) {
 
     // Items table
     const tableX = 50; let tableY = doc.y + 10;
-  doc.lineWidth(0.8);
-  const widths = [60, 240, 80, 80, 50, 70];
+    doc.lineWidth(0.8);
+    const widths = [60, 240, 80, 80, 50, 70];
     const header = ['Código', 'Descripción Ensayo', 'Norma', 'Costo Unitario (S/)', 'Cantidad', 'Costo Parcial (S/)'];
+    
     // Build rows with sections if meta.sections provided: [{title:'ANALISIS DE MATERIAL - AFIRMADO', from:0, to:3}, ...]
     const rows = [];
     const sections = bundle.quote.meta?.sections || [];
-    if (sections.length) {
+    
+    // Si no hay ítems, mostrar mensaje
+    if (!bundle.items || bundle.items.length === 0) {
+      rows.push({ cells: ['-', 'No hay ítems en esta cotización', '-', '-', '-', '-'] });
+    } else if (sections.length) {
       let index = 0;
       sections.forEach(sec => {
         rows.push({ section: true, cells: [sec.title, '', '', '', '', ''] });

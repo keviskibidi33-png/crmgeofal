@@ -25,26 +25,8 @@ export const deleteQuote = (id) =>
     method: 'DELETE',
   });
 
-// Items de la cotización
-// Backend route expects /api/quote-items/quote/:quote_id
-export const listQuoteItems = (quoteId) => apiFetch(`/api/quote-items/quote/${quoteId}`);
-
-export const addQuoteItem = (payload) =>
-  apiFetch('/api/quote-items', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-
-export const updateQuoteItem = (id, payload) =>
-  apiFetch(`/api/quote-items/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
-
-export const deleteQuoteItem = (id) =>
-  apiFetch(`/api/quote-items/${id}`, {
-    method: 'DELETE',
-  });
+// Items de la cotización se manejan directamente en el frontend
+// No se envían al backend por separado
 
 export default {
   listQuotes,
@@ -52,8 +34,4 @@ export default {
   createQuote,
   updateQuote,
   deleteQuote,
-  listQuoteItems,
-  addQuoteItem,
-  updateQuoteItem,
-  deleteQuoteItem,
 };

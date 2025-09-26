@@ -1,184 +1,162 @@
-const Subservice = require('../models/subservice');
+const pool = require('../config/db');
 
-// Búsqueda inteligente para autocompletado
-exports.search = async (req, res) => {
+// Buscar subservicios para autocompletado
+exports.searchSubservices = async (req, res) => {
   try {
-    const { q, service_id } = req.query;
+    const { q, limit = 10 } = req.query;
     
     if (!q || q.length < 2) {
-      return res.json({ subservices: [] });
+      return res.json({ data: [] });
     }
+
+    const searchQuery = `
+      SELECT 
+        s.id,
+        s.codigo,
+        s.descripcion,
+        s.norma,
+        s.precio,
+        s.name,
+        serv.name as service_name,
+        serv.area
+      FROM subservices s
+      JOIN services serv ON s.service_id = serv.id
+      WHERE s.is_active = true 
+        AND (
+          s.codigo ILIKE $1 OR 
+          s.descripcion ILIKE $1 OR 
+          s.norma ILIKE $1 OR
+          serv.name ILIKE $1
+        )
+      ORDER BY 
+        CASE 
+          WHEN s.codigo ILIKE $2 THEN 1
+          WHEN s.descripcion ILIKE $2 THEN 2
+          WHEN s.norma ILIKE $2 THEN 3
+          ELSE 4
+        END,
+        s.codigo
+      LIMIT $3
+    `;
+
+    const searchTerm = `%${q}%`;
+    const exactMatch = `${q}%`;
     
-    const results = await Subservice.search(q, service_id);
-    res.json({ subservices: results });
-  } catch (err) {
-    console.error('Error en búsqueda de subservicios:', err);
+    const result = await pool.query(searchQuery, [searchTerm, exactMatch, limit]);
+    
+    res.json({ 
+      data: result.rows.map(row => ({
+        id: row.id,
+        codigo: row.codigo,
+        descripcion: row.descripcion,
+        norma: row.norma,
+        precio: parseFloat(row.precio),
+        service_name: row.service_name,
+        area: row.area,
+        display_text: `${row.codigo} - ${row.descripcion}`,
+        search_text: `${row.codigo} ${row.descripcion} ${row.norma} ${row.service_name}`.toLowerCase()
+      }))
+    });
+    
+  } catch (error) {
+    console.error('Error buscando subservicios:', error);
     res.status(500).json({ error: 'Error al buscar subservicios' });
   }
 };
 
-// Obtener todos los subservicios
-exports.getAll = async (req, res) => {
-  try {
-    const { service_id, area, q, page, limit } = req.query;
-    const { rows, total } = await Subservice.getAll({ 
-      serviceId: service_id, 
-      area, 
-      q, 
-      page: parseInt(page) || 1, 
-      limit: parseInt(limit) || 20 
-    });
-    
-    res.json({ 
-      subservices: rows, 
-      total,
-      page: parseInt(page) || 1,
-      limit: parseInt(limit) || 20
-    });
-  } catch (err) {
-    console.error('Error al obtener subservicios:', err);
-    res.status(500).json({ error: 'Error al obtener subservicios' });
-  }
-};
-
-// Obtener subservicio por ID
-exports.getById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const subservice = await Subservice.getById(id);
-    
-    if (!subservice) {
-      return res.status(404).json({ error: 'Subservicio no encontrado' });
-    }
-    
-    res.json(subservice);
-  } catch (err) {
-    console.error('Error al obtener subservicio:', err);
-    res.status(500).json({ error: 'Error al obtener subservicio' });
-  }
-};
-
 // Obtener subservicio por código
-exports.getByCodigo = async (req, res) => {
+exports.getSubserviceByCode = async (req, res) => {
   try {
     const { codigo } = req.params;
-    const subservice = await Subservice.getByCodigo(codigo);
     
-    if (!subservice) {
+    const result = await pool.query(`
+      SELECT 
+        s.id,
+        s.codigo,
+        s.descripcion,
+        s.norma,
+        s.precio,
+        s.name,
+        serv.name as service_name,
+        serv.area
+      FROM subservices s
+      JOIN services serv ON s.service_id = serv.id
+      WHERE s.codigo = $1 AND s.is_active = true
+    `, [codigo]);
+    
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Subservicio no encontrado' });
     }
     
-    res.json(subservice);
-  } catch (err) {
-    console.error('Error al obtener subservicio por código:', err);
+    const subservice = result.rows[0];
+    res.json({
+      data: {
+        id: subservice.id,
+        codigo: subservice.codigo,
+        descripcion: subservice.descripcion,
+        norma: subservice.norma,
+        precio: parseFloat(subservice.precio),
+        service_name: subservice.service_name,
+        area: subservice.area
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error obteniendo subservicio:', error);
     res.status(500).json({ error: 'Error al obtener subservicio' });
   }
 };
 
-// Crear subservicio
-exports.create = async (req, res) => {
+// Obtener sugerencias por categoría
+exports.getSuggestionsByCategory = async (req, res) => {
   try {
-    const { codigo, descripcion, norma, precio, service_id } = req.body;
+    const { category, limit = 5 } = req.query;
     
-    // Validaciones
-    if (!codigo || !descripcion || !service_id) {
-      return res.status(400).json({ 
-        error: 'Código, descripción y servicio son requeridos' 
-      });
+    let whereClause = 's.is_active = true';
+    let params = [];
+    let paramIndex = 1;
+    
+    if (category && category !== 'all') {
+      whereClause += ` AND serv.name ILIKE $${paramIndex}`;
+      params.push(`%${category}%`);
+      paramIndex++;
     }
     
-    if (precio < 0) {
-      return res.status(400).json({ 
-        error: 'El precio no puede ser negativo' 
-      });
-    }
+    const query = `
+      SELECT 
+        s.id,
+        s.codigo,
+        s.descripcion,
+        s.norma,
+        s.precio,
+        s.name,
+        serv.name as service_name,
+        serv.area
+      FROM subservices s
+      JOIN services serv ON s.service_id = serv.id
+      WHERE ${whereClause}
+      ORDER BY s.codigo
+      LIMIT $${paramIndex}
+    `;
     
-    const subservice = await Subservice.create({
-      codigo,
-      descripcion,
-      norma: norma || null,
-      precio: parseFloat(precio) || 0,
-      service_id
+    params.push(limit);
+    
+    const result = await pool.query(query, params);
+    
+    res.json({ 
+      data: result.rows.map(row => ({
+        id: row.id,
+        codigo: row.codigo,
+        descripcion: row.descripcion,
+        norma: row.norma,
+        precio: parseFloat(row.precio),
+        service_name: row.service_name,
+        area: row.area
+      }))
     });
     
-    res.status(201).json(subservice);
-  } catch (err) {
-    if (err.code === '23505') {
-      return res.status(409).json({ 
-        error: 'Ya existe un subservicio con ese código' 
-      });
-    }
-    console.error('Error al crear subservicio:', err);
-    res.status(500).json({ error: 'Error al crear subservicio' });
-  }
-};
-
-// Actualizar subservicio
-exports.update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { codigo, descripcion, norma, precio, service_id } = req.body;
-    
-    if (precio < 0) {
-      return res.status(400).json({ 
-        error: 'El precio no puede ser negativo' 
-      });
-    }
-    
-    const subservice = await Subservice.update(id, {
-      codigo,
-      descripcion,
-      norma: norma || null,
-      precio: parseFloat(precio) || 0,
-      service_id
-    });
-    
-    if (!subservice) {
-      return res.status(404).json({ error: 'Subservicio no encontrado' });
-    }
-    
-    res.json(subservice);
-  } catch (err) {
-    if (err.code === '23505') {
-      return res.status(409).json({ 
-        error: 'Ya existe un subservicio con ese código' 
-      });
-    }
-    console.error('Error al actualizar subservicio:', err);
-    res.status(500).json({ error: 'Error al actualizar subservicio' });
-  }
-};
-
-// Eliminar subservicio
-exports.remove = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const subservice = await Subservice.remove(id);
-    
-    if (!subservice) {
-      return res.status(404).json({ error: 'Subservicio no encontrado' });
-    }
-    
-    res.status(204).end();
-  } catch (err) {
-    console.error('Error al eliminar subservicio:', err);
-    res.status(500).json({ error: 'Error al eliminar subservicio' });
-  }
-};
-
-// Eliminar permanentemente
-exports.delete = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleted = await Subservice.delete(id);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Subservicio no encontrado' });
-    }
-    
-    res.status(204).end();
-  } catch (err) {
-    console.error('Error al eliminar subservicio:', err);
-    res.status(500).json({ error: 'Error al eliminar subservicio' });
+  } catch (error) {
+    console.error('Error obteniendo sugerencias:', error);
+    res.status(500).json({ error: 'Error al obtener sugerencias' });
   }
 };

@@ -26,4 +26,9 @@ router.get('/:id/export/pdf', auth(['jefa_comercial','vendedor_comercial','admin
 router.get('/:id/export/excel', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportExcel);
 router.get('/:id/export/pdf-draft', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdfDraft);
 
+// Exportaciones con ítems del frontend (POST)
+router.post('/:id/export/pdf', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdf);
+router.post('/:id/export/excel', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportExcel);
+router.post('/:id/export/pdf-draft', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdfDraft);
+
 module.exports = router;

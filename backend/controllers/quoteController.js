@@ -33,10 +33,45 @@ exports.create = async (req, res) => {
       return res.status(400).json({ error: 'Datos de cotización requeridos' });
     }
     
+    // Validar que project_id existe y es válido
+    if (!data.project_id) {
+      return res.status(400).json({ error: 'project_id es requerido' });
+    }
+    
+    // Verificar que el proyecto existe
+    const pool = require('../config/db');
+    const projectCheck = await pool.query('SELECT id FROM projects WHERE id = $1', [data.project_id]);
+    if (projectCheck.rows.length === 0) {
+      return res.status(400).json({ error: `Proyecto con ID ${data.project_id} no existe` });
+    }
+    
     // set created_by when user present (tests may call without token)
     if (req.user && req.user.id) data.created_by = req.user.id;
     
+    // Validar y limpiar campos JSON
+    if (data.meta && typeof data.meta === 'string') {
+      try {
+        data.meta = JSON.parse(data.meta);
+      } catch (error) {
+        console.error('Error parsing meta JSON:', error);
+        console.error('Original meta string:', data.meta);
+        data.meta = { error: 'Invalid JSON format', original: data.meta };
+      }
+    }
+    
+    if (data.reference_type && typeof data.reference_type === 'string') {
+      try {
+        data.reference_type = JSON.parse(data.reference_type);
+      } catch (error) {
+        console.error('Error parsing reference_type JSON:', error);
+        console.error('Original reference_type string:', data.reference_type);
+        data.reference_type = null;
+      }
+    }
+    
     console.log('🔍 Quote.create - Datos procesados:', JSON.stringify(data, null, 2));
+    console.log('🔍 Quote.create - Meta después de procesar:', data.meta);
+    console.log('🔍 Quote.create - Reference Type después de procesar:', data.reference_type);
     
     const quote = await Quote.create(data);
     console.log('✅ Quote.create - Cotización creada:', quote);

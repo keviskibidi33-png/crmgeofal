@@ -1,94 +1,114 @@
 const pool = require('../config/db');
 
 async function addEvaluacionesEstructuralesSubservices() {
-  console.log('🔧 AGREGANDO EVALUACIONES ESTRUCTURALES (4 subservicios)\n');
-  
   try {
-    // 1. Obtener el ID del servicio Laboratorio
-    console.log('1️⃣ Obteniendo ID del servicio Laboratorio...');
-    const serviceResult = await pool.query("SELECT id FROM services WHERE area = 'laboratorio'");
-    const serviceId = serviceResult.rows[0].id;
-    console.log(`✅ ID del servicio Laboratorio: ${serviceId}`);
-
-    // 2. Función para agregar un subservicio
-    async function addSubservice(codigo, descripcion, norma, precio) {
+    console.log('💾 AGREGANDO SUBSERVICIOS PARA EVALUACIONES ESTRUCTURALES...\n');
+    
+    // 1. Obtener ID de EVALUACIONES ESTRUCTURALES
+    const evaluacionesResult = await pool.query("SELECT id FROM services WHERE name = 'EVALUACIONES ESTRUCTURALES'");
+    const evaluacionesId = evaluacionesResult.rows[0].id;
+    console.log(`✅ ID de EVALUACIONES ESTRUCTURALES: ${evaluacionesId}`);
+    
+    // 2. Datos de EVALUACIONES ESTRUCTURALES con códigos E* (4 subservicios)
+    const subservicesData = [
+      { codigo: 'E01', descripcion: 'Escaneo de acero de refuerzo.', norma: '-', precio: 0 },
+      { codigo: 'E02', descripcion: 'Escaneo de acero por portico.', norma: '-', precio: 0 },
+      { codigo: 'E03', descripcion: 'Escaneo de acero por estructura.', norma: '-', precio: 0 },
+      { codigo: 'E04', descripcion: 'PH concreto.', norma: 'ASTM C4262', precio: 100 }
+    ];
+    
+    console.log(`\n2️⃣ Agregando ${subservicesData.length} subservicios a EVALUACIONES ESTRUCTURALES...`);
+    
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    for (const subservice of subservicesData) {
       try {
-        // Verificar si el código ya existe
-        const existingSubservice = await pool.query('SELECT id FROM subservices WHERE codigo = $1 AND service_id = $2', [codigo, serviceId]);
-        if (existingSubservice.rows.length > 0) {
-          console.warn(`   ⚠️  ${codigo}: Ya existe (omitido)`);
-          return;
+        // Verificar si ya existe
+        const existing = await pool.query(
+          'SELECT id FROM subservices WHERE codigo = $1 AND service_id = $2', 
+          [subservice.codigo, evaluacionesId]
+        );
+        
+        if (existing.rows.length > 0) {
+          console.log(`   ⚠️  ${subservice.codigo}: Ya existe (omitido)`);
+          skippedCount++;
+          continue;
         }
-
+        
+        // Insertar subservicio
         await pool.query(`
           INSERT INTO subservices (codigo, descripcion, norma, precio, service_id, name, is_active)
           VALUES ($1, $2, $3, $4, $5, $6, true)
-        `, [codigo, descripcion, norma, precio, serviceId, descripcion]);
-        console.log(`   ✅ ${codigo}: ${descripcion.substring(0, 50)}...`);
+        `, [
+          subservice.codigo,
+          subservice.descripcion,
+          subservice.norma,
+          subservice.precio,
+          evaluacionesId,
+          subservice.descripcion
+        ]);
+        
+        const precio = subservice.precio === 0 ? 'Sujeto a evaluación' : `S/ ${subservice.precio}`;
+        console.log(`   ✅ ${subservice.codigo}: ${subservice.descripcion} (${subservice.norma}) - ${precio}`);
+        addedCount++;
+        
       } catch (error) {
-        console.error(`   ❌ Error agregando ${codigo}:`, error.message);
+        if (error.code === '23505') { // Código duplicado
+          console.log(`   ⚠️  ${subservice.codigo}: Ya existe (omitido)`);
+          skippedCount++;
+        } else {
+          console.error(`   ❌ Error agregando ${subservice.codigo}:`, error.message);
+        }
       }
     }
-
-    // 3. Agregar los 4 EVALUACIONES ESTRUCTURALES
-    console.log('\n2️⃣ Agregando EVALUACIONES ESTRUCTURALES...');
     
-    await addSubservice('E01', 'Escaneo de acero de refuerzo. (CAMPO)', '-', 0); // Sujeto a evaluación
-    await addSubservice('E02', 'Escaneo de acero por portico. (CAMPO)', '-', 0); // Sujeto a evaluación
-    await addSubservice('E03', 'Escaneo de acero por estructura. (CAMPO)', '-', 0); // Sujeto a evaluación
-    await addSubservice('E04', 'PH concreto. (LABORATORIO)', 'ASTM C4262', 100);
-
-    console.log('\n✅ 4 subservicios de EVALUACIONES ESTRUCTURALES agregados');
-
-    // 4. Verificar total
-    console.log('\n3️⃣ Verificando total...');
-    const totalResult = await pool.query(`
-      SELECT COUNT(*) as total
-      FROM subservices s 
-      JOIN services sv ON s.service_id = sv.id 
-      WHERE s.is_active = true 
-      AND sv.area = 'laboratorio'
+    console.log(`\n📊 RESUMEN:`);
+    console.log(`   ✅ Agregados: ${addedCount}`);
+    console.log(`   ⚠️  Omitidos: ${skippedCount}`);
+    console.log(`   📋 Total procesados: ${subservicesData.length}`);
+    
+    // 3. Verificar estado final
+    console.log('\n3️⃣ Verificando estado final...');
+    const finalState = await pool.query(`
+      SELECT 
+        s.name,
+        COUNT(sub.id) as subservices_count
+      FROM services s 
+      LEFT JOIN subservices sub ON s.id = sub.service_id AND sub.is_active = true
+      WHERE s.name = 'EVALUACIONES ESTRUCTURALES'
+      GROUP BY s.id, s.name
     `);
     
-    const total = parseInt(totalResult.rows[0].total);
-    console.log(`✅ Total de subservicios: ${total}`);
-
-    // 5. Mostrar algunos ejemplos
-    console.log('\n4️⃣ Ejemplos agregados:');
-    const examples = await pool.query(`
-      SELECT codigo, descripcion, precio
-      FROM subservices s 
-      JOIN services sv ON s.service_id = sv.id 
-      WHERE s.is_active = true 
-      AND sv.area = 'laboratorio'
-      AND s.codigo IN ('E01', 'E04')
-      ORDER BY s.codigo
+    if (finalState.rows.length > 0) {
+      console.log(`   📊 EVALUACIONES ESTRUCTURALES: ${finalState.rows[0].subservices_count} subservicios`);
+    }
+    
+    // 4. Mostrar todos los subservicios
+    console.log('\n4️⃣ SUBSERVICIOS EN EVALUACIONES ESTRUCTURALES:');
+    const savedSubservices = await pool.query(`
+      SELECT sub.codigo, sub.descripcion, sub.norma, sub.precio
+      FROM subservices sub
+      JOIN services s ON sub.service_id = s.id
+      WHERE s.name = 'EVALUACIONES ESTRUCTURALES' 
+      AND sub.is_active = true
+      ORDER BY sub.codigo
     `);
     
-    examples.rows.forEach(row => {
-      const precio = (row.precio && parseFloat(row.precio) > 0) ? `S/ ${parseFloat(row.precio).toFixed(2)}` : 'Sujeto a evaluación';
-      console.log(`   ${row.codigo}: ${row.descripcion.substring(0, 40)}... - ${precio}`);
+    savedSubservices.rows.forEach(row => {
+      const precio = row.precio === 0 ? 'Sujeto a evaluación' : `S/ ${row.precio}`;
+      console.log(`   - ${row.codigo}: ${row.descripcion} (${row.norma}) - ${precio}`);
     });
-
-    console.log('\n🎉 EVALUACIONES ESTRUCTURALES COMPLETADAS');
-    console.log('✅ 4 subservicios agregados correctamente');
-    console.log('✅ Listo para la siguiente sección');
+    
+    console.log('\n🎉 EVALUACIONES ESTRUCTURALES COMPLETADO');
+    console.log('✅ 4 subservicios con códigos E* agregados');
+    console.log('✅ Datos estructurados correctamente');
     
   } catch (error) {
-    console.error('❌ Error agregando EVALUACIONES ESTRUCTURALES:', error.message);
-    throw error;
+    console.error('❌ Error:', error.message);
+  } finally {
+    await pool.end();
   }
 }
 
-async function main() {
-  try {
-    await addEvaluacionesEstructuralesSubservices();
-    console.log('\n✅ Proceso completado exitosamente');
-    process.exit(0);
-  } catch (error) {
-    console.error('💥 Error fatal:', error);
-    process.exit(1);
-  }
-}
-
-main();
+addEvaluacionesEstructuralesSubservices();

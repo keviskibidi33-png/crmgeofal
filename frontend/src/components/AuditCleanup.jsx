@@ -94,7 +94,7 @@ export default function AuditCleanup() {
               ) : (
                 <div>
                   <div className="d-flex justify-content-between mb-2">
-                    <span>Registros antiguos (>24h):</span>
+                      <span>Registros antiguos (&gt;24h):</span>
                     <Badge bg="warning">{stats.oldRecords || 0}</Badge>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
@@ -132,7 +132,7 @@ export default function AuditCleanup() {
                   ) : (
                     <>
                       <FiTrash2 className="me-1" />
-                      Limpiar registros >24h
+                        Limpiar registros &gt;24h
                     </>
                   )}
                 </Button>
@@ -144,7 +144,7 @@ export default function AuditCleanup() {
                   disabled={isCleaning}
                 >
                   <FiClock className="me-1" />
-                  Limpiar registros >7 días
+                    Limpiar registros &gt;7 días
                 </Button>
                 
                 <Button 
@@ -154,7 +154,7 @@ export default function AuditCleanup() {
                   disabled={isCleaning}
                 >
                   <FiClock className="me-1" />
-                  Limpiar registros >30 días
+                    Limpiar registros &gt;30 días
                 </Button>
               </div>
             </div>
