@@ -32,15 +32,7 @@ const sectionsByRole = {
             { path: '/historial-proyectos', label: 'Historial Proyectos', icon: FiClock },
           ]
         },
-        {
-          label: 'Cotizaciones',
-          icon: FiFileText,
-          children: [
-            { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
-            { path: '/variantes-cotizacion', label: 'Variantes Cotización', icon: FiList },
-            { path: '/items-cotizacion', label: 'Items Cotización', icon: FiList },
-          ]
-        },
+        { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
         { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
         {
           label: 'Tickets',
@@ -109,8 +101,7 @@ const sectionsByRole = {
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
-        { path: '/variantes-cotizacion', label: 'Variantes', icon: FiList },
-        { path: '/items-cotizacion', label: 'Items', icon: FiList },
+        // Módulos eliminados: Variantes e Items de Cotización
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },

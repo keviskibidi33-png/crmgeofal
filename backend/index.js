@@ -68,8 +68,7 @@ app.use('/api/project-categories', require('./routes/categoryRoutes'));
 app.use('/api/project-subcategories', require('./routes/subcategoryRoutes'));
 app.use('/api/attachments', require('./routes/attachmentRoutes'));
 app.use('/api/quotes', require('./routes/quoteRoutes'));
-app.use('/api/quote-items', require('./routes/quoteItemRoutes'));
-app.use('/api/quote-variants', require('./routes/quoteVariantRoutes'));
+// Rutas eliminadas: quote-items, quote-variants
 app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 app.use('/api/project-attachments', require('./routes/projectAttachmentRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));

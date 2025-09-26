@@ -92,7 +92,7 @@ const Audit = {
 
     // Construir query final
     let baseQuery = `
-      SELECT al.*, u.name as user_name, u.username, u.full_name
+      SELECT al.*, u.name as user_name, u.email, u.role
       FROM audit_log al
       LEFT JOIN users u ON al.user_id = u.id
     `;
@@ -176,11 +176,11 @@ const Audit = {
 
       // Actividad por usuario
       const userActivityResult = await pool.query(`
-        SELECT u.name, u.username, u.full_name, COUNT(al.id) as action_count
+        SELECT u.name, u.email, u.role, COUNT(al.id) as action_count
         FROM audit_log al
         LEFT JOIN users u ON al.user_id = u.id
         WHERE al.user_id IS NOT NULL
-        GROUP BY u.id, u.name, u.username, u.full_name
+        GROUP BY u.id, u.name, u.email, u.role
         ORDER BY action_count DESC
         LIMIT 5
       `);
@@ -214,12 +214,12 @@ const Audit = {
   async getActiveUsers() {
     try {
       const result = await pool.query(`
-        SELECT DISTINCT u.id, u.name, u.username, u.full_name, u.email,
+        SELECT DISTINCT u.id, u.name, u.email, u.role,
                COUNT(al.id) as action_count,
                MAX(al.created_at) as last_activity
         FROM users u
         INNER JOIN audit_log al ON u.id = al.user_id
-        GROUP BY u.id, u.name, u.username, u.full_name, u.email
+        GROUP BY u.id, u.name, u.email, u.role
         ORDER BY action_count DESC
       `);
       return result.rows;
@@ -359,7 +359,7 @@ const Audit = {
           headers.join(','),
           ...rows.map(row => [
             row.id,
-            row.user_name || row.username || 'Sistema',
+            row.user_name || row.email || 'Sistema',
             row.action,
             row.entity || '',
             (row.details || '').replace(/,/g, ';'),

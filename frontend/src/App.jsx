@@ -20,8 +20,7 @@ const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
 const Servicios = lazy(() => import('./pages/Servicios'));
 const Evidencias = lazy(() => import('./pages/Evidencias'));
 const Facturas = lazy(() => import('./pages/Facturas'));
-const VariantesCotizacion = lazy(() => import('./pages/VariantesCotizacion'));
-const ItemsCotizacion = lazy(() => import('./pages/ItemsCotizacion'));
+// Módulos eliminados: VariantesCotizacion, ItemsCotizacion
 const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
 const Auditoria = lazy(() => import('./pages/Auditoria'));
 const Exportaciones = lazy(() => import('./pages/Exportaciones'));
@@ -70,8 +69,7 @@ function App() {
                   <Route path="/laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Laboratorio /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
                   <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Facturas /></RequireRole></ErrorBoundary>} />
-                  <Route path="/variantes-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><VariantesCotizacion /></RequireRole></ErrorBoundary>} />
-                  <Route path="/items-cotizacion" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><ItemsCotizacion /></RequireRole></ErrorBoundary>} />
+                  {/* Rutas eliminadas: /variantes-cotizacion, /items-cotizacion */}
                   <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
