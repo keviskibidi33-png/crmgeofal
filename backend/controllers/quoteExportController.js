@@ -2,11 +2,6 @@ const path = require('path');
 const fs = require('fs');
 const { exportToExcel } = require('../utils/exporter');
 const { renderQuotePdf } = require('../utils/quotePdfTemplate');
-const { generatePdfFromTemplate } = require('../utils/pdfTemplateFillerFixed');
-const { generatePdfFromExactTemplate } = require('../utils/pdfExactTemplate');
-const { renderProfessionalQuotePdf } = require('../utils/professionalPdfTemplate');
-const { generateHtmlPdf } = require('../utils/htmlPdfTemplate');
-const { generateTemplateBasedPdf } = require('../utils/templateBasedPdf');
 const { generateSmartTemplatePdf } = require('../utils/smartTemplatePdf');
 const pdfConfig = require('../config/pdf-config');
 const pool = require('../config/db');
@@ -221,32 +216,10 @@ exports.exportPdfDraft = async (req, res) => {
     console.log('🔍 exportPdfDraft - Quote meta:', bundle.quote?.meta);
     
             try {
-              // Usar el sistema configurado
-              if (pdfConfig.pdfSystem === 'template') {
-                console.log('🎯 Usando sistema inteligente basado en plantilla');
-                await generateSmartTemplatePdf(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado con sistema inteligente exitosamente');
-              } else if (pdfConfig.pdfSystem === 'html') {
-                console.log('🌐 Usando sistema HTML + CSS');
-                await generateHtmlPdf(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado con HTML exitosamente');
-              } else if (pdfConfig.pdfSystem === 'professional') {
-                console.log('🎨 Usando sistema PDFKit profesional');
-                await renderProfessionalQuotePdf(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado con diseño profesional exitosamente');
-              } else if (pdfConfig.pdfSystem === 'template') {
-                console.log('🆕 Usando sistema de plantillas profesionales');
-                await generatePdfFromTemplate(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado con plantilla profesional exitosamente');
-              } else if (pdfConfig.pdfSystem === 'exact') {
-                console.log('🎯 Usando sistema de plantilla EXACTA');
-                await generatePdfFromExactTemplate(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado con plantilla EXACTA exitosamente');
-              } else {
-                console.log('📊 Usando sistema PDFKit tradicional');
-                await renderQuotePdf(bundle, filePath);
-                console.log('✅ exportPdfDraft - PDF generado exitosamente');
-              }
+              // Usar el sistema inteligente (único sistema activo)
+              console.log('🎯 Usando sistema inteligente basado en plantilla');
+              await generateSmartTemplatePdf(bundle, filePath);
+              console.log('✅ exportPdfDraft - PDF generado con sistema inteligente exitosamente');
             } catch (pdfError) {
               console.error('❌ exportPdfDraft - Error generando PDF:', pdfError.message);
               console.error('❌ exportPdfDraft - Stack:', pdfError.stack);
