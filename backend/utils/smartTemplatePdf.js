@@ -406,6 +406,22 @@ function generateCleanHtmlTemplate(data) {
                 Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
             </div>
             
+            <!-- Condiciones del Servicio en Primera Página -->
+            <div class="conditions-section">
+                <div class="conditions-title">I. CONDICIONES DEL SERVICIO</div>
+                <div class="conditions-content">
+                    <p><strong>VALIDEZ DE LA OFERTA:</strong> 30 días calendarios. Si la cotización llegó al límite de su validez, solicite una actualización.</p>
+                    
+                    <p><strong>CONDICIONES ESPECÍFICAS:</strong></p>
+                    <ul class="conditions-list">
+                        <li>El cliente deberá enviar un mínimo de 30 kg de muestra fina y 70 kg de muestra gruesa para ensayos de suelo al laboratorio.</li>
+                        <li>El cliente deberá entregar las muestras debidamente identificadas.</li>
+                        <li>El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.</li>
+                        <li>El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.</li>
+                    </ul>
+                </div>
+            </div>
+            
             <!-- Tabla de ensayos -->
             <table class="table">
                 <thead>
