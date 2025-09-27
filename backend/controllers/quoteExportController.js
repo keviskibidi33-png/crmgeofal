@@ -2,23 +2,49 @@ const path = require('path');
 const fs = require('fs');
 const { exportToExcel } = require('../utils/exporter');
 const { renderQuotePdf } = require('../utils/quotePdfTemplate');
+const { generatePdfFromTemplate } = require('../utils/pdfTemplateFillerFixed');
+const { generatePdfFromExactTemplate } = require('../utils/pdfExactTemplate');
+const { renderProfessionalQuotePdf } = require('../utils/professionalPdfTemplate');
+const { generateHtmlPdf } = require('../utils/htmlPdfTemplate');
+const { generateTemplateBasedPdf } = require('../utils/templateBasedPdf');
+const { generateSmartTemplatePdf } = require('../utils/smartTemplatePdf');
+const pdfConfig = require('../config/pdf-config');
 const pool = require('../config/db');
 const ProjectAttachment = require('../models/projectAttachment');
 
 async function loadQuoteBundle(id) {
-  const quoteRes = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
-  const quote = quoteRes.rows[0];
-  if (!quote) return null;
-  
-  // Los ítems se manejan en el frontend, no en el backend
-  // Crear ítems vacíos para compatibilidad
-  const items = [];
-  
-  const projectRes = quote.project_id ? await pool.query('SELECT * FROM projects WHERE id = $1', [quote.project_id]) : { rows: [] };
-  const project = projectRes.rows[0] || null;
-  const companyRes = project?.company_id ? await pool.query('SELECT * FROM companies WHERE id = $1', [project.company_id]) : { rows: [] };
-  const company = companyRes.rows[0] || null;
-  return { quote, items, project, company };
+  try {
+    console.log('🔍 loadQuoteBundle - Cargando bundle para ID:', id);
+    
+    const quoteRes = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
+    const quote = quoteRes.rows[0];
+    if (!quote) {
+      console.log('❌ loadQuoteBundle - Cotización no encontrada');
+      return null;
+    }
+    
+    console.log('✅ loadQuoteBundle - Cotización encontrada:', quote.id);
+    
+    // Los ítems se manejan en el frontend, no en el backend
+    // Crear ítems vacíos para compatibilidad
+    const items = [];
+    
+    const projectRes = quote.project_id ? await pool.query('SELECT * FROM projects WHERE id = $1', [quote.project_id]) : { rows: [] };
+    const project = projectRes.rows[0] || null;
+    console.log('✅ loadQuoteBundle - Proyecto:', project?.id || 'null');
+    
+    const companyRes = project?.company_id ? await pool.query('SELECT * FROM companies WHERE id = $1', [project.company_id]) : { rows: [] };
+    const company = companyRes.rows[0] || null;
+    console.log('✅ loadQuoteBundle - Empresa:', company?.id || 'null');
+    
+    const bundle = { quote, items, project, company };
+    console.log('✅ loadQuoteBundle - Bundle creado exitosamente');
+    return bundle;
+  } catch (error) {
+    console.error('❌ loadQuoteBundle - Error:', error.message);
+    console.error('❌ loadQuoteBundle - Stack:', error.stack);
+    throw error;
+  }
 }
 
 function buildFilename(bundle, ext = 'pdf') {
@@ -31,11 +57,15 @@ function buildFilename(bundle, ext = 'pdf') {
 exports.exportPdf = async (req, res) => {
   try {
     const id = req.params.id;
+    console.log('🔍 exportPdf - ID recibido:', id);
+    console.log('🔍 exportPdf - Body recibido:', req.body);
+    
     const bundle = await loadQuoteBundle(id);
     console.log('🔍 exportPdf - Bundle cargado:', {
       quoteId: bundle?.quote?.id,
       projectId: bundle?.project?.id,
-      companyId: bundle?.company?.id
+      companyId: bundle?.company?.id,
+      itemsCount: bundle?.items?.length || 0
     });
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
     
@@ -43,6 +73,9 @@ exports.exportPdf = async (req, res) => {
     if (req.body && req.body.items && Array.isArray(req.body.items)) {
       bundle.items = req.body.items;
       console.log('✅ exportPdf - Ítems recibidos del frontend:', req.body.items.length);
+    } else {
+      console.log('⚠️ exportPdf - No se recibieron ítems del frontend, usando ítems vacíos');
+      bundle.items = bundle.items || [];
     }
     const tmp = path.join(__dirname, '../tmp');
     if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
@@ -52,7 +85,14 @@ exports.exportPdf = async (req, res) => {
       { header: 'Cotización', id: bundle.quote.id, total: bundle.quote.total },
       ...bundle.items.map(i => ({ code: i.code, desc: i.description, norm: i.norm, qty: i.quantity, unit: i.unit_price, partial: i.partial_price }))
     ];
-  await renderQuotePdf(bundle, filePath);
+  try {
+    await renderQuotePdf(bundle, filePath);
+    console.log('✅ exportPdf - PDF generado exitosamente');
+  } catch (pdfError) {
+    console.error('❌ exportPdf - Error generando PDF:', pdfError.message);
+    console.error('❌ exportPdf - Stack:', pdfError.stack);
+    throw pdfError;
+  }
     // Persistir en uploads/quotes
     const uploadsDir = path.join(__dirname, '../uploads/quotes');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -177,8 +217,41 @@ exports.exportPdfDraft = async (req, res) => {
     const fileName = `BORRADOR_${companyName}_${asesor}_${date}.pdf`;
     const filePath = path.join(tmp, fileName);
     console.log('🔍 exportPdfDraft - Generando PDF:', filePath);
-    await renderQuotePdf(bundle, filePath);
-    console.log('✅ exportPdfDraft - PDF generado exitosamente');
+    console.log('🔍 exportPdfDraft - Bundle items:', bundle.items);
+    console.log('🔍 exportPdfDraft - Quote meta:', bundle.quote?.meta);
+    
+            try {
+              // Usar el sistema configurado
+              if (pdfConfig.pdfSystem === 'template') {
+                console.log('🎯 Usando sistema inteligente basado en plantilla');
+                await generateSmartTemplatePdf(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado con sistema inteligente exitosamente');
+              } else if (pdfConfig.pdfSystem === 'html') {
+                console.log('🌐 Usando sistema HTML + CSS');
+                await generateHtmlPdf(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado con HTML exitosamente');
+              } else if (pdfConfig.pdfSystem === 'professional') {
+                console.log('🎨 Usando sistema PDFKit profesional');
+                await renderProfessionalQuotePdf(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado con diseño profesional exitosamente');
+              } else if (pdfConfig.pdfSystem === 'template') {
+                console.log('🆕 Usando sistema de plantillas profesionales');
+                await generatePdfFromTemplate(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado con plantilla profesional exitosamente');
+              } else if (pdfConfig.pdfSystem === 'exact') {
+                console.log('🎯 Usando sistema de plantilla EXACTA');
+                await generatePdfFromExactTemplate(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado con plantilla EXACTA exitosamente');
+              } else {
+                console.log('📊 Usando sistema PDFKit tradicional');
+                await renderQuotePdf(bundle, filePath);
+                console.log('✅ exportPdfDraft - PDF generado exitosamente');
+              }
+            } catch (pdfError) {
+              console.error('❌ exportPdfDraft - Error generando PDF:', pdfError.message);
+              console.error('❌ exportPdfDraft - Stack:', pdfError.stack);
+              throw pdfError;
+            }
     const uploadsDir = path.join(__dirname, '../uploads/quotes/drafts');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     let destPath = path.join(uploadsDir, fileName);
