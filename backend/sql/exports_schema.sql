@@ -2,13 +2,13 @@
 CREATE TABLE IF NOT EXISTS export_history (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
-  type VARCHAR(20) NOT NULL, -- pdf, xlsx, csv
-  resource VARCHAR(50) NOT NULL, -- leads, projects, quotes, etc
+  type VARCHAR(20) NOT NULL,
+  resource VARCHAR(50) NOT NULL,
   client_id INTEGER REFERENCES companies(id),
   project_id INTEGER REFERENCES projects(id),
   commercial_id INTEGER REFERENCES users(id),
   laboratory_id INTEGER REFERENCES users(id),
-  status VARCHAR(20) DEFAULT 'nuevo', -- nuevo, pagado, procesado
+  status VARCHAR(20) DEFAULT 'nuevo',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

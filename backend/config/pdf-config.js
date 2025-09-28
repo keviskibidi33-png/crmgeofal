@@ -15,11 +15,6 @@ module.exports = {
     basic: 'templates/cotizacion_template.pdf'
   },
   
-  // Configuración de Python
-  python: {
-    script: 'scripts/pdf_filler.py',
-    timeout: 30000 // 30 segundos
-  },
   
   // Configuración de campos de formulario
   formFields: {
