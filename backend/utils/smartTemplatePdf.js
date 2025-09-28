@@ -402,9 +402,7 @@ function getVariantConditions(variantId) {
         'El cliente debe enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.',
         'El cliente deberá de entregar las muestras debidamente identificadas.',
         'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
-        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.',
-        'Los resultados se entregarán en un plazo máximo de 4 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -421,9 +419,7 @@ function getVariantConditions(variantId) {
         'El cliente debe proporcionar las probetas antes del ingreso a obra.',
         'El cliente deberá de entregar las muestras debidamente identificadas.',
         'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
-        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.',
-        'Los resultados se entregarán en un plazo máximo de 5 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -440,9 +436,7 @@ function getVariantConditions(variantId) {
         'Para el ensayo de Densidad de campo, la cantidad de puntos/salida minimo 4 und.',
         'El cliente deberá de programar el servicio, Densidad de campo, con 24 horas de anticipación.',
         'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
-        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.',
-        'Los resultados se entregarán en un plazo máximo de 6 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -460,9 +454,7 @@ function getVariantConditions(variantId) {
         'El servicio no incluye trabajos de acabados como pintura, mayolica y otros.',
         'El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.',
         'La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).',
-        'Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina.',
-        'Los resultados se entregarán en un plazo máximo de 8 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -479,9 +471,7 @@ function getVariantConditions(variantId) {
         'El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.',
         'El area de trabajo, zona de extraccion de diamantina, debera estar libre de interferencia.',
         'Para extraer la diamantina, se ubicara el acero con un escaneador.',
-        'Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.',
-        'Los resultados se entregarán en un plazo máximo de 7 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -497,9 +487,7 @@ function getVariantConditions(variantId) {
         'El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.',
         'El cliente deberá de entregar las muestras debidamente identificadas.',
         'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
-        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.',
-        'Los resultados se entregarán en un plazo máximo de 5 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -515,9 +503,7 @@ function getVariantConditions(variantId) {
         'El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.',
         'El area de trabajo tiene que estar habilitado.',
         'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.',
-        'Especificar las caracteristicas del camion.',
-        'Los resultados se entregarán en un plazo máximo de 6 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'Especificar las caracteristicas del camion.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
@@ -533,9 +519,7 @@ function getVariantConditions(variantId) {
         'El cliente deberá de programar el servicio, con 24 horas de anticipación.',
         'Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.',
         'El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.',
-        'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
-        'Los resultados se entregarán en un plazo máximo de 10 días hábiles.',
-        'Los ensayos se realizarán dentro del alcance de acreditación INACAL.'
+        'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.'
       ],
       payment_conditions: [
         'El pago debe realizarse antes del inicio de los ensayos.',
