@@ -1,5 +1,96 @@
 const pool = require('../config/db');
 
+// Obtener todos los subservicios (endpoint principal)
+exports.getAllSubservices = async (req, res) => {
+  try {
+    const { serviceId, area, q, page = 1, limit = 1000 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let whereClause = 's.is_active = true';
+    let params = [];
+    let paramIndex = 1;
+    
+    if (serviceId) {
+      whereClause += ` AND s.service_id = $${paramIndex}`;
+      params.push(serviceId);
+      paramIndex++;
+    }
+    
+    if (area) {
+      whereClause += ` AND serv.area = $${paramIndex}`;
+      params.push(area);
+      paramIndex++;
+    }
+    
+    if (q) {
+      whereClause += ` AND (
+        s.codigo ILIKE $${paramIndex} OR 
+        s.descripcion ILIKE $${paramIndex} OR 
+        s.norma ILIKE $${paramIndex} OR
+        serv.name ILIKE $${paramIndex}
+      )`;
+      params.push(`%${q}%`);
+      paramIndex++;
+    }
+    
+    const query = `
+      SELECT 
+        s.id,
+        s.codigo,
+        s.descripcion,
+        s.norma,
+        s.precio,
+        s.service_id,
+        s.is_active,
+        s.created_at,
+        s.updated_at,
+        serv.name as service_name,
+        serv.area
+      FROM subservices s
+      JOIN services serv ON s.service_id = serv.id
+      WHERE ${whereClause}
+      ORDER BY s.codigo
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    
+    params.push(limit, offset);
+    
+    const result = await pool.query(query, params);
+    
+    // Contar total para paginación
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM subservices s
+      JOIN services serv ON s.service_id = serv.id
+      WHERE ${whereClause}
+    `;
+    const countResult = await pool.query(countQuery, params.slice(0, -2));
+    
+    res.json({
+      data: result.rows.map(row => ({
+        id: row.id,
+        codigo: row.codigo,
+        descripcion: row.descripcion,
+        norma: row.norma,
+        precio: parseFloat(row.precio),
+        service_id: row.service_id,
+        is_active: row.is_active,
+        service_name: row.service_name,
+        area: row.area,
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      })),
+      total: parseInt(countResult.rows[0].total),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
+    
+  } catch (error) {
+    console.error('Error obteniendo subservicios:', error);
+    res.status(500).json({ error: 'Error al obtener subservicios' });
+  }
+};
+
 // Buscar subservicios para autocompletado
 exports.searchSubservices = async (req, res) => {
   try {
@@ -16,7 +107,6 @@ exports.searchSubservices = async (req, res) => {
         s.descripcion,
         s.norma,
         s.precio,
-        s.name,
         serv.name as service_name,
         serv.area
       FROM subservices s
@@ -76,7 +166,6 @@ exports.getSubserviceByCode = async (req, res) => {
         s.descripcion,
         s.norma,
         s.precio,
-        s.name,
         serv.name as service_name,
         serv.area
       FROM subservices s
@@ -129,7 +218,6 @@ exports.getSuggestionsByCategory = async (req, res) => {
         s.descripcion,
         s.norma,
         s.precio,
-        s.name,
         serv.name as service_name,
         serv.area
       FROM subservices s

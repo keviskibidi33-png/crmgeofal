@@ -98,10 +98,10 @@ export default function Servicios() {
     }
   };
 
-  const subservices = subservicesData?.subservices || [];
+  const subservices = subservicesData?.data || [];
   const totalSubservices = subservicesData?.total || 0;
   
-  const ingenieriaSubservices = ingenieriaData?.subservices || [];
+  const ingenieriaSubservices = ingenieriaData?.data || [];
   const totalIngenieria = ingenieriaData?.total || 0;
   
   // Debug: verificar datos recibidos

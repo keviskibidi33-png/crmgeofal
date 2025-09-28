@@ -88,7 +88,8 @@ exports.exportPdf = async (req, res) => {
     console.error('❌ exportPdf - Stack:', pdfError.stack);
     throw pdfError;
   }
-    // Persistir en uploads/quotes
+  
+  // Persistir en uploads/quotes
     const uploadsDir = path.join(__dirname, '../uploads/quotes');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     let destPath = path.join(uploadsDir, fileName);

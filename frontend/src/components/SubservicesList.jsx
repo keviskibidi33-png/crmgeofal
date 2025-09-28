@@ -45,7 +45,7 @@ const SubservicesList = ({ serviceId, area = 'laboratorio' }) => {
     setIsSearching(true);
     try {
       const results = await searchSubservices(query, serviceId);
-      setSearchResults(results.subservices || []);
+      setSearchResults(results.data || []);
     } catch (error) {
       console.error('Error en búsqueda:', error);
       setSearchResults([]);
@@ -340,7 +340,7 @@ const SubservicesList = ({ serviceId, area = 'laboratorio' }) => {
     error
   });
 
-  const subservices = allSubservices?.subservices || [];
+  const subservices = allSubservices?.data || [];
   const groupedSubservices = groupSubservicesByCategory(subservices);
   const categories = Object.keys(groupedSubservices);
 
@@ -358,7 +358,7 @@ const SubservicesList = ({ serviceId, area = 'laboratorio' }) => {
   }
 
   // Mostrar datos de ejemplo si hay error o si no hay datos
-  if (error || !allSubservices || allSubservices.subservices?.length === 0) {
+  if (error || !allSubservices || allSubservices.data?.length === 0) {
     return (
       <div className="subservices-list">
         <Alert variant="info">
