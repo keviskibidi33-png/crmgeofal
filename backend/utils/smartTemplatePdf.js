@@ -33,7 +33,8 @@ async function generateSmartTemplatePdf(bundle, outputPath) {
  */
 function processBundleData(bundle) {
     let subtotal = 0;
-    const items = bundle.items || [];
+    // Buscar ítems en meta.items (desde frontend) o bundle.items (desde BD)
+    const items = bundle.quote?.meta?.items || bundle.items || [];
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -58,7 +59,7 @@ function processBundleData(bundle) {
     numero_cotizacion: `COT-${bundle.quote?.id || 'XXX'}-${new Date().getFullYear().toString().slice(-2)}`,
       fecha_emision: fechaFormateada,
       fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
-      referencia: bundle.quote?.meta?.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
+      referencia: bundle.quote?.meta?.quote?.reference || bundle.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
       asesor_comercial: bundle.quote?.meta?.quote?.commercial_name || 'Silvia Peralta',
       telefono_comercial: bundle.quote?.meta?.quote?.commercial_phone || '962429895',
       condicion_pago: getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms),
