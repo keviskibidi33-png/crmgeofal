@@ -25,6 +25,7 @@ const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
 const Auditoria = lazy(() => import('./pages/Auditoria'));
 const Exportaciones = lazy(() => import('./pages/Exportaciones'));
 const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
+const CotizacionInteligente = lazy(() => import('./pages/CotizacionInteligente'));
 const FileManagement = lazy(() => import('./pages/FileManagement'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
@@ -57,6 +58,7 @@ function App() {
                   <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/lista" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><ListaCotizaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/nueva" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><CotizacionNuevaLEM /></RequireRole></ErrorBoundary>} />
+                  <Route path="/cotizaciones/inteligente" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><CotizacionInteligente /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/nueva/lem" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio","laboratorio"]}><CotizacionNuevaLEM /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/:id" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","laboratorio","gerencia"]}><DetalleCotizacion /></RequireRole></ErrorBoundary>} />
                   <Route path="/adjuntos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Adjuntos /></RequireRole></ErrorBoundary>} />

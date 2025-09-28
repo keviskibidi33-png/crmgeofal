@@ -4,7 +4,8 @@ const {
   listCompanies, 
   getCompanyStats, 
   getCompanyFilterOptions, 
-  searchCompanies 
+  searchCompanies,
+  createCompany
 } = require('../controllers/companyController');
 
 // Ruta para listar empresas con paginación y filtros
@@ -12,6 +13,9 @@ router.get('/', listCompanies);
 
 // Ruta para obtener estadísticas de empresas
 router.get('/stats', getCompanyStats);
+
+// Ruta para crear empresa
+router.post('/', createCompany);
 
 // Ruta para obtener opciones de filtros
 router.get('/filter-options', getCompanyFilterOptions);

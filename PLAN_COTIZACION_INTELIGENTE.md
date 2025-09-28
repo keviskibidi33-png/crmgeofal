@@ -1,3 +1,4 @@
+
 # 📋 PLAN: MÓDULO "COTIZACIÓN INTELIGENTE"
 
 ## 🎯 **OBJETIVO**

@@ -8,7 +8,7 @@ import {
   FiMessageSquare, FiBarChart2, FiSettings, FiLayers, FiList, 
   FiClock, FiFileText as FiInvoice, 
   FiPackage, FiCheckCircle, FiDownload, FiShield, FiChevronRight,
-  FiChevronDown, FiMenu, FiX, FiHardDrive, FiActivity
+  FiChevronDown, FiMenu, FiX, FiHardDrive, FiActivity, FiZap
 } from 'react-icons/fi';
 
 const sectionsByRole = {
@@ -33,6 +33,7 @@ const sectionsByRole = {
           ]
         },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
         { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
         {
           label: 'Tickets',
@@ -73,6 +74,7 @@ const sectionsByRole = {
         { path: '/clientes', label: 'Clientes', icon: FiUser },
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
       ]
@@ -90,6 +92,7 @@ const sectionsByRole = {
         { path: '/clientes', label: 'Clientes', icon: FiUser },
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
         { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
       ]
     },

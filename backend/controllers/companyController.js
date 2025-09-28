@@ -1,4 +1,5 @@
 const Company = require('../models/company');
+const Audit = require('../models/audit');
 
 // Listar empresas con paginación y filtros
 const listCompanies = async (req, res) => {
@@ -105,9 +106,70 @@ const searchCompanies = async (req, res) => {
   }
 };
 
+// Crear empresa
+const createCompany = async (req, res) => {
+  try {
+    const { 
+      type = 'empresa',
+      ruc, 
+      name, 
+      address, 
+      email, 
+      phone, 
+      contact_name, 
+      city, 
+      sector,
+      dni
+    } = req.body;
+    
+    // Validaciones obligatorias
+    if (!ruc || !name) {
+      return res.status(400).json({ 
+        error: 'RUC y nombre son campos obligatorios' 
+      });
+    }
+    
+    // Verificar si ya existe una empresa con ese RUC
+    const existingCompany = await Company.getByRuc(ruc);
+    if (existingCompany) {
+      return res.status(400).json({ 
+        error: 'Ya existe una empresa con ese RUC' 
+      });
+    }
+    
+    const company = await Company.create({
+      type,
+      ruc,
+      name,
+      address,
+      email,
+      phone,
+      contact_name,
+      city,
+      sector,
+      dni
+    });
+    
+    // Auditoría
+    await Audit.log({
+      user_id: req.user?.id,
+      action: 'crear',
+      entity: 'company',
+      entity_id: company.id,
+      details: JSON.stringify({ ruc, name, contact_name })
+    });
+    
+    res.status(201).json(company);
+  } catch (err) {
+    console.error('❌ createCompany - Error:', err);
+    res.status(500).json({ error: 'Error al crear empresa' });
+  }
+};
+
 module.exports = {
   listCompanies,
   getCompanyStats,
   getCompanyFilterOptions,
-  searchCompanies
+  searchCompanies,
+  createCompany
 };
