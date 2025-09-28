@@ -48,6 +48,23 @@ exports.create = async (req, res) => {
     // set created_by when user present (tests may call without token)
     if (req.user && req.user.id) data.created_by = req.user.id;
     
+    // Convertir variant_id de string (V1, V2, etc.) a ID numérico si es necesario
+    if (data.variant_id && typeof data.variant_id === 'string') {
+      try {
+        const variantQuery = await pool.query('SELECT id FROM quote_variants WHERE code = $1', [data.variant_id]);
+        if (variantQuery.rows.length > 0) {
+          data.variant_id = variantQuery.rows[0].id;
+          console.log(`🔍 Quote.create - variant_id convertido: ${req.body.variant_id} -> ${data.variant_id}`);
+        } else {
+          console.warn(`⚠️ Quote.create - Variante ${data.variant_id} no encontrada, usando null`);
+          data.variant_id = null;
+        }
+      } catch (error) {
+        console.error('❌ Quote.create - Error convirtiendo variant_id:', error);
+        data.variant_id = null;
+      }
+    }
+    
     // Validar y limpiar campos JSON
     if (data.meta && typeof data.meta === 'string') {
       try {

@@ -32,6 +32,20 @@ async function loadQuoteBundle(id) {
     const company = companyRes.rows[0] || null;
     console.log('✅ loadQuoteBundle - Empresa:', company?.id || 'null');
     
+    // Convertir variant_id de ID numérico a string (V1, V2, etc.) para el PDF
+    if (quote.variant_id && typeof quote.variant_id === 'number') {
+      try {
+        const originalId = quote.variant_id;
+        const variantQuery = await pool.query('SELECT code FROM quote_variants WHERE id = $1', [quote.variant_id]);
+        if (variantQuery.rows.length > 0) {
+          quote.variant_id = variantQuery.rows[0].code;
+          console.log(`🔍 loadQuoteBundle - variant_id convertido de ID ${originalId} a string ${quote.variant_id}`);
+        }
+      } catch (error) {
+        console.error('❌ loadQuoteBundle - Error convirtiendo variant_id:', error);
+      }
+    }
+    
     const bundle = { quote, items, project, company };
     console.log('✅ loadQuoteBundle - Bundle creado exitosamente');
     return bundle;

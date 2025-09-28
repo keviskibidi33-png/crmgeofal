@@ -10,11 +10,11 @@ import '../styles/autocomplete.css';
 
 const emptyClient = {
   company_name: '', ruc: '', contact_name: '', contact_phone: '', contact_email: '',
-  project_location: '', project_name: '', service_name: '',
+  project_location: '', project_name: '',
 };
 
 const emptyQuote = {
-  request_date: '', issue_date: '', commercial_name: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true,
+  request_date: '', issue_date: '', commercial_name: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true, delivery_days: 4,
 };
 
 const emptyItem = { code: '', description: '', norm: '', unit_price: 0, quantity: 1 };
@@ -37,20 +37,14 @@ const normalizeKey = (s = '') => (s || '')
   .trim();
 
 const VARIANT_TEXTS = {
-  [normalizeKey('MUESTRA DE SUELO Y AGREGADO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
+  [normalizeKey('MUESTRA DE SUELO Y AGREGADO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente debe enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
   [normalizeKey('PROBETAS')]: `CONDICIONES ESPECÍFICAS:\n- El cliente debe proporcionar las probetas antes del ingreso a obra.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
   [normalizeKey('DENSIDAD DE CAMPO Y MUESTREO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.\n- Para el ensayo de Densidad de campo, la cantidad de puntos/salida minimo 4 und.\n- El cliente deberá de programar el servicio, Densidad de campo, con 24 horas de anticipación.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.`,
   [normalizeKey('EXTRACCIÓN DE DIAMANTINA')]: `CONDICIONES ESPECÍFICAS:\n- Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.\n- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.\n- El servicio no incluye trabajos de acabados como pintura, mayolica y otros.\n- El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.\n- La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).\n- Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina`,
-  // alias sin acentos
-  [normalizeKey('EXTRACCION DE DIAMANTINA')]: `CONDICIONES ESPECÍFICAS:\n- Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.\n- Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.\n- El servicio no incluye trabajos de acabados como pintura, mayolica y otros.\n- El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.\n- La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).\n- Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina`,
   [normalizeKey('DIAMANTINA PARA PASES')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.\n- El area de trabajo, zona de extraccion de diamantina, debera estar libre de interferencia.\n- Para extraer la diamantina, se ubicara el acero con un escaneador.\n- Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.`,
   [normalizeKey('ALBAÑILERÍA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima`,
-  // alias sin ñ
-  [normalizeKey('ALBANILERIA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.\n- El cliente deberá de entregar las muestras debidamente identificadas.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.\n- El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima`,
   [normalizeKey('VIGA BECKELMAN')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.\n- El area de trabajo tiene que estar habilitado.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.\n- Especificar las caracteristicas del camion`,
   [normalizeKey('CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, con 24 horas de anticipación.\n- Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.\n- El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.`,
-  // alias más corto usado en análisis
-  [normalizeKey('CONTROL DE CALIDAD DE CONCRETO FRESCO')]: `CONDICIONES ESPECÍFICAS:\n- El cliente deberá de programar el servicio, con 24 horas de anticipación.\n- Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.\n- El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.\n- El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.`,
 };
 
 const getVariantText = (v) => {
@@ -74,9 +68,8 @@ export default function CotizacionNuevaLEM() {
   const [currentStep, setCurrentStep] = useState(1); // 1: Cliente/Proyecto, 2: Condiciones, 3: Ítems, 4: Resumen
   const [lastSavedId, setLastSavedId] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [allServices, setAllServices] = useState([]);
-  const [serviceSuggestions, setServiceSuggestions] = useState([]);
-  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
+  // allServices eliminado - no sirve
+  // Funciones de servicio eliminadas - no sirven
   const [allProjects, setAllProjects] = useState([]);
   const [projectSuggestions, setProjectSuggestions] = useState([]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
@@ -130,55 +123,7 @@ export default function CotizacionNuevaLEM() {
     })();
   }, []);
 
-  // Cargar servicios existentes para autocompletado
-  useEffect(() => {
-    (async () => {
-      try {
-        const services = await getExistingServices();
-        // Combinar servicios de proyectos con servicios predefinidos
-        const predefinedServices = [
-          { service_name: 'Ensayos de suelo y agregado', usage_count: 0 },
-          { service_name: 'Extracción de diamantina', usage_count: 0 },
-          { service_name: 'Control de calidad de concreto fresco', usage_count: 0 },
-          { service_name: 'Densidad de campo y muestreo', usage_count: 0 },
-          { service_name: 'Probetas de concreto', usage_count: 0 },
-          { service_name: 'Viga Beckelman', usage_count: 0 },
-          { service_name: 'Albañilería', usage_count: 0 },
-          { service_name: 'Diamantina para pases', usage_count: 0 },
-          { service_name: 'Consultoría geotécnica', usage_count: 0 },
-          { service_name: 'Capacitación técnica', usage_count: 0 },
-          { service_name: 'Auditoría de calidad', usage_count: 0 },
-          { service_name: 'Estudios de suelos', usage_count: 0 },
-          { service_name: 'Análisis de materiales', usage_count: 0 },
-          { service_name: 'Inspección de obras', usage_count: 0 },
-          { service_name: 'Certificación de materiales', usage_count: 0 }
-        ];
-        
-        // Combinar y eliminar duplicados
-        const allServicesCombined = [...predefinedServices];
-        services.forEach(service => {
-          if (!allServicesCombined.find(s => s.service_name === service.service_name)) {
-            allServicesCombined.push(service);
-          }
-        });
-        
-        setAllServices(allServicesCombined);
-        setServiceSuggestions(allServicesCombined);
-      } catch (e) {
-        console.warn('No se pudieron cargar servicios existentes:', e);
-        // Usar solo servicios predefinidos como fallback
-        const fallbackServices = [
-          { service_name: 'Ensayos de suelo y agregado', usage_count: 0 },
-          { service_name: 'Extracción de diamantina', usage_count: 0 },
-          { service_name: 'Control de calidad de concreto fresco', usage_count: 0 },
-          { service_name: 'Densidad de campo y muestreo', usage_count: 0 },
-          { service_name: 'Probetas de concreto', usage_count: 0 }
-        ];
-        setAllServices(fallbackServices);
-        setServiceSuggestions(fallbackServices);
-      }
-    })();
-  }, []);
+  // Carga de servicios eliminada - no sirve
 
   // Cargar proyectos existentes para autocompletado
   useEffect(() => {
@@ -276,32 +221,7 @@ export default function CotizacionNuevaLEM() {
     }
   }, []);
 
-  // Funciones para manejar autocompletado de servicios
-  const handleServiceInputChange = (e) => {
-    const value = e.target.value;
-    setClient(prev => ({ ...prev, service_name: value }));
-    
-    if (value.length > 0) {
-      const filtered = allServices.filter(service => 
-        service.service_name.toLowerCase().includes(value.toLowerCase())
-      );
-      setServiceSuggestions(filtered);
-      setShowServiceSuggestions(true);
-    } else {
-      setServiceSuggestions(allServices);
-      setShowServiceSuggestions(false);
-    }
-  };
-
-  const handleServiceSuggestionClick = (serviceName) => {
-    setClient(prev => ({ ...prev, service_name: serviceName }));
-    setShowServiceSuggestions(false);
-  };
-
-  const handleServiceBlur = () => {
-    // Delay para permitir que se ejecute el click en la sugerencia
-    setTimeout(() => setShowServiceSuggestions(false), 200);
-  };
+  // Funciones de servicio eliminadas - no sirven
 
   // Funciones para manejar autocompletado de proyectos
   const handleProjectInputChange = (e) => {
@@ -405,9 +325,7 @@ export default function CotizacionNuevaLEM() {
       }));
       if (mapped.length) setItems(mapped);
     }
-    if (c.default_service_name && !client.service_name) {
-      setClient(prev => ({ ...prev, service_name: c.default_service_name }));
-    }
+    // Campo service_name eliminado - no sirve
   }, [variantId]);
 
   const onSubmit = async (e) => {
@@ -429,10 +347,9 @@ export default function CotizacionNuevaLEM() {
       console.log('🔍 onSubmit - Project ID validado:', projectId);
       
       // Construir payload de cotización base
-      const numericVariantId = /^\d+$/.test(String(variantId)) ? Number(variantId) : null;
       const payload = {
         project_id: projectId,
-        variant_id: numericVariantId,
+        variant_id: variantId || null, // Mantener como string (V1, V2, etc.)
         client_contact: client.contact_name,
         client_email: client.contact_email,
         client_phone: client.contact_phone,
@@ -446,7 +363,10 @@ export default function CotizacionNuevaLEM() {
         // campos adicionales útiles
         meta: JSON.stringify({
           customer: client,
-          quote,
+          quote: {
+            ...quote,
+            delivery_days: quote.delivery_days || 4
+          },
           conditions_text: conditionsText,
           payment_terms: quote.payment_terms,
           acceptance: quote.acceptance,
@@ -666,36 +586,7 @@ export default function CotizacionNuevaLEM() {
                     />
                     <div className="form-text">Se actualiza automáticamente desde la selección de arriba</div>
                   </div>
-                  <div className="mb-0">
-                    <label className="form-label">Nombre del servicio</label>
-                    <div className="position-relative">
-                      <input 
-                        className="form-control" 
-                        value={client.service_name} 
-                        onChange={handleServiceInputChange}
-                        onBlur={handleServiceBlur}
-                        placeholder="Escriba para buscar servicios existentes..."
-                      />
-                      {showServiceSuggestions && serviceSuggestions.length > 0 && (
-                        <div className="autocomplete-suggestions position-absolute w-100" style={{ zIndex: 1000, top: '100%', left: 0 }}>
-                          {serviceSuggestions.slice(0, 10).map((service, index) => (
-                            <div 
-                              key={index}
-                              className="list-group-item list-group-item-action py-2 px-3"
-                              onClick={() => handleServiceSuggestionClick(service.service_name)}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <div className="fw-medium">{service.service_name}</div>
-                              <small className="text-muted">
-                                {service.usage_count > 0 ? `Usado ${service.usage_count} veces` : 'Servicio estándar'}
-                              </small>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-text">Ej.: Ensayos de suelo y agregado, Extracción de diamantina, etc.</div>
-                  </div>
+                  {/* Campo "Nombre del servicio" eliminado - no sirve */}
                 </div>
               </div>
             </div>
@@ -709,6 +600,7 @@ export default function CotizacionNuevaLEM() {
                   <div className="mb-3"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
+                  <div className="mb-3"><label className="form-label">Días de Entrega</label><input type="number" className="form-control" value={quote.delivery_days || 4} onChange={e=>setQuote({...quote, delivery_days:parseInt(e.target.value) || 4})} min="1" max="30" /><div className="form-text">Número de días hábiles para entrega de resultados.</div></div>
                   <div className="mb-3">
                     <label className="form-label">Referencia</label>
                     <div className="mb-2">
