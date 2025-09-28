@@ -41,59 +41,52 @@ function processBundleData(bundle) {
   const variantId = bundle.quote?.variant_id;
   const variantConditions = getVariantConditions(variantId);
 
-  // Segunda página: texto fijo, adaptado dinámicamente
-  const condicionesTexto =
-    `<div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
-     <div class="conditions-content">
-       El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM.<br/>
-       El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
-     </div>
-     <div class="normal-subtitle">CONTRAMUESTRA</div>
-     <div class="conditions-content">
-       Al finalizar los ensayos, la muestra sobrante/contramuestra permanecerán en custodia por un tiempo de 10 días calendario después de emitido el informe de ensayo. Siempre que se trate de una muestra dirimente, las contramuestras serán devueltas a los clientes, previa coordinación y autorización, caso contrario, serán eliminadas si se trata de residuos del ensayo o contramuestras de ensayo.
-     </div>
-     <div class="normal-subtitle">CONFIDENCIALIDAD</div>
-     <div class="conditions-content">
-       El laboratorio mantiene acuerdos de confidencialidad entre el cliente y el laboratorio, la divulgación de la información sin la autorización de las partes no es permitida. El laboratorio mantiene reserva sobre la información brindada por el cliente, salvo solicitud de la información por ley, o por entidades gubernamentales inmersos dentro del presente servicio de ensayo.
-     </div>
-     <div class="normal-subtitle">QUEJAS Y SUGERENCIAS</div>
-     <div class="conditions-content">
-       Si tiene alguna queja o sugerencia, lo invitamos a conocer nuestro Proceso de Atención de Quejas, el cual iniciará 24 horas después de recibida la queja. El plazo límite establecido para la recepción de quejas respecto a un informe de ensayo es de 10 días después de emitido el documento. Pasado este plazo, no se aceptarán quejas bajo ninguna circunstancia.
-     </div>
-     <div class="normal-subtitle">ENTREGA DE INFORME DE ENSAYO</div>
-     <div class="conditions-content">
-       Como parte de la mejora de nuestros procesos y en alineamiento con el Laboratorio Nacional INACAL-DM(PRODUCE) a partir de julio del 2022 los informes de ensayo son emitidos de forma digital con firma electrónica.<br/>
-       La entrega de los informes de ensayo será mediante el intranet de la pagina web <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>, y se enviará un correo de confirmación con el usuario y clave para el acceso.<br/>
-       Geofal no declara conformidad de sus informes de ensayo.<br/>
-       En caso se requiera la modificación del informe de ensayo a consecuencia de los datos proporcionados por el cliente, esta se realizará mediante la emisión de un nuevo informe que tendrá un costo adicional de acuerdo a evaluación.
-     </div>
-     <div class="normal-subtitle">HORARIO DE ATENCIÓN</div>
-     <div class="conditions-content">
-       El horario para recepción de muestra y entrega de informes es de Lunes a Viernes de 8:30am a 1:00pm y 2:00pm a 5:30pm, y Sábado de 8:30am a 12:30pm.
-     </div>
-     <div class="subtitle-box"><span class="subtitle-inner">II. CONDICIÓN DE PAGO</span></div>
-     <div class="conditions-content">
-       <span style="font-weight:bold;">CONDICIÓN:</span> ${getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms)}<br/>
-       <span style="font-weight:bold;">RAZON SOCIAL:</span> Geofal S.A.C. <span style="font-weight:bold;">RUC:</span> 20549356762<br/>
-       Sírvase realizar el depósito correspondiente de los servicios a nuestra cuenta bancaria:<br/>
-       <span style="font-weight:bold;">Cuenta de detracción Banco de La Nación:</span><br/>- Cuenta de detracción Banco de La Nación: N° 00-074-045472<br/>
-       <span style="font-weight:bold;">Cuenta corriente Interbank:</span><br/>- Cuenta Corriente en Soles de Interbank: N° 200-3005201096-31<br/>- Código Interbancario (CCI) de Interbank: N° 003-200-003005201096-31<br/>
-       <span style="font-weight:bold;">Cuenta corriente BCP:</span><br/>- Cuenta Corriente en Soles del Banco de Crédito del Perú (BCP): N° 192 2024 3030 04<br/>- Código Interbancario (CCI) del Banco de Crédito del Perú (BCP): N° 002-192-002 02430 3004-34<br/>
-       <span style="font-weight:bold;">Cuenta corriente BBVA:</span><br/>- Cuenta Corriente en Soles BBVA: N° 0111-0174-0100082311-00<br/>- Código Interbancario (CCI) BBVA: N° 011-174-000100082311-00<br/>
-       Se debe enviar el comprobante de depósito realizado vía correo electrónico.
-     </div>
-     <div class="subtitle-box"><span class="subtitle-inner">III. ACEPTACIÓN DE LA COTIZACIÓN</span></div>
-     <div class="conditions-content">
-       La aceptación de la cotización de parte del cliente será mediante, Pago respectivo del servicio según cotización enviada, Envío de la orden de servicio. Envío de correo aceptando el servicio, a los siguientes correos <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a> y/o <a href="mailto:asesorcomercial@geofal.com.pe">asesorcomercial@geofal.com.pe</a>, en señal de conformidad.<br/>
-       Le agradeceremos que nos envíe el comprobante del depósito realizado vía correo electrónico.
-     </div>
-     <div class="signature-block">
-       Atentamente,<br/>
-       Geofal SAC<br/>
-       Av. Río Marañón N° 763, Los Olivos, Lima<br/>
-       Telf.: (01) 9051911 / (01) 7543070 – 982428985 - 965057624 - 993077479
-     </div>`;
-
+  const condicionesTexto = `
+    <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+    <div class="conditions-content">
+      El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+    </div>
+    <div class="normal-subtitle">CONTRAMUESTRA</div>
+    <div class="conditions-content">
+      Al finalizar los ensayos, la muestra sobrante/contramuestra permanecerán en custodia por un tiempo de 10 días calendario después de emitido el informe de ensayo. Siempre que se trate de una muestra dirimente, las contramuestras serán devueltas a los clientes, previa coordinación y autorización, caso contrario, serán eliminadas si se trata de residuos del ensayo o contramuestras de ensayo.
+    </div>
+    <div class="normal-subtitle">CONFIDENCIALIDAD</div>
+    <div class="conditions-content">
+      El laboratorio mantiene acuerdos de confidencialidad entre el cliente y el laboratorio, la divulgación de la información sin la autorización de las partes no es permitida. El laboratorio mantiene reserva sobre la información brindada por el cliente, salvo solicitud de la información por ley, o por entidades gubernamentales inmersos dentro del presente servicio de ensayo.
+    </div>
+    <div class="normal-subtitle">QUEJAS Y SUGERENCIAS</div>
+    <div class="conditions-content">
+      Si tiene alguna queja o sugerencia, lo invitamos a conocer nuestro Proceso de Atención de Quejas, el cual iniciará 24 horas después de recibida la queja. El plazo límite establecido para la recepción de quejas respecto a un informe de ensayo es de 10 días después de emitido el documento. Pasado este plazo, no se aceptarán quejas bajo ninguna circunstancia.
+    </div>
+    <div class="normal-subtitle">ENTREGA DE INFORME DE ENSAYO</div>
+    <div class="conditions-content">
+      Como parte de la mejora de nuestros procesos y en alineamiento con el Laboratorio Nacional INACAL-DM(PRODUCE) a partir de julio del 2022 los informes de ensayo son emitidos de forma digital con firma electrónica. La entrega de los informes de ensayo será mediante el intranet de la pagina web <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>, y se enviará un correo de confirmación con el usuario y clave para el acceso. Geofal no declara conformidad de sus informes de ensayo. En caso se requiera la modificación del informe de ensayo a consecuencia de los datos proporcionados por el cliente, esta se realizará mediante la emisión de un nuevo informe que tendrá un costo adicional de acuerdo a evaluación.
+    </div>
+    <div class="normal-subtitle">HORARIO DE ATENCIÓN</div>
+    <div class="conditions-content">
+      El horario para recepción de muestra y entrega de informes es de Lunes a Viernes de 8:30am a 1:00pm y 2:00pm a 5:30pm, y Sábado de 8:30am a 12:30pm.
+    </div>
+    <div class="subtitle-box"><span class="subtitle-inner">II. CONDICIÓN DE PAGO</span></div>
+    <div class="conditions-content">
+      <span style="font-weight:bold;">CONDICIÓN:</span> ${getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms)}<br/>
+      <span style="font-weight:bold;">RAZON SOCIAL:</span> Geofal S.A.C. <span style="font-weight:bold;">RUC:</span> 20549356762<br/>
+      Sírvase realizar el depósito correspondiente de los servicios a nuestra cuenta bancaria:<br/>
+      <span style="font-weight:bold;">Cuenta de detracción Banco de La Nación:</span><br/>- Cuenta de detracción Banco de La Nación: N° 00-074-045472<br/>
+      <span style="font-weight:bold;">Cuenta corriente Interbank:</span><br/>- Cuenta Corriente en Soles de Interbank: N° 200-3005201096-31<br/>- Código Interbancario (CCI) de Interbank: N° 003-200-003005201096-31<br/>
+      <span style="font-weight:bold;">Cuenta corriente BCP:</span><br/>- Cuenta Corriente en Soles del Banco de Crédito del Perú (BCP): N° 192 2024 3030 04<br/>- Código Interbancario (CCI) del Banco de Crédito del Perú (BCP): N° 002-192-002 02430 3004-34<br/>
+      <span style="font-weight:bold;">Cuenta corriente BBVA:</span><br/>- Cuenta Corriente en Soles BBVA: N° 0111-0174-0100082311-00<br/>- Código Interbancario (CCI) BBVA: N° 011-174-000100082311-00<br/>
+      Se debe enviar el comprobante de depósito realizado vía correo electrónico.
+    </div>
+    <div class="subtitle-box"><span class="subtitle-inner">III. ACEPTACIÓN DE LA COTIZACIÓN</span></div>
+    <div class="conditions-content">
+      La aceptación de la cotización de parte del cliente será mediante, Pago respectivo del servicio según cotización enviada, Envío de la orden de servicio. Envío de correo aceptando el servicio, a los siguientes correos <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a> y/o <a href="mailto:asesorcomercial@geofal.com.pe">asesorcomercial@geofal.com.pe</a>, en señal de conformidad. Le agradeceremos que nos envíe el comprobante del depósito realizado vía correo electrónico.
+    </div>
+    <div class="signature-block">
+      Atentamente,<br/>
+      Geofal SAC<br/>
+      Av. Río Marañón N° 763, Los Olivos, Lima<br/>
+      Telf.: (01) 9051911 / (01) 7543070 – 982428985 - 965057624 - 993077479
+    </div>`;
 
   return {
     numero_cotizacion: `COT-${bundle.quote?.id || 'XXX'}-${new Date().getFullYear().toString().slice(-2)}`,
@@ -142,38 +135,61 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   background: #fff;
   color: #000;
   box-sizing: border-box;
-  max-height: 594mm; /* Exactamente 2 páginas A4 */
-  overflow: hidden;
+  max-height: 594mm; /* Exacto para 2 páginas */
+  overflow: visible;
+}
+@page {
+  size: A4;
+  margin: 0;
+}
+body {
+  max-height: 594mm !important;
+  overflow: visible !important;
 }
 .page-content {
   width: 190mm;
   margin: 0 10mm;
   box-sizing: border-box;
-  min-height: 280mm; /* Asegura que cada página se llene */
+  min-height: 297mm;
+  max-height: 297mm;
+  overflow: visible;
+  page-break-inside: avoid;
 }
 .page-content:not(:last-child) {
   page-break-after: always;
 }
+/* Ocultar todos menos primeras 2 paginas */
+.page-content:nth-child(n+3) {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
 .footer-bar {
-  position: fixed;
+  position: relative;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 56px;
-  padding: 10px 18px;
+  height: 40px;
+  padding: 8px 18px;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
-  z-index: 1000;
+  margin-top: 20px;
+  page-break-inside: avoid;
 }
 .footer-bar span {
   display: flex;
@@ -185,10 +201,12 @@ html, body {
   height: 18px;
   width: 18px;
 }
+/* El resto estilos similares al de antes */
+
 .subtitle-box {
   display: block;
   text-align: center;
-  margin: 38px 0 24px 0;
+  margin: 20px 0 12px 0;
 }
 .subtitle-inner {
   background: #FF6B35;
@@ -204,9 +222,9 @@ html, body {
   text-shadow: 0 0 1.5px #ccc;
 }
 .normal-subtitle {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin: 24px 0 12px 0;
+  margin: 16px 0 8px 0;
   text-decoration: underline;
   text-align: left;
   color: #FF6B35;
@@ -282,7 +300,7 @@ th {
 }
 .conditions-content {
   font-size: 10px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   line-height: 1.2;
 }
 .conditions-list {
@@ -294,140 +312,188 @@ th {
   font-size: 10px;
 }
 .signature-block {
-  margin-top: 26px;
-  font-size: 13px;
+  margin-top: 15px;
+  font-size: 11px;
 }
 .contact-block {
   font-size: 12px;
   margin-top: 12px;
 }
 
-/* Segunda página completo y ocupando todo el espacio */
-.page-content:last-child {
-  min-height: 280mm;
+/* Contenedores de página específicos */
+.page-content-wrapper {
+  width: 100%;
+  min-height: 250mm;
+  padding-bottom: 20px;
+}
+
+/* Primera página con footer fijo */
+.first-page {
+  position: relative;
+  min-height: 297mm;
+  max-height: 297mm;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
-/* Limitar a máximo 2 páginas visibles */
-.page-content:nth-child(n+3) {
-  display: none !important;
+.first-page-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  padding: 8px 18px;
+  border-top: 1.5px solid #FF6B35;
+  background: white;
+  color: #222;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  z-index: 1000;
 }
 
-/* Configuración de página para exactamente 2 páginas */
-@page {
-  size: A4;
-  margin: 0;
+/* Segunda página con footer en la parte inferior */
+.second-page {
+  position: relative;
+  min-height: 297mm;
+  max-height: 297mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-body {
-  max-height: 594mm; /* Exactamente 2 páginas A4 */
-  overflow: visible; /* Cambiado de hidden a visible */
+.second-page-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  padding: 8px 18px;
+  border-top: 1.5px solid #FF6B35;
+  background: white;
+  color: #222;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  z-index: 1000;
 }
-
-/* Asegura que el contenido se ajuste en 2 páginas */
-.page-content {
-  page-break-inside: avoid;
-}
-
-.page-content:first-child {
-  page-break-after: always;
-}
-
-/* Asegura que la segunda página sea visible */
-.page-content:nth-child(2) {
-  display: block !important;
-  min-height: 280mm;
-}
-
 </style>
 </head>
 <body>
-  <div class="page-content">
-    <div class="header">
-      <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
-      <div class="company-name">Ingeniería y laboratorio de materiales</div>
-    </div>
-    <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
-    <div class="info-grid">
-      <div>
-        <div class="info-row"><span class="info-label">CLIENTE:</span>{{ cliente_nombre }}</div>
-        <div class="info-row"><span class="info-label">R.U.C.:</span>{{ cliente_ruc }}</div>
-        <div class="info-row"><span class="info-label">CONTACTO:</span>{{ cliente_contacto }}</div>
-        <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ cliente_telefono }}</div>
-        <div class="info-row"><span class="info-label">CORREO:</span>{{ cliente_correo }}</div>
-        <div class="info-row"><span class="info-label">FECHA SOLICITUD:</span>{{ fecha_solicitud }}</div>
-        <div class="info-row"><span class="info-label">REFERENCIA:</span>{{ referencia }}</div>
+  <div class="page-content first-page">
+    <div class="page-content-wrapper">
+      <div class="header">
+        <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
+        <div class="company-name">Ingeniería y laboratorio de materiales</div>
       </div>
-      <div>
-        <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
-        <div class="info-row"><span class="info-label">UBICACIÓN:</span>{{ proyecto_ubicacion }}</div>
-        <div class="info-row"><span class="info-label">ASESOR COMERCIAL:</span>{{ asesor_comercial }}</div>
-        <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ telefono_comercial }}</div>
-        <div class="info-row"><span class="info-label">FECHA DE EMISIÓN:</span>{{ fecha_emision }}</div>
+      <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
+      <div class="info-grid">
+        <div>
+          <div class="info-row"><span class="info-label">CLIENTE:</span>{{ cliente_nombre }}</div>
+          <div class="info-row"><span class="info-label">R.U.C.:</span>{{ cliente_ruc }}</div>
+          <div class="info-row"><span class="info-label">CONTACTO:</span>{{ cliente_contacto }}</div>
+          <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ cliente_telefono }}</div>
+          <div class="info-row"><span class="info-label">CORREO:</span>{{ cliente_correo }}</div>
+          <div class="info-row"><span class="info-label">FECHA SOLICITUD:</span>{{ fecha_solicitud }}</div>
+          <div class="info-row"><span class="info-label">REFERENCIA:</span>{{ referencia }}</div>
+        </div>
+        <div>
+          <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
+          <div class="info-row"><span class="info-label">UBICACIÓN:</span>{{ proyecto_ubicacion }}</div>
+          <div class="info-row"><span class="info-label">ASESOR COMERCIAL:</span>{{ asesor_comercial }}</div>
+          <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ telefono_comercial }}</div>
+          <div class="info-row"><span class="info-label">FECHA DE EMISIÓN:</span>{{ fecha_emision }}</div>
+        </div>
+      </div>
+      <div class="intro-text">
+        Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th><th>Descripción Ensayo</th><th>Norma</th><th>Costo Unitario (S/)</th><th>Cantidad</th><th>Costo Parcial (S/)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="section-row"><td colspan="3">{{variant_conditions.title}}</td><td></td><td></td><td></td></tr>
+          {{#each items}}
+          <tr>
+            <td>{{codigo}}</td>
+            <td>{{descripcion}}</td>
+            <td>{{norma}}</td>
+            <td style="text-align:right">{{costo_unitario}}</td>
+            <td style="text-align:center">{{cantidad}}</td>
+            <td style="text-align:right">{{costo_parcial}}</td>
+          </tr>
+          {{/each}}
+          <tr class="total-row"><td colspan="4"></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
+        </tbody>
+      </table>
+      <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        <strong>VALIDEZ DE LA OFERTA:</strong> 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.<br/>
+        <strong>CONDICIONES ESPECÍFICAS:</strong>
+        <ul class="conditions-list">
+          {{#each variant_conditions.conditions}}
+          <li>{{this}}</li>
+          {{/each}}
+        </ul>
       </div>
     </div>
-    <div class="intro-text">
-      Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Código</th><th>Descripción Ensayo</th><th>Norma</th><th>Costo Unitario (S/)</th><th>Cantidad</th><th>Costo Parcial (S/)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="section-row"><td colspan="3">{{variant_conditions.title}}</td><td></td><td></td><td></td></tr>
-        {{#each items}}
-        <tr>
-          <td>{{codigo}}</td>
-          <td>{{descripcion}}</td>
-          <td>{{norma}}</td>
-          <td style="text-align:right">{{costo_unitario}}</td>
-          <td style="text-align:center">{{cantidad}}</td>
-          <td style="text-align:right">{{costo_parcial}}</td>
-        </tr>
-        {{/each}}
-        <tr class="total-row"><td colspan="4"></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
-        <tr class="total-row"><td colspan="4"></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
-        <tr class="total-row"><td colspan="4"></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
-      </tbody>
-    </table>
-    <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
-    <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
-    <div class="conditions-content">
-      <strong>VALIDEZ DE LA OFERTA:</strong> 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.<br/>
-      <strong>CONDICIONES ESPECÍFICAS:</strong>
-      <ul class="conditions-list">
-        {{#each variant_conditions.conditions}}
-        <li>{{this}}</li>
-        {{/each}}
-      </ul>
+    
+    <!-- Footer específico para la primera página -->
+    <div class="footer-bar first-page-footer">
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+      </span>
+      <span>
+        Av. Marañón N° 763, Los Olivos, Lima
+      </span>
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M391 351c-16-16-35-27-57-30-7-1-14-1-21 2l-36 19c-16-32-36-65-56-95l31-35c5-5 6-13 2-19-8-13-24-27-37-39-5-5-13-5-18 0l-32 30-27-27c-6-6-16-7-22-2-11 8-14 16-19 25-9 16-5 47 15 78 33 51 70 84 113 92 25 4 50-17 59-26 4-4 7-10 4-18z"/></svg>
+        (01) 754-3070
+      </span>
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
+        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+      </span>
     </div>
   </div>
 
-  <div class="page-content">
-    {{{condiciones_segunda_pagina}}}
+  <div class="page-content second-page">
+    <div class="page-content-wrapper">
+      {{{condiciones_segunda_pagina}}}
+    </div>
+    
+    <!-- Footer específico para la segunda página -->
+    <div class="footer-bar second-page-footer">
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+      </span>
+      <span>
+        Av. Marañón N° 763, Los Olivos, Lima
+      </span>
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M391 351c-16-16-35-27-57-30-7-1-14-1-21 2l-36 19c-16-32-36-65-56-95l31-35c5-5 6-13 2-19-8-13-24-27-37-39-5-5-13-5-18 0l-32 30-27-27c-6-6-16-7-22-2-11 8-14 16-19 25-9 16-5 47 15 78 33 51 70 84 113 92 25 4 50-17 59-26 4-4 7-10 4-18z"/></svg>
+        (01) 754-3070
+      </span>
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
+        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+      </span>
+    </div>
   </div>
 
-  <div class="footer-bar">
-    <span>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
-      laboratorio@geofal.com.pe
-    </span>
-    <span>
-      Av. Marañón N° 763, Los Olivos, Lima
-    </span>
-    <span>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M391 351c-16-16-35-27-57-30-7-1-14-1-21 2l-36 19c-16-32-36-65-56-95l31-35c5-5 6-13 2-19-8-13-24-27-37-39-5-5-13-5-18 0l-32 30-27-27c-6-6-16-7-22-2-11 8-14 16-19 25-9 16-5 47 15 78 33 51 70 84 113 92 25 4 50-17 59-26 4-4 7-10 4-18z"/></svg>
-      (01) 754-3070
-    </span>
-    <span>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
-      www.geofal.com.pe
-    </span>
-  </div>
 </body>
 </html>
   `;
@@ -436,38 +502,6 @@ body {
   return compiledTemplate(data);
 }
 
-async function convertHtmlToPdf(htmlPath, outputPath) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  try {
-    const page = await browser.newPage();
-    await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' });
-    await page.pdf({
-      path: outputPath,
-      format: 'A4',
-      printBackground: true,
-      margin: {top: '15mm', right: '10mm', bottom: '15mm', left: '10mm'},
-      preferCSSPageSize: true,
-      displayHeaderFooter: false
-    });
-  } finally {
-    await browser.close();
-  }
-}
-
-function getPaymentConditionText(paymentTerms) {
-  const conditions = {
-    adelantado: 'El pago del servicio deberá ser realizado por Adelantado.',
-    '50%': 'El pago del servicio Adelanto el 50% y saldo previo a la entrega del Informe.',
-    credito7: 'El pago del servicio Crédito a 7 días, previa orden de servicio.',
-    credito15: 'El pago del servicio Crédito a 15 días, previa orden de servicio.',
-    credito30: 'El pago del servicio Crédito a 30 días, previa orden de servicio.'
-  };
-  return conditions[paymentTerms] || conditions.adelantado;
-}
-  
 function getVariantConditions(variantId) {
   const variants = {
     V1: {
@@ -491,7 +525,41 @@ function getVariantConditions(variantId) {
   return variants[variantId] || variants.V1;
 }
 
+function getPaymentConditionText(paymentTerms) {
+  const conditions = {
+    adelantado: 'El pago del servicio deberá ser realizado por Adelantado.',
+    '50%': 'El pago del servicio Adelanto el 50% y saldo previo a la entrega del Informe.',
+    credito7: 'El pago del servicio Crédito a 7 días, previa orden de servicio.',
+    credito15: 'El pago del servicio Crédito a 15 días, previa orden de servicio.',
+    credito30: 'El pago del servicio Crédito a 30 días, previa orden de servicio.'
+  };
+  return conditions[paymentTerms] || conditions.adelantado;
+}
+
+async function convertHtmlToPdf(htmlPath, outputPath) {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+  try {
+    const page = await browser.newPage();
+    await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' });
+    await page.pdf({
+      path: outputPath,
+      format: 'A4',
+      printBackground: true,
+      margin: {top: '15mm', right: '10mm', bottom: '15mm', left: '10mm'},
+      preferCSSPageSize: true,
+      displayHeaderFooter: false
+    });
+  } finally {
+    await browser.close();
+  }
+}
+
 module.exports = {
   generateSmartTemplatePdf,
-  getVariantConditions
+  getVariantConditions,
+  getPaymentConditionText,
+  convertHtmlToPdf
 };
