@@ -41,10 +41,17 @@ function processBundleData(bundle) {
     });
     const igv = subtotal * 0.18;
     const total = subtotal + igv;
-    const fechaFormateada = new Date().toLocaleDateString('es-PE', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
+    // Formato corto para fecha de emisión (YY-MM-DD) usando la fecha del frontend
+    let fechaFormateada;
+    if (bundle.quote?.meta?.quote?.issue_date) {
+      // Parsear la fecha del frontend sin problemas de zona horaria
+      const [year, month, day] = bundle.quote.meta.quote.issue_date.split('-');
+      fechaFormateada = `${year.slice(-2)}-${month}-${day}`;
+    } else {
+      // Si no hay fecha, usar fecha actual
+      const fechaActual = new Date();
+      fechaFormateada = `${fechaActual.getFullYear().toString().slice(-2)}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
+    }
     const variantId = bundle.quote?.variant_id;
     const variantConditions = getVariantConditions(variantId);
   return {
