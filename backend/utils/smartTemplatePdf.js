@@ -61,6 +61,7 @@ function processBundleData(bundle) {
       referencia: bundle.quote?.meta?.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
       asesor_comercial: bundle.quote?.meta?.quote?.commercial_name || 'Silvia Peralta',
       telefono_comercial: bundle.quote?.meta?.quote?.commercial_phone || '962429895',
+      condicion_pago: getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms),
       cliente_nombre: bundle.company?.name || 'GEOFAL SAC',
       cliente_ruc: bundle.company?.ruc || '20549356762',
       cliente_contacto: bundle.quote?.meta?.customer?.contact_name || 'Brenda Vilca Calla',
@@ -340,7 +341,7 @@ El horario para recepción de muestra y entrega de informes es de Lunes a Vierne
                 </div>
 <div class="subtitle-box"><span class="subtitle-inner">II. CONDICIÓN DE PAGO</span></div>
                 <div class="conditions-content">
-<span style="font-weight:bold;">CONDICIÓN:</span> El pago del servicio deberá ser realizado por Adelantado.<br/>
+<span style="font-weight:bold;">CONDICIÓN:</span> {{ condicion_pago }}<br/>
 <span style="font-weight:bold;">RAZON SOCIAL:</span> Geofal S.A.C. <span style="font-weight:bold;">RUC:</span> 20549356762<br/>
 Sírvase realizar el depósito correspondiente de los servicios a nuestra cuenta bancaria:
 <ul style="margin-top:8px; margin-bottom:6px;">
@@ -399,6 +400,17 @@ async function convertHtmlToPdf(htmlPath, outputPath) {
   } finally {
     await browser.close();
   }
+}
+
+function getPaymentConditionText(paymentTerms) {
+  const conditions = {
+    'adelantado': 'El pago del servicio deberá ser realizado por Adelantado.',
+    '50%': 'El pago del servicio Adelanto el 50% y saldo previo a la entrega del Informe.',
+    'credito7': 'El pago del servicio Crédito a 7 días, previa orden de servicio.',
+    'credito15': 'El pago del servicio Crédito a 15 días, previa orden de servicio.',
+    'credito30': 'El pago del servicio Crédito a 30 días, previa orden de servicio.'
+  };
+  return conditions[paymentTerms] || conditions['adelantado'];
 }
 
 function getVariantConditions(variantId) {
