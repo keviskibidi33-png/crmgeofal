@@ -14,7 +14,7 @@ const emptyClient = {
 };
 
 const emptyQuote = {
-  request_date: '', issue_date: '', commercial_name: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true, delivery_days: 4,
+  request_date: '', issue_date: '', commercial_name: '', commercial_phone: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true, delivery_days: 4,
 };
 
 const emptyItem = { code: '', description: '', norm: '', unit_price: 0, quantity: 1 };
@@ -188,7 +188,8 @@ export default function CotizacionNuevaLEM() {
         if (payload.name) {
           setQuote(prev => ({
             ...prev,
-            commercial_name: payload.name
+            commercial_name: payload.name,
+            commercial_phone: payload.phone || ''
           }));
         }
       } catch (e) {
@@ -600,6 +601,7 @@ export default function CotizacionNuevaLEM() {
                   <div className="mb-3"><label className="form-label">Fecha de Solicitud</label><input type="date" className="form-control" value={quote.request_date} onChange={e=>setQuote({...quote, request_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Fecha de Emisión</label><input type="date" className="form-control" value={quote.issue_date} onChange={e=>setQuote({...quote, issue_date:e.target.value})} /></div>
                   <div className="mb-3"><label className="form-label">Comercial</label><input className="form-control" value={quote.commercial_name} onChange={e=>setQuote({...quote, commercial_name:e.target.value})} /><div className="form-text">Nombre del asesor comercial que atiende al cliente.</div></div>
+                  <div className="mb-3"><label className="form-label">Teléfono Comercial</label><input type="tel" className="form-control" value={quote.commercial_phone} onChange={e=>setQuote({...quote, commercial_phone:e.target.value})} required /><div className="form-text">Teléfono del asesor comercial para contacto.</div></div>
                   <div className="mb-3"><label className="form-label">Días de Entrega</label><input type="number" className="form-control" value={quote.delivery_days || 4} onChange={e=>setQuote({...quote, delivery_days:parseInt(e.target.value) || 4})} min="1" max="30" /><div className="form-text">Número de días hábiles para entrega de resultados.</div></div>
                   <div className="mb-3">
                     <label className="form-label">Referencia</label>

@@ -53,6 +53,7 @@ function processBundleData(bundle) {
       fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
       referencia: bundle.quote?.meta?.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
       asesor_comercial: bundle.quote?.meta?.quote?.commercial_name || 'Silvia Peralta',
+      telefono_comercial: bundle.quote?.meta?.quote?.commercial_phone || '962429895',
       cliente_nombre: bundle.company?.name || 'GEOFAL SAC',
       cliente_ruc: bundle.company?.ruc || '20549356762',
       cliente_contacto: bundle.quote?.meta?.customer?.contact_name || 'Brenda Vilca Calla',
@@ -257,7 +258,7 @@ th {
         <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
         <div class="info-row"><span class="info-label">UBICACIÓN:</span>{{ proyecto_ubicacion }}</div>
         <div class="info-row"><span class="info-label">ASESOR COMERCIAL:</span>{{ asesor_comercial }}</div>
-        <div class="info-row"><span class="info-label">TELÉFONO:</span>962429895</div>
+        <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ telefono_comercial }}</div>
         <div class="info-row"><span class="info-label">FECHA DE EMISIÓN:</span>{{ fecha_emision }}</div>
                 </div>
             </div>
