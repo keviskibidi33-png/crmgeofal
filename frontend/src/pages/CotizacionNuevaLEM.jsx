@@ -14,7 +14,7 @@ const emptyClient = {
 };
 
 const emptyQuote = {
-  request_date: '', issue_date: '', commercial_name: '', commercial_phone: '', payment_terms: 'adelantado', acceptance: false, reference: '', reference_type: ['email', 'phone'], igv: true, delivery_days: 4,
+  request_date: '', issue_date: '', commercial_name: '', commercial_phone: '', payment_terms: 'adelantado', reference: '', reference_type: ['email', 'phone'], igv: true, delivery_days: 4,
 };
 
 const emptyItem = { code: '', description: '', norm: '', unit_price: 0, quantity: 1 };
@@ -309,7 +309,6 @@ export default function CotizacionNuevaLEM() {
     setQuote(prev => ({
       ...prev,
       payment_terms: c.default_payment_terms || prev.payment_terms,
-      acceptance: typeof c.default_acceptance === 'boolean' ? c.default_acceptance : prev.acceptance,
       igv: typeof c.default_igv === 'boolean' ? c.default_igv : prev.igv,
       reference: c.default_reference || prev.reference,
     }));
@@ -370,7 +369,6 @@ export default function CotizacionNuevaLEM() {
           },
           conditions_text: conditionsText,
           payment_terms: quote.payment_terms,
-          acceptance: quote.acceptance,
           file_name: suggestedFileName || generateFileName(),
         })
       };
@@ -697,10 +695,6 @@ export default function CotizacionNuevaLEM() {
                   <div className="form-check mb-3">
                     <input className="form-check-input" type="checkbox" id="igv" checked={quote.igv} onChange={e=>setQuote({...quote, igv: e.target.checked})}/>
                     <label className="form-check-label" htmlFor="igv">Aplicar IGV 18%</label>
-                  </div>
-                  <div className="form-check mb-3">
-                    <input className="form-check-input" type="checkbox" id="acceptance" checked={quote.acceptance} onChange={e=>setQuote({...quote, acceptance:e.target.checked})}/>
-                    <label className="form-check-label" htmlFor="acceptance">Aceptación de cotización</label>
                   </div>
                   <div className="mb-0">
                     <label className="form-label">Nombre de archivo sugerido</label>
