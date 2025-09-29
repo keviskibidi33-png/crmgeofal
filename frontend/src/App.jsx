@@ -4,33 +4,48 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import RequireRole from './components/RequireRole';
+
+// ===== IMPORTS LAZY LOADING =====
+// Autenticación
 const Login = lazy(() => import('./pages/Login'));
+
+// Dashboard
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
-const Ajustes = lazy(() => import('./pages/Ajustes'));
+
+// Gestión principal
 const Usuarios = lazy(() => import('./pages/Usuarios'));
 const Clientes = lazy(() => import('./pages/Clientes'));
 const Proyectos = lazy(() => import('./pages/Proyectos'));
-const Cotizaciones = lazy(() => import('./pages/Cotizaciones'));
-const Adjuntos = lazy(() => import('./pages/Adjuntos'));
-const Tickets = lazy(() => import('./pages/Tickets'));
-const Reportes = lazy(() => import('./pages/Reportes'));
-// const Categorias = lazy(() => import('./pages/Categorias')); // Eliminado
-// const Subcategorias = lazy(() => import('./pages/Subcategorias')); // Eliminado
 const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
-const Servicios = lazy(() => import('./pages/Servicios'));
-const Evidencias = lazy(() => import('./pages/Evidencias'));
-const Facturas = lazy(() => import('./pages/Facturas'));
-// Módulos eliminados: VariantesCotizacion, ItemsCotizacion
-const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
-const Auditoria = lazy(() => import('./pages/Auditoria'));
-const Exportaciones = lazy(() => import('./pages/Exportaciones'));
+
+// Cotizaciones
+const Cotizaciones = lazy(() => import('./pages/Cotizaciones'));
 const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
 const CotizacionInteligente = lazy(() => import('./pages/CotizacionInteligente'));
-const FileManagement = lazy(() => import('./pages/FileManagement'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
+
+// Servicios y laboratorio
+const Servicios = lazy(() => import('./pages/Servicios'));
 const Laboratorio = lazy(() => import('./pages/Laboratorio'));
-// const Activities = lazy(() => import('./pages/Activities')); // Eliminado - redirigir a auditoría
+const Evidencias = lazy(() => import('./pages/Evidencias'));
+
+// Tickets y soporte
+const Tickets = lazy(() => import('./pages/Tickets'));
+const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
+
+// Reportes y auditoría
+const Reportes = lazy(() => import('./pages/Reportes'));
+const Auditoria = lazy(() => import('./pages/Auditoria'));
+const Exportaciones = lazy(() => import('./pages/Exportaciones'));
+
+// Archivos y gestión
+const Adjuntos = lazy(() => import('./pages/Adjuntos'));
+const FileManagement = lazy(() => import('./pages/FileManagement'));
+const Facturas = lazy(() => import('./pages/Facturas'));
+
+// Configuración
+const Ajustes = lazy(() => import('./pages/Ajustes'));
 
 // Rutas protegidas por autenticación
 function PrivateRoute({ children }) {

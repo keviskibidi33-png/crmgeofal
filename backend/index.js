@@ -7,12 +7,12 @@ const morgan = require('morgan');
 const winston = require('winston');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
-const app = express();
-const PORT = process.env.PORT || 4000;
 const http = require('http');
 const socketService = require('./services/socketService');
 const fs = require('fs');
-const dbPath = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 4000;
 
 // Logger con winston
 const logger = winston.createLogger({
@@ -51,37 +51,52 @@ app.get('/', (req, res) => {
   res.send('CRM Backend running');
 });
 
-// Rutas principales
-app.use('/api/audit', require('./routes/auditRoutes'));
-app.use('/api/leads', require('./routes/leadRoutes'));
-app.use('/api/evidences', require('./routes/evidenceRoutes'));
-app.use('/api/invoices', require('./routes/invoiceRoutes'));
+// ===== RUTAS PRINCIPALES =====
+// Autenticación y usuarios
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+
+// Gestión de datos principales
+app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/quotes', require('./routes/quoteRoutes'));
+
+// Servicios y laboratorio
 app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/subservices', require('./routes/subserviceRoutes'));
-app.use('/api/project-services', require('./routes/projectServiceRoutes'));
+app.use('/api/laboratorio', require('./routes/laboratorioRoutes'));
+
+// Tickets y soporte
 app.use('/api/tickets', require('./routes/ticketRoutes'));
+
+// Archivos y adjuntos
+app.use('/api/attachments', require('./routes/attachmentRoutes'));
+app.use('/api/project-attachments', require('./routes/projectAttachmentRoutes'));
+
+// Reportes y auditoría
 app.use('/api/reports', require('./routes/reportRoutes'));
-app.use('/api/project-history', require('./routes/projectHistoryRoutes'));
+app.use('/api/audit', require('./routes/auditRoutes'));
+app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
+
+// Exportaciones y dashboard
+app.use('/api/export', require('./routes/exportRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+
+// Funcionalidades adicionales
+app.use('/api/evidences', require('./routes/evidenceRoutes'));
+app.use('/api/invoices', require('./routes/invoiceRoutes'));
+app.use('/api/leads', require('./routes/leadRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/activities', require('./routes/activityRoutes'));
+app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
+
+// Categorías (mantener por compatibilidad)
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/subcategories', require('./routes/subcategoryRoutes'));
 app.use('/api/project-categories', require('./routes/categoryRoutes'));
 app.use('/api/project-subcategories', require('./routes/subcategoryRoutes'));
-app.use('/api/attachments', require('./routes/attachmentRoutes'));
-app.use('/api/quotes', require('./routes/quoteRoutes'));
-// Rutas eliminadas: quote-items, quote-variants
-app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
-app.use('/api/project-attachments', require('./routes/projectAttachmentRoutes'));
-app.use('/api/projects', require('./routes/projectRoutes'));
-app.use('/api/export', require('./routes/exportRoutes'));
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-
-app.use('/api/companies', require('./routes/companyRoutes'));
-app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/activities', require('./routes/activityRoutes'));
-app.use('/api/dashboard', require('./routes/dashboardRoutes'));
-app.use('/api/laboratorio', require('./routes/laboratorioRoutes'));
+app.use('/api/project-services', require('./routes/projectServiceRoutes'));
+app.use('/api/project-history', require('./routes/projectHistoryRoutes'));
 
 // Middleware global de manejo de errores
 // Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
@@ -106,13 +121,13 @@ if (require.main === module) {
 
   async function migrateSchemas() {
     try {
-      const sqlDir = dbPath.join(__dirname, 'sql');
+      const sqlDir = path.join(__dirname, 'sql');
       if (!fs.existsSync(sqlDir)) return;
       const files = fs.readdirSync(sqlDir)
         .filter(f => f.toLowerCase().endsWith('.sql'))
         .sort();
       for (const f of files) {
-        const full = dbPath.join(sqlDir, f);
+        const full = path.join(sqlDir, f);
         const sql = fs.readFileSync(full, 'utf8');
         if (sql && sql.trim()) {
           await pool.query(sql);

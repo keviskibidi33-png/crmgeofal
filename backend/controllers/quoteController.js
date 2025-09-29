@@ -24,9 +24,6 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    console.log('🔍 Quote.create - Datos recibidos:', JSON.stringify(req.body, null, 2));
-    console.log('🔍 Quote.create - Usuario:', req.user);
-    
     const data = req.body || {};
     // basic validation: require at least project_id or client info
     if (!data || Object.keys(data).length === 0) {
