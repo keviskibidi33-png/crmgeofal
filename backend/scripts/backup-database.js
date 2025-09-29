@@ -1,56 +1,67 @@
-const pool = require('../config/db');
+const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-async function createDatabaseBackup() {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+// Configuración de la base de datos
+const pool = new Pool({
+  user: process.env.PGUSER || 'admin',
+  host: process.env.PGHOST || 'localhost',
+  database: process.env.PGDATABASE || 'postgres',
+  password: process.env.PGPASSWORD || 'admin123',
+  port: process.env.PGPORT || 5432,
+});
+
+async function createBackup() {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const backupDir = path.join(__dirname, '..', 'backups');
-  const backupFile = path.join(backupDir, `backup-${timestamp}.sql`);
   
+  // Crear directorio si no existe
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true });
+  }
+
   try {
-    console.log('🔄 CREANDO COPIA DE SEGURIDAD DE LA BASE DE DATOS...\n');
+    console.log('🔄 Iniciando backup completo de la base de datos...');
     
-    // Crear directorio de backups si no existe
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-      console.log('📁 Directorio de backups creado');
-    }
+    // Backup completo
+    const fullBackupFile = path.join(backupDir, `BACKUP_COMPLETO_${timestamp}.sql`);
+    await createFullBackup(fullBackupFile);
     
-    // 1. Obtener información de la base de datos
-    console.log('1️⃣ Obteniendo información de la base de datos...');
-    const dbInfo = await pool.query(`
-      SELECT 
-        current_database() as database_name,
-        current_user as current_user,
-        version() as postgres_version,
-        now() as backup_time
-    `);
+    // Backup específico de subservicios
+    const subservicesBackupFile = path.join(backupDir, `SUBSERVICIOS_${timestamp}.sql`);
+    await createSubservicesBackup(subservicesBackupFile);
     
-    console.log(`   📊 Base de datos: ${dbInfo.rows[0].database_name}`);
-    console.log(`   👤 Usuario: ${dbInfo.rows[0].current_user}`);
-    console.log(`   🕐 Fecha: ${dbInfo.rows[0].backup_time}`);
+    // Backup de estructura de tablas
+    const schemaBackupFile = path.join(backupDir, `SCHEMA_${timestamp}.sql`);
+    await createSchemaBackup(schemaBackupFile);
     
-    // 2. Obtener todas las tablas
-    console.log('\n2️⃣ Obteniendo estructura de tablas...');
-    const tables = await pool.query(`
+    console.log('✅ Backup completado exitosamente');
+    console.log(`📁 Archivos creados:`);
+    console.log(`   - ${fullBackupFile}`);
+    console.log(`   - ${subservicesBackupFile}`);
+    console.log(`   - ${schemaBackupFile}`);
+    
+  } catch (error) {
+    console.error('❌ Error durante el backup:', error);
+  } finally {
+    await pool.end();
+  }
+}
+
+async function createFullBackup(filePath) {
+  const client = await pool.connect();
+  try {
+    // Obtener todas las tablas
+    const tablesResult = await client.query(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
       ORDER BY table_name
     `);
     
-    console.log(`   📋 Encontradas ${tables.rows.length} tablas:`);
-    tables.rows.forEach(table => {
-      console.log(`      - ${table.table_name}`);
-    });
-    
-    // 3. Crear backup SQL
-    console.log('\n3️⃣ Creando archivo de backup...');
-    let backupContent = `-- BACKUP DE BASE DE DATOS GEOFAL CRM
--- Fecha: ${new Date().toLocaleString()}
--- Base de datos: ${dbInfo.rows[0].database_name}
--- Usuario: ${dbInfo.rows[0].current_user}
--- PostgreSQL: ${dbInfo.rows[0].postgres_version}
+    let sqlContent = `-- BACKUP COMPLETO DE LA BASE DE DATOS CRM
+-- Fecha: ${new Date().toISOString()}
+-- Generado automáticamente
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -62,117 +73,160 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- =============================================
--- ESTRUCTURA DE TABLAS
--- =============================================
-
 `;
-    
-    // 4. Obtener estructura de cada tabla
-    for (const table of tables.rows) {
+
+    // Para cada tabla, obtener estructura y datos
+    for (const table of tablesResult.rows) {
       const tableName = table.table_name;
-      console.log(`   🔍 Procesando tabla: ${tableName}`);
       
-      // Obtener estructura de la tabla
-      const tableStructure = await pool.query(`
-        SELECT 
-          column_name,
-          data_type,
-          is_nullable,
-          column_default,
-          character_maximum_length
+      // Estructura de la tabla
+      const structureResult = await client.query(`
+        SELECT column_name, data_type, is_nullable, column_default
         FROM information_schema.columns 
         WHERE table_name = $1 
         ORDER BY ordinal_position
       `, [tableName]);
       
-      // Obtener datos de la tabla
-      const tableData = await pool.query(`SELECT * FROM ${tableName}`);
+      sqlContent += `\n-- Estructura de la tabla ${tableName}\n`;
+      sqlContent += `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
       
-      backupContent += `-- =============================================
--- TABLA: ${tableName.toUpperCase()}
--- =============================================
-
--- Estructura de la tabla
-CREATE TABLE IF NOT EXISTS ${tableName} (
-`;
-      
-      // Agregar columnas
-      tableStructure.rows.forEach((col, index) => {
-        let columnDef = `  ${col.column_name} ${col.data_type}`;
-        
-        if (col.character_maximum_length) {
-          columnDef += `(${col.character_maximum_length})`;
-        }
-        
-        if (col.is_nullable === 'NO') {
-          columnDef += ' NOT NULL';
-        }
-        
-        if (col.column_default) {
-          columnDef += ` DEFAULT ${col.column_default}`;
-        }
-        
-        backupContent += columnDef;
-        if (index < tableStructure.rows.length - 1) {
-          backupContent += ',';
-        }
-        backupContent += '\n';
+      const columns = structureResult.rows.map(col => {
+        let def = `${col.column_name} ${col.data_type}`;
+        if (col.is_nullable === 'NO') def += ' NOT NULL';
+        if (col.column_default) def += ` DEFAULT ${col.column_default}`;
+        return def;
       });
       
-      backupContent += `);
-
--- Datos de la tabla (${tableData.rows.length} registros)
-`;
+      sqlContent += columns.join(',\n') + '\n);\n';
       
-      // Agregar datos
-      if (tableData.rows.length > 0) {
-        const columns = tableStructure.rows.map(col => col.column_name);
-        const columnNames = columns.join(', ');
+      // Datos de la tabla
+      const dataResult = await client.query(`SELECT * FROM ${tableName}`);
+      if (dataResult.rows.length > 0) {
+        sqlContent += `\n-- Datos de la tabla ${tableName}\n`;
+        sqlContent += `INSERT INTO ${tableName} VALUES\n`;
         
-        tableData.rows.forEach(row => {
-          const values = columns.map(col => {
-            const value = row[col];
-            if (value === null) return 'NULL';
-            if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
-            if (typeof value === 'boolean') return value ? 'true' : 'false';
-            return value;
+        const values = dataResult.rows.map(row => {
+          const rowValues = Object.values(row).map(val => {
+            if (val === null) return 'NULL';
+            if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+            return val;
           });
-          
-          backupContent += `INSERT INTO ${tableName} (${columnNames}) VALUES (${values.join(', ')});\n`;
+          return `(${rowValues.join(', ')})`;
         });
+        
+        sqlContent += values.join(',\n') + ';\n';
       }
-      
-      backupContent += '\n';
     }
     
-    // 5. Escribir archivo de backup
-    fs.writeFileSync(backupFile, backupContent, 'utf8');
-    console.log(`\n✅ Backup creado exitosamente: ${backupFile}`);
+    fs.writeFileSync(filePath, sqlContent, 'utf8');
+    console.log(`✅ Backup completo guardado en: ${filePath}`);
     
-    // 6. Verificar tamaño del archivo
-    const stats = fs.statSync(backupFile);
-    const fileSizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
-    console.log(`   📊 Tamaño del archivo: ${fileSizeInMB} MB`);
-    
-    // 7. Mostrar resumen de datos
-    console.log('\n4️⃣ Resumen de datos en el backup:');
-    for (const table of tables.rows) {
-      const tableName = table.table_name;
-      const count = await pool.query(`SELECT COUNT(*) as count FROM ${tableName}`);
-      console.log(`   ${tableName}: ${count.rows[0].count} registros`);
-    }
-    
-    console.log('\n🎉 BACKUP COMPLETADO EXITOSAMENTE');
-    console.log(`📁 Archivo guardado en: ${backupFile}`);
-    console.log('✅ Base de datos respaldada correctamente');
-    
-  } catch (error) {
-    console.error('❌ Error creando backup:', error.message);
-    throw error;
   } finally {
-    await pool.end();
+    client.release();
   }
 }
 
-createDatabaseBackup();
+async function createSubservicesBackup(filePath) {
+  const client = await pool.connect();
+  try {
+    let sqlContent = `-- BACKUP ESPECÍFICO DE SUBSERVICIOS
+-- Fecha: ${new Date().toISOString()}
+-- Tabla: subservices
+
+`;
+
+    // Estructura de la tabla subservices
+    const structureResult = await client.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns 
+      WHERE table_name = 'subservices' 
+      ORDER BY ordinal_position
+    `);
+    
+    if (structureResult.rows.length > 0) {
+      sqlContent += `CREATE TABLE IF NOT EXISTS subservices (\n`;
+      const columns = structureResult.rows.map(col => {
+        let def = `${col.column_name} ${col.data_type}`;
+        if (col.is_nullable === 'NO') def += ' NOT NULL';
+        if (col.column_default) def += ` DEFAULT ${col.column_default}`;
+        return def;
+      });
+      sqlContent += columns.join(',\n') + '\n);\n';
+      
+      // Datos de subservicios
+      const dataResult = await client.query('SELECT * FROM subservices ORDER BY id');
+      if (dataResult.rows.length > 0) {
+        sqlContent += `\n-- Datos de subservicios (${dataResult.rows.length} registros)\n`;
+        sqlContent += `INSERT INTO subservices VALUES\n`;
+        
+        const values = dataResult.rows.map(row => {
+          const rowValues = Object.values(row).map(val => {
+            if (val === null) return 'NULL';
+            if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+            return val;
+          });
+          return `(${rowValues.join(', ')})`;
+        });
+        
+        sqlContent += values.join(',\n') + ';\n';
+      }
+    }
+    
+    fs.writeFileSync(filePath, sqlContent, 'utf8');
+    console.log(`✅ Backup de subservicios guardado en: ${filePath}`);
+    
+  } finally {
+    client.release();
+  }
+}
+
+async function createSchemaBackup(filePath) {
+  const client = await pool.connect();
+  try {
+    let sqlContent = `-- BACKUP DE ESQUEMA DE BASE DE DATOS
+-- Fecha: ${new Date().toISOString()}
+-- Solo estructura de tablas
+
+`;
+
+    // Obtener todas las tablas con sus estructuras
+    const tablesResult = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      ORDER BY table_name
+    `);
+    
+    for (const table of tablesResult.rows) {
+      const tableName = table.table_name;
+      
+      const structureResult = await client.query(`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = $1 
+        ORDER BY ordinal_position
+      `, [tableName]);
+      
+      sqlContent += `\n-- Tabla: ${tableName}\n`;
+      sqlContent += `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
+      
+      const columns = structureResult.rows.map(col => {
+        let def = `${col.column_name} ${col.data_type}`;
+        if (col.is_nullable === 'NO') def += ' NOT NULL';
+        if (col.column_default) def += ` DEFAULT ${col.column_default}`;
+        return def;
+      });
+      
+      sqlContent += columns.join(',\n') + '\n);\n';
+    }
+    
+    fs.writeFileSync(filePath, sqlContent, 'utf8');
+    console.log(`✅ Backup de esquema guardado en: ${filePath}`);
+    
+  } finally {
+    client.release();
+  }
+}
+
+// Ejecutar backup
+createBackup().catch(console.error);
