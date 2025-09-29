@@ -26,8 +26,8 @@ const Header = ({ onToggleSidebar }) => {
       refetchInterval: false, // ❌ Deshabilitado: ya no necesitamos polling
       staleTime: Infinity, // Los datos se actualizan via WebSocket
       onSuccess: (data) => {
-        setRealTimeNotifications(data.notifications || []);
-        setRealTimeUnreadCount(data.unreadCount || 0);
+        setRealTimeNotifications(data || []);
+        setRealTimeUnreadCount(data?.length || 0);
       }
     }
   );
@@ -103,6 +103,7 @@ const Header = ({ onToggleSidebar }) => {
       if (data.projectId) navigate(`/proyectos`);
       if (data.quoteId) navigate(`/cotizaciones`);
       if (data.ticketId) navigate(`/tickets`);
+      if (data.proof_id) navigate(`/comprobantes-pago`);
     }
   };
 
@@ -138,6 +139,9 @@ const Header = ({ onToggleSidebar }) => {
       evidence_uploaded: '📎',
       evidence_approved: '✅',
       evidence_rejected: '❌',
+      payment_proof_uploaded: '💰',
+      payment_proof_approved: '✅',
+      payment_proof_rejected: '❌',
       user_assigned: '👥',
       user_role_changed: '🔄',
       system_maintenance: '🔧',
@@ -147,7 +151,7 @@ const Header = ({ onToggleSidebar }) => {
   };
 
   // Usar datos en tiempo real o fallback a datos de la query
-  const notifications = realTimeNotifications.length > 0 ? realTimeNotifications : (notificationsData?.notifications || []);
+  const notifications = realTimeNotifications.length > 0 ? realTimeNotifications : (notificationsData || []);
   const unreadCount = realTimeUnreadCount > 0 ? realTimeUnreadCount : (statsData?.unreadCount || 0);
 
   const getRoleBadgeColor = (role) => {

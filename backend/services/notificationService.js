@@ -1,226 +1,248 @@
-const Notification = require('../models/notification');
-const socketService = require('./socketService');
+const nodemailer = require('nodemailer');
 
 class NotificationService {
-  // Crear notificación cuando se asigna una cotización
-  static async notifyQuoteAssigned(quoteId, assignedToUserId, assignedByUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'quote_assigned',
-        title: 'Nueva cotización asignada',
-        message: `Se te ha asignado una nueva cotización para procesar`,
-        data: { quoteId, assignedByUserId },
-        priority: 'normal'
-      });
+  constructor() {
+    this.pool = require('../config/db');
+    this.setupEmailTransporter();
+  }
 
-      // Enviar notificación en tiempo real via WebSocket
-      socketService.sendNotificationToUser(assignedToUserId, notification);
-      
+  setupEmailTransporter() {
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+  }
+
+  // Crear notificación en base de datos
+  async createNotification(data) {
+    const {
+      type, title, message, recipient_id, sender_id,
+      related_entity_type, related_entity_id, priority = 'medium',
+      channels = ['database']
+    } = data;
+
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(`
+        INSERT INTO notifications (
+          type, title, message, recipient_id, sender_id,
+          related_entity_type, related_entity_id, priority,
+          channels, status, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        RETURNING *
+      `, [
+        type, title, message, recipient_id, sender_id,
+        related_entity_type, related_entity_id, priority,
+        JSON.stringify(channels), 'pending'
+      ]);
+
+      const notification = result.rows[0];
+      await this.sendByChannels(notification, channels);
       return notification;
-    } catch (error) {
-      console.error('Error creating quote assigned notification:', error);
-      throw error;
+    } finally {
+      client.release();
     }
   }
 
-  // Crear notificación cuando se completa una cotización
-  static async notifyQuoteCompleted(quoteId, completedByUserId, assignedToUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'quote_completed',
-        title: 'Cotización completada',
-        message: `La cotización ha sido completada y está lista para revisión`,
-        data: { quoteId, completedByUserId },
-        priority: 'high'
-      });
-      return notification;
+  // Enviar por canales configurados
+  async sendByChannels(notification, channels) {
+    for (const channel of channels) {
+      try {
+        switch (channel) {
+          case 'email':
+            await this.sendEmail(notification);
+            break;
+          case 'websocket':
+            await this.sendWebSocket(notification);
+            break;
+        }
     } catch (error) {
-      console.error('Error creating quote completed notification:', error);
-      throw error;
+        console.error(`Error enviando notificación por ${channel}:`, error);
+      }
     }
   }
 
-  // Crear notificación cuando se asigna un proyecto
-  static async notifyProjectAssigned(projectId, assignedToUserId, assignedByUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'project_assigned',
-        title: 'Nuevo proyecto asignado',
-        message: `Se te ha asignado un nuevo proyecto para trabajar`,
-        data: { projectId, assignedByUserId },
-        priority: 'normal'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating project assigned notification:', error);
-      throw error;
-    }
+  // Enviar email
+  async sendEmail(notification) {
+    if (!this.transporter) return;
+
+    const recipient = await this.pool.query(`
+      SELECT name, email FROM users WHERE id = $1
+    `, [notification.recipient_id]);
+
+    if (recipient.rows.length === 0) return;
+
+    const mailOptions = {
+      from: process.env.SMTP_FROM || 'noreply@crmgeofal.com',
+      to: recipient.rows[0].email,
+      subject: `[CRM GeoFal] ${notification.title}`,
+      html: this.generateEmailTemplate(notification, recipient.rows[0])
+    };
+
+    await this.transporter.sendMail(mailOptions);
+    
+    await this.pool.query(`
+      UPDATE notifications 
+      SET email_sent = true, email_sent_at = NOW()
+      WHERE id = $1
+    `, [notification.id]);
   }
 
-  // Crear notificación cuando se completa un proyecto
-  static async notifyProjectCompleted(projectId, completedByUserId, assignedToUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'project_completed',
-        title: 'Proyecto completado',
-        message: `El proyecto ha sido completado exitosamente`,
-        data: { projectId, completedByUserId },
-        priority: 'high'
+  // Enviar por WebSocket
+  async sendWebSocket(notification) {
+    const io = require('./socketService').getIO();
+    if (io) {
+      io.to(`user_${notification.recipient_id}`).emit('notification', {
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        priority: notification.priority,
+        created_at: notification.created_at
       });
-      return notification;
-    } catch (error) {
-      console.error('Error creating project completed notification:', error);
-      throw error;
     }
+    
+    await this.pool.query(`
+      UPDATE notifications 
+      SET websocket_sent = true, websocket_sent_at = NOW()
+      WHERE id = $1
+    `, [notification.id]);
   }
 
-  // Crear notificación cuando se crea un ticket
-  static async notifyTicketCreated(ticketId, createdByUserId, assignedToUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'ticket_created',
-        title: 'Nuevo ticket de soporte',
-        message: `Se ha creado un nuevo ticket que requiere tu atención`,
-        data: { ticketId, createdByUserId },
-        priority: 'normal'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating ticket created notification:', error);
-      throw error;
-    }
+  // Generar template de email
+  generateEmailTemplate(notification, recipient) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${notification.title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>CRM GeoFal</h1>
+            <h2>${notification.title}</h2>
+          </div>
+          <div class="content">
+            <p>Hola ${recipient.name},</p>
+            <p>${notification.message}</p>
+            <p>Fecha: ${new Date(notification.created_at).toLocaleString('es-PE')}</p>
+          </div>
+          <div class="footer">
+            <p>Este es un mensaje automático del sistema CRM GeoFal</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
   }
 
-  // Crear notificación cuando se resuelve un ticket
-  static async notifyTicketResolved(ticketId, resolvedByUserId, createdByUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: createdByUserId,
-        type: 'ticket_resolved',
-        title: 'Ticket resuelto',
-        message: `Tu ticket de soporte ha sido resuelto`,
-        data: { ticketId, resolvedByUserId },
-        priority: 'normal'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating ticket resolved notification:', error);
-      throw error;
-    }
-  }
+  // Notificaciones específicas del sistema de cotizaciones
+  async notifyQuoteStatusChange(quoteId, newStatus, userId) {
+    const quote = await this.pool.query(`
+      SELECT q.*, u.name as created_by_name
+      FROM quotes q
+      JOIN users u ON q.created_by = u.id
+      WHERE q.id = $1
+    `, [quoteId]);
 
-  // Crear notificación cuando se sube una evidencia
-  static async notifyEvidenceUploaded(evidenceId, uploadedByUserId, assignedToUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: assignedToUserId,
-        type: 'evidence_uploaded',
-        title: 'Nueva evidencia subida',
-        message: `Se ha subido una nueva evidencia que requiere revisión`,
-        data: { evidenceId, uploadedByUserId },
-        priority: 'normal'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating evidence uploaded notification:', error);
-      throw error;
-    }
-  }
+    if (quote.rows.length === 0) return;
 
-  // Crear notificación cuando se aprueba una evidencia
-  static async notifyEvidenceApproved(evidenceId, approvedByUserId, uploadedByUserId) {
-    try {
-      const notification = await Notification.create({
-        userId: uploadedByUserId,
-        type: 'evidence_approved',
-        title: 'Evidencia aprobada',
-        message: `Tu evidencia ha sido aprobada`,
-        data: { evidenceId, approvedByUserId },
-        priority: 'normal'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating evidence approved notification:', error);
-      throw error;
-    }
-  }
+    const quoteData = quote.rows[0];
+    let title, message, recipientId;
 
-  // Crear notificación cuando se rechaza una evidencia
-  static async notifyEvidenceRejected(evidenceId, rejectedByUserId, uploadedByUserId, reason) {
-    try {
-      const notification = await Notification.create({
-        userId: uploadedByUserId,
-        type: 'evidence_rejected',
-        title: 'Evidencia rechazada',
-        message: `Tu evidencia ha sido rechazada. Razón: ${reason}`,
-        data: { evidenceId, rejectedByUserId, reason },
-        priority: 'high'
-      });
-      return notification;
-    } catch (error) {
-      console.error('Error creating evidence rejected notification:', error);
-      throw error;
+    switch (newStatus) {
+      case 'sent':
+        title = 'Cotización Enviada para Aprobación';
+        message = `La cotización ${quoteData.quote_number} ha sido enviada para aprobación.`;
+        recipientId = await this.getFacturacionUserId();
+        break;
+      case 'approved':
+        title = 'Cotización Aprobada';
+        message = `La cotización ${quoteData.quote_number} ha sido aprobada.`;
+        recipientId = quoteData.created_by;
+        break;
+      case 'rejected':
+        title = 'Cotización Rechazada';
+        message = `La cotización ${quoteData.quote_number} ha sido rechazada.`;
+        recipientId = quoteData.created_by;
+        break;
+      default:
+        return;
     }
-  }
 
-  // Crear notificación para todos los usuarios de un rol específico
-  static async notifyRole(role, type, title, message, data = null, priority = 'normal') {
-    try {
-      const notifications = await Notification.createForRole(role, {
-        type,
+    await this.createNotification({
+      type: 'quote_status_change',
         title,
         message,
-        data,
-        priority
-      });
-      return notifications;
-    } catch (error) {
-      console.error('Error creating role notification:', error);
-      throw error;
-    }
+      recipient_id: recipientId,
+      sender_id: userId,
+      related_entity_type: 'quote',
+      related_entity_id: quoteId,
+      priority: newStatus === 'approved' ? 'high' : 'medium',
+      channels: ['database', 'email', 'websocket']
+    });
   }
 
-  // Crear notificación de mantenimiento del sistema
-  static async notifySystemMaintenance(message, scheduledTime = null) {
-    try {
-      const notifications = await Notification.createForRole('admin', {
-        type: 'system_maintenance',
-        title: 'Mantenimiento del sistema',
-        message: scheduledTime ? 
-          `Mantenimiento programado para ${scheduledTime}. ${message}` : 
-          message,
-        data: { scheduledTime },
-        priority: 'urgent'
-      });
-      return notifications;
-    } catch (error) {
-      console.error('Error creating system maintenance notification:', error);
-      throw error;
-    }
+  // Obtener usuario de facturación
+  async getFacturacionUserId() {
+    const result = await this.pool.query(`
+      SELECT id FROM users WHERE role = 'facturacion' LIMIT 1
+    `);
+    return result.rows[0]?.id;
   }
 
-  // Crear notificación de actualización del sistema
-  static async notifySystemUpdate(version, changes = []) {
-    try {
-      const message = `Sistema actualizado a la versión ${version}. ${changes.length > 0 ? 'Cambios: ' + changes.join(', ') : ''}`;
-      const notifications = await Notification.createForRole('admin', {
-        type: 'system_update',
-        title: 'Actualización del sistema',
-        message,
-        data: { version, changes },
-        priority: 'normal'
-      });
-      return notifications;
-    } catch (error) {
-      console.error('Error creating system update notification:', error);
-      throw error;
+  // Obtener notificaciones del usuario
+  async getUserNotifications(userId, filters = {}) {
+    let whereClause = 'WHERE recipient_id = $1';
+    let params = [userId];
+    let paramCount = 1;
+
+    if (filters.status) {
+      paramCount++;
+      whereClause += ` AND status = $${paramCount}`;
+      params.push(filters.status);
     }
+
+    if (filters.unread_only) {
+      whereClause += ` AND read_at IS NULL`;
+    }
+
+    const result = await this.pool.query(`
+      SELECT 
+        n.*,
+        sender.name as sender_name
+      FROM notifications n
+      LEFT JOIN users sender ON n.sender_id = sender.id
+      ${whereClause}
+      ORDER BY n.created_at DESC
+      LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+    `, [...params, filters.limit || 20, filters.offset || 0]);
+
+    return result.rows;
+  }
+
+  // Marcar notificación como leída
+  async markAsRead(notificationId, userId) {
+    await this.pool.query(`
+      UPDATE notifications 
+      SET read_at = NOW(), status = 'read'
+      WHERE id = $1 AND recipient_id = $2
+    `, [notificationId, userId]);
   }
 }
 
-module.exports = NotificationService;
+module.exports = new NotificationService();

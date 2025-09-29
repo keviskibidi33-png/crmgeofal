@@ -3,8 +3,14 @@ const Notification = require('../models/notification');
 // Obtener notificaciones del usuario actual
 exports.getNotifications = async (req, res) => {
   try {
+    console.log('🔔 getNotifications - Iniciando...');
+    console.log('🔔 getNotifications - req.user:', req.user);
+    
     const userId = req.user.id;
     const { limit = 10, offset = 0, unreadOnly = false } = req.query;
+    
+    console.log('🔔 getNotifications - userId:', userId);
+    console.log('🔔 getNotifications - params:', { limit, offset, unreadOnly });
     
     const notifications = await Notification.getByUserId(userId, {
       limit: parseInt(limit),
@@ -12,7 +18,11 @@ exports.getNotifications = async (req, res) => {
       unreadOnly: unreadOnly === 'true'
     });
 
+    console.log('🔔 getNotifications - notifications obtenidas:', notifications.length);
+
     const unreadCount = await Notification.countUnread(userId);
+    
+    console.log('🔔 getNotifications - unreadCount:', unreadCount);
 
     res.json({
       notifications,
@@ -20,7 +30,7 @@ exports.getNotifications = async (req, res) => {
       total: notifications.length
     });
   } catch (err) {
-    console.error('Error getting notifications:', err);
+    console.error('❌ Error getting notifications:', err);
     res.status(500).json({ error: 'Error al obtener notificaciones' });
   }
 };
@@ -108,15 +118,22 @@ exports.createForRole = async (req, res) => {
 // Obtener estadísticas de notificaciones
 exports.getStats = async (req, res) => {
   try {
+    console.log('📊 getStats - Iniciando...');
+    console.log('📊 getStats - req.user:', req.user);
+    
     const userId = req.user.id;
+    console.log('📊 getStats - userId:', userId);
+    
     const unreadCount = await Notification.countUnread(userId);
+    
+    console.log('📊 getStats - unreadCount:', unreadCount);
     
     res.json({
       unreadCount,
       totalNotifications: unreadCount // Se puede expandir con más estadísticas
     });
   } catch (err) {
-    console.error('Error getting notification stats:', err);
+    console.error('❌ Error getting notification stats:', err);
     res.status(500).json({ error: 'Error al obtener estadísticas de notificaciones' });
   }
 };

@@ -8,11 +8,11 @@ async function generateSmartTemplatePdf(bundle, outputPath) {
     const processedData = processBundleData(bundle);
     const htmlContent = generateCleanHtmlTemplate(processedData);
     const tempHtmlPath = path.join(__dirname, '..', 'tmp', `temp_${Date.now()}.html`);
-
+    
     await fs.writeFile(tempHtmlPath, htmlContent, 'utf8');
     await convertHtmlToPdf(tempHtmlPath, outputPath);
     await fs.unlink(tempHtmlPath);
-
+    
     return true;
   } catch (err) {
     console.error('Error generando PDF:', err);
@@ -21,15 +21,15 @@ async function generateSmartTemplatePdf(bundle, outputPath) {
 }
 
 function processBundleData(bundle) {
-  let subtotal = 0;
+    let subtotal = 0;
   const items = bundle.quote?.meta?.items || bundle.items || [];
-  items.forEach(item => {
-    const unitPrice = parseFloat(item.unit_price) || 0;
-    const quantity = parseInt(item.quantity) || 1;
-    subtotal += unitPrice * quantity;
-  });
-  const igv = subtotal * 0.18;
-  const total = subtotal + igv;
+    items.forEach(item => {
+      const unitPrice = parseFloat(item.unit_price) || 0;
+      const quantity = parseInt(item.quantity) || 1;
+      subtotal += unitPrice * quantity;
+    });
+    const igv = subtotal * 0.18;
+    const total = subtotal + igv;
   let fechaFormateada = '';
   if (bundle.quote?.meta?.quote?.issue_date) {
     const [year, month, day] = bundle.quote.meta.quote.issue_date.split('-');
@@ -38,9 +38,9 @@ function processBundleData(bundle) {
     const fechaActual = new Date();
     fechaFormateada = `${fechaActual.getFullYear().toString().slice(-2)}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
   }
-  const variantId = bundle.quote?.variant_id;
-  const variantConditions = getVariantConditions(variantId);
-
+    const variantId = bundle.quote?.variant_id;
+    const variantConditions = getVariantConditions(variantId);
+    
   const condicionesTexto = `
     <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
     <div class="conditions-content">
@@ -90,30 +90,30 @@ function processBundleData(bundle) {
 
   return {
     numero_cotizacion: `COT-${bundle.quote?.id || 'XXX'}-${new Date().getFullYear().toString().slice(-2)}`,
-    fecha_emision: fechaFormateada,
-    fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
+      fecha_emision: fechaFormateada,
+      fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
     referencia: bundle.quote?.meta?.quote?.reference || bundle.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
-    asesor_comercial: bundle.quote?.meta?.quote?.commercial_name || 'Silvia Peralta',
+      asesor_comercial: bundle.quote?.meta?.quote?.commercial_name || 'Silvia Peralta',
     telefono_comercial: bundle.quote?.meta?.quote?.commercial_phone || '962429895',
     condicion_pago: getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms),
-    cliente_nombre: bundle.company?.name || 'GEOFAL SAC',
-    cliente_ruc: bundle.company?.ruc || '20549356762',
-    cliente_contacto: bundle.quote?.meta?.customer?.contact_name || 'Brenda Vilca Calla',
-    cliente_telefono: bundle.quote?.meta?.customer?.contact_phone || '944435392',
-    cliente_correo: bundle.quote?.meta?.customer?.contact_email || 'ingenieria@geofal.com.pe',
-    proyecto_nombre: bundle.project?.name || 'AP5119_B_U_GF_MP_30 CULTA',
-    proyecto_ubicacion: bundle.project?.location || '',
+      cliente_nombre: bundle.company?.name || 'GEOFAL SAC',
+      cliente_ruc: bundle.company?.ruc || '20549356762',
+      cliente_contacto: bundle.quote?.meta?.customer?.contact_name || 'Brenda Vilca Calla',
+      cliente_telefono: bundle.quote?.meta?.customer?.contact_phone || '944435392',
+      cliente_correo: bundle.quote?.meta?.customer?.contact_email || 'ingenieria@geofal.com.pe',
+      proyecto_nombre: bundle.project?.name || 'AP5119_B_U_GF_MP_30 CULTA',
+      proyecto_ubicacion: bundle.project?.location || '',
     items: items.map(item => ({
-      codigo: item.code || '',
-      descripcion: item.description || '',
-      norma: item.norm || '',
+          codigo: item.code || '',
+          descripcion: item.description || '',
+          norma: item.norm || '',
       costo_unitario: parseFloat(item.unit_price || 0).toFixed(2),
       cantidad: parseInt(item.quantity || 1),
       costo_parcial: (parseFloat(item.unit_price || 0) * parseInt(item.quantity || 1)).toFixed(2)
     })),
-    subtotal: subtotal.toFixed(2),
-    igv: igv.toFixed(2),
-    total: total.toFixed(2),
+      subtotal: subtotal.toFixed(2),
+      igv: igv.toFixed(2),
+      total: total.toFixed(2),
     variant_conditions: variantConditions,
     delivery_days: bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
     condiciones_segunda_pagina: condicionesTexto,
@@ -127,18 +127,18 @@ function generateCleanHtmlTemplate(data) {
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<title>Cotización {{ numero_cotizacion }}</title>
-<style>
+    <title>Cotización {{ numero_cotizacion }}</title>
+    <style>
 html, body {
   width: 210mm;
   height: 297mm;
-  margin: 0;
-  padding: 0;
+            margin: 0;
+            padding: 0;
   font-family: Arial, sans-serif;
   font-size: 13px;
   background: #fff;
   color: #000;
-  box-sizing: border-box;
+            box-sizing: border-box;
   max-height: 594mm; /* Exacto para 2 páginas */
   overflow: visible;
 }
@@ -146,7 +146,7 @@ html, body {
   size: A4;
   margin: 0;
 }
-body {
+        body {
   max-height: 594mm !important;
   overflow: visible !important;
 }
@@ -160,7 +160,7 @@ body {
   page-break-inside: avoid;
 }
 .page-content:not(:last-child) {
-  page-break-after: always;
+            page-break-after: always;
 }
 /* Ocultar todos menos primeras 2 paginas */
 .page-content:nth-child(n+3) {
@@ -174,7 +174,7 @@ body {
   top: -9999px !important;
 }
 .footer-bar {
-  position: relative;
+            position: relative;
   left: 0;
   right: 0;
   bottom: 0;
@@ -229,9 +229,9 @@ body {
   text-align: left;
   color: #FF6B35;
 }
-.header {
-  display: flex;
-  align-items: center;
+        .header {
+            display: flex;
+            align-items: center;
   border-bottom: 2px solid #FF6B35;
   margin-bottom: 15px;
   padding-bottom: 6px;
@@ -240,39 +240,39 @@ body {
   height: 60px;
   margin-right: 22px;
 }
-.company-name {
+        .company-name {
   font-size: 14px;
-}
-.title {
+        }
+        .title {
   font-weight: bold;
   font-size: 20px;
   margin: 15px 0 10px 0;
-  text-align: center;
-  text-decoration: underline;
-}
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+            text-align: center;
+            text-decoration: underline;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
   gap: 22px;
   margin-bottom: 18px;
 }
-.info-label {
-  font-weight: bold;
+        .info-label {
+            font-weight: bold;
   width: 130px;
   display: inline-block;
 }
-.intro-text {
+        .intro-text {
   font-size: 13px;
   color: #222;
   margin: 15px 0;
 }
 table {
   border-collapse: collapse;
-  width: 100%;
+            width: 100%;
   margin-bottom: 28px;
-}
+        }
 th, td {
-  border: 1px solid #000;
+            border: 1px solid #000;
   padding: 8px 14px;
   font-size: 13px;
   vertical-align: middle;
@@ -280,8 +280,8 @@ th, td {
 th {
   background: #f2f2f2;
   font-weight: 700;
-  text-align: center;
-}
+            text-align: center;
+        }
 .section-row {
   background: #ffe5d0;
   font-weight: 700;
@@ -292,10 +292,10 @@ th {
   font-weight: 700;
   font-size: 14px;
 }
-.footer-note {
+        .footer-note {
   font-size: 10px;
   margin-top: 18px;
-  color: #666;
+            color: #666;
   text-align: left;
 }
 .conditions-content {
@@ -381,18 +381,18 @@ th {
   align-items: center;
   box-sizing: border-box;
   z-index: 1000;
-}
-</style>
+        }
+    </style>
 </head>
 <body>
   <div class="page-content first-page">
     <div class="page-content-wrapper">
-      <div class="header">
+            <div class="header">
         <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
-        <div class="company-name">Ingeniería y laboratorio de materiales</div>
-      </div>
-      <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
-      <div class="info-grid">
+                <div class="company-name">Ingeniería y laboratorio de materiales</div>
+            </div>
+            <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
+            <div class="info-grid">
         <div>
           <div class="info-row"><span class="info-label">CLIENTE:</span>{{ cliente_nombre }}</div>
           <div class="info-row"><span class="info-label">R.U.C.:</span>{{ cliente_ruc }}</div>
@@ -401,54 +401,54 @@ th {
           <div class="info-row"><span class="info-label">CORREO:</span>{{ cliente_correo }}</div>
           <div class="info-row"><span class="info-label">FECHA SOLICITUD:</span>{{ fecha_solicitud }}</div>
           <div class="info-row"><span class="info-label">REFERENCIA:</span>{{ referencia }}</div>
-        </div>
+                    </div>
         <div>
           <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
           <div class="info-row"><span class="info-label">UBICACIÓN:</span>{{ proyecto_ubicacion }}</div>
           <div class="info-row"><span class="info-label">ASESOR COMERCIAL:</span>{{ asesor_comercial }}</div>
           <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ telefono_comercial }}</div>
           <div class="info-row"><span class="info-label">FECHA DE EMISIÓN:</span>{{ fecha_emision }}</div>
-        </div>
-      </div>
-      <div class="intro-text">
-        Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
-      </div>
+                </div>
+            </div>
+            <div class="intro-text">
+                Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
+            </div>
       <table>
-        <thead>
-          <tr>
+                <thead>
+                    <tr>
             <th>Código</th><th>Descripción Ensayo</th><th>Norma</th><th>Costo Unitario (S/)</th><th>Cantidad</th><th>Costo Parcial (S/)</th>
-          </tr>
-        </thead>
-        <tbody>
+                    </tr>
+                </thead>
+                <tbody>
           <tr class="section-row"><td colspan="3">{{variant_conditions.title}}</td><td></td><td></td><td></td></tr>
-          {{#each items}}
-          <tr>
-            <td>{{codigo}}</td>
-            <td>{{descripcion}}</td>
-            <td>{{norma}}</td>
+                    {{#each items}}
+                    <tr>
+                        <td>{{codigo}}</td>
+                        <td>{{descripcion}}</td>
+                        <td>{{norma}}</td>
             <td style="text-align:right">{{costo_unitario}}</td>
             <td style="text-align:center">{{cantidad}}</td>
             <td style="text-align:right">{{costo_parcial}}</td>
-          </tr>
-          {{/each}}
+                    </tr>
+                    {{/each}}
           <tr class="total-row"><td colspan="4"></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
           <tr class="total-row"><td colspan="4"></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
           <tr class="total-row"><td colspan="4"></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
-        </tbody>
-      </table>
+                </tbody>
+            </table>
       <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
-      <div class="conditions-content">
+                <div class="conditions-content">
         <strong>VALIDEZ DE LA OFERTA:</strong> 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.<br/>
         <strong>CONDICIONES ESPECÍFICAS:</strong>
-        <ul class="conditions-list">
+                    <ul class="conditions-list">
           {{#each variant_conditions.conditions}}
           <li>{{this}}</li>
           {{/each}}
-        </ul>
-      </div>
-    </div>
-    
+                    </ul>
+                </div>
+            </div>
+
     <!-- Footer específico para la primera página -->
     <div class="footer-bar first-page-footer">
       <span>
@@ -466,14 +466,14 @@ th {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
         <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
       </span>
+        </div>
     </div>
-  </div>
-
+    
   <div class="page-content second-page">
     <div class="page-content-wrapper">
       {{{condiciones_segunda_pagina}}}
-    </div>
-    
+            </div>
+
     <!-- Footer específico para la segunda página -->
     <div class="footer-bar second-page-footer">
       <span>
@@ -491,36 +491,36 @@ th {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
         <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
       </span>
-    </div>
-  </div>
-
+                </div>
+            </div>
+            
 </body>
 </html>
   `;
-
+  
   const compiledTemplate = handlebars.compile(template);
   return compiledTemplate(data);
 }
 
 function getVariantConditions(variantId) {
-  const variants = {
+    const variants = {
     V1: {
-      title: 'MUESTRA DE SUELO Y AGREGADO',
+          title: 'MUESTRA DE SUELO Y AGREGADO',
       delivery_days: 4,
-      conditions: [
+          conditions: [
         'El cliente debe enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.',
-        'El cliente deberá de entregar las muestras debidamente identificadas.',
-        'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
+            'El cliente deberá de entregar las muestras debidamente identificadas.',
+            'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
         'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
-      ],
-      payment_conditions: [
-        'El pago debe realizarse antes del inicio de los ensayos.',
-        'Se acepta pago en efectivo, transferencia bancaria o cheque.',
-        'Los precios incluyen IGV (18%).',
-        'La cotización tiene una validez de 30 días calendario.',
-        'En caso de cancelación, se cobrará el 50% del monto total.'
-      ]
-    }
+          ],
+          payment_conditions: [
+            'El pago debe realizarse antes del inicio de los ensayos.',
+            'Se acepta pago en efectivo, transferencia bancaria o cheque.',
+            'Los precios incluyen IGV (18%).',
+            'La cotización tiene una validez de 30 días calendario.',
+            'En caso de cancelación, se cobrará el 50% del monto total.'
+          ]
+        }
   };
   return variants[variantId] || variants.V1;
 }
@@ -557,8 +557,106 @@ async function convertHtmlToPdf(htmlPath, outputPath) {
   }
 }
 
+// Función para generar PDF de cotización desde datos de la base de datos
+async function generateQuotePDF(quoteData) {
+  try {
+    console.log('🔍 generateQuotePDF - Datos recibidos:', {
+      id: quoteData.id,
+      quote_number: quoteData.quote_number,
+      client_name: quoteData.client_name,
+      total: quoteData.total
+    });
+
+    // Procesar los datos para el template
+    const processedData = {
+      quote: {
+        id: quoteData.id,
+        quote_number: quoteData.quote_number || `COT-${quoteData.id}`,
+        client_name: quoteData.client_name || quoteData.client_contact || (quoteData.meta && quoteData.meta.customer && quoteData.meta.customer.contact_name) || 'Cliente',
+        client_email: quoteData.client_email || '',
+        client_phone: quoteData.client_phone || '',
+        total: quoteData.total || quoteData.total_amount || (quoteData.subtotal + quoteData.igv) || 0,
+        subtotal: quoteData.subtotal || 0,
+        igv: quoteData.igv || 0,
+        issue_date: quoteData.issue_date || new Date().toISOString().split('T')[0],
+        payment_terms: quoteData.payment_terms || '30 días',
+        notes: quoteData.notes || '',
+        meta: {
+          items: quoteData.items || []
+        }
+      },
+      company: {
+        name: quoteData.company_name || 'GEOFAL',
+        ruc: quoteData.ruc || '20123456789',
+        address: quoteData.company_address || 'Dirección de la empresa',
+        phone: quoteData.company_phone || 'Teléfono',
+        email: quoteData.company_email || 'email@empresa.com'
+      }
+    };
+
+    console.log('🔍 generateQuotePDF - Datos procesados:', processedData);
+
+    // Generar HTML
+    const htmlContent = generateCleanHtmlTemplate(processedData);
+    
+    // Convertir a PDF usando Puppeteer
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      
+      // Configurar viewport
+      await page.setViewport({ width: 1200, height: 800 });
+      
+      // Establecer contenido
+      await page.setContent(htmlContent, { 
+        waitUntil: 'networkidle0',
+        timeout: 30000 
+      });
+      
+      // Generar PDF con configuración mejorada
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        }
+      });
+      
+      console.log('✅ generateQuotePDF - PDF generado, tamaño:', pdfBuffer.length, 'bytes');
+      return pdfBuffer;
+      
+    } finally {
+      if (browser) {
+        await browser.close();
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error en generateQuotePDF:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   generateSmartTemplatePdf,
+  generateQuotePDF,
   getVariantConditions,
   getPaymentConditionText,
   convertHtmlToPdf

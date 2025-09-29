@@ -16,6 +16,7 @@ const Quote = {
     const select = `
       SELECT 
         q.*,
+        q.quote_number,
         p.name as project_name,
         p.location as project_location,
         c.name as company_name,
@@ -40,6 +41,7 @@ const Quote = {
     const res = await pool.query(`
       SELECT 
         q.*,
+        q.quote_number,
         p.name as project_name,
         p.location as project_location,
         c.name as company_name,

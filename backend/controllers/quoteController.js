@@ -136,3 +136,29 @@ exports.delete = async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar cotización' });
   }
 };
+
+// Obtener cotizaciones del usuario actual
+exports.getMyQuotes = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const pool = require('../config/db');
+    
+    const result = await pool.query(`
+      SELECT 
+        q.*,
+        p.name as project_name,
+        c.name as company_name,
+        c.ruc as company_ruc
+      FROM quotes q
+      LEFT JOIN projects p ON q.project_id = p.id
+      LEFT JOIN companies c ON p.company_id = c.id
+      WHERE q.created_by = $1
+      ORDER BY q.created_at DESC
+    `, [userId]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting my quotes:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

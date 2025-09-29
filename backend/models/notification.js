@@ -4,7 +4,7 @@ const Notification = {
   // Crear una nueva notificación
   async create({ userId, type, title, message, data = null, priority = 'normal' }) {
     const query = `
-      INSERT INTO notifications (user_id, type, title, message, data, priority, created_at)
+      INSERT INTO notifications (recipient_id, type, title, message, data, priority, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW())
       RETURNING *
     `;
@@ -18,8 +18,8 @@ const Notification = {
     let query = `
       SELECT n.*, u.name as user_name, u.email as user_email
       FROM notifications n
-      LEFT JOIN users u ON n.user_id = u.id
-      WHERE n.user_id = $1
+      LEFT JOIN users u ON n.recipient_id = u.id
+      WHERE n.recipient_id = $1
     `;
     const values = [userId];
     let paramIndex = 2;
@@ -40,7 +40,7 @@ const Notification = {
     const query = `
       SELECT COUNT(*) as count
       FROM notifications
-      WHERE user_id = $1 AND read_at IS NULL
+      WHERE recipient_id = $1 AND read_at IS NULL
     `;
     const result = await pool.query(query, [userId]);
     return parseInt(result.rows[0].count);
@@ -51,7 +51,7 @@ const Notification = {
     const query = `
       UPDATE notifications
       SET read_at = NOW()
-      WHERE id = $1 AND user_id = $2
+      WHERE id = $1 AND recipient_id = $2
       RETURNING *
     `;
     const result = await pool.query(query, [notificationId, userId]);
@@ -63,7 +63,7 @@ const Notification = {
     const query = `
       UPDATE notifications
       SET read_at = NOW()
-      WHERE user_id = $1 AND read_at IS NULL
+      WHERE recipient_id = $1 AND read_at IS NULL
       RETURNING COUNT(*) as count
     `;
     const result = await pool.query(query, [userId]);
@@ -75,7 +75,7 @@ const Notification = {
     const query = `
       SELECT n.*, u.name as user_name, u.email as user_email
       FROM notifications n
-      LEFT JOIN users u ON n.user_id = u.id
+      LEFT JOIN users u ON n.recipient_id = u.id
       WHERE n.type = $1 AND u.role = $2
       ORDER BY n.created_at DESC
       LIMIT $3 OFFSET $4
@@ -87,7 +87,7 @@ const Notification = {
   // Crear notificaciones masivas por rol
   async createForRole(role, { type, title, message, data = null, priority = 'normal' }) {
     const query = `
-      INSERT INTO notifications (user_id, type, title, message, data, priority, created_at)
+      INSERT INTO notifications (recipient_id, type, title, message, data, priority, created_at)
       SELECT id, $1, $2, $3, $4, $5, NOW()
       FROM users
       WHERE role = $6

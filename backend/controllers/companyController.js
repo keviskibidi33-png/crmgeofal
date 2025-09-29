@@ -132,9 +132,9 @@ const createCompany = async (req, res) => {
     // Verificar si ya existe una empresa con ese RUC
     const existingCompany = await Company.getByRuc(ruc);
     if (existingCompany) {
-      return res.status(400).json({ 
-        error: 'Ya existe una empresa con ese RUC' 
-      });
+      // Si la empresa ya existe, devolver la empresa existente en lugar de error
+      console.log('✅ Empresa existente encontrada, devolviendo datos existentes');
+      return res.status(200).json(existingCompany);
     }
     
     const company = await Company.create({
@@ -166,10 +166,61 @@ const createCompany = async (req, res) => {
   }
 };
 
+// Obtener o crear empresa (para cotizaciones)
+const getOrCreateCompany = async (req, res) => {
+  try {
+    const { ruc, name, address, email, phone, contact_name, city, sector } = req.body;
+    
+    // Validaciones obligatorias
+    if (!ruc || !name) {
+      return res.status(400).json({ 
+        error: 'RUC y nombre son campos obligatorios' 
+      });
+    }
+    
+    // Buscar empresa existente
+    const existingCompany = await Company.getByRuc(ruc);
+    if (existingCompany) {
+      console.log('✅ Empresa existente encontrada:', existingCompany.name);
+      return res.status(200).json(existingCompany);
+    }
+    
+    // Crear nueva empresa si no existe
+    const company = await Company.create({
+      type: 'empresa',
+      ruc,
+      name,
+      address,
+      email,
+      phone,
+      contact_name,
+      city,
+      sector
+    });
+    
+    console.log('✅ Nueva empresa creada:', company.name);
+    
+    // Auditoría
+    await Audit.log({
+      user_id: req.user?.id,
+      action: 'crear',
+      entity: 'company',
+      entity_id: company.id,
+      details: JSON.stringify({ ruc, name, contact_name })
+    });
+    
+    res.status(201).json(company);
+  } catch (err) {
+    console.error('❌ getOrCreateCompany - Error:', err);
+    res.status(500).json({ error: 'Error al obtener o crear empresa' });
+  }
+};
+
 module.exports = {
   listCompanies,
   getCompanyStats,
   getCompanyFilterOptions,
   searchCompanies,
-  createCompany
+  createCompany,
+  getOrCreateCompany
 };

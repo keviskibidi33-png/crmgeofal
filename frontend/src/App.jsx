@@ -47,6 +47,16 @@ const Facturas = lazy(() => import('./pages/Facturas'));
 // Configuración
 const Ajustes = lazy(() => import('./pages/Ajustes'));
 
+// Sistema unificado de comprobantes de pago
+const MetricasEmbudo = lazy(() => import('./pages/MetricasEmbudo'));
+const FacturacionDashboard = lazy(() => import('./pages/FacturacionDashboard'));
+const ComprobantesPago = lazy(() => import('./pages/ComprobantesPago'));
+const EnviarComprobante = lazy(() => import('./pages/EnviarComprobante'));
+const DashboardAsesor = lazy(() => import('./pages/DashboardAsesor'));
+
+// Notificaciones
+const Notificaciones = lazy(() => import('./pages/Notificaciones'));
+
 // Rutas protegidas por autenticación
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -65,6 +75,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+                  <Route path="/dashboard-asesor" element={<ErrorBoundary><RequireRole roles={["vendedor_comercial"]}><DashboardAsesor /></RequireRole></ErrorBoundary>} />
                   {/* Eliminada la duplicidad: solo / apunta a Dashboard */}
                   <Route path="/ajustes" element={<ErrorBoundary><Ajustes /></ErrorBoundary>} />
                   <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
@@ -92,6 +103,16 @@ function App() {
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/actividades" element={<Navigate to="/auditoria" replace />} />
                   <Route path="/gestion-archivos" element={<ErrorBoundary><RequireRole roles={["admin"]}><FileManagement /></RequireRole></ErrorBoundary>} />
+                  
+                         {/* Sistema de comprobantes de pago */}
+                         <Route path="/enviar-comprobante" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><EnviarComprobante /></RequireRole></ErrorBoundary>} />
+                         <Route path="/comprobantes-pago" element={<ErrorBoundary><RequireRole roles={["admin","facturacion","jefa_comercial"]}><ComprobantesPago /></RequireRole></ErrorBoundary>} />
+                         <Route path="/metricas-embudo" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><MetricasEmbudo /></RequireRole></ErrorBoundary>} />
+                         <Route path="/facturacion-dashboard" element={<ErrorBoundary><RequireRole roles={["admin","facturacion"]}><FacturacionDashboard /></RequireRole></ErrorBoundary>} />
+                         
+                         {/* Notificaciones */}
+                         <Route path="/notificaciones" element={<ErrorBoundary><Notificaciones /></ErrorBoundary>} />
+                  
                   {/* Fallback a dashboard si la ruta no existe */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

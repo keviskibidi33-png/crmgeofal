@@ -78,6 +78,19 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/audit', require('./routes/auditRoutes'));
 app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 
+// Sistema de aprobaciones y métricas
+app.use('/api/approvals', require('./routes/approvalRoutes'));
+app.use('/api/funnel', require('./routes/funnelRoutes'));
+
+// Sistema de notificaciones
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+
+// Sistema de comprobantes de pago
+app.use('/api/payment-proofs', require('./routes/paymentProofRoutes'));
+
+// Sistema de asesor
+app.use('/api/asesor', require('./routes/asesorRoutes'));
+
 // Exportaciones y dashboard
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));

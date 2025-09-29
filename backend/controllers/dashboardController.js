@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-// Obtener estadísticas del dashboard
+// Obtener estadísticas del dashboard (versión simplificada)
 exports.getDashboardStats = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -30,156 +30,148 @@ exports.getDashboardStats = async (req, res) => {
       ticketStats: {}
     };
 
-    // Obtener estadísticas básicas
-    const [
-      usersResult,
-      projectsResult,
-      quotesResult,
-      ticketsResult,
-      clientsResult,
-      evidencesResult
-    ] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM users'),
-      pool.query('SELECT COUNT(*) as count FROM projects'),
-      pool.query('SELECT COUNT(*) as count FROM quotes'),
-      pool.query('SELECT COUNT(*) as count FROM tickets'),
-      pool.query('SELECT COUNT(*) as count FROM companies'),
-      pool.query('SELECT COUNT(*) as count FROM evidences')
-    ]);
+    // Obtener estadísticas básicas con manejo de errores individual
+    try {
+      const usersResult = await pool.query('SELECT COUNT(*) as count FROM users');
+      stats.totalUsers = parseInt(usersResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting users count:', error);
+      stats.totalUsers = 0;
+    }
 
-    stats.totalUsers = parseInt(usersResult.rows[0].count);
-    stats.totalProjects = parseInt(projectsResult.rows[0].count);
-    stats.totalQuotes = parseInt(quotesResult.rows[0].count);
-    stats.totalTickets = parseInt(ticketsResult.rows[0].count);
-    stats.totalClients = parseInt(clientsResult.rows[0].count);
-    stats.totalEvidences = parseInt(evidencesResult.rows[0].count);
+    try {
+      const projectsResult = await pool.query('SELECT COUNT(*) as count FROM projects');
+      stats.totalProjects = parseInt(projectsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting projects count:', error);
+      stats.totalProjects = 0;
+    }
 
-    // Obtener estadísticas por estado (usando las columnas que existen)
-    const [
-      openTicketsResult
-    ] = await Promise.all([
-      pool.query("SELECT COUNT(*) as count FROM tickets WHERE status = 'abierto'")
-    ]);
+    try {
+      const quotesResult = await pool.query('SELECT COUNT(*) as count FROM quotes');
+      stats.totalQuotes = parseInt(quotesResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting quotes count:', error);
+      stats.totalQuotes = 0;
+    }
+
+    try {
+      const ticketsResult = await pool.query('SELECT COUNT(*) as count FROM tickets');
+      stats.totalTickets = parseInt(ticketsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting tickets count:', error);
+      stats.totalTickets = 0;
+    }
+
+    try {
+      const clientsResult = await pool.query('SELECT COUNT(*) as count FROM companies');
+      stats.totalClients = parseInt(clientsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting clients count:', error);
+      stats.totalClients = 0;
+    }
+
+    try {
+      const evidencesResult = await pool.query('SELECT COUNT(*) as count FROM evidences');
+      stats.totalEvidences = parseInt(evidencesResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting evidences count:', error);
+      stats.totalEvidences = 0;
+    }
+
+    // Obtener estadísticas por estado
+    try {
+      const openTicketsResult = await pool.query("SELECT COUNT(*) as count FROM tickets WHERE status = 'abierto'");
+      stats.openTickets = parseInt(openTicketsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting open tickets count:', error);
+      stats.openTickets = 0;
+    }
 
     // Para proyectos y cotizaciones, usamos el total ya que no tienen columna status
-    stats.activeProjects = stats.totalProjects; // Todos los proyectos se consideran activos
-    stats.pendingQuotes = stats.totalQuotes; // Todas las cotizaciones se consideran pendientes
-    stats.openTickets = parseInt(openTicketsResult.rows[0].count);
-    stats.completedProjects = 0; // No hay columna status en projects
+    stats.activeProjects = stats.totalProjects;
+    stats.pendingQuotes = stats.totalQuotes;
+    stats.completedProjects = 0;
 
     // Obtener estadísticas de tendencias (últimos 30 días)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [
-      newUsersResult,
-      newProjectsResult,
-      newQuotesResult,
-      newTicketsResult
-    ] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM users WHERE created_at >= $1', [thirtyDaysAgo]),
-      pool.query('SELECT COUNT(*) as count FROM projects WHERE created_at >= $1', [thirtyDaysAgo]),
-      pool.query('SELECT COUNT(*) as count FROM quotes WHERE created_at >= $1', [thirtyDaysAgo]),
-      pool.query('SELECT COUNT(*) as count FROM tickets WHERE created_at >= $1', [thirtyDaysAgo])
-    ]);
-
-    stats.newUsersThisMonth = parseInt(newUsersResult.rows[0].count);
-    stats.newProjectsThisMonth = parseInt(newProjectsResult.rows[0].count);
-    stats.newQuotesThisMonth = parseInt(newQuotesResult.rows[0].count);
-    stats.newTicketsThisMonth = parseInt(newTicketsResult.rows[0].count);
-
-    // Estadísticas por rol (si no es admin, filtrar por usuario)
-    if (userRole === 'admin') {
-      // Admin ve todas las estadísticas
-      stats.userStats = {
-        total: stats.totalUsers,
-        active: stats.totalUsers,
-        newThisMonth: stats.newUsersThisMonth
-      };
-      stats.projectStats = {
-        total: stats.totalProjects,
-        active: stats.activeProjects,
-        completed: stats.completedProjects,
-        newThisMonth: stats.newProjectsThisMonth
-      };
-      stats.quoteStats = {
-        total: stats.totalQuotes,
-        pending: stats.pendingQuotes,
-        newThisMonth: stats.newQuotesThisMonth
-      };
-      stats.ticketStats = {
-        total: stats.totalTickets,
-        open: stats.openTickets,
-        newThisMonth: stats.newTicketsThisMonth
-      };
-    } else {
-      // Otros roles ven solo sus estadísticas
-      const [
-        userProjectsResult,
-        userQuotesResult,
-        userTicketsResult
-      ] = await Promise.all([
-        pool.query('SELECT COUNT(*) as count FROM projects WHERE assigned_to = $1 AND deleted_at IS NULL', [userId]),
-        pool.query('SELECT COUNT(*) as count FROM quotes WHERE assigned_to = $1 AND deleted_at IS NULL', [userId]),
-        pool.query('SELECT COUNT(*) as count FROM tickets WHERE assigned_to = $1 AND deleted_at IS NULL', [userId])
-      ]);
-
-      stats.userStats = {
-        total: 1, // Solo el usuario actual
-        active: 1,
-        newThisMonth: 0
-      };
-      stats.projectStats = {
-        total: parseInt(userProjectsResult.rows[0].count),
-        active: 0, // Se calculará por estado
-        completed: 0,
-        newThisMonth: 0
-      };
-      stats.quoteStats = {
-        total: parseInt(userQuotesResult.rows[0].count),
-        pending: 0,
-        newThisMonth: 0
-      };
-      stats.ticketStats = {
-        total: parseInt(userTicketsResult.rows[0].count),
-        open: 0,
-        newThisMonth: 0
-      };
+    try {
+      const newUsersResult = await pool.query('SELECT COUNT(*) as count FROM users WHERE created_at >= $1', [thirtyDaysAgo]);
+      stats.newUsersThisMonth = parseInt(newUsersResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting new users count:', error);
+      stats.newUsersThisMonth = 0;
     }
 
-    // Calcular porcentajes de cambio (simulado para demo)
-    const calculateChangePercentage = (current, previous) => {
-      if (previous === 0) return current > 0 ? 100 : 0;
-      return Math.round(((current - previous) / previous) * 100);
+    try {
+      const newProjectsResult = await pool.query('SELECT COUNT(*) as count FROM projects WHERE created_at >= $1', [thirtyDaysAgo]);
+      stats.newProjectsThisMonth = parseInt(newProjectsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting new projects count:', error);
+      stats.newProjectsThisMonth = 0;
+    }
+
+    try {
+      const newQuotesResult = await pool.query('SELECT COUNT(*) as count FROM quotes WHERE created_at >= $1', [thirtyDaysAgo]);
+      stats.newQuotesThisMonth = parseInt(newQuotesResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting new quotes count:', error);
+      stats.newQuotesThisMonth = 0;
+    }
+
+    try {
+      const newTicketsResult = await pool.query('SELECT COUNT(*) as count FROM tickets WHERE created_at >= $1', [thirtyDaysAgo]);
+      stats.newTicketsThisMonth = parseInt(newTicketsResult.rows[0].count);
+    } catch (error) {
+      console.error('Error getting new tickets count:', error);
+      stats.newTicketsThisMonth = 0;
+    }
+
+    // Obtener cotizaciones recientes
+    try {
+      const recentQuotesResult = await pool.query(`
+        SELECT q.id, q.quote_number, q.client_contact as client_name, q.total_amount, q.status, q.created_at
+        FROM quotes q
+        ORDER BY q.created_at DESC
+        LIMIT 5
+      `);
+      stats.recentQuotes = recentQuotesResult.rows;
+    } catch (error) {
+      console.error('Error getting recent quotes:', error);
+      stats.recentQuotes = [];
+    }
+
+    // Estadísticas por rol (simplificado)
+    stats.userStats = {
+      total: stats.totalUsers,
+      active: stats.totalUsers,
+      inactive: 0,
+      newThisMonth: stats.newUsersThisMonth
+    };
+    stats.projectStats = {
+      total: stats.totalProjects,
+      active: stats.activeProjects,
+      completed: stats.completedProjects,
+      newThisMonth: stats.newProjectsThisMonth
+    };
+    stats.quoteStats = {
+      total: stats.totalQuotes,
+      pending: stats.pendingQuotes,
+      approved: 0,
+      newThisMonth: stats.newQuotesThisMonth
+    };
+    stats.ticketStats = {
+      total: stats.totalTickets,
+      open: stats.openTickets,
+      closed: stats.totalTickets - stats.openTickets,
+      newThisMonth: stats.newTicketsThisMonth
     };
 
-    // Simular datos anteriores para calcular tendencias
-    const previousStats = {
-      users: Math.max(0, stats.totalUsers - stats.newUsersThisMonth),
-      projects: Math.max(0, stats.totalProjects - stats.newProjectsThisMonth),
-      quotes: Math.max(0, stats.totalQuotes - stats.newQuotesThisMonth),
-      tickets: Math.max(0, stats.totalTickets - stats.newTicketsThisMonth)
-    };
-
-    stats.changePercentages = {
-      users: calculateChangePercentage(stats.totalUsers, previousStats.users),
-      projects: calculateChangePercentage(stats.totalProjects, previousStats.projects),
-      quotes: calculateChangePercentage(stats.totalQuotes, previousStats.quotes),
-      tickets: calculateChangePercentage(stats.totalTickets, previousStats.tickets)
-    };
-
-    res.json({
-      success: true,
-      stats,
-      userRole,
-      lastUpdated: new Date().toISOString()
-    });
-
-  } catch (err) {
-    console.error('Error getting dashboard stats:', err);
-    res.status(500).json({ 
-      success: false,
-      error: 'Error al obtener estadísticas del dashboard' 
-    });
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting dashboard stats:', error);
+    res.status(500).json({ error: error.message });
   }
 };

@@ -11,15 +11,12 @@ const Project = {
     let paramIndex = 1;
 
     // Filtros por rol de usuario
-    if (user.role === 'vendedor_comercial') {
-      where.push(`p.vendedor_id = $${paramIndex}`);
-      params.push(user.id);
-      paramIndex++;
-    } else if (user.role === 'usuario_laboratorio') {
+    // Los vendedores comerciales pueden ver todos los proyectos (trabajan con todos los clientes)
+    if (user.role === 'usuario_laboratorio') {
       where.push(`p.laboratorio_id = $${paramIndex}`);
       params.push(user.id);
       paramIndex++;
-    } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin') {
+    } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin' && user.role !== 'vendedor_comercial') {
       return { rows: [], total: 0 };
     }
 
@@ -302,15 +299,12 @@ const Project = {
       let params = [];
       
       // Filtros por rol de usuario
-      if (user.role === 'vendedor_comercial') {
-        whereClause = 'WHERE vendedor_id = $1';
-        params = [user.id];
-        console.log('📊 getStats - Aplicando filtro vendedor_comercial:', whereClause);
-      } else if (user.role === 'usuario_laboratorio') {
+      // Los vendedores comerciales pueden ver estadísticas de todos los proyectos
+      if (user.role === 'usuario_laboratorio') {
         whereClause = 'WHERE laboratorio_id = $1';
         params = [user.id];
         console.log('📊 getStats - Aplicando filtro usuario_laboratorio:', whereClause);
-      } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin') {
+      } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin' && user.role !== 'vendedor_comercial') {
         console.log('📊 getStats - Usuario sin permisos, retornando estadísticas vacías');
         return {
           total: 0,
