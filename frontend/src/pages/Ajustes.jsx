@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Row, Col, Card, Button, Form, Badge, Alert, Tab, Tabs, InputGroup } from 'react-bootstrap';
+import { Row, Col, Card, Button, Form, Badge, Alert, Tab, Tabs, InputGroup, Spinner } from 'react-bootstrap';
 import { 
   FiUser, FiMail, FiShield, FiLogOut, FiSettings, FiBell, 
   FiLock, FiEye, FiEyeOff, FiSave, FiEdit, FiCheck, FiX,
   FiInfo, FiGlobe, FiDatabase, FiDownload
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
+import apiFetch from '../services/api';
 
 const Ajustes = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
+    apellido: user?.apellido || '',
     email: user?.email || '',
     area: user?.area || ''
   });
@@ -29,6 +34,31 @@ const Ajustes = () => {
     sms: false
   });
 
+  // Cargar datos del perfil actual al montar el componente
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiFetch('/api/auth/me');
+      const userData = response.user;
+      setProfileData({
+        name: userData.name || '',
+        apellido: userData.apellido || '',
+        email: userData.email || '',
+        area: userData.area || ''
+      });
+    } catch (err) {
+      console.error('Error cargando perfil:', err);
+      setError('Error al cargar los datos del perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRoleBadgeColor = (role) => {
     const colors = {
       admin: 'danger',
@@ -37,6 +67,7 @@ const Ajustes = () => {
       jefe_laboratorio: 'info',
       usuario_laboratorio: 'secondary',
       laboratorio: 'secondary',
+      facturacion: 'success',
       soporte: 'success',
       gerencia: 'dark'
     };
@@ -51,17 +82,58 @@ const Ajustes = () => {
       jefe_laboratorio: 'Jefe Laboratorio',
       usuario_laboratorio: 'Usuario Laboratorio',
       laboratorio: 'Laboratorio',
+      facturacion: 'Facturación',
       soporte: 'Soporte',
       gerencia: 'Gerencia'
     };
     return labels[role] || role;
   };
 
-  const handleProfileSave = () => {
-    // Aquí iría la lógica para guardar los cambios del perfil
-    setEditingProfile(false);
-    // Simular guardado exitoso
-    console.log('Perfil actualizado:', profileData);
+  const handleProfileSave = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      
+      // Validar campos requeridos
+      if (!profileData.name.trim()) {
+        setError('El nombre es requerido');
+        return;
+      }
+      
+      if (!profileData.email.trim()) {
+        setError('El email es requerido');
+        return;
+      }
+      
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(profileData.email)) {
+        setError('El formato del email no es válido');
+        return;
+      }
+      
+      const response = await apiFetch('/api/auth/me', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+      });
+      
+      setEditingProfile(false);
+      setSuccess('Perfil actualizado exitosamente');
+      console.log('Perfil actualizado:', response);
+      
+      // Limpiar mensaje de éxito después de 3 segundos
+      setTimeout(() => setSuccess(null), 3000);
+      
+    } catch (err) {
+      console.error('Error actualizando perfil:', err);
+      setError(err.response?.data?.error || 'Error al actualizar el perfil');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordChange = () => {
@@ -146,8 +218,14 @@ const Ajustes = () => {
                         variant={editingProfile ? "success" : "outline-primary"}
                         size="sm"
                         onClick={() => editingProfile ? handleProfileSave() : setEditingProfile(true)}
+                        disabled={loading}
                       >
-                        {editingProfile ? (
+                        {loading ? (
+                          <>
+                            <Spinner size="sm" className="me-1" />
+                            Guardando...
+                          </>
+                        ) : editingProfile ? (
                           <>
                             <FiCheck className="me-1" />
                             Guardar
@@ -161,15 +239,39 @@ const Ajustes = () => {
                       </Button>
                     </div>
 
+                    {error && (
+                      <Alert variant="danger" dismissible onClose={() => setError(null)}>
+                        {error}
+                      </Alert>
+                    )}
+
+                    {success && (
+                      <Alert variant="success" dismissible onClose={() => setSuccess(null)}>
+                        {success}
+                      </Alert>
+                    )}
+
                     <Row className="g-3">
                       <Col md={6}>
                         <Form.Group>
-                          <Form.Label>Nombre Completo</Form.Label>
+                          <Form.Label>Nombre</Form.Label>
                           <Form.Control
                             type="text"
                             value={profileData.name}
                             onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                            disabled={!editingProfile}
+                            disabled={!editingProfile || loading}
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label>Apellido</Form.Label>
+                          <Form.Control
+                            type="text"
+                            value={profileData.apellido}
+                            onChange={(e) => setProfileData({ ...profileData, apellido: e.target.value })}
+                            disabled={!editingProfile || loading}
                           />
                         </Form.Group>
                       </Col>
@@ -180,7 +282,8 @@ const Ajustes = () => {
                             type="email"
                             value={profileData.email}
                             onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                            disabled={!editingProfile}
+                            disabled={!editingProfile || loading}
+                            required
                           />
                         </Form.Group>
                       </Col>
@@ -191,7 +294,7 @@ const Ajustes = () => {
                             type="text"
                             value={profileData.area}
                             onChange={(e) => setProfileData({ ...profileData, area: e.target.value })}
-                            disabled={!editingProfile}
+                            disabled={!editingProfile || loading}
                           />
                         </Form.Group>
                       </Col>
@@ -199,7 +302,17 @@ const Ajustes = () => {
 
                     {editingProfile && (
                       <div className="mt-3">
-                        <Button variant="outline-secondary" size="sm" onClick={() => setEditingProfile(false)}>
+                        <Button 
+                          variant="outline-secondary" 
+                          size="sm" 
+                          onClick={() => {
+                            setEditingProfile(false);
+                            setError(null);
+                            setSuccess(null);
+                            loadUserProfile(); // Recargar datos originales
+                          }}
+                          disabled={loading}
+                        >
                           <FiX className="me-1" />
                           Cancelar
                         </Button>

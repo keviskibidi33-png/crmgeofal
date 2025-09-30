@@ -162,3 +162,63 @@ exports.getMyQuotes = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Endpoint específico para módulo de facturación - cotizaciones con proyectos
+exports.getQuotesWithProjects = async (req, res) => {
+  try {
+    console.log('💰 getQuotesWithProjects - Usuario:', req.user?.role);
+    
+    // Verificar que sea personal de facturación
+    if (req.user?.role !== 'facturacion' && req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado: Solo personal de facturación puede acceder' });
+    }
+    
+    // Datos de prueba para cotizaciones relacionadas con proyectos
+    const quotes = [
+      {
+        id: 1,
+        quote_number: "COT-2025-089",
+        project_id: 1,
+        project_name: "Análisis Geotécnico Proyecto Antamina",
+        company_name: "Minera Antamina",
+        total_amount: 45000,
+        status: "aprobado",
+        created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        invoice_status: "pendiente"
+      },
+      {
+        id: 2,
+        quote_number: "COT-2025-090",
+        project_id: 2,
+        project_name: "Monitoreo Ambiental Cajamarca",
+        company_name: "Minera Yanacocha",
+        total_amount: 32000,
+        status: "aprobado",
+        created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        invoice_status: "pendiente"
+      },
+      {
+        id: 3,
+        quote_number: "COT-2025-087",
+        project_id: 3,
+        project_name: "Análisis de Suelos Zona Norte",
+        company_name: "Constructora del Norte",
+        total_amount: 28000,
+        status: "aprobado",
+        created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        invoice_status: "facturado",
+        invoice_number: "FAC-2025-001",
+        invoice_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+    
+    console.log('✅ getQuotesWithProjects - Cotizaciones obtenidas:', quotes.length);
+    res.json(quotes);
+  } catch (err) {
+    console.error('❌ getQuotesWithProjects - Error:', err);
+    res.status(500).json({ error: 'Error al obtener cotizaciones con proyectos: ' + err.message });
+  }
+};

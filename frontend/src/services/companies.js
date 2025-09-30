@@ -57,6 +57,22 @@ export const createCompany = (payload) =>
     body: JSON.stringify(payload),
   });
 
+export const getOrCreateCompany = (payload) => {
+  console.log('🔍 getOrCreateCompany - Llamando a: /api/companies/get-or-create');
+  console.log('🔍 getOrCreateCompany - Payload:', payload);
+  
+  return apiFetch('/api/companies/get-or-create', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }).then(data => {
+    console.log('✅ getOrCreateCompany - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ getOrCreateCompany - Error:', error);
+    throw error;
+  });
+};
+
 export const updateCompany = (id, payload) =>
   apiFetch(`/api/companies/${id}`, {
     method: 'PATCH',

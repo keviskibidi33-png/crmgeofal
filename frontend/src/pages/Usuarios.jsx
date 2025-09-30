@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiLock, FiUser, FiUsers, FiShield, FiSettings, FiRefreshCw } from 'react-icons/fi';
+import { Button, Badge, Row, Col, Card, Container, Dropdown, Modal, Form, Alert, Spinner } from 'react-bootstrap';
+import { FiPlus, FiEdit, FiTrash2, FiLock, FiUser, FiUsers, FiShield, FiSettings, FiRefreshCw, FiMoreVertical, FiUserX, FiUserCheck } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
-import { listUsers, createUser, updateUser, deleteUser, getUserStats, resetPassword } from '../services/users';
+import ConfirmModal from '../components/common/ConfirmModal';
+import { listUsers, createUser, updateUser, deleteUser, getUserStats } from '../services/users';
 
 const emptyForm = { name: '', apellido: '', email: '', role: 'vendedor_comercial', area: 'Comercial', password: '' };
 
@@ -16,7 +17,8 @@ const ROLES = [
   { value: 'vendedor_comercial', label: 'Vendedor Comercial' },
   { value: 'jefe_laboratorio', label: 'Jefe Laboratorio' },
   { value: 'usuario_laboratorio', label: 'Usuario Laboratorio' },
-  { value: 'laboratorio', label: 'Laboratorio' },
+  { value: 'facturacion', label: 'Facturación' },
+  // Eliminado rol 'laboratorio'. Usar 'usuario_laboratorio'
   { value: 'soporte', label: 'Soporte' },
   { value: 'gerencia', label: 'Gerencia' },
 ];
@@ -24,6 +26,7 @@ const ROLES = [
 const AREAS = [
   { value: 'Comercial', label: 'Comercial' },
   { value: 'Laboratorio', label: 'Laboratorio' },
+  { value: 'Facturación', label: 'Facturación' },
   { value: 'Sistemas', label: 'Sistemas' },
   { value: 'Gerencia', label: 'Gerencia' },
   { value: 'Soporte', label: 'Soporte' },
@@ -33,8 +36,10 @@ export default function Usuarios() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [deletingUser, setDeletingUser] = useState(null);
-  const [resettingUser, setResettingUser] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
+  // Eliminado flujo de restablecer contraseña
+  const [deactivatingUser, setDeactivatingUser] = useState(null);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
   
   // Estado para paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,8 +86,7 @@ export default function Usuarios() {
     setShowModal(false);
     setEditingUser(null);
     setDeletingUser(null);
-    setResettingUser(null);
-    setNewPassword('');
+    // Eliminado flujo de restablecer contraseña
   };
 
   // Función para manejar búsqueda
@@ -109,41 +113,88 @@ export default function Usuarios() {
     onError: (error) => console.error('Error creating user:', error)
   });
 
-  const updateMutation = useMutation(updateUser, {
-    onSuccess: () => handleMutationSuccess('Usuario actualizado exitosamente'),
-    onError: (error) => console.error('Error updating user:', error)
-  });
+  const updateMutation = useMutation(
+    ({ id, ...userData }) => updateUser(id, userData),
+    {
+      onSuccess: () => handleMutationSuccess('Usuario actualizado exitosamente'),
+      onError: (error) => console.error('Error updating user:', error)
+    }
+  );
 
   const deleteMutation = useMutation(deleteUser, {
     onSuccess: () => handleMutationSuccess('Usuario eliminado exitosamente'),
     onError: (error) => console.error('Error deleting user:', error)
   });
 
-  const resetPasswordMutation = useMutation(resetPassword, {
-    onSuccess: () => handleMutationSuccess('Contraseña restablecida exitosamente'),
-    onError: (error) => console.error('Error resetting password:', error)
-  });
+  // Eliminado resetPasswordMutation
+
+  const deactivateUserMutation = useMutation(
+    ({ id, userData }) => {
+      console.log('🔍 deactivateUserMutation - Llamando updateUser con:', { id, userData });
+      return updateUser(id, userData);
+    },
+    {
+      onSuccess: (data) => {
+        console.log('✅ deactivateUserMutation - Éxito:', data);
+        setSuccess('Usuario desactivado exitosamente');
+        setDeactivatingUser(null);
+        queryClient.invalidateQueries('users');
+        queryClient.invalidateQueries('userStats');
+      },
+      onError: (error) => {
+        console.error('❌ deactivateUserMutation - Error:', error);
+        setError('Error al desactivar usuario: ' + (error.message || 'Error desconocido'));
+      }
+    }
+  );
+
+  const activateUserMutation = useMutation(
+    ({ id, userData }) => updateUser(id, userData),
+    {
+      onSuccess: () => {
+        setSuccess('Usuario activado exitosamente');
+        setDeactivatingUser(null);
+        queryClient.invalidateQueries('users');
+        queryClient.invalidateQueries('userStats');
+      },
+      onError: (error) => {
+        setError('Error al activar usuario: ' + (error.message || 'Error desconocido'));
+        console.error('Error activating user:', error);
+      }
+    }
+  );
+
 
   const handleCreate = () => {
     setEditingUser(emptyForm);
     setShowModal(true);
   };
 
-  const handleEdit = (user) => {
+  const handleEdit = (user, event) => {
+    event?.stopPropagation();
     setEditingUser(user);
     setShowModal(true);
   };
 
-  const handleDelete = (user) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario ${user.name}?`)) {
-      deleteMutation.mutate(user.id);
+  const handleDelete = (user, event) => {
+    event?.stopPropagation();
+    setDeletingUser(user);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      console.log('🔍 confirmDelete - Eliminando usuario:', deletingUser.id);
+      await deleteMutation.mutateAsync(deletingUser.id);
+      console.log('✅ confirmDelete - Usuario eliminado exitosamente');
+      setDeletingUser(null);
+    } catch (error) {
+      console.error('❌ confirmDelete - Error:', error);
+      setError('Error al eliminar usuario: ' + error.message);
+      setDeletingUser(null);
     }
   };
 
-  const handleResetPassword = (user) => {
-    setResettingUser(user);
-    setNewPassword('');
-  };
+  // Eliminado handleResetPassword
 
   const handleSubmit = async (formData) => {
     if (editingUser.id) {
@@ -153,11 +204,39 @@ export default function Usuarios() {
     }
   };
 
-  const handlePasswordReset = async () => {
-    if (newPassword && resettingUser) {
-      await resetPasswordMutation.mutateAsync({ 
-        id: resettingUser.id, 
-        password: newPassword 
+  // Eliminado handlePasswordReset
+
+  const handleDeactivateUser = (user, event) => {
+    event?.stopPropagation();
+    setDeactivatingUser(user);
+  };
+
+  const confirmDeactivate = async () => {
+    if (deactivatingUser) {
+      console.log('🔍 confirmDeactivate - Desactivando usuario:', deactivatingUser.id);
+      try {
+        const result = await deactivateUserMutation.mutateAsync({
+          id: deactivatingUser.id,
+          userData: { active: false }
+        });
+        console.log('✅ confirmDeactivate - Usuario desactivado exitosamente:', result);
+      } catch (error) {
+        console.error('❌ confirmDeactivate - Error:', error);
+      }
+    }
+  };
+
+
+  const handleActivateUser = (user, event) => {
+    event?.stopPropagation();
+    setDeactivatingUser(user);
+  };
+
+  const confirmActivate = async () => {
+    if (deactivatingUser) {
+      await activateUserMutation.mutateAsync({
+        id: deactivatingUser.id,
+        userData: { active: true }
       });
     }
   };
@@ -216,9 +295,51 @@ export default function Usuarios() {
       )
     },
     {
+      header: 'Estado',
+      accessor: 'active',
+      render: (value, row) => (
+        <Badge bg={value !== false ? 'success' : 'danger'} className="status-badge">
+          {value !== false ? 'Activo' : 'Inactivo'}
+        </Badge>
+      )
+    },
+    {
       header: 'Fecha Creación',
       accessor: 'created_at',
       type: 'date'
+    },
+    {
+      header: 'Acciones',
+      accessor: 'actions',
+      render: (value, row) => (
+        <Dropdown>
+          <Dropdown.Toggle variant="outline-secondary" size="sm" id={`dropdown-${row.id}`}>
+            <FiMoreVertical />
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+                <Dropdown.Item onClick={(e) => handleEdit(row, e)}>
+                  <FiEdit className="me-2" />
+                  Editar Usuario
+                </Dropdown.Item>
+            <Dropdown.Divider />
+            {row.active !== false ? (
+              <Dropdown.Item onClick={(e) => handleDeactivateUser(row, e)} className="text-warning">
+                <FiUserX className="me-2" />
+                Desactivar Usuario
+              </Dropdown.Item>
+            ) : (
+              <Dropdown.Item onClick={(e) => handleActivateUser(row, e)} className="text-success">
+                <FiUserCheck className="me-2" />
+                Activar Usuario
+              </Dropdown.Item>
+            )}
+            <Dropdown.Item onClick={(e) => handleDelete(row, e)} className="text-danger">
+              <FiTrash2 className="me-2" />
+              Eliminar Usuario
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      )
     }
   ];
 
@@ -268,20 +389,7 @@ export default function Usuarios() {
     }
   ];
 
-  const actions = [
-    {
-      label: 'Editar',
-      icon: FiEdit,
-      onClick: handleEdit,
-      variant: 'outline-primary'
-    },
-    {
-      label: 'Eliminar',
-      icon: FiTrash2,
-      onClick: handleDelete,
-      variant: 'outline-danger'
-    }
-  ];
+  // Removemos las acciones antiguas ya que ahora usamos el menú desplegable
 
   // Calcular estadísticas
   const stats = useMemo(() => {
@@ -304,7 +412,7 @@ export default function Usuarios() {
       total: users.length,
       admins: users.filter(u => u.role === 'admin').length,
       vendedores: users.filter(u => u.role === 'vendedor_comercial').length,
-      laboratorio: users.filter(u => ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(u.role)).length,
+      laboratorio: users.filter(u => ['jefe_laboratorio', 'usuario_laboratorio'].includes(u.role)).length,
       activos: users.filter(u => u.active !== false).length
     };
   }, [statsData, data]);
@@ -397,8 +505,6 @@ export default function Usuarios() {
               data={data?.data || []}
               columns={columns}
               loading={isLoading || isSearching}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
               emptyMessage="No hay usuarios registrados"
               // Props para paginación del backend
               totalItems={data?.total || 0}
@@ -407,14 +513,6 @@ export default function Usuarios() {
               onPageChange={setCurrentPage}
               onSearch={handleSearch}
               onFilter={handleFilter}
-              actions={[
-                {
-                  label: 'Restablecer Contraseña',
-                  icon: FiLock,
-                  onClick: handleResetPassword,
-                  variant: 'outline-warning'
-                }
-              ]}
             />
           </Card.Body>
         </Card>
@@ -430,26 +528,94 @@ export default function Usuarios() {
         submitText={editingUser?.id ? 'Actualizar' : 'Crear'}
       />
 
-      {/* Modal para restablecer contraseña */}
-      {resettingUser && (
-        <ModalForm
-          show={!!resettingUser}
-          onHide={() => setResettingUser(null)}
-          title="Restablecer Contraseña"
-          data={{ password: newPassword }}
-          fields={[
-            {
-              name: 'password',
-              label: 'Nueva Contraseña',
-              type: 'password',
-              required: true,
-              placeholder: 'Mínimo 6 caracteres'
-            }
-          ]}
-          onSubmit={handlePasswordReset}
-          loading={resetPasswordMutation.isLoading}
-          submitText="Restablecer"
-        />
+      {/* Modal de restablecer contraseña eliminado */}
+
+      {/* Modal para desactivar usuario */}
+      <Modal show={!!deactivatingUser} onHide={() => setDeactivatingUser(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FiUserX className="me-2 text-warning" />
+            {deactivatingUser?.active !== false ? 'Desactivar Usuario' : 'Activar Usuario'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            ¿Estás seguro de que quieres {deactivatingUser?.active !== false ? 'desactivar' : 'activar'} al usuario{' '}
+            <strong>{deactivatingUser?.name} {deactivatingUser?.apellido}</strong>?
+          </p>
+          {deactivatingUser?.active !== false ? (
+            <Alert variant="warning">
+              <strong>Nota:</strong> Al desactivar el usuario, no podrá acceder al sistema hasta que sea reactivado.
+            </Alert>
+          ) : (
+            <Alert variant="info">
+              <strong>Nota:</strong> Al activar el usuario, podrá acceder nuevamente al sistema.
+            </Alert>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setDeactivatingUser(null)}>
+            Cancelar
+          </Button>
+          <Button 
+            variant={deactivatingUser?.active !== false ? 'warning' : 'success'}
+            onClick={deactivatingUser?.active !== false ? confirmDeactivate : confirmActivate}
+            disabled={deactivatingUser?.active !== false ? deactivateUserMutation.isLoading : activateUserMutation.isLoading}
+          >
+            {(deactivatingUser?.active !== false ? deactivateUserMutation.isLoading : activateUserMutation.isLoading) ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Procesando...
+              </>
+            ) : (
+              <>
+                {deactivatingUser?.active !== false ? (
+                  <>
+                    <FiUserX className="me-2" />
+                    Desactivar
+                  </>
+                ) : (
+                  <>
+                    <FiUserCheck className="me-2" />
+                    Activar
+                  </>
+                )}
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para eliminar usuario */}
+      <ConfirmModal
+        show={!!deletingUser}
+        onHide={() => setDeletingUser(null)}
+        onConfirm={confirmDelete}
+        title="Eliminar Usuario"
+        message={`¿Estás seguro de que quieres eliminar al usuario ${deletingUser?.name} ${deletingUser?.apellido}?`}
+        confirmText="Eliminar"
+        variant="danger"
+        isLoading={deleteMutation.isLoading}
+        alertMessage="¡Advertencia! Esta acción es irreversible. Se eliminarán todos los datos asociados al usuario."
+        alertVariant="danger"
+      />
+
+
+      {/* Alertas de éxito y error */}
+      {success && (
+        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+          <Alert variant="success" dismissible onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        </div>
+      )}
+      
+      {error && (
+        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+          <Alert variant="danger" dismissible onClose={() => setError('')}>
+            {error}
+          </Alert>
+        </div>
       )}
       </div>
     </Container>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ModuloBase from '../components/ModuloBase';
 import { createQuote } from '../services/quotes';
 import { getExistingServices, listProjects, createProject } from '../services/projects';
-import { createCompany } from '../services/companies';
+import { getOrCreateCompany, listCompanies } from '../services/companies';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
 import SubserviceAutocomplete from '../components/SubserviceAutocomplete';
 import './CotizacionInteligente.css';
@@ -71,6 +71,13 @@ export default function CotizacionInteligente() {
   const [projectSuggestions, setProjectSuggestions] = useState([]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
   const [suggestedFileName, setSuggestedFileName] = useState('');
+  
+  // Estados para el buscador de clientes
+  const [clients, setClients] = useState([]);
+  const [filteredClients, setFilteredClients] = useState([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
   
   // Etiquetas predefinidas para referencia
   const referenceTypes = [
@@ -174,6 +181,102 @@ export default function CotizacionInteligente() {
   const onRemoveItem = (idx) => setItems(items.filter((_, i) => i !== idx));
   const onChangeItem = (idx, patch) => setItems(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
 
+  // Funciones para el buscador de clientes
+  const fetchClients = async () => {
+    try {
+      console.log('🔍 fetchClients - Llamando a /api/companies');
+      const clientsData = await listCompanies({ limit: 500 });
+      console.log('🔍 fetchClients - Respuesta recibida:', clientsData);
+      
+      const clientsList = clientsData?.data || clientsData || [];
+      console.log('🔍 fetchClients - Lista de clientes:', clientsList.length, 'clientes');
+      
+      setClients(clientsList);
+    } catch (err) {
+      console.error('❌ Error fetching clients:', err);
+      setError('Error al cargar los clientes: ' + (err.message || 'Error desconocido'));
+      setClients([]);
+    }
+  };
+
+  const handleClientSearch = (searchTerm) => {
+    console.log('🔍 handleClientSearch - Término de búsqueda:', searchTerm);
+    setClientSearch(searchTerm);
+    
+    if (!searchTerm.trim()) {
+      setFilteredClients([]);
+      setShowClientDropdown(false);
+      return;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    console.log('🔍 handleClientSearch - Búsqueda en minúsculas:', searchLower);
+    
+    const filtered = clients.filter(client => {
+      const nameMatch = client.name?.toLowerCase().includes(searchLower);
+      const rucMatch = client.ruc?.toLowerCase().includes(searchLower);
+      const emailMatch = client.email?.toLowerCase().includes(searchLower);
+      const phoneMatch = client.phone?.toLowerCase().includes(searchLower);
+      
+      // Búsqueda por palabras individuales
+      const nameWordsMatch = client.name?.toLowerCase().split(' ').some(word => 
+        word.includes(searchLower)
+      );
+      
+      const match = nameMatch || rucMatch || emailMatch || phoneMatch || nameWordsMatch;
+      
+      if (match) {
+        console.log('✅ Cliente encontrado:', client.name, '- Match:', { nameMatch, nameWordsMatch, rucMatch, emailMatch, phoneMatch });
+      }
+      
+      return match;
+    });
+    
+    console.log('🔍 handleClientSearch - Resultados encontrados:', filtered.length);
+    setFilteredClients(filtered);
+    setShowClientDropdown(true);
+  };
+
+  const handleClientSelect = (client) => {
+    console.log('🔍 handleClientSelect - Cliente seleccionado:', client.name, 'ID:', client.id);
+    setSelectedClient(client);
+    setClientSearch(client.name);
+    setShowClientDropdown(false);
+    
+    // Llenar automáticamente los campos del cliente
+    setClient(prev => ({
+      ...prev,
+      company_name: client.name || '',
+      ruc: client.ruc || '',
+      contact_name: client.contact_name || '',
+      contact_phone: client.phone || '',
+      contact_email: client.email || '',
+      project_location: client.address || ''
+    }));
+    
+    console.log('✅ Campos del cliente llenados automáticamente:', {
+      company_name: client.name,
+      ruc: client.ruc,
+      contact_name: client.contact_name,
+      contact_phone: client.phone,
+      contact_email: client.email,
+      project_location: client.address
+    });
+  };
+
+  const handleClientClear = () => {
+    console.log('🔍 handleClientClear - Limpiando selección de cliente');
+    setSelectedClient(null);
+    setClientSearch('');
+    setShowClientDropdown(false);
+    setClient(emptyClient);
+  };
+
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -192,8 +295,8 @@ export default function CotizacionInteligente() {
           throw new Error('Debe ingresar el RUC de la empresa');
         }
         
-        // Crear empresa automáticamente
-        const newCompany = await createCompany({
+        // Obtener o crear empresa automáticamente
+        const newCompany = await getOrCreateCompany({
           type: 'empresa',
           ruc: client.ruc,
           name: client.company_name,
@@ -206,7 +309,7 @@ export default function CotizacionInteligente() {
         });
         
         companyId = newCompany.id;
-        console.log('✅ Empresa creada automáticamente:', newCompany);
+        console.log('✅ Empresa obtenida/creada:', newCompany);
       }
       
       // Si no hay proyecto seleccionado, crear uno automáticamente
@@ -381,6 +484,73 @@ export default function CotizacionInteligente() {
             </span>
           </div>
           <div className="section-content">
+            {/* Buscador de Clientes */}
+            <div className="row g-3 mb-4">
+              <div className="col-md-12">
+                <label className="form-label">Buscar Cliente Existente</label>
+                <div className="position-relative">
+                  <input 
+                    type="text"
+                    className="form-control" 
+                    value={clientSearch}
+                    onChange={(e) => handleClientSearch(e.target.value)}
+                    onFocus={() => setShowClientDropdown(true)}
+                    placeholder="Buscar por nombre, RUC, email o teléfono..."
+                  />
+                  {selectedClient && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm position-absolute end-0 top-50 translate-middle-y me-2"
+                      onClick={handleClientClear}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {clientSearch && showClientDropdown && filteredClients.length > 0 && (
+                  <div className="border rounded mt-2" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                    <div className="p-2 bg-light border-bottom">
+                      <small className="text-muted">
+                        {filteredClients.length} cliente{filteredClients.length !== 1 ? 's' : ''} encontrado{filteredClients.length !== 1 ? 's' : ''}
+                      </small>
+                    </div>
+                    {filteredClients.map((clientItem) => (
+                      <div
+                        key={clientItem.id}
+                        className="p-2 border-bottom cursor-pointer hover-bg-light"
+                        onClick={() => handleClientSelect(clientItem)}
+                        style={{cursor: 'pointer'}}
+                      >
+                        <div className="fw-bold">{clientItem.name}</div>
+                        <small className="text-muted">
+                          RUC: {clientItem.ruc} | Email: {clientItem.email}
+                          {clientItem.phone && ` | Tel: ${clientItem.phone}`}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {clientSearch && showClientDropdown && filteredClients.length === 0 && (
+                  <div className="border rounded mt-2 p-3 text-center">
+                    <small className="text-muted">
+                      No se encontraron clientes con "{clientSearch}"
+                    </small>
+                  </div>
+                )}
+                {selectedClient && (
+                  <div className="mt-2 p-2 bg-light rounded">
+                    <strong>Cliente seleccionado:</strong> {selectedClient.name}
+                    <br />
+                    <small className="text-muted">
+                      RUC: {selectedClient.ruc} | Email: {selectedClient.email}
+                      {selectedClient.phone && ` | Tel: ${selectedClient.phone}`}
+                    </small>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Campos del Cliente */}
             <div className="row g-3">
               <div className="col-md-6">
                 <label className="form-label">Empresa</label>

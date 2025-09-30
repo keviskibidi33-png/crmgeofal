@@ -88,12 +88,24 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 // Sistema de comprobantes de pago
 app.use('/api/payment-proofs', require('./routes/paymentProofRoutes'));
 
+// Sistema de aprobación de cotizaciones (vendedores autónomos)
+app.use('/api/quote-approval', require('./routes/quoteApprovalRoutes'));
+
 // Sistema de asesor
 app.use('/api/asesor', require('./routes/asesorRoutes'));
+
+// Nuevos módulos implementados
+app.use('/api/templates', require('./routes/templateRoutes'));
+app.use('/api/shipments', require('./routes/shipmentRoutes'));
+app.use('/api/projects/laboratory', require('./routes/laboratoryProjectRoutes'));
+app.use('/api/invoicing', require('./routes/invoicingRoutes'));
 
 // Exportaciones y dashboard
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+
+// Dashboards específicos por rol
+app.use('/api/role-dashboard', require('./routes/roleDashboardRoutes'));
 
 // Funcionalidades adicionales
 app.use('/api/evidences', require('./routes/evidenceRoutes'));

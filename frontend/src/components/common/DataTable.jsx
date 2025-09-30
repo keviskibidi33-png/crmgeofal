@@ -240,7 +240,7 @@ const DataTable = ({
               {columns.map((column, index) => (
                 <th 
                   key={index}
-                  className={column.sortable ? 'cursor-pointer' : ''}
+                  className={`${column.sortable ? 'cursor-pointer' : ''} ${column.className || ''}`}
                   onClick={() => column.sortable && handleSort(column.accessor)}
                   style={{ minWidth: column.width || 'auto' }}
                 >
@@ -275,7 +275,7 @@ const DataTable = ({
               paginatedData.map((item, index) => (
                 <tr key={item.id || index} className={getRowClassName ? getRowClassName(item) : ''}>
                   {columns.map((column, colIndex) => (
-                    <td key={colIndex}>
+                    <td key={colIndex} className={column.className || ''}>
                       {renderCell(item, column)}
                     </td>
                   ))}

@@ -2,64 +2,134 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const User = {
-  async updateUser(id, { name, apellido, email, role, area, notification_enabled }) {
+  async updateUser(id, { name, apellido, email, role, area, notification_enabled, active, password }) {
+    console.log('🔍 User.updateUser - Datos recibidos:', { id, name, apellido, email, role, area, notification_enabled, active, password: !!password });
+    
     // Solo actualiza los campos enviados
     let fields = [];
     let params = [];
-  if (name !== undefined) { fields.push('name = $' + (params.length+1)); params.push(name); }
-  if (apellido !== undefined) { fields.push('apellido = $' + (params.length+1)); params.push(apellido); }
+    if (name !== undefined) { fields.push('name = $' + (params.length+1)); params.push(name); }
+    if (apellido !== undefined) { fields.push('apellido = $' + (params.length+1)); params.push(apellido); }
     if (email !== undefined) { fields.push('email = $' + (params.length+1)); params.push(email); }
     if (role !== undefined) { fields.push('role = $' + (params.length+1)); params.push(role); }
     if (area !== undefined) { fields.push('area = $' + (params.length+1)); params.push(area); }
     if (notification_enabled !== undefined) { fields.push('notification_enabled = $' + (params.length+1)); params.push(notification_enabled); }
-    if (!fields.length) return null;
+    if (active !== undefined) { 
+      console.log('🔍 User.updateUser - Actualizando campo active:', active);
+      fields.push('active = $' + (params.length+1)); 
+      params.push(active); 
+    }
+    if (password !== undefined) { 
+      const password_hash = await bcrypt.hash(password, 10);
+      fields.push('password_hash = $' + (params.length+1)); 
+      params.push(password_hash); 
+    }
+    
+    console.log('🔍 User.updateUser - Campos a actualizar:', fields);
+    console.log('🔍 User.updateUser - Parámetros:', params);
+    
+    if (!fields.length) {
+      console.log('❌ User.updateUser - No hay campos para actualizar');
+      return null;
+    }
+    
     params.push(id);
-    const res = await pool.query(
-  `UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, name, apellido, email, role, area, notification_enabled`,
-      params
-    );
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, name, apellido, email, role, area, notification_enabled, active, created_at`;
+    console.log('🔍 User.updateUser - Query:', query);
+    console.log('🔍 User.updateUser - Parámetros finales:', params);
+    
+    const res = await pool.query(query, params);
+    console.log('✅ User.updateUser - Resultado:', res.rows[0]);
     return res.rows[0];
   },
   async deleteUser(id) {
     const res = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
     return res.rows[0];
   },
-  async resetPassword(id, password) {
-    const password_hash = await bcrypt.hash(password, 10);
-    const res = await pool.query(
-      'UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id',
-      [password_hash, id]
-    );
-    return res.rows[0];
-  },
+  // resetPassword eliminado totalmente
   async getAll({ page = 1, limit = 20, search = '', area = '', role = '' }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
+    let paramIndex = 1;
+    
     if (search) {
-      params.push(`%${search}%`);
-      params.push(`%${search}%`);
-      params.push(`%${search}%`);
-      where.push(`(LOWER(name) LIKE LOWER($${params.length-2}) OR LOWER(apellido) LIKE LOWER($${params.length-1}) OR LOWER(email) LIKE LOWER($${params.length}))`);
+      const searchPattern = `%${search}%`;
+      
+      // Si la búsqueda contiene espacios, intentar buscar como nombre + apellido
+      if (search.includes(' ')) {
+        const words = search.trim().split(/\s+/);
+        if (words.length >= 2) {
+          const firstName = words[0];
+          const lastName = words.slice(1).join(' ');
+          
+          // Buscar múltiples combinaciones
+          params.push(
+            `%${firstName}%`,  // nombre contiene primera palabra
+            `%${lastName}%`,   // apellido contiene resto
+            `%${lastName}%`,   // nombre contiene resto 
+            `%${firstName}%`,  // apellido contiene primera palabra
+            searchPattern,     // nombre completo contiene búsqueda
+            searchPattern,     // apellido completo contiene búsqueda
+            searchPattern      // email contiene búsqueda
+          );
+          
+          where.push(`(
+            (LOWER(name) LIKE LOWER($${paramIndex}) AND LOWER(apellido) LIKE LOWER($${paramIndex + 1})) OR
+            (LOWER(name) LIKE LOWER($${paramIndex + 2}) AND LOWER(apellido) LIKE LOWER($${paramIndex + 3})) OR
+            LOWER(name) LIKE LOWER($${paramIndex + 4}) OR 
+            LOWER(apellido) LIKE LOWER($${paramIndex + 5}) OR 
+            LOWER(email) LIKE LOWER($${paramIndex + 6}) OR
+            LOWER(CONCAT(name, ' ', apellido)) LIKE LOWER($${paramIndex + 4})
+          )`);
+          paramIndex += 7;
+        } else {
+          // Búsqueda simple con una palabra
+          params.push(searchPattern, searchPattern, searchPattern);
+          where.push(`(LOWER(name) LIKE LOWER($${paramIndex}) OR LOWER(apellido) LIKE LOWER($${paramIndex + 1}) OR LOWER(email) LIKE LOWER($${paramIndex + 2}))`);
+          paramIndex += 3;
+        }
+      } else {
+        // Búsqueda simple sin espacios
+        params.push(searchPattern, searchPattern, searchPattern);
+        where.push(`(LOWER(name) LIKE LOWER($${paramIndex}) OR LOWER(apellido) LIKE LOWER($${paramIndex + 1}) OR LOWER(email) LIKE LOWER($${paramIndex + 2}))`);
+        paramIndex += 3;
+      }
     }
+    
     if (area) {
       params.push(area);
-      where.push(`area = $${params.length}`);
+      where.push(`area = $${paramIndex}`);
+      paramIndex++;
     }
+    
     if (role) {
       params.push(role);
-      where.push(`role = $${params.length}`);
+      where.push(`role = $${paramIndex}`);
+      paramIndex++;
     }
+    
     let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    
+    // Agregar limit y offset
     params.push(limit, offset);
+    const limitIndex = paramIndex;
+    const offsetIndex = paramIndex + 1;
+    
+    console.log('🔍 User.getAll - Query params:', { search, area, role, page, limit });
+    console.log('🔍 User.getAll - SQL params:', params);
+    console.log('🔍 User.getAll - Where clause:', whereClause);
+    
     const data = await pool.query(
-  `SELECT id, name, apellido, email, role, area, created_at FROM users ${whereClause} ORDER BY id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+      `SELECT id, name, apellido, email, role, area, active, created_at 
+       FROM users ${whereClause} 
+       ORDER BY id DESC 
+       LIMIT $${limitIndex} OFFSET $${offsetIndex}`,
       params
     );
-    // Agregar campo activo (true por defecto)
-    data.rows.forEach(u => u.active = true);
-    // Total
-    let totalParams = params.slice(0, params.length-2);
+    
+    // Total - usar solo los parámetros de búsqueda, sin limit/offset
+    let totalParams = params.slice(0, params.length - 2);
     const total = await pool.query(
       `SELECT COUNT(*) FROM users ${whereClause}`,
       totalParams
@@ -114,12 +184,12 @@ const User = {
         GROUP BY area
       `);
       
-      // Obtener total de usuarios
+      // Obtener total de usuarios (todos)
       const totalResult = await pool.query('SELECT COUNT(*) as total FROM users');
       const total = parseInt(totalResult.rows[0].total);
       
-      // Obtener usuarios activos (asumiendo que todos están activos por defecto)
-      const activeResult = await pool.query('SELECT COUNT(*) as active FROM users');
+      // Obtener usuarios activos (solo donde active = true)
+      const activeResult = await pool.query('SELECT COUNT(*) as active FROM users WHERE active = TRUE');
       const active = parseInt(activeResult.rows[0].active);
       
       // Procesar estadísticas por rol

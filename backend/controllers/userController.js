@@ -9,31 +9,34 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar usuario' });
   }
 };
-// Restablecer contraseña
-exports.resetPassword = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const { password } = req.body;
-    if (!password || password.length < 6) {
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-    }
-    const user = await User.resetPassword(userId, password);
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-    res.json({ message: 'Contraseña actualizada correctamente' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al restablecer la contraseña' });
-  }
-};
 // Editar usuario
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { name, email, role, area, notification_enabled } = req.body;
-    const user = await User.updateUser(userId, { name, email, role, area, notification_enabled });
+    const { name, email, role, area, notification_enabled, active, password } = req.body;
+    
+    console.log('🔍 updateUser - Datos recibidos:', { userId, name, email, role, area, active, password: !!password });
+    
+    const updateData = { name, email, role, area, notification_enabled };
+    
+    // Solo incluir active si se proporciona
+    if (active !== undefined) {
+      updateData.active = active;
+    }
+    
+    // Solo incluir password si se proporciona
+    if (password) {
+      updateData.password = password;
+    }
+    
+    const user = await User.updateUser(userId, updateData);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    
+    console.log('✅ updateUser - Usuario actualizado exitosamente');
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Error actualizando usuario' });
+    console.error('❌ updateUser - Error:', err);
+    res.status(500).json({ error: 'Error actualizando usuario: ' + err.message });
   }
 };
 // controllers/userController.js

@@ -7,6 +7,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats, getCompanyFilterOptions } from '../services/companies';
 import { getCurrentUser, canCreateClient, logUserInfo } from '../utils/authHelper';
 
@@ -203,8 +204,16 @@ export default function Clientes() {
   };
 
   const handleDelete = (client) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el cliente "${client.name}"?`)) {
-      deleteMutation.mutate(client.id);
+    setDeletingClient(client);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(deletingClient.id);
+      setDeletingClient(null);
+    } catch (error) {
+      console.error('Error eliminando cliente:', error);
+      setDeletingClient(null);
     }
   };
 
@@ -695,6 +704,20 @@ export default function Clientes() {
         onSubmit={handleSubmit}
         loading={createMutation.isLoading || updateMutation.isLoading}
         submitText={editingClient?.id ? 'Actualizar' : 'Crear'}
+      />
+
+      {/* Modal de confirmación para eliminar cliente */}
+      <ConfirmModal
+        show={!!deletingClient}
+        onHide={() => setDeletingClient(null)}
+        onConfirm={confirmDelete}
+        title="Eliminar Cliente"
+        message={`¿Estás seguro de que quieres eliminar el cliente "${deletingClient?.name}"?`}
+        confirmText="Eliminar"
+        variant="danger"
+        isLoading={deleteMutation.isLoading}
+        alertMessage="Esta acción eliminará permanentemente el cliente y todos sus datos asociados (proyectos, cotizaciones, etc.)."
+        alertVariant="danger"
       />
       </div>
     </Container>

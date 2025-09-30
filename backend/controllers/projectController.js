@@ -353,3 +353,74 @@ exports.getExistingServices = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener servicios existentes: ' + err.message });
   }
 };
+
+// Endpoint específico para módulo de facturación
+exports.getProjectsForInvoicing = async (req, res) => {
+  try {
+    console.log('💰 getProjectsForInvoicing - Usuario:', req.user?.role);
+    
+    // Verificar que sea personal de facturación
+    if (req.user?.role !== 'facturacion' && req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado: Solo personal de facturación puede acceder' });
+    }
+    
+    // Datos de prueba para proyectos pendientes de facturación
+    const projects = [
+      {
+        id: 1,
+        name: "Análisis Geotécnico Proyecto Antamina",
+        company_name: "Minera Antamina",
+        status: "completado",
+        invoice_status: "pendiente",
+        total_amount: 45000,
+        completion_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        project_type: "Estudio Geotécnico",
+        priority: "high"
+      },
+      {
+        id: 2,
+        name: "Monitoreo Ambiental Cajamarca",
+        company_name: "Minera Yanacocha",
+        status: "completado",
+        invoice_status: "pendiente",
+        total_amount: 32000,
+        completion_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        project_type: "Análisis Ambiental",
+        priority: "normal"
+      },
+      {
+        id: 3,
+        name: "Análisis de Suelos Zona Norte",
+        company_name: "Constructora del Norte",
+        status: "completado",
+        invoice_status: "facturado",
+        total_amount: 28000,
+        completion_date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        project_type: "Análisis de Suelos",
+        priority: "normal",
+        invoice_number: "FAC-2025-001",
+        invoice_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 4,
+        name: "Estudio Sísmico Infraestructura",
+        company_name: "Estudios Ambientales Sur",
+        status: "completado",
+        invoice_status: "pagado",
+        total_amount: 55000,
+        completion_date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        project_type: "Estudio Sísmico",
+        priority: "high",
+        invoice_number: "FAC-2025-002",
+        invoice_date: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
+        payment_date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+    
+    console.log('✅ getProjectsForInvoicing - Proyectos obtenidos:', projects.length);
+    res.json(projects);
+  } catch (err) {
+    console.error('❌ getProjectsForInvoicing - Error:', err);
+    res.status(500).json({ error: 'Error al obtener proyectos para facturación: ' + err.message });
+  }
+};

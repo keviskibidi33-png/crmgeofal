@@ -26,6 +26,13 @@ export const markAllNotificationsAsRead = () => {
   });
 };
 
+// Eliminar notificación
+export const deleteNotification = (notificationId) => {
+  return apiFetch(`/api/notifications/${notificationId}`, {
+    method: 'DELETE'
+  });
+};
+
 // Crear notificación (solo admin)
 export const createNotification = (notificationData) => {
   return apiFetch('/api/notifications/create', {

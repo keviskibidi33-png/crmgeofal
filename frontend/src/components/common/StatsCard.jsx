@@ -24,7 +24,7 @@ const StatsCard = ({
   };
 
   const getTrendIcon = (trend) => {
-    if (!trend) return null;
+    if (!trend || trend === 0) return null;
     
     if (trend > 0) {
       return (
@@ -58,7 +58,7 @@ const StatsCard = ({
             {subtitle && (
               <p className="text-muted mb-0 small">{subtitle}</p>
             )}
-            {trend && !loading && (
+            {trend && trend !== 0 && !loading && (
               <div className="mt-2">
                 {getTrendIcon(trend)}
               </div>

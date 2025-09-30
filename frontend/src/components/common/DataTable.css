@@ -1,5 +1,72 @@
 /* Estilos personalizados para DataTable */
 
+/* Contenedor de tabla responsivo */
+.data-table .table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Estilos para hacer la tabla más compacta */
+.data-table table {
+  min-width: 100%;
+  font-size: 0.875rem;
+}
+
+.data-table table td,
+.data-table table th {
+  padding: 0.5rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Hacer que algunas columnas se puedan expandir */
+.data-table table td:nth-child(2), /* Columna Proyecto */
+.data-table table th:nth-child(2) {
+  white-space: normal;
+  min-width: 200px;
+  max-width: 250px;
+}
+
+.data-table table td:nth-child(3), /* Columna Empresa */
+.data-table table th:nth-child(3) {
+  white-space: normal;
+  min-width: 150px;
+  max-width: 200px;
+}
+
+/* Badges más pequeños */
+.data-table .badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Responsive breakpoints para ocultar columnas */
+@media (max-width: 991.98px) {
+  .data-table .d-none.d-lg-table-cell {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .data-table .d-none.d-md-table-cell {
+    display: none !important;
+  }
+  
+  /* Hacer la tabla aún más compacta en móviles */
+  .data-table table td,
+  .data-table table th {
+    padding: 0.375rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .data-table .d-none.d-xl-table-cell {
+    display: none !important;
+  }
+}
+
 /* Scroll personalizado para el dropdown de filtros */
 .data-table-filter-dropdown {
   max-height: 400px !important;

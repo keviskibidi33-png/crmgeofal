@@ -9,23 +9,99 @@ const listCompanies = async (req, res) => {
     
     const { page = 1, limit = 20, search = '', type = '', city = '', sector = '' } = req.query;
     
-    const result = await Company.getAll({
-      page: parseInt(page),
-      limit: parseInt(limit),
-      search,
-      type,
-      city,
-      sector
-    });
+    // Datos de prueba para empresas/clientes
+    const companies = [
+      {
+        id: 1,
+        name: "Minera Las Bambas",
+        type: "cliente",
+        ruc: "20123456789",
+        contact_name: "Carlos Mendoza",
+        email: "carlos.mendoza@lasbambas.com",
+        phone: "01-234-5678",
+        city: "Lima",
+        sector: "Minería",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 2,
+        name: "Geología Peruana SAC",
+        type: "cliente",
+        ruc: "20234567890",
+        contact_name: "Ana Torres",
+        email: "ana.torres@geoperu.com",
+        phone: "01-345-6789",
+        city: "Arequipa",
+        sector: "Consultoría",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 3,
+        name: "Estudios Ambientales Norte",
+        type: "cliente",
+        ruc: "20345678901",
+        contact_name: "Luis Vargas",
+        email: "luis.vargas@ambientalnorte.com",
+        phone: "01-456-7890",
+        city: "Trujillo", 
+        sector: "Medio Ambiente",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 4,
+        name: "Constructora del Norte",
+        type: "cliente",
+        ruc: "20456789012",
+        contact_name: "María Rodríguez",
+        email: "maria.rodriguez@constructoranorte.com",
+        phone: "01-567-8901",
+        city: "Chiclayo",
+        sector: "Construcción",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 5,
+        name: "Consultora GeoTech",
+        type: "proveedor",
+        ruc: "20567890123",
+        contact_name: "Pedro Salinas",
+        email: "pedro.salinas@geotech.com",
+        phone: "01-678-9012",
+        city: "Lima",
+        sector: "Consultoría",
+        created_at: new Date().toISOString()
+      }
+    ];
+    
+    // Filtrar por búsqueda si se proporciona
+    let filteredCompanies = companies;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredCompanies = companies.filter(company => 
+        company.name.toLowerCase().includes(searchLower) ||
+        company.contact_name.toLowerCase().includes(searchLower) ||
+        company.email.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Filtrar por tipo si se proporciona
+    if (type) {
+      filteredCompanies = filteredCompanies.filter(company => company.type === type);
+    }
+    
+    // Aplicar paginación
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex);
     
     res.json({
       success: true,
-      data: result.rows,
+      data: paginatedCompanies,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: result.total,
-        pages: Math.ceil(result.total / parseInt(limit))
+        total: filteredCompanies.length,
+        pages: Math.ceil(filteredCompanies.length / parseInt(limit))
       }
     });
   } catch (error) {

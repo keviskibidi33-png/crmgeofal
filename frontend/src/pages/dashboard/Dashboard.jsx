@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Row, Col, Card, Button, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -16,21 +16,75 @@ import { listTickets } from '../../services/tickets';
 import { getDashboardStats } from '../../services/dashboard';
 import { useActivities } from '../../hooks/useActivities';
 import { useAuth } from '../../contexts/AuthContext';
+import { debugAuth, testBackendConnection, checkAuthStatus } from '../../utils/debugAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Redirigir según el rol del usuario a su dashboard específico
+  useEffect(() => {
+    if (user?.role) {
+      switch (user.role) {
+        case 'vendedor_comercial':
+          navigate('/dashboard-asesor', { replace: true });
+          break;
+        case 'jefa_comercial':
+          navigate('/dashboards/jefa-comercial', { replace: true });
+          break;
+        case 'jefe_laboratorio':
+        case 'usuario_laboratorio':
+          navigate('/dashboards/laboratorio', { replace: true });
+          break;
+        case 'facturacion':
+          navigate('/dashboards/facturacion', { replace: true });
+          break;
+        case 'soporte':
+          navigate('/dashboards/soporte', { replace: true });
+          break;
+        case 'gerencia':
+        case 'admin':
+          navigate('/dashboards/gerencia', { replace: true });
+          break;
+        default:
+          // Roles no específicos continúan con el dashboard general
+          break;
+      }
+    }
+  }, [user, navigate]);
+
+  // Depuración de autenticación
+  useEffect(() => {
+    console.log('🔍 Dashboard: Verificando autenticación...');
+    debugAuth();
+    checkAuthStatus();
+    
+    // Probar conexión con backend
+    testBackendConnection().then(data => {
+      if (data) {
+        console.log('✅ Dashboard: Conexión con backend exitosa');
+      } else {
+        console.log('❌ Dashboard: Error en conexión con backend');
+      }
+    });
+  }, []);
   
   // Obtener estadísticas del dashboard
-  const { data: dashboardStats, isLoading: statsLoading } = useQuery(
+  const { data: dashboardStats, isLoading: statsLoading, error: statsError } = useQuery(
     ['dashboardStats'],
     getDashboardStats,
     {
       refetchInterval: 300000, // 5 minutos
-      staleTime: 60000 // 1 minuto
+      staleTime: 60000, // 1 minuto
+      onSuccess: (data) => {
+        console.log('✅ Dashboard: Datos recibidos del backend:', data);
+      },
+      onError: (error) => {
+        console.error('❌ Dashboard: Error obteniendo datos:', error);
+      }
     }
   );
-  
+
   // Obtener actividades recientes con hook optimizado
   const { 
     data: activitiesData, 
@@ -47,7 +101,28 @@ const Dashboard = () => {
   });
 
   // Usar estadísticas reales del backend
-  const stats = dashboardStats?.stats || {
+  const stats = dashboardStats ? {
+    totalUsers: parseInt(dashboardStats.totalUsers) || 0,
+    totalProjects: parseInt(dashboardStats.totalProjects) || 0,
+    totalQuotes: parseInt(dashboardStats.totalQuotes) || 0,
+    totalTickets: parseInt(dashboardStats.totalTickets) || 0,
+    activeProjects: parseInt(dashboardStats.activeProjects) || 0,
+    pendingQuotes: parseInt(dashboardStats.pendingQuotes) || 0,
+    openTickets: parseInt(dashboardStats.openTickets) || 0,
+    completedProjects: parseInt(dashboardStats.completedProjects) || 0,
+    totalClients: parseInt(dashboardStats.totalClients) || 0,
+    totalEvidences: parseInt(dashboardStats.totalEvidences) || 0,
+    // Nuevos datos del mes actual
+    activeUsersThisMonth: parseInt(dashboardStats.activeUsersThisMonth) || 0,
+    quotesThisMonth: parseInt(dashboardStats.quotesThisMonth) || 0,
+    ticketsThisMonth: parseInt(dashboardStats.ticketsThisMonth) || 0,
+    changePercentages: {
+      users: 0,
+      projects: 0,
+      quotes: 0,
+      tickets: 0
+    }
+  } : {
     totalUsers: 0,
     totalProjects: 0,
     totalQuotes: 0,
@@ -56,6 +131,12 @@ const Dashboard = () => {
     pendingQuotes: 0,
     openTickets: 0,
     completedProjects: 0,
+    totalClients: 0,
+    totalEvidences: 0,
+    // Nuevos datos del mes actual
+    activeUsersThisMonth: 0,
+    quotesThisMonth: 0,
+    ticketsThisMonth: 0,
     changePercentages: {
       users: 0,
       projects: 0,
@@ -63,6 +144,19 @@ const Dashboard = () => {
       tickets: 0
     }
   };
+
+  // Depuración de datos del dashboard
+  useEffect(() => {
+    console.log('📊 Dashboard: Estado de los datos:');
+    console.log('- isLoading:', statsLoading);
+    console.log('- error:', statsError);
+    console.log('- data:', dashboardStats);
+    console.log('- stats procesados:', stats);
+    console.log('- totalUsers:', stats.totalUsers, typeof stats.totalUsers);
+    console.log('- totalProjects:', stats.totalProjects, typeof stats.totalProjects);
+    console.log('- totalQuotes:', stats.totalQuotes, typeof stats.totalQuotes);
+    console.log('- totalTickets:', stats.totalTickets, typeof stats.totalTickets);
+  }, [statsLoading, statsError, dashboardStats, stats]);
 
   // Función para formatear tiempo de actividad
   const formatActivityTime = (createdAt) => {
@@ -234,8 +328,8 @@ const Dashboard = () => {
             value={stats.totalUsers}
             icon={FiUsers}
             color="primary"
-            trend={stats.changePercentages?.users || 0}
-            subtitle="Usuarios activos"
+            trend={stats.changePercentages?.users || null}
+            subtitle={`${stats.activeUsersThisMonth || 0} usuarios activos este mes`}
             loading={statsLoading}
           />
         </Col>
@@ -245,7 +339,7 @@ const Dashboard = () => {
             value={stats.activeProjects}
             icon={FiHome}
             color="success"
-            trend={stats.changePercentages?.projects || 0}
+            trend={stats.changePercentages?.projects || null}
             subtitle={`${stats.totalProjects} proyectos totales`}
             loading={statsLoading}
           />
@@ -256,8 +350,8 @@ const Dashboard = () => {
             value={stats.pendingQuotes}
             icon={FiFileText}
             color="warning"
-            trend={stats.changePercentages?.quotes || 0}
-            subtitle={`${stats.totalQuotes} cotizaciones totales`}
+            trend={stats.changePercentages?.quotes || null}
+            subtitle={`${stats.quotesThisMonth || 0} cotizaciones este mes`}
             loading={statsLoading}
           />
         </Col>
@@ -267,8 +361,8 @@ const Dashboard = () => {
             value={stats.openTickets}
             icon={FiMessageSquare}
             color="danger"
-            trend={stats.changePercentages?.tickets || 0}
-            subtitle={`${stats.totalTickets} tickets totales`}
+            trend={stats.changePercentages?.tickets || null}
+            subtitle={`${stats.ticketsThisMonth || 0} tickets este mes`}
             loading={statsLoading}
           />
         </Col>

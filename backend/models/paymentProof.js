@@ -161,8 +161,8 @@ const PaymentProof = {
 
   // Obtener comprobantes aprobados (para métricas)
   async getApprovedProofs(userRole, filters = {}) {
-    if (userRole !== 'jefa_comercial' && userRole !== 'admin') {
-      throw new Error('Acceso denegado: Solo Jefe Comercial y administradores pueden ver métricas de pagos');
+    if (userRole !== 'jefa_comercial' && userRole !== 'admin' && userRole !== 'facturacion') {
+      throw new Error('Acceso denegado: Solo personal autorizado puede ver métricas de pagos');
     }
     
     let whereClause = 'WHERE pp.status = $1 AND (pp.archived IS NULL OR pp.archived = FALSE)';

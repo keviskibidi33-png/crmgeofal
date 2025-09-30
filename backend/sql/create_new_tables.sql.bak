@@ -1,0 +1,151 @@
+-- =====================================================
+-- CREAR TABLAS PARA NUEVOS MÓDULOS
+-- =====================================================
+
+-- Tabla de plantillas por cliente
+CREATE TABLE IF NOT EXISTS templates (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    client_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+    description TEXT,
+    services JSONB,
+    created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de envíos
+CREATE TABLE IF NOT EXISTS shipments (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'enviado',
+    sent_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    received_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    files JSONB,
+    sent_at TIMESTAMP DEFAULT NOW(),
+    received_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de historial de estados de envíos
+CREATE TABLE IF NOT EXISTS shipment_status (
+    id SERIAL PRIMARY KEY,
+    shipment_id INTEGER REFERENCES shipments(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL,
+    notes TEXT,
+    files JSONB,
+    changed_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    changed_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de evidencias de proyectos
+CREATE TABLE IF NOT EXISTS project_evidence (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    notes TEXT,
+    files JSONB,
+    uploaded_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabla de facturas de proyectos
+CREATE TABLE IF NOT EXISTS project_invoices (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    invoice_number VARCHAR(255) NOT NULL,
+    invoice_date DATE NOT NULL,
+    invoice_amount DECIMAL(10,2) NOT NULL,
+    notes TEXT,
+    invoice_file JSONB,
+    created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- =====================================================
+-- ÍNDICES PARA OPTIMIZACIÓN
+-- =====================================================
+
+-- Índices para templates
+CREATE INDEX IF NOT EXISTS idx_templates_client_id ON templates(client_id);
+CREATE INDEX IF NOT EXISTS idx_templates_created_by ON templates(created_by);
+CREATE INDEX IF NOT EXISTS idx_templates_created_at ON templates(created_at);
+
+-- Índices para shipments
+CREATE INDEX IF NOT EXISTS idx_shipments_project_id ON shipments(project_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_sent_by ON shipments(sent_by);
+CREATE INDEX IF NOT EXISTS idx_shipments_status ON shipments(status);
+CREATE INDEX IF NOT EXISTS idx_shipments_created_at ON shipments(created_at);
+
+-- Índices para shipment_status
+CREATE INDEX IF NOT EXISTS idx_shipment_status_shipment_id ON shipment_status(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_status_changed_by ON shipment_status(changed_by);
+CREATE INDEX IF NOT EXISTS idx_shipment_status_changed_at ON shipment_status(changed_at);
+
+-- Índices para project_evidence
+CREATE INDEX IF NOT EXISTS idx_project_evidence_project_id ON project_evidence(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_evidence_uploaded_by ON project_evidence(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_project_evidence_created_at ON project_evidence(created_at);
+
+-- Índices para project_invoices
+CREATE INDEX IF NOT EXISTS idx_project_invoices_project_id ON project_invoices(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_invoices_created_by ON project_invoices(created_by);
+CREATE INDEX IF NOT EXISTS idx_project_invoices_invoice_date ON project_invoices(invoice_date);
+CREATE INDEX IF NOT EXISTS idx_project_invoices_created_at ON project_invoices(created_at);
+
+-- =====================================================
+-- TRIGGERS PARA ACTUALIZACIÓN AUTOMÁTICA
+-- =====================================================
+
+-- Trigger para actualizar updated_at en templates
+CREATE OR REPLACE FUNCTION update_templates_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_templates_updated_at
+    BEFORE UPDATE ON templates
+    FOR EACH ROW
+    EXECUTE FUNCTION update_templates_updated_at();
+
+-- Trigger para actualizar updated_at en shipments
+CREATE OR REPLACE FUNCTION update_shipments_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_shipments_updated_at
+    BEFORE UPDATE ON shipments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_shipments_updated_at();
+
+-- =====================================================
+-- DATOS DE PRUEBA (OPCIONAL)
+-- =====================================================
+
+-- Insertar algunos datos de prueba si es necesario
+-- INSERT INTO templates (name, client_id, description, services, created_by) VALUES
+-- ('Plantilla Básica', 1, 'Plantilla básica para pruebas', '[{"code":"SERV001","description":"Servicio de prueba","norm":"ISO 9001","unit_price":100.00,"quantity":1}]', 1);
+
+-- =====================================================
+-- COMENTARIOS EN TABLAS
+-- =====================================================
+
+COMMENT ON TABLE templates IS 'Plantillas de cotizaciones por cliente';
+COMMENT ON TABLE shipments IS 'Envíos entre comercial y laboratorio';
+COMMENT ON TABLE shipment_status IS 'Historial de estados de envíos';
+COMMENT ON TABLE project_evidence IS 'Evidencias subidas por laboratorio';
+COMMENT ON TABLE project_invoices IS 'Facturas adjuntas a proyectos';
+
+COMMENT ON COLUMN templates.services IS 'Servicios de la plantilla en formato JSON';
+COMMENT ON COLUMN shipments.files IS 'Archivos adjuntos del envío en formato JSON';
+COMMENT ON COLUMN shipment_status.files IS 'Archivos adjuntos del cambio de estado en formato JSON';
+COMMENT ON COLUMN project_evidence.files IS 'Archivos de evidencia en formato JSON';
+COMMENT ON COLUMN project_invoices.invoice_file IS 'Archivo de factura en formato JSON';

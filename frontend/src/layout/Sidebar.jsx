@@ -3,13 +3,16 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Nav, Accordion, Button } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
+import GeofalLogo from '../components/GeofalLogo';
 import { 
   FiHome, FiUsers, FiUser, FiFileText, FiPaperclip, 
   FiMessageSquare, FiBarChart2, FiSettings, FiLayers, FiList, 
   FiClock, FiFileText as FiInvoice, 
   FiPackage, FiCheckCircle, FiDownload, FiShield, FiChevronRight,
-  FiChevronDown, FiMenu, FiX, FiHardDrive, FiActivity, FiZap
+  FiChevronDown, FiMenu, FiX, FiHardDrive, FiActivity, FiZap, FiDollarSign, FiUpload,
+  FiCopy, FiSend, FiCheck, FiTrendingUp
 } from 'react-icons/fi';
+import './Sidebar.css';
 
 const sectionsByRole = {
   admin: [
@@ -33,7 +36,11 @@ const sectionsByRole = {
           ]
         },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
-        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
+        { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
+        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
+        { path: '/comprobantes-pago', label: 'Comprobantes de Pago', icon: FiFileText },
+        { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
+        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
         {
           label: 'Tickets',
@@ -74,7 +81,12 @@ const sectionsByRole = {
         { path: '/clientes', label: 'Clientes', icon: FiUser },
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
-        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
+        { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
+        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
+        { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
+        { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
+        { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
+        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
       ]
@@ -92,8 +104,29 @@ const sectionsByRole = {
         { path: '/clientes', label: 'Clientes', icon: FiUser },
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
-        { path: '/cotizaciones/inteligente', label: '📋 Cotización Inteligente', icon: FiZap },
+        { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
+        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
+        { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
+        { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
+        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
+      ]
+    },
+    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
+  ],
+  facturacion: [
+    {
+      title: 'General',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+      ]
+    },
+    {
+      title: 'Gestión',
+      items: [
+        { path: '/facturacion-proyectos', label: 'Facturación de Proyectos', icon: FiDollarSign },
+        { path: '/comprobantes-pago', label: 'Comprobantes de Pago', icon: FiFileText },
+        { path: '/facturas', label: 'Facturas', icon: FiInvoice },
       ]
     },
     { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
@@ -104,6 +137,8 @@ const sectionsByRole = {
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
+        { path: '/proyectos-laboratorio', label: 'Proyectos de Laboratorio', icon: FiActivity },
+        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         // Módulos eliminados: Variantes e Items de Cotización
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
@@ -118,24 +153,15 @@ const sectionsByRole = {
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
+        { path: '/proyectos-laboratorio', label: 'Proyectos de Laboratorio', icon: FiActivity },
+        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },
     { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
   ],
-  laboratorio: [
-    {
-      title: 'Laboratorio',
-      items: [
-        { path: '/dashboard', label: 'Dashboard', icon: FiHome },
-        { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
-        { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
-      ]
-    },
-    { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
-  ],
+  // Rol 'laboratorio' eliminado. Usar 'usuario_laboratorio'
   soporte: [
     {
       title: 'Operación',
@@ -243,7 +269,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Header del sidebar */}
         <div className="sidebar-header">
           <div className="sidebar-brand">
-            <span className="brand-text">CRMGeoFal</span>
+            <GeofalLogo collapsed={collapsed} />
           </div>
           <Button
             variant="link"

@@ -9,6 +9,8 @@ const quoteExportController = require('../controllers/quoteExportController');
 router.get('/', auth(), quoteController.getAll);
 // Obtener cotizaciones del usuario actual
 router.get('/my-quotes', auth(), quoteController.getMyQuotes);
+// Obtener cotizaciones con proyectos para facturación
+router.get('/with-projects', auth(['facturacion', 'admin']), quoteController.getQuotesWithProjects);
 // Obtener cotización por id
 router.get('/:id', auth(), quoteController.getById);
 // Crear cotización: si body está vacío, devolver 400 antes de auth para tests

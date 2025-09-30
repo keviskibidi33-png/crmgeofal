@@ -10,6 +10,7 @@ import {
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { listQuotes, createQuote, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
 import { listProjects } from '../services/projects';
@@ -49,8 +50,16 @@ export default function ListaCotizaciones() {
   };
 
   const handleDelete = (quote) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar la cotización "${quote.code || quote.id}"?`)) {
-      deleteMutation.mutate(quote.id);
+    setDeletingQuote(quote);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(deletingQuote.id);
+      setDeletingQuote(null);
+    } catch (error) {
+      console.error('Error eliminando cotización:', error);
+      setDeletingQuote(null);
     }
   };
 
@@ -308,6 +317,20 @@ export default function ListaCotizaciones() {
           </Card.Body>
         </Card>
       </div>
+
+      {/* Modal de confirmación para eliminar cotización */}
+      <ConfirmModal
+        show={!!deletingQuote}
+        onHide={() => setDeletingQuote(null)}
+        onConfirm={confirmDelete}
+        title="Eliminar Cotización"
+        message={`¿Estás seguro de que quieres eliminar la cotización "${deletingQuote?.code || deletingQuote?.id}"?`}
+        confirmText="Eliminar"
+        variant="danger"
+        isLoading={deleteMutation.isLoading}
+        alertMessage="Esta acción eliminará permanentemente la cotización y no se puede deshacer."
+        alertVariant="warning"
+      />
     </Container>
   );
 };

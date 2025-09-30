@@ -42,6 +42,21 @@ export async function apiFetch(path, opts = {}) {
     if (res.status === 401) {
       try { localStorage.removeItem('token'); } catch { /* ignore */ }
     }
+    // Manejo centralizado de 403 por usuario desactivado
+    if (res.status === 403 && /desactivad/i.test(String(message))) {
+      try { localStorage.removeItem('token'); } catch { /* ignore */ }
+      try {
+        // Opcional: notificar y redirigir a login
+        console.warn('⚠️ Token inválido. Cerrando sesión.');
+        if (typeof window !== 'undefined') {
+          // Evita bucles si ya estamos en login
+          const atLogin = window.location.pathname.toLowerCase().includes('login');
+          if (!atLogin) {
+            window.location.href = '/login';
+          }
+        }
+      } catch { /* ignore */ }
+    }
     throw error;
   }
   return body;

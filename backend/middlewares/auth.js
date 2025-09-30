@@ -20,13 +20,29 @@ const authMiddleware = (roles = []) => {
     }
     
     const secret = process.env.JWT_SECRET || 'test';
-    jwt.verify(token, secret, (err, user) => {
+    console.log('🔐 Auth - Verificando token con secreto:', secret);
+    jwt.verify(token, secret, async (err, user) => {
       if (err) {
         console.log('❌ Auth - Token inválido:', err.message);
+        console.log('🔐 Auth - Token recibido:', token.substring(0, 50) + '...');
+        console.log('🔐 Auth - Error completo:', err);
         return res.status(403).json({ error: 'Token inválido' });
       }
       
       console.log('✅ Auth - Usuario autenticado:', user.role);
+
+      // Bloquear acceso a usuarios desactivados aunque tengan token válido
+      try {
+        const pool = require('../config/db');
+        const check = await pool.query('SELECT active FROM users WHERE id = $1', [user.id]);
+        const isActive = check.rows[0]?.active !== false;
+        if (!isActive) {
+          console.log('❌ Auth - Error al iniciar sesión Contactar con Soporte:', user.id);
+          return res.status(403).json({ error: 'Usuario desactivado' });
+        }
+      } catch (e) {
+        console.log('⚠️ Auth - Error verificando estado activo:', e.message);
+      }
       
       if (roles.length && !roles.includes(user.role)) {
         console.log('❌ Auth - No autorizado. Rol:', user.role, 'Requerido:', roles);

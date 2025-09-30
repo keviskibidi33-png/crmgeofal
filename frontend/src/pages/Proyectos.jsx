@@ -2,11 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
 // import { listCategories, listSubcategories } from '../services/categories'; // Eliminado - sistema antiguo
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
@@ -37,12 +38,14 @@ export default function Proyectos() {
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [deletingFile, setDeletingFile] = useState(null);
+  const [markingProject, setMarkingProject] = useState(null);
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [showQueriesModal, setShowQueriesModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [activeTab, setActiveTab] = useState('view');
+  const [activeTab, setActiveTab] = useState('info');
   const [editingData, setEditingData] = useState({});
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -222,19 +225,23 @@ export default function Proyectos() {
   };
 
   const handleFileDelete = async (attachmentId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este archivo?')) {
-      try {
-        await deleteAttachment(attachmentId);
-        
-        // Recargar adjuntos
-        const attachmentsData = await listProjectAttachments(selectedProject.id);
-        setAttachments(attachmentsData);
-        
-        showNotification('✅ Archivo eliminado correctamente', 'success');
-      } catch (error) {
-        console.error('Error al eliminar archivo:', error);
-        showNotification('❌ Error al eliminar archivo', 'danger');
-      }
+    setDeletingFile(attachmentId);
+  };
+
+  const confirmFileDelete = async () => {
+    try {
+      await deleteAttachment(deletingFile);
+      
+      // Recargar adjuntos
+      const attachmentsData = await listProjectAttachments(selectedProject.id);
+      setAttachments(attachmentsData);
+      
+      showNotification('✅ Archivo eliminado correctamente', 'success');
+      setDeletingFile(null);
+    } catch (error) {
+      console.error('Error al eliminar archivo:', error);
+      showNotification('❌ Error al eliminar archivo', 'danger');
+      setDeletingFile(null);
     }
   };
 
@@ -380,8 +387,16 @@ export default function Proyectos() {
   };
 
   const handleDelete = (project) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.name}"?`)) {
-      deleteMutation.mutate(project.id);
+    setDeletingProject(project);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(deletingProject.id);
+      setDeletingProject(null);
+    } catch (error) {
+      console.error('Error eliminando proyecto:', error);
+      setDeletingProject(null);
     }
   };
 
@@ -396,13 +411,19 @@ export default function Proyectos() {
   };
 
   const handleToggleMark = async (project) => {
+    setMarkingProject(project);
+  };
+
+  const confirmToggleMark = async () => {
     try {
       // Aquí implementarías la lógica para marcar/desmarcar
-      console.log('Marcar/desmarcar proyecto:', project);
-      // Por ahora solo mostramos un mensaje
-      alert(`Proyecto ${project.marked ? 'desmarcado' : 'marcado'}: ${project.name}`);
+      console.log('Marcar/desmarcar proyecto:', markingProject);
+      showNotification(`Proyecto ${markingProject.marked ? 'desmarcado' : 'marcado'}: ${markingProject.name}`, 'success');
+      setMarkingProject(null);
     } catch (error) {
       console.error('Error al marcar proyecto:', error);
+      showNotification('Error al marcar proyecto', 'danger');
+      setMarkingProject(null);
     }
   };
 
@@ -441,7 +462,7 @@ export default function Proyectos() {
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
     setEditingData(initialEditingData);
-    setActiveTab('view');
+    setActiveTab('info');
     setShowViewModal(true);
   };
 
@@ -469,7 +490,7 @@ export default function Proyectos() {
     {
       header: 'ID',
       accessor: 'id',
-      width: '80px'
+      width: '60px'
     },
     {
       header: 'Proyecto',
@@ -483,76 +504,13 @@ export default function Proyectos() {
               {row.location}
             </small>
           )}
-        </div>
-      )
-    },
-    {
-      header: 'Tipo de Proyecto',
-      accessor: 'project_type',
-      render: (value, row) => {
-        const projectType = row.project_type || 'General';
-        let typeColor = 'secondary';
-        
-        // Asignar colores según el tipo de proyecto
-        switch (projectType) {
-          case 'Análisis de Suelos':
-            typeColor = 'success';
-            break;
-          case 'Estudio Geotécnico':
-            typeColor = 'primary';
-            break;
-          case 'Evaluación Ambiental':
-            typeColor = 'info';
-            break;
-          case 'Control de Calidad':
-            typeColor = 'warning';
-            break;
-          case 'Análisis de Agua':
-            typeColor = 'info';
-            break;
-          case 'Estudio de Impacto':
-            typeColor = 'danger';
-            break;
-          case 'Análisis Químico':
-            typeColor = 'primary';
-            break;
-          case 'Pruebas de Laboratorio':
-            typeColor = 'success';
-            break;
-          case 'Inspección Técnica':
-            typeColor = 'warning';
-            break;
-          case 'Certificación de Materiales':
-            typeColor = 'info';
-            break;
-          default:
-            typeColor = 'secondary';
-        }
-        
-        return (
-          <Badge bg={typeColor} className="px-2 py-1">
-            {projectType}
-          </Badge>
-        );
-      }
-    },
-    {
-      header: 'Categoría',
-      accessor: 'category_name',
-      render: (value, row) => (
-        <div>
-          {row.category_name && (
-            <Badge bg="primary" className="px-2 py-1 mb-1 d-block">
-              {row.category_name}
-            </Badge>
-          )}
-          {row.subcategory_name && (
-            <Badge bg="secondary" className="px-2 py-1 d-block">
-              {row.subcategory_name}
-            </Badge>
-          )}
-          {!row.category_name && (
-            <span className="text-muted">Sin categoría</span>
+          {/* Mostrar tipo de proyecto como badge pequeño */}
+          {row.project_type && (
+            <div className="mt-1">
+              <Badge bg="outline-secondary" size="sm" className="px-1 py-0 small">
+                {row.project_type}
+              </Badge>
+            </div>
           )}
         </div>
       )
@@ -563,8 +521,11 @@ export default function Proyectos() {
       render: (value, row) => (
         <div>
           <div className="fw-medium">{row.company_name || 'Sin empresa'}</div>
-          {row.company_ruc && (
-            <small className="text-muted">RUC: {row.company_ruc}</small>
+          {row.contact_name && (
+            <small className="text-muted">
+              <FiUser size={12} className="me-1" />
+              {row.contact_name}
+            </small>
           )}
         </div>
       )
@@ -572,28 +533,34 @@ export default function Proyectos() {
     {
       header: 'Estado',
       accessor: 'status',
+      width: '100px',
       render: (value) => getStatusBadge(value || 'activo')
     },
     {
-      header: 'Servicios Requeridos',
+      header: 'Servicios',
       accessor: 'services',
+      width: '120px',
+      className: 'd-none d-lg-table-cell', // Ocultar en pantallas pequeñas
       render: (value, row) => (
         <div className="d-flex flex-wrap gap-1">
           {row.requiere_laboratorio && (
-            <Badge bg="info" className="px-2 py-1">
-              <FiHome size={12} className="me-1" />
-              Laboratorio
+            <Badge bg="info" size="sm" className="px-1">
+              Lab
             </Badge>
           )}
           {row.requiere_ingenieria && (
-            <Badge bg="primary" className="px-2 py-1">
-              <FiUser size={12} className="me-1" />
-              Ingeniería
+            <Badge bg="primary" size="sm" className="px-1">
+              Ing
             </Badge>
           )}
-          {!row.requiere_laboratorio && !row.requiere_ingenieria && (
-            <Badge bg="secondary" className="px-2 py-1">
-              Sin servicios
+          {row.requiere_consultoria && (
+            <Badge bg="success" size="sm" className="px-1">
+              Cons
+            </Badge>
+          )}
+          {!row.requiere_laboratorio && !row.requiere_ingenieria && !row.requiere_consultoria && (
+            <Badge bg="secondary" size="sm" className="px-1">
+              N/A
             </Badge>
           )}
         </div>
@@ -602,20 +569,21 @@ export default function Proyectos() {
     {
       header: 'Prioridad',
       accessor: 'priority',
+      width: '100px',
       render: (value, row) => {
         const getPriorityDisplay = (priority) => {
           switch (priority) {
             case 'urgent':
-              return { emoji: '🔴', text: 'Urgente', color: 'text-danger', bgColor: 'bg-danger' };
+              return { emoji: '🔴', text: 'Urgente', color: 'text-danger' };
             case 'high':
-              return { emoji: '🟠', text: 'Alta', color: 'text-warning', bgColor: 'bg-warning' };
+              return { emoji: '🟠', text: 'Alta', color: 'text-warning' };
             case 'active':
-              return { emoji: '🔵', text: 'Activo', color: 'text-info', bgColor: 'bg-info' };
+              return { emoji: '🔵', text: 'Activo', color: 'text-info' };
             case 'low':
-              return { emoji: '🔵', text: 'Baja', color: 'text-primary', bgColor: 'bg-primary' };
+              return { emoji: '🔵', text: 'Baja', color: 'text-primary' };
             case 'normal':
             default:
-              return { emoji: '🟢', text: 'Normal', color: 'text-success', bgColor: 'bg-success' };
+              return { emoji: '🟢', text: 'Normal', color: 'text-success' };
           }
         };
 
@@ -623,66 +591,57 @@ export default function Proyectos() {
         
         return (
           <div className="d-flex align-items-center">
-            <span className="me-2" style={{ fontSize: '1.2em' }}>
+            <span className="me-1" style={{ fontSize: '1em' }}>
               {priorityInfo.emoji}
             </span>
             <span className={`small ${priorityInfo.color} fw-medium`}>
               {priorityInfo.text}
             </span>
-            {/* Indicador para proyectos de alta prioridad que requieren atención del laboratorio */}
             {(row.priority === 'urgent' || row.priority === 'high') && row.requiere_laboratorio && (
-              <span className="ms-2" title="Requiere atención prioritaria del laboratorio">
-                <FiAlertTriangle className="text-warning" size={14} />
-              </span>
+              <FiAlertTriangle className="text-warning ms-1" size={12} />
             )}
           </div>
         );
       }
     },
     {
-      header: 'Contacto',
-      accessor: 'contacto',
-      render: (value, row) => (
-        <div className="small">
-          {row.contact_name && (
-            <div><strong>{row.contact_name}</strong></div>
-          )}
-          {row.contact_phone && (
-            <div className="text-muted">{row.contact_phone}</div>
-          )}
-          {row.contact_email && (
-            <div className="text-muted">{row.contact_email}</div>
-          )}
-          {!row.contact_name && !row.contact_phone && !row.contact_email && (
-            <span className="text-muted">Sin contacto</span>
-          )}
-        </div>
-      )
-    },
-    {
       header: 'Asignado a',
       accessor: 'vendedor_name',
+      className: 'd-none d-md-table-cell', // Ocultar en pantallas muy pequeñas
       render: (value, row) => (
         <div>
           {row.vendedor_name && (
-            <div className="d-flex align-items-center">
-              <FiUser size={14} className="me-1 text-muted" />
+            <div className="small">
+              <FiUser size={12} className="me-1 text-muted" />
               <span>{row.vendedor_name}</span>
             </div>
           )}
           {row.laboratorio_name && (
-            <div className="d-flex align-items-center mt-1">
-              <FiHome size={14} className="me-1 text-muted" />
-              <span className="small text-muted">{row.laboratorio_name}</span>
+            <div className="small text-muted mt-1">
+              <FiHome size={12} className="me-1" />
+              <span>{row.laboratorio_name}</span>
             </div>
+          )}
+          {!row.vendedor_name && !row.laboratorio_name && (
+            <span className="text-muted small">Sin asignar</span>
           )}
         </div>
       )
     },
     {
-      header: 'Fecha Creación',
+      header: 'Fecha',
       accessor: 'created_at',
-      type: 'date'
+      width: '100px',
+      className: 'd-none d-xl-table-cell', // Solo mostrar en pantallas grandes
+      render: (value) => {
+        if (!value) return '-';
+        const date = new Date(value);
+        return (
+          <div className="small">
+            <div>{date.toLocaleDateString('es-ES')}</div>
+          </div>
+        );
+      }
     }
   ];
 
@@ -1054,680 +1013,629 @@ export default function Proyectos() {
                 onSelect={(k) => setActiveTab(k)}
                 className="mb-3"
               >
-                {/* Tab Ver */}
-                <Tab eventKey="view" title={
+                {/* Tab Información General */}
+                <Tab eventKey="info" title={
                   <span>
-                    <FiEye className="me-1" />
-                    Ver
+                    <FiHome className="me-1" />
+                    Información
                   </span>
                 }>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <div className="border rounded p-3 h-100">
-                        <h6 className="text-primary mb-3">
-                          <FiHome className="me-2" />
-                          Datos Generales
-                        </h6>
-                        <div className="mb-2">
-                          <strong>ID:</strong> {project.id}
+                  <style>{`
+                    .info-item {
+                      margin-bottom: 1rem;
+                    }
+                    .info-item label {
+                      font-size: 0.75rem;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      display: block;
+                      margin-bottom: 0.25rem;
+                    }
+                    .service-status {
+                      padding: 0.5rem 0;
+                      border-bottom: 1px solid #eee;
+                    }
+                    .service-status:last-child {
+                      border-bottom: none;
+                    }
+                    .upload-area:hover {
+                      background-color: #e9ecef !important;
+                      border-color: #007bff !important;
+                    }
+                  `}</style>
+                  <div className="row g-4">
+                    {/* Información Principal */}
+                    <div className="col-lg-8">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-primary text-white">
+                          <h6 className="mb-0">
+                            <FiHome className="me-2" />
+                            {project.name}
+                          </h6>
                         </div>
-                        <div className="mb-2">
-                          <strong>Nombre:</strong> {project.name}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Ubicación:</strong> {project.location}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Tipo:</strong> 
-                          <Badge bg="info" className="ms-2">{project.project_type}</Badge>
-                        </div>
-                        <div className="mb-2">
-                          <strong>Estado:</strong> 
-                          <Badge bg="primary" className="ms-2">{project.status}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="border rounded p-3 h-100">
-                        <h6 className="text-success mb-3">
-                          <FiUser className="me-2" />
-                          Información de Contacto
-                        </h6>
-                        <div className="mb-2">
-                          <strong>Empresa:</strong> {project.company_name}
-                        </div>
-                        <div className="mb-2">
-                          <strong>RUC:</strong> {project.company_ruc}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Contacto:</strong> {project.contact_name || 'Sin contacto'}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Teléfono:</strong> {project.contact_phone || 'Sin teléfono'}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Email:</strong> {project.contact_email || 'Sin email'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="border rounded p-3 h-100">
-                        <h6 className="text-warning mb-3">
-                          <FiSettings className="me-2" />
-                          Servicios Requeridos
-                        </h6>
-                        <div className="mb-2">
-                          <strong>Laboratorio:</strong> 
-                          {project.requiere_laboratorio ? (
-                            <Badge bg="info" className="ms-2">Requerido</Badge>
-                          ) : (
-                            <Badge bg="secondary" className="ms-2">No requerido</Badge>
-                          )}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Ingeniería:</strong> 
-                          {project.requiere_ingenieria ? (
-                            <Badge bg="success" className="ms-2">Requerido</Badge>
-                          ) : (
-                            <Badge bg="secondary" className="ms-2">No requerido</Badge>
-                          )}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Estado Lab:</strong> 
-                          <Badge bg="info" className="ms-2">{project.laboratorio_status}</Badge>
-                        </div>
-                        <div className="mb-2">
-                          <strong>Estado Ing:</strong> 
-                          <Badge bg="success" className="ms-2">{project.ingenieria_status}</Badge>
+                        <div className="card-body">
+                          <div className="row g-3">
+                            <div className="col-md-6">
+                              <div className="info-item">
+                                <label className="text-muted small">ID del Proyecto</label>
+                                <p className="fw-bold mb-2">#{project.id}</p>
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="info-item">
+                                <label className="text-muted small">Ubicación</label>
+                                <p className="mb-2">{project.location}</p>
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="info-item">
+                                <label className="text-muted small">Estado Actual</label>
+                                <div>
+                                  <Badge bg="primary" className="fs-6">{project.status}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="info-item">
+                                <label className="text-muted small">Tipo de Proyecto</label>
+                                <div>
+                                  <Badge bg="info" className="fs-6">{project.project_type}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="col-md-6">
-                      <div className="border rounded p-3 h-100">
-                        <h6 className="text-info mb-3">
-                          <FiUsers className="me-2" />
-                          Asignaciones
-                        </h6>
-                        <div className="mb-2">
-                          <strong>Vendedor:</strong> {project.vendedor_name || 'Sin asignar'}
+
+                    {/* Panel de Estado */}
+                    <div className="col-lg-4">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-success text-white">
+                          <h6 className="mb-0">
+                            <FiSettings className="me-2" />
+                            Estado de Servicios
+                          </h6>
                         </div>
-                        <div className="mb-2">
-                          <strong>Laboratorio:</strong> {project.laboratorio_name || 'Sin asignar'}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Fecha Creación:</strong> {new Date(project.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="mb-2">
-                          <strong>Última Actualización:</strong> {new Date(project.updated_at).toLocaleDateString()}
+                        <div className="card-body">
+                          <div className="service-status mb-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <span className="text-muted">Laboratorio</span>
+                              {project.requiere_laboratorio ? (
+                                <Badge bg="info">Requerido</Badge>
+                              ) : (
+                                <Badge bg="secondary">No requerido</Badge>
+                              )}
+                            </div>
+                            {project.requiere_laboratorio && (
+                              <small className="text-muted">Estado: {project.laboratorio_status}</small>
+                            )}
+                          </div>
+                          
+                          <div className="service-status">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <span className="text-muted">Ingeniería</span>
+                              {project.requiere_ingenieria ? (
+                                <Badge bg="success">Requerido</Badge>
+                              ) : (
+                                <Badge bg="secondary">No requerido</Badge>
+                              )}
+                            </div>
+                            {project.requiere_ingenieria && (
+                              <small className="text-muted">Estado: {project.ingenieria_status}</small>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Información de Contacto */}
+                    <div className="col-12">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-info text-white">
+                          <h6 className="mb-0">
+                            <FiUser className="me-2" />
+                            Información de Contacto y Asignaciones
+                          </h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row g-3">
+                            <div className="col-md-3">
+                              <label className="text-muted small">Empresa</label>
+                              <p className="mb-2 fw-semibold">{project.company_name}</p>
+                            </div>
+                            <div className="col-md-3">
+                              <label className="text-muted small">RUC</label>
+                              <p className="mb-2">{project.company_ruc}</p>
+                            </div>
+                            <div className="col-md-3">
+                              <label className="text-muted small">Contacto</label>
+                              <p className="mb-2">{project.contact_name || 'Sin contacto'}</p>
+                            </div>
+                            <div className="col-md-3">
+                              <label className="text-muted small">Teléfono</label>
+                              <p className="mb-2">{project.contact_phone || 'Sin teléfono'}</p>
+                            </div>
+                            <div className="col-md-4">
+                              <label className="text-muted small">Email</label>
+                              <p className="mb-2">{project.contact_email || 'Sin email'}</p>
+                            </div>
+                            <div className="col-md-4">
+                              <label className="text-muted small">Vendedor Asignado</label>
+                              <p className="mb-2">{project.vendedor_name || 'Sin asignar'}</p>
+                            </div>
+                            <div className="col-md-4">
+                              <label className="text-muted small">Responsable Laboratorio</label>
+                              <p className="mb-2">{project.laboratorio_name || 'Sin asignar'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notas del Estado */}
                     {project.status_notes && (
                       <div className="col-12">
-                        <div className="border rounded p-3">
-                          <h6 className="text-muted mb-3">
-                            <FiMessageCircle className="me-2" />
-                            Notas del Estado
-                          </h6>
-                          <p className="mb-0">{project.status_notes}</p>
+                        <div className="card border-0 shadow-sm">
+                          <div className="card-header bg-warning text-dark">
+                            <h6 className="mb-0">
+                              <FiMessageCircle className="me-2" />
+                              Notas del Estado
+                            </h6>
+                          </div>
+                          <div className="card-body">
+                            <p className="mb-0">{project.status_notes}</p>
+                          </div>
                         </div>
                       </div>
                     )}
-                  </div>
-                </Tab>
 
-                {/* Tab Editar */}
-                <Tab eventKey="edit" title={
-                  <span>
-                    <FiEdit className="me-1" />
-                    Editar
-                  </span>
-                }>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Nombre del Proyecto</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          value={editingData.name || ''} 
-                          onChange={(e) => setEditingData({...editingData, name: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Ubicación</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          value={editingData.location || ''} 
-                          onChange={(e) => setEditingData({...editingData, location: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Persona de Contacto</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          value={editingData.contact_name || ''} 
-                          onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Teléfono de Contacto</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          value={editingData.contact_phone || ''} 
-                          onChange={(e) => setEditingData({...editingData, contact_phone: e.target.value})}
-                        />
-                      </div>
-                    </div>
+                    {/* Fechas */}
                     <div className="col-12">
-                      <div className="mb-3">
-                        <label className="form-label">Email de Contacto</label>
-                        <input 
-                          type="email" 
-                          className="form-control" 
-                          value={editingData.contact_email || ''} 
-                          onChange={(e) => setEditingData({...editingData, contact_email: e.target.value})}
-                        />
+                      <div className="row g-3">
+                        <div className="col-md-6">
+                          <div className="text-center">
+                            <FiCalendar className="text-muted mb-2" size={20} />
+                            <p className="text-muted small mb-1">Fecha de Creación</p>
+                            <p className="fw-semibold">{new Date(project.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="text-center">
+                            <FiClock className="text-muted mb-2" size={20} />
+                            <p className="text-muted small mb-1">Última Actualización</p>
+                            <p className="fw-semibold">{new Date(project.updated_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-12">
-                      <Button 
-                        variant="primary" 
-                        onClick={() => {
-                          const projectId = selectedProject?.id;
-                          
-                          if (!projectId) {
-                            console.error('No se encontró el ID del proyecto');
-                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                            return;
-                          }
-                          
-                          // Asegurar que projectId sea un número
-                          const numericId = typeof projectId === 'object' ? projectId.id : projectId;
-                          
-                          // Llamar a la mutación con manejo de respuesta
-                          updateMutation.mutate({ 
-                            id: numericId, 
-                            data: editingData
-                          }, {
-                            onSuccess: (data) => {
-                              showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-                            },
-                            onError: (error) => {
-                              console.error('❌ Guardar Cambios - Error:', error);
-                              showNotification('❌ Error al actualizar proyecto', 'danger');
-                            }
-                          });
-                        }}
-                        disabled={updateMutation.isLoading}
-                      >
-                        {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
-                      </Button>
                     </div>
                   </div>
                 </Tab>
 
-                {/* Tab Estado */}
-                <Tab eventKey="status" title={
+                {/* Tab Configuración */}
+                <Tab eventKey="config" title={
                   <span>
                     <FiSettings className="me-1" />
-                    Estado
+                    Configuración
                   </span>
                 }>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Estado del Proyecto</label>
-                        <select 
-                          className="form-select" 
-                          value={editingData.status || ''} 
-                          onChange={(e) => setEditingData({...editingData, status: e.target.value})}
-                        >
-                          <option value="pendiente">Pendiente</option>
-                          <option value="activo">Activo</option>
-                          <option value="en_proceso">En Proceso</option>
-                          <option value="completado">Completado</option>
-                          <option value="pausado">Pausado</option>
-                          <option value="cancelado">Cancelado</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Estado del Laboratorio</label>
-                        <select 
-                          className="form-select" 
-                          value={editingData.laboratorio_status || ''} 
-                          onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
-                        >
-                          <option value="no_requerido">No Requerido</option>
-                          <option value="pendiente">Pendiente</option>
-                          <option value="en_proceso">En Proceso</option>
-                          <option value="completado">Completado</option>
-                          <option value="pausado">Pausado</option>
-                          <option value="cancelado">Cancelado</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Estado de Ingeniería</label>
-                        <select 
-                          className="form-select" 
-                          value={editingData.ingenieria_status || ''} 
-                          onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
-                        >
-                          <option value="no_requerido">No Requerido</option>
-                          <option value="pendiente">Pendiente</option>
-                          <option value="en_proceso">En Proceso</option>
-                          <option value="completado">Completado</option>
-                          <option value="pausado">Pausado</option>
-                          <option value="cancelado">Cancelado</option>
-                        </select>
-                      </div>
-                    </div>
+                  <div className="row g-4">
+                    {/* Información Básica */}
                     <div className="col-12">
-                      <div className="mb-3">
-                        <label className="form-label">Notas del Estado</label>
-                        <textarea 
-                          className="form-control" 
-                          rows="3"
-                          value={editingData.status_notes || ''} 
-                          onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
-                          placeholder="Agrega comentarios sobre el cambio de estado..."
-                        />
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <Button 
-                        variant="success" 
-                        onClick={() => {
-                          const projectId = selectedProject?.id;
-                          if (!projectId) {
-                            console.error('No se encontró el ID del proyecto');
-                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                            return;
-                          }
-                          
-                          updateStatusMutation.mutate({ id: projectId, ...editingData }, {
-                            onSuccess: (data) => {
-                              console.log('✅ Actualizar Estado - Éxito:', data);
-                              showNotification('✅ Estado actualizado correctamente!', 'success');
-                            },
-                            onError: (error) => {
-                              console.error('❌ Actualizar Estado - Error:', error);
-                              showNotification('❌ Error al actualizar estado', 'danger');
-                            }
-                          });
-                        }}
-                        disabled={updateStatusMutation.isLoading}
-                      >
-                        {updateStatusMutation.isLoading ? 'Actualizando...' : 'Actualizar Estado'}
-                      </Button>
-                    </div>
-                  </div>
-                </Tab>
-
-                {/* Tab Categorías */}
-                <Tab eventKey="categories" title={
-                  <span>
-                    <FiFolder className="me-1" />
-                    Categorías
-                  </span>
-                }>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <h6 className="mb-3">Categorías del Proyecto</h6>
-                      <div className="form-check">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          id="cat_laboratorio"
-                          checked={editingData.requiere_laboratorio || false}
-                          onChange={(e) => {
-                            console.log('🔍 requiere_laboratorio onChange:', e.target.checked);
-                            setEditingData({...editingData, requiere_laboratorio: e.target.checked});
-                          }}
-                        />
-                        <label className="form-check-label" htmlFor="cat_laboratorio">
-                          Laboratorio
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          id="cat_ingenieria"
-                          checked={editingData.requiere_ingenieria || false}
-                          onChange={(e) => setEditingData({...editingData, requiere_ingenieria: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="cat_ingenieria">
-                          Ingeniería
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          id="cat_consultoria"
-                          checked={editingData.requiere_consultoria || false}
-                          onChange={(e) => setEditingData({...editingData, requiere_consultoria: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="cat_consultoria">
-                          Consultoría
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          id="cat_capacitacion"
-                          checked={editingData.requiere_capacitacion || false}
-                          onChange={(e) => setEditingData({...editingData, requiere_capacitacion: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="cat_capacitacion">
-                          Capacitación
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          id="cat_auditoria"
-                          checked={editingData.requiere_auditoria || false}
-                          onChange={(e) => setEditingData({...editingData, requiere_auditoria: e.target.checked})}
-                        />
-                        <label className="form-check-label" htmlFor="cat_auditoria">
-                          Auditoría
-                        </label>
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <Button 
-                        variant="info" 
-                        onClick={() => {
-                          const projectId = selectedProject?.id;
-                          if (!projectId) {
-                            console.error('No se encontró el ID del proyecto');
-                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                            return;
-                          }
-                          
-                          updateCategoriesMutation.mutate({ 
-                            id: projectId, 
-                            requiere_laboratorio: editingData.requiere_laboratorio || false,
-                            requiere_ingenieria: editingData.requiere_ingenieria || false,
-                            requiere_consultoria: editingData.requiere_consultoria || false,
-                            requiere_capacitacion: editingData.requiere_capacitacion || false,
-                            requiere_auditoria: editingData.requiere_auditoria || false
-                          }, {
-                            onSuccess: (data) => {
-                              console.log('✅ Guardar Categorías - Éxito:', data);
-                              showNotification('✅ Categorías guardadas correctamente!', 'success');
-                            },
-                            onError: (error) => {
-                              console.error('❌ Guardar Categorías - Error:', error);
-                              showNotification('❌ Error al guardar categorías', 'danger');
-                            }
-                          });
-                        }}
-                        disabled={updateCategoriesMutation.isLoading}
-                      >
-                        {updateCategoriesMutation.isLoading ? 'Guardando...' : 'Guardar Categorías'}
-                      </Button>
-                    </div>
-                  </div>
-                </Tab>
-
-                {/* Tab Consultas */}
-                <Tab eventKey="queries" title={
-                  <span>
-                    <FiMessageCircle className="me-1" />
-                    Consultas
-                  </span>
-                }>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <div className="mb-3">
-                        <label className="form-label">Consultas y Dudas del Cliente</label>
-                        <textarea 
-                          className="form-control" 
-                          rows="8"
-                          value={editingData.queries || ''} 
-                          onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
-                          placeholder="Ingresa las consultas o dudas del cliente..."
-                        />
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <Button 
-                        variant="warning"
-                        onClick={() => {
-                          const projectId = selectedProject?.id;
-                          if (!projectId) {
-                            console.error('No se encontró el ID del proyecto');
-                            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                            return;
-                          }
-                          
-                          updateQueriesMutation.mutate({ 
-                            id: projectId, 
-                            queries: editingData.queries || ''
-                          }, {
-                            onSuccess: (data) => {
-                              console.log('✅ Guardar Consultas - Éxito:', data);
-                              showNotification('✅ Consultas guardadas correctamente!', 'success');
-                            },
-                            onError: (error) => {
-                              console.error('❌ Guardar Consultas - Error:', error);
-                              showNotification('❌ Error al guardar consultas', 'danger');
-                            }
-                          });
-                        }}
-                        disabled={updateQueriesMutation.isLoading}
-                      >
-                        {updateQueriesMutation.isLoading ? 'Guardando...' : 'Guardar Consultas'}
-                      </Button>
-                    </div>
-                  </div>
-                </Tab>
-
-                {/* Tab Marcar */}
-                <Tab eventKey="mark" title={
-                  <span>
-                    <FiCheck className="me-1" />
-                    Marcar
-                  </span>
-                }>
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <div className="text-center">
-                        <h6 className="mb-3">Marcar Proyecto</h6>
-                        <p className="text-muted mb-4">
-                          Marca este proyecto para seguimiento especial o prioridad alta.
-                        </p>
-                        <div className="mb-3">
-                          <label className="form-label">Prioridad</label>
-                          <select 
-                            className="form-select" 
-                            value={editingData.priority || 'normal'} 
-                            onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
-                          >
-                            <option value="low">Baja</option>
-                            <option value="normal">Normal</option>
-                            <option value="active">Activo</option>
-                            <option value="high">Alta</option>
-                            <option value="urgent">Urgente</option>
-                          </select>
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-primary text-white">
+                          <h6 className="mb-0">
+                            <FiEdit className="me-2" />
+                            Información Básica del Proyecto
+                          </h6>
                         </div>
+                        <div className="card-body">
+                          <div className="row g-3">
+                            <div className="col-md-6">
+                              <label className="form-label">Nombre del Proyecto</label>
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                value={editingData.name || ''} 
+                                onChange={(e) => setEditingData({...editingData, name: e.target.value})}
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label">Ubicación</label>
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                value={editingData.location || ''} 
+                                onChange={(e) => setEditingData({...editingData, location: e.target.value})}
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label">Persona de Contacto</label>
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                value={editingData.contact_name || ''} 
+                                onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label">Teléfono de Contacto</label>
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                value={editingData.contact_phone || ''} 
+                                onChange={(e) => setEditingData({...editingData, contact_phone: e.target.value})}
+                              />
+                            </div>
+                            <div className="col-12">
+                              <label className="form-label">Email de Contacto</label>
+                              <input 
+                                type="email" 
+                                className="form-control" 
+                                value={editingData.contact_email || ''} 
+                                onChange={(e) => setEditingData({...editingData, contact_email: e.target.value})}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Estados del Proyecto */}
+                    <div className="col-md-6">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-success text-white">
+                          <h6 className="mb-0">
+                            <FiSettings className="me-2" />
+                            Estados del Proyecto
+                          </h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="mb-3">
+                            <label className="form-label">Estado Principal</label>
+                            <select 
+                              className="form-select" 
+                              value={editingData.status || ''} 
+                              onChange={(e) => setEditingData({...editingData, status: e.target.value})}
+                            >
+                              <option value="pendiente">Pendiente</option>
+                              <option value="activo">Activo</option>
+                              <option value="en_proceso">En Proceso</option>
+                              <option value="completado">Completado</option>
+                              <option value="pausado">Pausado</option>
+                              <option value="cancelado">Cancelado</option>
+                            </select>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">Prioridad</label>
+                            <select 
+                              className="form-select" 
+                              value={editingData.priority || 'normal'} 
+                              onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
+                            >
+                              <option value="low">🟢 Baja</option>
+                              <option value="normal">🔵 Normal</option>
+                              <option value="high">🟠 Alta</option>
+                              <option value="urgent">🔴 Urgente</option>
+                            </select>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">Estado Laboratorio</label>
+                            <select 
+                              className="form-select" 
+                              value={editingData.laboratorio_status || ''} 
+                              onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
+                            >
+                              <option value="no_requerido">No Requerido</option>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="en_proceso">En Proceso</option>
+                              <option value="completado">Completado</option>
+                            </select>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">Estado Ingeniería</label>
+                            <select 
+                              className="form-select" 
+                              value={editingData.ingenieria_status || ''} 
+                              onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
+                            >
+                              <option value="no_requerido">No Requerido</option>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="en_proceso">En Proceso</option>
+                              <option value="completado">Completado</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Servicios y Consultas */}
+                    <div className="col-md-6">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-info text-white">
+                          <h6 className="mb-0">
+                            <FiFolder className="me-2" />
+                            Servicios Requeridos
+                          </h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="form-check mb-2">
+                            <input 
+                              className="form-check-input" 
+                              type="checkbox" 
+                              id="cat_laboratorio"
+                              checked={editingData.requiere_laboratorio || false}
+                              onChange={(e) => setEditingData({...editingData, requiere_laboratorio: e.target.checked})}
+                            />
+                            <label className="form-check-label" htmlFor="cat_laboratorio">
+                              🧪 Laboratorio
+                            </label>
+                          </div>
+                          <div className="form-check mb-2">
+                            <input 
+                              className="form-check-input" 
+                              type="checkbox" 
+                              id="cat_ingenieria"
+                              checked={editingData.requiere_ingenieria || false}
+                              onChange={(e) => setEditingData({...editingData, requiere_ingenieria: e.target.checked})}
+                            />
+                            <label className="form-check-label" htmlFor="cat_ingenieria">
+                              ⚙️ Ingeniería
+                            </label>
+                          </div>
+                          <div className="form-check mb-2">
+                            <input 
+                              className="form-check-input" 
+                              type="checkbox" 
+                              id="cat_consultoria"
+                              checked={editingData.requiere_consultoria || false}
+                              onChange={(e) => setEditingData({...editingData, requiere_consultoria: e.target.checked})}
+                            />
+                            <label className="form-check-label" htmlFor="cat_consultoria">
+                              💼 Consultoría
+                            </label>
+                          </div>
+                          <div className="form-check mb-2">
+                            <input 
+                              className="form-check-input" 
+                              type="checkbox" 
+                              id="cat_capacitacion"
+                              checked={editingData.requiere_capacitacion || false}
+                              onChange={(e) => setEditingData({...editingData, requiere_capacitacion: e.target.checked})}
+                            />
+                            <label className="form-check-label" htmlFor="cat_capacitacion">
+                              📚 Capacitación
+                            </label>
+                          </div>
+                          <div className="form-check mb-3">
+                            <input 
+                              className="form-check-input" 
+                              type="checkbox" 
+                              id="cat_auditoria"
+                              checked={editingData.requiere_auditoria || false}
+                              onChange={(e) => setEditingData({...editingData, requiere_auditoria: e.target.checked})}
+                            />
+                            <label className="form-check-label" htmlFor="cat_auditoria">
+                              📋 Auditoría
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notas y Consultas */}
+                    <div className="col-12">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-warning text-dark">
+                          <h6 className="mb-0">
+                            <FiMessageCircle className="me-2" />
+                            Notas y Consultas
+                          </h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="row g-3">
+                            <div className="col-md-6">
+                              <label className="form-label">Notas del Estado</label>
+                              <textarea 
+                                className="form-control" 
+                                rows="4"
+                                value={editingData.status_notes || ''} 
+                                onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
+                                placeholder="Agrega comentarios sobre el estado del proyecto..."
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label">Consultas del Cliente</label>
+                              <textarea 
+                                className="form-control" 
+                                rows="4"
+                                value={editingData.queries || ''} 
+                                onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
+                                placeholder="Consultas y dudas del cliente..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botón de Guardar */}
+                    <div className="col-12">
+                      <div className="d-flex justify-content-end gap-2">
                         <Button 
-                          variant="success" 
+                          variant="outline-secondary" 
+                          onClick={() => setShowViewModal(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          variant="primary" 
                           size="lg"
                           onClick={() => {
                             const projectId = selectedProject?.id;
+                            
                             if (!projectId) {
                               console.error('No se encontró el ID del proyecto');
                               showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                               return;
                             }
                             
-                            updateMarkMutation.mutate({ 
+                            // Llamar a la mutación con todos los datos
+                            updateMutation.mutate({ 
                               id: projectId, 
-                              marked: !editingData.marked,
-                              priority: editingData.priority || 'normal'
+                              data: editingData
                             }, {
                               onSuccess: (data) => {
-                                console.log('✅ Marcar Proyecto - Éxito:', data);
-                                const action = editingData.marked ? 'desmarcado' : 'marcado';
-                                showNotification(`✅ Proyecto ${action} correctamente!`, 'success');
+                                showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+                                setShowViewModal(false);
                               },
                               onError: (error) => {
-                                console.error('❌ Marcar Proyecto - Error:', error);
-                                showNotification('❌ Error al marcar proyecto', 'danger');
+                                console.error('❌ Error al actualizar:', error);
+                                showNotification('❌ Error al actualizar proyecto', 'danger');
                               }
                             });
                           }}
-                          disabled={updateMarkMutation.isLoading}
+                          disabled={updateMutation.isLoading}
+                          className="px-4"
                         >
-                          <FiCheck className="me-2" />
-                          {updateMarkMutation.isLoading ? 'Procesando...' : (editingData.marked ? 'Desmarcar Proyecto' : 'Marcar Proyecto')}
+                          <FiSave className="me-2" />
+                          {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
                         </Button>
                       </div>
                     </div>
                   </div>
                 </Tab>
 
-                {/* Tab Adjuntos */}
-                <Tab eventKey="attachments" title={
+                {/* Tab Archivos */}
+                <Tab eventKey="files" title={
                   <span>
                     <FiFolder className="me-1" />
-                    Adjuntos
+                    Archivos
                   </span>
                 }>
-                  <div className="row g-3">
+                  <div className="row g-4">
+                    {/* Subir Archivo */}
                     <div className="col-12">
-                      <h6 className="mb-3">Gestión de Archivos</h6>
-                      
-                      {/* Subir archivo */}
-                      <div className="card mb-4">
-                        <div className="card-header">
-                          <h6 className="mb-0">Subir Nuevo Archivo</h6>
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-primary text-white d-flex align-items-center">
+                          <FiUpload className="me-2" />
+                          <h6 className="mb-0">Subir Archivo</h6>
                         </div>
                         <div className="card-body">
-                          <div className="mb-3">
-                            <label className="form-label">Seleccionar Archivo</label>
-                            <input 
-                              type="file" 
-                              className="form-control" 
-                              onChange={handleFileSelect}
-                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
-                            />
-                            <div className="form-text">
-                              Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, TXT (máx. 10MB)
+                          <div className="upload-area border-2 border-dashed rounded p-4 text-center mb-3" 
+                               style={{borderColor: '#dee2e6', backgroundColor: '#f8f9fa'}}>
+                            <FiFolder size={32} className="text-muted mb-2" />
+                            <div className="mb-2">
+                              <input 
+                                type="file" 
+                                className="form-control" 
+                                onChange={handleFileSelect}
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                              />
                             </div>
+                            <small className="text-muted">
+                              📁 PDF, Word, Excel, PowerPoint, Imágenes, TXT (máx. 10MB)
+                            </small>
                           </div>
+                          
                           {selectedFile && (
-                            <div className="mb-3">
-                              <div className="alert alert-info">
-                                <strong>Archivo seleccionado:</strong> {selectedFile.name} 
+                            <div className="alert alert-info d-flex align-items-center">
+                              <FiFileText className="me-2" />
+                              <div>
+                                <strong>{selectedFile.name}</strong>
                                 <br />
-                                <small>Tamaño: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
+                                <small>📏 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
                               </div>
                             </div>
                           )}
-                          <Button 
-                            variant="primary" 
-                            onClick={handleFileUpload}
-                            disabled={!selectedFile || uploadingFile}
-                          >
-                            {uploadingFile ? 'Subiendo...' : 'Subir Archivo'}
-                          </Button>
+                          
+                          <div className="d-flex justify-content-end">
+                            <Button 
+                              variant="primary" 
+                              onClick={handleFileUpload}
+                              disabled={!selectedFile || uploadingFile}
+                              className="px-4"
+                            >
+                              <FiUpload className="me-2" />
+                              {uploadingFile ? 'Subiendo...' : 'Subir Archivo'}
+                            </Button>
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Lista de archivos */}
-                      <div className="card">
-                        <div className="card-header">
-                          <h6 className="mb-0">Archivos Adjuntos ({attachments.length})</h6>
+                    {/* Lista de Archivos */}
+                    <div className="col-12">
+                      <div className="card border-0 shadow-sm">
+                        <div className="card-header bg-info text-white d-flex align-items-center justify-content-between">
+                          <div className="d-flex align-items-center">
+                            <FiFolder className="me-2" />
+                            <h6 className="mb-0">Archivos del Proyecto</h6>
+                          </div>
+                          <Badge bg="light" text="dark" className="px-3 py-2">
+                            {attachments.length} archivo{attachments.length !== 1 ? 's' : ''}
+                          </Badge>
                         </div>
                         <div className="card-body">
                           {attachments.length === 0 ? (
-                            <div className="text-center text-muted py-4">
-                              <FiFolder size={48} className="mb-3" />
-                              <p>No hay archivos adjuntos</p>
-                              <small>Sube archivos como cotizaciones, documentos técnicos, etc.</small>
+                            <div className="text-center py-5">
+                              <FiFolder size={48} className="text-muted mb-3" />
+                              <h6 className="text-muted">No hay archivos adjuntos</h6>
+                              <p className="text-muted small">
+                                📎 Sube cotizaciones, documentos técnicos, planos, etc.
+                              </p>
                             </div>
                           ) : (
-                            <div className="table-responsive">
-                              <table className="table table-hover">
-                                <thead>
-                                  <tr>
-                                    <th>Archivo</th>
-                                    <th>Tamaño</th>
-                                    <th>Fecha</th>
-                                    <th>Subido por</th>
-                                    <th>Acciones</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {attachments.map((attachment) => (
-                                    <tr key={attachment.id}>
-                                      <td>
-                                        <div>
-                                          <strong>{attachment.original_name}</strong>
+                            <div className="row g-3">
+                              {attachments.map((attachment) => (
+                                <div key={attachment.id} className="col-lg-6">
+                                  <div className="card border h-100">
+                                    <div className="card-body p-3">
+                                      <div className="d-flex align-items-start">
+                                        <div className="me-3">
+                                          <FiFileText size={24} className="text-primary" />
+                                        </div>
+                                        <div className="flex-grow-1">
+                                          <h6 className="mb-1">{attachment.original_name}</h6>
+                                          <div className="small text-muted mb-2">
+                                            📏 {attachment.file_size ? 
+                                              `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 
+                                              'N/A'
+                                            }
+                                            <span className="mx-2">•</span>
+                                            📅 {new Date(attachment.created_at).toLocaleDateString()}
+                                          </div>
+                                          <div className="small text-muted mb-3">
+                                            👤 {attachment.uploaded_by_name || 'Usuario'}
+                                          </div>
                                           {attachment.description && (
-                                            <>
-                                              <br/>
-                                              <small className="text-muted">{attachment.description}</small>
-                                            </>
+                                            <p className="small text-muted">{attachment.description}</p>
                                           )}
                                         </div>
-                                      </td>
-                                      <td>
-                                        {attachment.file_size ? 
-                                          `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 
-                                          'N/A'
-                                        }
-                                      </td>
-                                      <td>
-                                        {new Date(attachment.created_at).toLocaleDateString()}
-                                      </td>
-                                      <td>
-                                        {attachment.uploaded_by_name || 'Usuario'}
-                                      </td>
-                                      <td>
-                                        <div className="btn-group btn-group-sm">
-                                          <Button 
-                                            variant="outline-primary" 
-                                            size="sm"
-                                            onClick={() => handleFileDownload(attachment)}
-                                            title="Descargar"
-                                          >
-                                            <FiDownload size={14} />
-                                          </Button>
-                                          <Button 
-                                            variant="outline-danger" 
-                                            size="sm"
-                                            onClick={() => handleFileDelete(attachment.id)}
-                                            title="Eliminar"
-                                          >
-                                            <FiTrash2 size={14} />
-                                          </Button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                      </div>
+                                      <div className="d-flex gap-2 mt-3">
+                                        <Button 
+                                          variant="outline-primary" 
+                                          size="sm"
+                                          onClick={() => handleFileDownload(attachment)}
+                                          className="flex-grow-1"
+                                        >
+                                          <FiDownload className="me-1" size={14} />
+                                          Descargar
+                                        </Button>
+                                        <Button 
+                                          variant="outline-danger" 
+                                          size="sm"
+                                          onClick={() => handleFileDelete(attachment.id)}
+                                        >
+                                          <FiTrash2 size={14} />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -1837,6 +1745,42 @@ export default function Proyectos() {
           </div>
         </div>
       )}
+
+      {/* Modales de confirmación */}
+      <ConfirmModal
+        show={!!deletingProject}
+        onHide={() => setDeletingProject(null)}
+        onConfirm={confirmDelete}
+        title="Eliminar Proyecto"
+        message={`¿Estás seguro de que quieres eliminar el proyecto "${deletingProject?.name}"?`}
+        confirmText="Eliminar"
+        variant="danger"
+        isLoading={deleteMutation.isLoading}
+        alertMessage="Esta acción eliminará permanentemente el proyecto y todos sus datos asociados."
+        alertVariant="danger"
+      />
+
+      <ConfirmModal
+        show={!!deletingFile}
+        onHide={() => setDeletingFile(null)}
+        onConfirm={confirmFileDelete}
+        title="Eliminar Archivo"
+        message="¿Estás seguro de que quieres eliminar este archivo?"
+        confirmText="Eliminar"
+        variant="danger"
+        alertMessage="El archivo se eliminará permanentemente y no se puede recuperar."
+        alertVariant="warning"
+      />
+
+      <ConfirmModal
+        show={!!markingProject}
+        onHide={() => setMarkingProject(null)}
+        onConfirm={confirmToggleMark}
+        title={`${markingProject?.marked ? 'Desmarcar' : 'Marcar'} Proyecto`}
+        message={`¿Estás seguro de que quieres ${markingProject?.marked ? 'desmarcar' : 'marcar'} el proyecto "${markingProject?.name}"?`}
+        confirmText={markingProject?.marked ? 'Desmarcar' : 'Marcar'}
+        variant={markingProject?.marked ? 'warning' : 'success'}
+      />
     </>
   );
 };
