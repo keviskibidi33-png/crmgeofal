@@ -142,20 +142,32 @@ exports.getExecutiveSummary = async (req, res) => {
   try {
     const query = `
       SELECT 
-        COUNT(CASE WHEN q.status = 'aprobada' THEN 1 END) as approved_quotes,
-        COUNT(CASE WHEN q.status = 'facturada' THEN 1 END) as invoiced_quotes,
-        COALESCE(SUM(CASE WHEN q.status = 'aprobada' THEN q.total ELSE 0 END), 0) as approved_amount,
-        COALESCE(SUM(CASE WHEN q.status = 'facturada' THEN q.total ELSE 0 END), 0) as invoiced_amount,
-        COALESCE(AVG(CASE WHEN q.status = 'aprobada' THEN q.total END), 0) as average_approved_amount,
-        COALESCE(AVG(CASE WHEN q.status = 'facturada' THEN q.total END), 0) as average_invoiced_amount,
+        COUNT(DISTINCT fm.quote_id) as approved_quotes,
+        COUNT(DISTINCT fm.quote_id) as invoiced_quotes,
+        COALESCE(SUM(fm.real_amount_paid), 0) as approved_amount,
+        COALESCE(SUM(fm.real_amount_paid), 0) as invoiced_amount,
+        COALESCE(SUM(fm.real_amount_paid) / COUNT(DISTINCT fm.quote_id), 0) as average_approved_amount,
+        COALESCE(SUM(fm.real_amount_paid) / COUNT(DISTINCT fm.quote_id), 0) as average_invoiced_amount,
         COUNT(DISTINCT q.created_by) as active_salespeople,
         COUNT(DISTINCT q.project_id) as unique_projects
-      FROM quotes q
-      WHERE q.created_at >= NOW() - INTERVAL '3 months'
+      FROM funnel_metrics fm
+      LEFT JOIN quotes q ON fm.quote_id = q.id
+      WHERE fm.real_amount_paid > 0
     `;
     
     const result = await pool.query(query);
-    res.json(result.rows[0]);
+    
+    // Forzar redondeo de decimales
+    const summary = result.rows[0];
+    const processedSummary = {
+      ...summary,
+      approved_amount: parseFloat(summary.approved_amount).toFixed(2),
+      invoiced_amount: parseFloat(summary.invoiced_amount).toFixed(2),
+      average_approved_amount: parseFloat(summary.average_approved_amount).toFixed(2),
+      average_invoiced_amount: parseFloat(summary.average_invoiced_amount).toFixed(2)
+    };
+    
+    res.json(processedSummary);
   } catch (error) {
     console.error('Error getting executive summary:', error);
     res.status(500).json({ error: 'Error obteniendo resumen ejecutivo' });
@@ -225,7 +237,7 @@ exports.getCategoryRanking = async (req, res) => {
         COUNT(*) as total_items,
         COUNT(DISTINCT quote_id) as total_quotes,
         COALESCE(SUM(real_amount_paid), 0) as total_money,
-        COALESCE(AVG(real_amount_paid), 0) as average_money_per_quote,
+        ROUND(COALESCE(AVG(real_amount_paid), 0), 2) as average_money_per_quote,
         COALESCE(SUM(item_total), 0) as items_total_value,
         ROUND(
           (COUNT(*)::decimal / (SELECT COUNT(*) FROM funnel_metrics)) * 100, 2
@@ -236,7 +248,16 @@ exports.getCategoryRanking = async (req, res) => {
     `;
     
     const result = await pool.query(query);
-    res.json(result.rows);
+    
+    // Forzar redondeo de decimales para evitar 1026.6000000000000000
+    const processedRows = result.rows.map(row => ({
+      ...row,
+      total_money: parseFloat(row.total_money).toFixed(2),
+      average_money_per_quote: parseFloat(row.average_money_per_quote).toFixed(2),
+      items_total_value: parseFloat(row.items_total_value).toFixed(2)
+    }));
+    
+    res.json(processedRows);
   } catch (error) {
     console.error('Error getting category ranking:', error);
     res.status(500).json({ error: 'Error obteniendo ranking de categorías' });
@@ -253,7 +274,7 @@ exports.getEnsayosRanking = async (req, res) => {
         COUNT(*) as total_hijos_cotizados,
         COUNT(DISTINCT quote_id) as total_quotes,
         COALESCE(SUM(real_amount_paid), 0) as total_money,
-        COALESCE(AVG(real_amount_paid), 0) as average_money_per_quote,
+        ROUND(COALESCE(AVG(real_amount_paid), 0), 2) as average_money_per_quote,
         COALESCE(SUM(item_total), 0) as items_total_value,
         ROUND(
           (COUNT(*)::decimal / (SELECT COUNT(*) FROM funnel_metrics)) * 100, 2
@@ -265,7 +286,16 @@ exports.getEnsayosRanking = async (req, res) => {
     `;
     
     const result = await pool.query(query);
-    res.json(result.rows);
+    
+    // Forzar redondeo de decimales para evitar 1026.6000000000000000
+    const processedRows = result.rows.map(row => ({
+      ...row,
+      total_money: parseFloat(row.total_money).toFixed(2),
+      average_money_per_quote: parseFloat(row.average_money_per_quote).toFixed(2),
+      items_total_value: parseFloat(row.items_total_value).toFixed(2)
+    }));
+    
+    res.json(processedRows);
   } catch (error) {
     console.error('Error getting ensayos ranking:', error);
     res.status(500).json({ error: 'Error obteniendo ranking de ensayos' });
@@ -349,7 +379,14 @@ exports.getHierarchicalStructure = async (req, res) => {
     `;
     
     const result = await pool.query(query);
-    res.json(result.rows);
+    
+    // Forzar redondeo de decimales para evitar 1026.6000000000000000
+    const processedRows = result.rows.map(row => ({
+      ...row,
+      total_money: parseFloat(row.total_money).toFixed(2)
+    }));
+    
+    res.json(processedRows);
   } catch (error) {
     console.error('Error getting hierarchical structure:', error);
     res.status(500).json({ error: 'Error obteniendo estructura jerárquica' });
@@ -399,8 +436,16 @@ exports.alimentarEmbudo = async (req, res) => {
     
     console.log('📊 Ítems encontrados:', itemsResult.rows.length);
     
-    // 3. Insertar cada ítem en funnel_metrics
+    // 3. Calcular distribución proporcional del monto real
+    const totalItemsValue = itemsResult.rows.reduce((sum, item) => sum + parseFloat(item.item_total || 0), 0);
+    console.log('💰 Total de ítems:', totalItemsValue);
+    console.log('💰 Monto real pagado:', realAmountPaid);
+    
+    // 4. Insertar cada ítem en funnel_metrics con distribución proporcional
     for (const item of itemsResult.rows) {
+      const itemValue = parseFloat(item.item_total || 0);
+      const proportionalAmount = totalItemsValue > 0 ? (itemValue / totalItemsValue) * parseFloat(realAmountPaid) : 0;
+      
       await pool.query(`
         INSERT INTO funnel_metrics (
           quote_id, quote_code, category_main, service_name, 
@@ -411,16 +456,17 @@ exports.alimentarEmbudo = async (req, res) => {
         quote.quote_code,
         quote.category_main,
         item.service_name || 'Servicio no especificado',
-        item.item_name,
-        item.item_total,
+        item.item_name || 'Ítem sin nombre',
+        itemValue,
         quote.total,
-        realAmountPaid
+        proportionalAmount
       ]);
       
       console.log('✅ Ítem insertado en embudo:', {
         service: item.service_name,
         item: item.item_name,
-        amount: item.item_total
+        itemValue: itemValue,
+        proportionalAmount: proportionalAmount
       });
     }
     

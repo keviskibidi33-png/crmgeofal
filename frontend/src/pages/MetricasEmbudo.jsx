@@ -230,7 +230,7 @@ const MetricasEmbudo = () => {
                         </Badge>
                         <br />
                         <small className="text-muted">
-                          Promedio: S/ {category.average_money_per_quote?.toLocaleString() || '0'}
+                          Promedio: S/ {category.average_money_per_quote ? Number(category.average_money_per_quote).toFixed(2) : '0.00'}
                         </small>
                         <br />
                         <small className="text-info">
@@ -286,7 +286,7 @@ const MetricasEmbudo = () => {
                         </Badge>
                         <br />
                         <small className="text-muted">
-                          Promedio: S/ {ensayo.average_money_per_quote?.toLocaleString() || '0'}
+                          Promedio: S/ {ensayo.average_money_per_quote ? Number(ensayo.average_money_per_quote).toFixed(2) : '0.00'}
                         </small>
                       </div>
                     </div>
