@@ -1,0 +1,176 @@
+🎯 SISTEMA DE COTIZACIONES INTELIGENTES - INSTRUCCIONES COMPLETAS
+================================================================
+
+📅 Fecha: 03 de Octubre, 2025
+👥 Para: Vendedores, Facturación y Jefa Comercial
+
+================================================================
+🚀 FLUJO COMPLETO DEL SISTEMA
+================================================================
+
+📋 PASO 1: VENDEDOR CREA COTIZACIÓN INTELIGENTE
+------------------------------------------------
+1. Ir a: http://localhost:3000/cotizaciones/inteligente
+2. Seleccionar categoría principal:
+   🧪 Laboratorio (para ensayos, análisis, pruebas)
+   ⚙️ Ingeniería (para diseño, consultoría, auditoría)
+3. Llenar datos del cliente y proyecto
+4. Agregar ítems de la cotización (códigos como SU36, AG20, CO01)
+5. Hacer clic en "💾 GUARDAR COTIZACIÓN"
+6. ✅ El sistema genera automáticamente un código único (ej: COT-20251003-123)
+7. Descargar PDF de la cotización
+8. Enviar PDF al cliente
+
+📋 PASO 2: VENDEDOR SUBE COMPROBANTE DE PAGO
+--------------------------------------------
+1. Ir a: http://localhost:3000/comprobantes-pago
+2. Hacer clic en "➕ NUEVO COMPROBANTE"
+3. Seleccionar la cotización específica de la lista (por código)
+4. Subir archivos:
+   📄 Cotización PDF (la que se envió al cliente)
+   📄 Factura PDF o imágenes del comprobante
+5. Llenar datos del pago (monto, fecha, método)
+6. Hacer clic en "💾 GUARDAR COMPROBANTE"
+7. ✅ El sistema notifica automáticamente a Facturación
+
+📋 PASO 3: FACTURACIÓN APRUEBA Y ALIMENTA EMBUDO
+------------------------------------------------
+1. Ir a: http://localhost:3000/comprobantes-pago
+2. Ver lista de comprobantes pendientes
+3. Hacer clic en "👁️ VER" en el comprobante
+4. Revisar archivos adjuntos (cotización + factura)
+5. Ingresar el MONTO REAL PAGADO por el cliente
+6. Hacer clic en "✅ APROBAR"
+7. ✅ El sistema automáticamente:
+   - Cambia estado de cotización a "aprobada"
+   - Analiza todos los ítems de la cotización
+   - Mapea cada ítem a su servicio padre y categoría
+   - Alimenta el embudo de ventas con datos precisos
+   - Notifica al vendedor sobre la aprobación
+
+📋 PASO 4: JEFA COMERCIAL VE MÉTRICAS DEL EMBUDO
+------------------------------------------------
+1. Ir a: http://localhost:3000/dashboard
+2. Ver métricas automáticas:
+   📊 Total de ventas por categoría (Laboratorio/Ingeniería)
+   📊 Cantidad de cotizaciones aprobadas
+   📊 Servicios más vendidos
+   📊 Servicios menos vendidos
+   📊 Comparación: Monto cotizado vs Monto real pagado
+3. Filtrar por:
+   🏷️ Categoría principal
+   📅 Período de tiempo
+   👤 Vendedor específico
+
+================================================================
+🔧 CONFIGURACIÓN TÉCNICA NECESARIA
+================================================================
+
+📋 BACKEND - Modificar tabla quotes:
+------------------------------------
+ALTER TABLE quotes ADD COLUMN category_main VARCHAR(20) DEFAULT 'laboratorio';
+ALTER TABLE quotes ADD COLUMN quote_code VARCHAR(50) UNIQUE;
+ALTER TABLE quotes ADD COLUMN status_payment VARCHAR(50) DEFAULT 'pendiente';
+
+📋 BACKEND - Crear tabla funnel_metrics:
+----------------------------------------
+CREATE TABLE funnel_metrics (
+  id SERIAL PRIMARY KEY,
+  quote_id INTEGER REFERENCES quotes(id),
+  quote_code VARCHAR(50),
+  category_main VARCHAR(20),
+  service_name VARCHAR(100),
+  item_name VARCHAR(200),
+  item_total DECIMAL(10,2),
+  total_amount DECIMAL(10,2),
+  real_amount_paid DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+📋 BACKEND - Endpoint para obtener cotizaciones del vendedor:
+------------------------------------------------------------
+GET /api/quotes/my-quotes
+- Devuelve lista de cotizaciones del vendedor logueado
+- Incluye: id, quote_code, total_amount, status, client_name
+
+📋 BACKEND - Endpoint para alimentar embudo:
+----------------------------------------------
+POST /api/funnel/alimentar-embudo
+- Recibe: quoteId, realAmountPaid
+- Analiza automáticamente todos los ítems de la cotización
+- Mapea cada ítem a su servicio padre y categoría
+- Inserta datos en funnel_metrics
+
+================================================================
+💡 VENTAJAS DEL SISTEMA
+================================================================
+
+✅ Para Vendedores:
+- Código único automático para cada cotización
+- Selección fácil de cotizaciones pendientes
+- Datos automáticos al subir comprobante
+- Notificaciones automáticas de aprobación
+
+✅ Para Facturación:
+- Datos completos de la cotización
+- Análisis automático de ítems y categorías
+- Captura del monto real pagado
+- Proceso de aprobación simplificado
+
+✅ Para Jefa Comercial:
+- Embudo automático con datos precisos
+- Métricas completas por categoría y servicio
+- Análisis de rendimiento automático
+- Filtros avanzados para segmentación
+
+================================================================
+🚨 IMPORTANTE - ARCHIVOS A SUBIR
+================================================================
+
+📄 COTIZACIÓN PDF:
+- Debe ser el PDF generado por el sistema
+- Debe contener el código único de la cotización
+- Debe incluir todos los ítems y precios
+
+📄 FACTURA PDF o IMÁGENES:
+- Comprobante de pago del cliente
+- Debe mostrar el monto pagado
+- Debe coincidir con la cotización
+
+📋 DATOS DEL PAGO:
+- Monto pagado por el cliente
+- Fecha del pago
+- Método de pago (transferencia, efectivo, etc.)
+
+================================================================
+🔍 EJEMPLOS DE CÓDIGOS DE COTIZACIÓN
+================================================================
+
+Formato: COT-YYYYMMDD-XXX
+Ejemplos:
+- COT-20251003-001
+- COT-20251003-002
+- COT-20251003-003
+
+================================================================
+📞 SOPORTE TÉCNICO
+================================================================
+
+Si tienes problemas con el sistema:
+1. Verificar que el backend esté corriendo en puerto 4000
+2. Verificar que el frontend esté corriendo en puerto 3000
+3. Revisar la consola del navegador para errores
+4. Contactar al administrador del sistema
+
+================================================================
+🎯 OBJETIVO FINAL
+================================================================
+
+El sistema debe permitir:
+1. Crear cotizaciones con categorización automática
+2. Subir comprobantes de pago de forma inteligente
+3. Aprobar cotizaciones con análisis automático
+4. Alimentar el embudo de ventas con datos precisos
+5. Proporcionar métricas completas para la Jefa Comercial
+
+¡El sistema está diseñado para ser completamente automático y eficiente! 🚀

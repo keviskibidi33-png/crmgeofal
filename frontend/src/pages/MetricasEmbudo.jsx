@@ -8,6 +8,9 @@ const MetricasEmbudo = () => {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState({
     servicesDistribution: [],
+    categoryRanking: [],
+    ensayosRanking: [],
+    hierarchicalStructure: [],
     conversionByCategory: [],
     monthlyTrends: [],
     underutilizedServices: [],
@@ -32,6 +35,9 @@ const MetricasEmbudo = () => {
       if (user.role === 'admin' || user.role === 'jefa_comercial') {
         const [
           services,
+          categoryRanking,
+          ensayosRanking,
+          hierarchicalStructure,
           categories,
           trends,
           underutilized,
@@ -41,6 +47,9 @@ const MetricasEmbudo = () => {
           approvalMetrics
         ] = await Promise.all([
           api('/api/funnel/distribution'),
+          api('/api/funnel/category-ranking'),
+          api('/api/funnel/ensayos-ranking'),
+          api('/api/funnel/hierarchical-structure'),
           api('/api/funnel/categories'),
           api('/api/funnel/trends'),
           api('/api/funnel/underutilized'),
@@ -52,6 +61,9 @@ const MetricasEmbudo = () => {
 
         setMetrics({
           servicesDistribution: services || [],
+          categoryRanking: categoryRanking || [],
+          ensayosRanking: ensayosRanking || [],
+          hierarchicalStructure: hierarchicalStructure || [],
           conversionByCategory: categories || [],
           monthlyTrends: trends || [],
           underutilizedServices: underutilized || [],
@@ -181,31 +193,49 @@ const MetricasEmbudo = () => {
       </Row>
 
       <Row>
-        {/* Embudo por Área (Laboratorio vs Ingeniería) */}
+        {/* Ranking de Categorías por Ítems y Dinero */}
         <Col lg={6} className="mb-4">
           <Card>
             <Card.Header>
               <h5 className="mb-0">
                 <FiBarChart2 className="me-2" />
-                Embudo por Área
+                🏆 Ranking de Categorías
               </h5>
             </Card.Header>
             <Card.Body>
-              {metrics.funnelByArea.length === 0 ? (
+              {metrics.categoryRanking.length === 0 ? (
                 <p className="text-muted text-center">No hay datos disponibles</p>
               ) : (
                 <div className="list-group list-group-flush">
-                  {metrics.funnelByArea.map((area, index) => (
+                  {metrics.categoryRanking.map((category, index) => (
                     <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 className="mb-1">{area.area || 'Sin área'}</h6>
-                        <small className="text-muted">
-                          {area.total_quotes} cotizaciones • {formatCurrency(area.approved_amount)}
-                        </small>
+                      <div className="d-flex align-items-center">
+                        <Badge 
+                          bg={index === 0 ? "warning" : index === 1 ? "secondary" : "info"} 
+                          className="me-3 fs-6"
+                        >
+                          #{index + 1}
+                        </Badge>
+                        <div>
+                          <strong className="text-capitalize">{category.category_name}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {category.total_items} ítems • {category.total_quotes} cotizaciones
+                          </small>
+                        </div>
                       </div>
                       <div className="text-end">
-                        <Badge bg="primary">{area.approved_count} aprobadas</Badge>
-                        <Badge bg="success" className="ms-1">{area.invoiced_count} facturadas</Badge>
+                        <Badge bg="success" className="fs-6 mb-1">
+                          S/ {category.total_money?.toLocaleString() || '0'}
+                        </Badge>
+                        <br />
+                        <small className="text-muted">
+                          Promedio: S/ {category.average_money_per_quote?.toLocaleString() || '0'}
+                        </small>
+                        <br />
+                        <small className="text-info">
+                          {category.percentage_of_items}% del total
+                        </small>
                       </div>
                     </div>
                   ))}
@@ -215,30 +245,118 @@ const MetricasEmbudo = () => {
           </Card>
         </Col>
 
-        {/* Distribución de Servicios */}
+        {/* Ranking de Ensayos (Servicios Padre) */}
         <Col lg={6} className="mb-4">
           <Card>
             <Card.Header>
               <h5 className="mb-0">
                 <FiTrendingUp className="me-2" />
-                Servicios Más Cotizados
+                🧪 Ranking de Ensayos
               </h5>
             </Card.Header>
             <Card.Body>
-              {metrics.servicesDistribution.length === 0 ? (
+              {metrics.ensayosRanking.length === 0 ? (
                 <p className="text-muted text-center">No hay datos disponibles</p>
               ) : (
                 <div className="list-group list-group-flush">
-                  {metrics.servicesDistribution.slice(0, 5).map((service, index) => (
+                  {metrics.ensayosRanking.slice(0, 10).map((ensayo, index) => (
                     <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 className="mb-1">{service.category_name}</h6>
-                        <small className="text-muted">
-                          {service.quote_count} cotizaciones • Promedio: {formatCurrency(service.average_amount)}
-                        </small>
+                      <div className="d-flex align-items-center">
+                        <Badge 
+                          bg={index === 0 ? "warning" : index === 1 ? "secondary" : index === 2 ? "info" : "light"} 
+                          className="me-3 fs-6"
+                        >
+                          #{index + 1}
+                        </Badge>
+                        <div>
+                          <strong className="text-capitalize">{ensayo.ensayo_name}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {ensayo.total_hijos_cotizados} hijos cotizados • {ensayo.total_quotes} cotizaciones
+                          </small>
+                          <br />
+                          <small className="text-info">
+                            {ensayo.category_main} • {ensayo.percentage_of_items}% del total
+                          </small>
+                        </div>
                       </div>
                       <div className="text-end">
-                        <Badge bg="success">{formatCurrency(service.total_amount)}</Badge>
+                        <Badge bg="success" className="fs-6 mb-1">
+                          S/ {ensayo.total_money?.toLocaleString() || '0'}
+                        </Badge>
+                        <br />
+                        <small className="text-muted">
+                          Promedio: S/ {ensayo.average_money_per_quote?.toLocaleString() || '0'}
+                        </small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        {/* Estructura Jerárquica Completa */}
+        <Col lg={12} className="mb-4">
+          <Card>
+            <Card.Header>
+              <h5 className="mb-0">
+                <FiBarChart2 className="me-2" />
+                🌳 Estructura Jerárquica del Embudo
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              {metrics.hierarchicalStructure.length === 0 ? (
+                <p className="text-muted text-center">No hay datos disponibles</p>
+              ) : (
+                <div className="hierarchical-structure">
+                  {metrics.hierarchicalStructure.map((item, index) => (
+                    <div 
+                      key={index} 
+                      className={`hierarchy-item ${item.level}`}
+                      style={{
+                        marginLeft: item.level === 'category' ? '0px' : 
+                                   item.level === 'ensayo' ? '20px' : '40px',
+                        padding: '10px',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '5px',
+                        marginBottom: '5px',
+                        backgroundColor: item.level === 'category' ? '#f8f9fa' : 
+                                       item.level === 'ensayo' ? '#e3f2fd' : '#f3e5f5'
+                      }}
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center">
+                          {item.level === 'category' && <span className="me-2">📁</span>}
+                          {item.level === 'ensayo' && <span className="me-2">🧪</span>}
+                          {item.level === 'subservicio' && <span className="me-2">📋</span>}
+                          <div>
+                            <strong className="text-capitalize">{item.name}</strong>
+                            {item.level === 'category' && (
+                              <div className="text-muted small">
+                                {item.total_items} ítems • {item.total_quotes} cotizaciones
+                              </div>
+                            )}
+                            {item.level === 'ensayo' && (
+                              <div className="text-muted small">
+                                {item.total_items} hijos cotizados • {item.total_quotes} cotizaciones
+                              </div>
+                            )}
+                            {item.level === 'subservicio' && (
+                              <div className="text-muted small">
+                                {item.veces_cotizado} veces cotizado • {item.total_quotes} cotizaciones
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-end">
+                          <Badge bg="success" className="fs-6">
+                            S/ {item.total_money?.toLocaleString() || '0'}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   ))}

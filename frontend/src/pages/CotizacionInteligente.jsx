@@ -16,7 +16,7 @@ const emptyClient = {
 const emptyQuote = {
   request_date: '', issue_date: '', commercial_name: '', commercial_phone: '', 
   payment_terms: 'adelantado', reference: '', reference_type: ['email', 'phone'], 
-  igv: true, delivery_days: 4,
+  igv: true, delivery_days: 4, category_main: 'laboratorio',
 };
 
 const emptyItem = { code: '', description: '', norm: '', unit_price: 0, quantity: 1 };
@@ -30,6 +30,14 @@ function computePartial(item) {
 function suggestedFileName(seq = 'xxx-XX', client = '') {
   const clientName = (client || '').toUpperCase().trim() || 'NOMBRE DEL CLIENTE';
   return `Cotización ${seq} LEM-GEOFAL-${clientName}`;
+}
+
+function generateQuoteCode() {
+  const year = new Date().getFullYear();
+  const month = String(new Date().getMonth() + 1).padStart(2, '0');
+  const day = String(new Date().getDate()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `COT-${year}${month}${day}-${random}`;
 }
 
 const normalizeKey = (s = '') => (s || '')
@@ -331,6 +339,8 @@ export default function CotizacionInteligente() {
         console.log('✅ Proyecto creado automáticamente:', newProject);
       }
       
+      const quoteCode = generateQuoteCode();
+      
       const payload = {
         project_id: projectId,
         variant_id: variantId || null,
@@ -344,13 +354,17 @@ export default function CotizacionInteligente() {
         status: 'borrador',
         reference: quote.reference,
         reference_type: JSON.stringify(quote.reference_type),
+        category_main: quote.category_main, // ✅ NUEVO: Categoría principal
+        quote_code: quoteCode, // ✅ NUEVO: Código único
         meta: JSON.stringify({
           customer: client,
           quote: {
             ...quote,
             request_date: quote.request_date || new Date().toISOString().slice(0, 10),
             delivery_days: quote.delivery_days || 4,
-            reference: quote.reference
+            reference: quote.reference,
+            category_main: quote.category_main, // ✅ NUEVO: Categoría en meta
+            quote_code: quoteCode // ✅ NUEVO: Código en meta
           },
           items: items, // Agregar ítems al meta
           conditions_text: conditionsText,
@@ -360,7 +374,7 @@ export default function CotizacionInteligente() {
       };
       
       const saved = await createQuote(payload);
-      alert('Cotización creada exitosamente');
+      alert(`✅ Cotización creada exitosamente\n📋 Código: ${quoteCode}\n🏷️ Categoría: ${quote.category_main === 'laboratorio' ? '🧪 Laboratorio' : '⚙️ Ingeniería'}\n📊 Ítems guardados: ${items.length} ítems\n💰 Total: S/ ${quote.total?.toLocaleString() || '0.00'}`);
       setLastSavedId(saved.id);
     } catch (e) {
       console.error('Error:', e);
@@ -763,6 +777,50 @@ export default function CotizacionInteligente() {
                 value={conditionsText}
                 onChange={e => setConditionsText(e.target.value)}
               />
+            </div>
+
+            {/* Selector de Categoría Principal */}
+            <div className="mt-4">
+              <label className="form-label">Categoría Principal</label>
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <div className="form-check">
+                    <input 
+                      className="form-check-input" 
+                      type="radio" 
+                      name="categoryMain" 
+                      id="laboratorio" 
+                      value="laboratorio"
+                      checked={quote.category_main === 'laboratorio'}
+                      onChange={e => setQuote({...quote, category_main: e.target.value})}
+                    />
+                    <label className="form-check-label" htmlFor="laboratorio">
+                      🧪 Laboratorio
+                    </label>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-check">
+                    <input 
+                      className="form-check-input" 
+                      type="radio" 
+                      name="categoryMain" 
+                      id="ingenieria" 
+                      value="ingenieria"
+                      checked={quote.category_main === 'ingenieria'}
+                      onChange={e => setQuote({...quote, category_main: e.target.value})}
+                    />
+                    <label className="form-check-label" htmlFor="ingenieria">
+                      ⚙️ Ingeniería
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="alert alert-info mt-2">
+                <small>
+                  <strong>💡 Importante:</strong> Selecciona la categoría principal para que el sistema pueda categorizar automáticamente los ítems y alimentar el embudo de ventas.
+                </small>
+              </div>
             </div>
 
             {/* Ítems */}

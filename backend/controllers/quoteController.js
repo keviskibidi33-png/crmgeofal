@@ -90,6 +90,37 @@ exports.create = async (req, res) => {
     const quote = await Quote.create(data);
     console.log('✅ Quote.create - Cotización creada:', quote);
     
+    // ✅ NUEVO: Insertar ítems en quote_items si existen
+    if (data.meta && data.meta.items && data.meta.items.length > 0) {
+      console.log('📋 Insertando ítems en quote_items...');
+      const pool = require('../config/db');
+      
+      for (const item of data.meta.items) {
+        try {
+          await pool.query(`
+            INSERT INTO quote_items (
+              quote_id, name, description, norm, unit_price, quantity, 
+              partial_price, total_price, subservice_id, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+          `, [
+            quote.id,
+            item.name || 'Ítem sin nombre',
+            item.description || '',
+            item.norm || '',
+            parseFloat(item.unit_price) || 0,
+            parseInt(item.quantity) || 1,
+            parseFloat(item.partial_price) || 0,
+            parseFloat(item.total) || 0,
+            item.subservice_id || null
+          ]);
+          console.log(`✅ Ítem insertado: ${item.name || 'Sin nombre'}`);
+        } catch (itemError) {
+          console.error(`❌ Error insertando ítem:`, itemError.message);
+        }
+      }
+      console.log('🎉 Todos los ítems insertados en quote_items');
+    }
+    
     await AuditQuote.log({
       user_id: req.user?.id || null,
       action: 'crear',

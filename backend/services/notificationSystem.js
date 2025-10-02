@@ -297,6 +297,176 @@ class NotificationSystem {
       throw error;
     }
   }
+
+  // ✅ NUEVO: Notificar nuevo comprobante de pago
+  async notifyNewPaymentProof(proofId) {
+    try {
+      console.log('🔔 notifyNewPaymentProof - Iniciando notificación para proofId:', proofId);
+      
+      // Obtener detalles del comprobante
+      const proofQuery = `
+        SELECT 
+          pp.*,
+          q.quote_number,
+          q.total_amount,
+          p.name as project_name,
+          c.name as company_name,
+          u.name as uploaded_by_name
+        FROM payment_proofs pp
+        LEFT JOIN quotes q ON pp.quote_id = q.id
+        LEFT JOIN projects p ON q.project_id = p.id
+        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN users u ON pp.uploaded_by = u.id
+        WHERE pp.id = $1
+      `;
+      
+      const proofResult = await db.query(proofQuery, [proofId]);
+      
+      if (proofResult.rows.length === 0) {
+        console.log('⚠️ notifyNewPaymentProof - Comprobante no encontrado');
+        return;
+      }
+      
+      const proof = proofResult.rows[0];
+      console.log('📋 notifyNewPaymentProof - Datos del comprobante:', {
+        id: proof.id,
+        quote_number: proof.quote_number,
+        company_name: proof.company_name,
+        amount_paid: proof.amount_paid
+      });
+      
+      // Notificar a usuarios de facturación
+      const facturacionQuery = 'SELECT id, name FROM users WHERE role IN ($1, $2)';
+      const facturacionResult = await db.query(facturacionQuery, ['facturacion', 'admin']);
+      
+      for (const user of facturacionResult.rows) {
+        await this.createNotification(
+          user.id,
+          'new_payment_proof',
+          'Nuevo Comprobante de Pago',
+          `Se ha subido un nuevo comprobante de pago para la cotización ${proof.quote_number} de ${proof.company_name}`,
+          {
+            proof_id: proofId,
+            quote_number: proof.quote_number,
+            company_name: proof.company_name,
+            amount_paid: proof.amount_paid,
+            uploaded_by: proof.uploaded_by_name
+          }
+        );
+        console.log(`✅ notifyNewPaymentProof - Notificación enviada a ${user.name}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error notifying new payment proof:', error);
+    }
+  }
+
+  // ✅ NUEVO: Notificar aprobación de comprobante
+  async notifyPaymentProofApproved(proofId) {
+    try {
+      console.log('🔔 notifyPaymentProofApproved - Iniciando notificación para proofId:', proofId);
+      
+      // Obtener detalles del comprobante
+      const proofQuery = `
+        SELECT 
+          pp.*,
+          q.quote_number,
+          q.total_amount,
+          p.name as project_name,
+          c.name as company_name,
+          u.name as uploaded_by_name
+        FROM payment_proofs pp
+        LEFT JOIN quotes q ON pp.quote_id = q.id
+        LEFT JOIN projects p ON q.project_id = p.id
+        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN users u ON pp.uploaded_by = u.id
+        WHERE pp.id = $1
+      `;
+      
+      const proofResult = await db.query(proofQuery, [proofId]);
+      
+      if (proofResult.rows.length === 0) {
+        console.log('⚠️ notifyPaymentProofApproved - Comprobante no encontrado');
+        return;
+      }
+      
+      const proof = proofResult.rows[0];
+      
+      // Notificar al vendedor que subió el comprobante
+      if (proof.uploaded_by) {
+        await this.createNotification(
+          proof.uploaded_by,
+          'payment_proof_approved',
+          'Comprobante Aprobado',
+          `Tu comprobante de pago para la cotización ${proof.quote_number} ha sido aprobado`,
+          {
+            proof_id: proofId,
+            quote_number: proof.quote_number,
+            company_name: proof.company_name,
+            amount_paid: proof.amount_paid
+          }
+        );
+        console.log(`✅ notifyPaymentProofApproved - Notificación enviada al vendedor`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error notifying payment proof approval:', error);
+    }
+  }
+
+  // ✅ NUEVO: Notificar rechazo de comprobante
+  async notifyPaymentProofRejected(proofId, reason) {
+    try {
+      console.log('🔔 notifyPaymentProofRejected - Iniciando notificación para proofId:', proofId);
+      
+      // Obtener detalles del comprobante
+      const proofQuery = `
+        SELECT 
+          pp.*,
+          q.quote_number,
+          q.total_amount,
+          p.name as project_name,
+          c.name as company_name,
+          u.name as uploaded_by_name
+        FROM payment_proofs pp
+        LEFT JOIN quotes q ON pp.quote_id = q.id
+        LEFT JOIN projects p ON q.project_id = p.id
+        LEFT JOIN companies c ON p.company_id = c.id
+        LEFT JOIN users u ON pp.uploaded_by = u.id
+        WHERE pp.id = $1
+      `;
+      
+      const proofResult = await db.query(proofQuery, [proofId]);
+      
+      if (proofResult.rows.length === 0) {
+        console.log('⚠️ notifyPaymentProofRejected - Comprobante no encontrado');
+        return;
+      }
+      
+      const proof = proofResult.rows[0];
+      
+      // Notificar al vendedor que subió el comprobante
+      if (proof.uploaded_by) {
+        await this.createNotification(
+          proof.uploaded_by,
+          'payment_proof_rejected',
+          'Comprobante Rechazado',
+          `Tu comprobante de pago para la cotización ${proof.quote_number} ha sido rechazado. Motivo: ${reason}`,
+          {
+            proof_id: proofId,
+            quote_number: proof.quote_number,
+            company_name: proof.company_name,
+            amount_paid: proof.amount_paid,
+            rejection_reason: reason
+          }
+        );
+        console.log(`✅ notifyPaymentProofRejected - Notificación enviada al vendedor`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error notifying payment proof rejection:', error);
+    }
+  }
 }
 
 module.exports = new NotificationSystem();

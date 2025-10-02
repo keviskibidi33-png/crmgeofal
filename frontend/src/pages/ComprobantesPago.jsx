@@ -12,6 +12,7 @@ const ComprobantesPago = () => {
   const [mySubmissions, setMySubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
@@ -20,6 +21,8 @@ const ComprobantesPago = () => {
   const [uploading, setUploading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [approvalNotes, setApprovalNotes] = useState('');
+  // ✅ NUEVO: Estado para monto real pagado
+  const [realAmountPaid, setRealAmountPaid] = useState('');
   const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
   const [archivingProofs, setArchivingProofs] = useState(new Set());
 
@@ -38,9 +41,32 @@ const ComprobantesPago = () => {
     project_description: ''
   });
 
+  // ✅ NUEVO: Estados para selección inteligente de cotizaciones
+  const [myQuotes, setMyQuotes] = useState([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
+
   useEffect(() => {
     fetchData();
+    // ✅ NUEVO: Cargar cotizaciones del vendedor
+    if (user.role === 'vendedor_comercial' || user.role === 'jefa_comercial') {
+      fetchMyQuotes();
+    }
   }, []);
+
+  // ✅ NUEVO: Función para cargar cotizaciones del vendedor
+  const fetchMyQuotes = async () => {
+    try {
+      setLoadingQuotes(true);
+      const quotes = await api('/api/quotes/my-quotes');
+      setMyQuotes(quotes || []);
+      console.log('📋 Cotizaciones cargadas:', quotes?.length || 0);
+    } catch (err) {
+      console.error('Error fetching quotes:', err);
+      setError('Error al cargar las cotizaciones: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setLoadingQuotes(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -116,6 +142,7 @@ const ComprobantesPago = () => {
 
   const handleApprove = async () => {
     try {
+      // 1. Aprobar el comprobante de pago
       await api('/api/payment-proofs/approve', {
         method: 'POST',
         body: JSON.stringify({ 
@@ -123,10 +150,41 @@ const ComprobantesPago = () => {
           notes: approvalNotes 
         })
       });
+
+      // 2. ✅ NUEVO: Alimentar el embudo de ventas
+      if (selectedProof.quote_id && realAmountPaid) {
+        try {
+          console.log('🍯 Alimentando embudo de ventas...', {
+            quoteId: selectedProof.quote_id,
+            realAmountPaid: parseFloat(realAmountPaid)
+          });
+
+          const embudoResponse = await api('/api/funnel/alimentar-embudo', {
+            method: 'POST',
+            body: JSON.stringify({
+              quoteId: selectedProof.quote_id,
+              realAmountPaid: parseFloat(realAmountPaid)
+            })
+          });
+
+          console.log('✅ Embudo alimentado exitosamente:', embudoResponse);
+          
+          // Mostrar mensaje de éxito
+          alert(`✅ Comprobante aprobado y embudo alimentado exitosamente!\n📊 Procesados: ${embudoResponse.itemsProcessed} ítems\n🏷️ Categoría: ${embudoResponse.category}\n📋 Código: ${embudoResponse.quoteCode}`);
+          
+        } catch (embudoError) {
+          console.error('❌ Error alimentando embudo:', embudoError);
+          alert('⚠️ Comprobante aprobado pero hubo un error alimentando el embudo. Contacta al administrador.');
+        }
+      } else {
+        console.warn('⚠️ No se pudo alimentar el embudo: quote_id o realAmountPaid faltante');
+        alert('✅ Comprobante aprobado (embudo no alimentado - datos faltantes)');
+      }
       
       fetchData();
       setShowApprovalModal(false);
       setApprovalNotes('');
+      setRealAmountPaid('');
     } catch (err) {
       console.error('Error approving proof:', err);
       setError('Error al aprobar el comprobante: ' + (err.message || 'Error desconocido'));
@@ -689,15 +747,65 @@ const ComprobantesPago = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>ID de Cotización *</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Label>Seleccionar Cotización *</Form.Label>
+              <Form.Select
                 value={uploadForm.quote_id}
-                onChange={(e) => setUploadForm({ ...uploadForm, quote_id: e.target.value })}
-                placeholder="Ingrese el ID de la cotización"
+                onChange={(e) => {
+                  const selectedQuote = myQuotes.find(q => q.id === parseInt(e.target.value));
+                  setUploadForm({ 
+                    ...uploadForm, 
+                    quote_id: e.target.value,
+                    client_name: selectedQuote?.company_name || '',
+                    client_email: selectedQuote?.client_email || ''
+                  });
+                }}
                 required
-              />
+                disabled={loadingQuotes}
+              >
+                <option value="">
+                  {loadingQuotes ? 'Cargando cotizaciones...' : 'Seleccione una cotización'}
+                </option>
+                {myQuotes.map(quote => (
+                  <option key={quote.id} value={quote.id}>
+                    {quote.quote_code || `COT-${quote.id}`} - {quote.company_name} - S/ {quote.total?.toLocaleString() || '0.00'}
+                  </option>
+                ))}
+              </Form.Select>
+              {myQuotes.length === 0 && !loadingQuotes && (
+                <Form.Text className="text-warning">
+                  No tienes cotizaciones disponibles. Crea una cotización primero.
+                </Form.Text>
+              )}
             </Form.Group>
+
+            {/* ✅ NUEVO: Mostrar información de la cotización seleccionada */}
+            {uploadForm.quote_id && (
+              <div className="mb-3 p-3 bg-light rounded">
+                <h6 className="text-primary mb-2">📋 Información de la Cotización</h6>
+                {(() => {
+                  const selectedQuote = myQuotes.find(q => q.id === parseInt(uploadForm.quote_id));
+                  return selectedQuote ? (
+                    <div>
+                      <p className="mb-1"><strong>Código:</strong> {selectedQuote.quote_code || `COT-${selectedQuote.id}`}</p>
+                      <p className="mb-1"><strong>Cliente:</strong> {selectedQuote.company_name}</p>
+                      <p className="mb-1"><strong>Total:</strong> S/ {selectedQuote.total?.toLocaleString() || '0.00'}</p>
+                      <p className="mb-1"><strong>Categoría:</strong> 
+                        <span className={`badge ms-2 ${selectedQuote.category_main === 'laboratorio' ? 'bg-info' : 'bg-warning'}`}>
+                          {selectedQuote.category_main === 'laboratorio' ? '🧪 Laboratorio' : '⚙️ Ingeniería'}
+                        </span>
+                      </p>
+                      <p className="mb-0"><strong>Estado:</strong> 
+                        <span className={`badge ms-2 ${selectedQuote.status === 'borrador' ? 'bg-secondary' : 'bg-success'}`}>
+                          {selectedQuote.status === 'borrador' ? 'Borrador' : 'Aprobada'}
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted">Cargando información...</p>
+                  );
+                })()}
+              </div>
+            )}
             
             <Form.Group className="mb-3">
               <Form.Label>Monto Pagado *</Form.Label>
@@ -786,7 +894,24 @@ const ComprobantesPago = () => {
         <Modal.Body>
           <p>¿Está seguro de que desea aprobar el comprobante de pago?</p>
           <p><strong>Cotización:</strong> {selectedProof?.quote_number}</p>
-          <p><strong>Monto:</strong> ${selectedProof?.amount_paid?.toLocaleString()}</p>
+          <p><strong>Monto Reportado:</strong> S/ {selectedProof?.amount_paid?.toLocaleString()}</p>
+          
+          {/* ✅ NUEVO: Campo para monto real pagado */}
+          <Form.Group className="mb-3">
+            <Form.Label>Monto Real Pagado por el Cliente *</Form.Label>
+            <Form.Control
+              type="number"
+              step="0.01"
+              value={realAmountPaid}
+              onChange={(e) => setRealAmountPaid(e.target.value)}
+              placeholder="Ingrese el monto real pagado por el cliente"
+              required
+            />
+            <Form.Text className="text-muted">
+              Este monto se usará para alimentar el embudo de ventas y análisis de métricas.
+            </Form.Text>
+          </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Label>Notas de aprobación:</Form.Label>
             <Form.Control
@@ -802,9 +927,13 @@ const ComprobantesPago = () => {
           <Button variant="secondary" onClick={() => setShowApprovalModal(false)}>
             Cancelar
           </Button>
-          <Button variant="success" onClick={handleApprove}>
+          <Button 
+            variant="success" 
+            onClick={handleApprove}
+            disabled={!realAmountPaid || parseFloat(realAmountPaid) <= 0}
+          >
             <FiCheck className="me-1" />
-            Aprobar
+            Aprobar y Alimentar Embudo
           </Button>
         </Modal.Footer>
       </Modal>
