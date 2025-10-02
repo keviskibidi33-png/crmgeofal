@@ -9,90 +9,78 @@ const listCompanies = async (req, res) => {
     
     const { page = 1, limit = 20, search = '', type = '', city = '', sector = '' } = req.query;
     
-    // Datos de prueba para empresas/clientes
-    const companies = [
-      {
-        id: 1,
-        name: "Minera Las Bambas",
-        type: "cliente",
-        ruc: "20123456789",
-        contact_name: "Carlos Mendoza",
-        email: "carlos.mendoza@lasbambas.com",
-        phone: "01-234-5678",
-        city: "Lima",
-        sector: "Minería",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: "Geología Peruana SAC",
-        type: "cliente",
-        ruc: "20234567890",
-        contact_name: "Ana Torres",
-        email: "ana.torres@geoperu.com",
-        phone: "01-345-6789",
-        city: "Arequipa",
-        sector: "Consultoría",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: "Estudios Ambientales Norte",
-        type: "cliente",
-        ruc: "20345678901",
-        contact_name: "Luis Vargas",
-        email: "luis.vargas@ambientalnorte.com",
-        phone: "01-456-7890",
-        city: "Trujillo", 
-        sector: "Medio Ambiente",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: "Constructora del Norte",
-        type: "cliente",
-        ruc: "20456789012",
-        contact_name: "María Rodríguez",
-        email: "maria.rodriguez@constructoranorte.com",
-        phone: "01-567-8901",
-        city: "Chiclayo",
-        sector: "Construcción",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: "Consultora GeoTech",
-        type: "proveedor",
-        ruc: "20567890123",
-        contact_name: "Pedro Salinas",
-        email: "pedro.salinas@geotech.com",
-        phone: "01-678-9012",
-        city: "Lima",
-        sector: "Consultoría",
-        created_at: new Date().toISOString()
-      }
-    ];
+    // Consultar datos reales de la base de datos
+    const pool = require('../config/db');
     
-    // Filtrar por búsqueda si se proporciona
-    let filteredCompanies = companies;
+    // Construir consulta SQL con filtros
+    let whereConditions = [];
+    let queryParams = [];
+    let paramIndex = 1;
+    
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredCompanies = companies.filter(company => 
-        company.name.toLowerCase().includes(searchLower) ||
-        company.contact_name.toLowerCase().includes(searchLower) ||
-        company.email.toLowerCase().includes(searchLower)
-      );
+      whereConditions.push(`(name ILIKE $${paramIndex} OR contact_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`);
+      queryParams.push(`%${search}%`);
+      paramIndex++;
     }
     
-    // Filtrar por tipo si se proporciona
     if (type) {
-      filteredCompanies = filteredCompanies.filter(company => company.type === type);
+      whereConditions.push(`type = $${paramIndex}`);
+      queryParams.push(type);
+      paramIndex++;
     }
+    
+    if (city) {
+      whereConditions.push(`city = $${paramIndex}`);
+      queryParams.push(city);
+      paramIndex++;
+    }
+    
+    if (sector) {
+      whereConditions.push(`sector = $${paramIndex}`);
+      queryParams.push(sector);
+      paramIndex++;
+    }
+    
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
+    // Contar total de registros
+    const countQuery = `SELECT COUNT(*) as total FROM companies ${whereClause}`;
+    const countResult = await pool.query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total);
+    
+    // Obtener datos paginados
+    const offset = (page - 1) * limit;
+    const dataQuery = `
+      SELECT 
+        id,
+        name,
+        ruc,
+        dni,
+        type,
+        contact_name,
+        email,
+        phone,
+        city,
+        sector,
+        address,
+        created_at
+      FROM companies 
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    
+    queryParams.push(parseInt(limit));
+    queryParams.push(offset);
+    
+    const dataResult = await pool.query(dataQuery, queryParams);
+    const companies = dataResult.rows;
+    
+    console.log(`📊 listCompanies - Consultando BD: ${total} empresas encontradas, mostrando ${companies.length}`);
+    console.log(`📊 listCompanies - Paginación: página ${page}, límite ${limit}, total ${total}`);
     
     // Aplicar paginación
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + parseInt(limit);
-    const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex);
+    const paginatedCompanies = companies;
     
     res.json({
       success: true,
@@ -100,8 +88,8 @@ const listCompanies = async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: filteredCompanies.length,
-        pages: Math.ceil(filteredCompanies.length / parseInt(limit))
+        total: total,
+        pages: Math.ceil(total / parseInt(limit))
       }
     });
   } catch (error) {

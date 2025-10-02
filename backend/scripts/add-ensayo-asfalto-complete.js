@@ -6,7 +6,8 @@ async function addEnsayoAsfaltoComplete() {
     
     // 1. Obtener ID de ENSAYO ASFALTO
     const asfaltoResult = await pool.query("SELECT id FROM services WHERE name = 'ENSAYO ASFALTO'");
-    const asfaltoId = asfaltoResult.rows[0].id;
+    const asfaltoId = asfaltoR
+    esult.rows[0].id;
     console.log(`✅ ID de ENSAYO ASFALTO: ${asfaltoId}`);
     
     // 2. Datos completos de ENSAYO ASFALTO según tus datos

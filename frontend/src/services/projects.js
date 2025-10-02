@@ -50,16 +50,7 @@ export const updateProjectStatus = (id, payload) =>
     body: JSON.stringify(payload),
   });
 
-export const updateProjectCategories = (id, payload) => {
-  console.log('🔍 updateProjectCategories - ID:', id);
-  console.log('🔍 updateProjectCategories - Payload:', payload);
-  console.log('🔍 updateProjectCategories - URL:', `/api/projects/${id}/categories`);
-  
-  return apiFetch(`/api/projects/${id}/categories`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
-};
+// Función eliminada - sistema de categorías obsoleto
 
 export const updateProjectQueries = (id, payload) =>
   apiFetch(`/api/projects/${id}/queries`, {

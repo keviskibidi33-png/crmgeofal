@@ -115,11 +115,7 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 
-// Categorías (mantener por compatibilidad)
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/subcategories', require('./routes/subcategoryRoutes'));
-app.use('/api/project-categories', require('./routes/categoryRoutes'));
-app.use('/api/project-subcategories', require('./routes/subcategoryRoutes'));
+// Sistema de servicios moderno
 app.use('/api/project-services', require('./routes/projectServiceRoutes'));
 app.use('/api/project-history', require('./routes/projectHistoryRoutes'));
 

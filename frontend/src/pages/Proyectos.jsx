@@ -8,8 +8,7 @@ import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
-import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectCategories, updateProjectQueries, updateProjectMark } from '../services/projects';
-// import { listCategories, listSubcategories } from '../services/categories'; // Eliminado - sistema antiguo
+import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectQueries, updateProjectMark } from '../services/projects';
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 import ProjectServiceForm from '../components/ProjectServiceForm';
 import ProjectFormRedesigned from '../components/ProjectFormRedesigned';
@@ -31,7 +30,6 @@ const emptyForm = {
   queries: '',
   priority: 'normal',
   marked: false
-  // category_id, subcategory_id, category_name, subcategory_name eliminados - sistema antiguo
 };
 
 export default function Proyectos() {
@@ -40,7 +38,6 @@ export default function Proyectos() {
   const [deletingProject, setDeletingProject] = useState(null);
   const [deletingFile, setDeletingFile] = useState(null);
   const [markingProject, setMarkingProject] = useState(null);
-  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [showQueriesModal, setShowQueriesModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -51,7 +48,7 @@ export default function Proyectos() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
   
-  // Estados para categorías eliminados - reemplazados por sistema de servicios
+  // Estados para servicios modernos
   
   // Estados para adjuntos
   const [attachments, setAttachments] = useState([]);
@@ -121,9 +118,7 @@ export default function Proyectos() {
     }
   );
 
-  // Código de carga de categorías eliminado - sistema antiguo removido
-
-  // Código de categorías eliminado - sistema antiguo removido
+  // Sistema de servicios moderno implementado
 
   // Cargar adjuntos cuando se abra el modal de gestión
   useEffect(() => {
@@ -323,23 +318,6 @@ export default function Proyectos() {
     }
   );
 
-  const updateCategoriesMutation = useMutation(
-    ({ id, ...data }) => updateProjectCategories(id, data),
-    {
-      onSuccess: (updatedProject) => {
-        console.log('✅ updateCategoriesMutation - Success:', updatedProject);
-        // Actualizar el proyecto seleccionado con los nuevos datos
-        setSelectedProject(updatedProject);
-        setEditingData(updatedProject);
-        showNotification('✅ Categorías guardadas correctamente!', 'success');
-        queryClient.invalidateQueries('projects');
-      },
-      onError: (error) => {
-        console.error('❌ updateCategoriesMutation - Error:', error);
-        showNotification('❌ Error al guardar categorías', 'danger');
-      }
-    }
-  );
 
   const updateQueriesMutation = useMutation(
     ({ id, ...data }) => updateProjectQueries(id, data),
@@ -400,10 +378,6 @@ export default function Proyectos() {
     }
   };
 
-  const handleViewCategories = (project) => {
-    setSelectedProject(project);
-    setShowCategoriesModal(true);
-  };
 
   const handleViewQueries = (project) => {
     setSelectedProject(project);
@@ -671,7 +645,7 @@ export default function Proyectos() {
       placeholder: 'Ingresa la ubicación del proyecto',
       required: true
     },
-    // Categorías antiguas eliminadas - reemplazadas por sistema de servicios
+    // Sistema de servicios moderno
     {
       name: 'contact_name',
       label: 'Persona de Contacto',

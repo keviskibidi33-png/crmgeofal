@@ -11,7 +11,7 @@ import Toast from '../components/Toast';
 import './Adjuntos.css';
 import { listProjectAttachments, getAllAttachments, uploadAttachment, updateAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 import { listProjects } from '../services/projects';
-import { listCategories, listSubcategories } from '../services/categories';
+// Sistema de categorías obsoleto eliminado
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
 
 const emptyForm = { 
@@ -88,19 +88,7 @@ export default function Adjuntos() {
   const { data: projectsData } = useQuery('projectsList', () => listProjects({ page: 1, limit: 500 }), { staleTime: Infinity });
   const projects = useMemo(() => projectsData?.data || [], [projectsData]);
 
-  // Obtener todas las categorías disponibles
-  const { data: categoriesData, refetch: refetchCategories } = useQuery('categoriesList', listCategories, { 
-    staleTime: 30000, // 30 segundos
-    refetchOnWindowFocus: true 
-  });
-  const categories = useMemo(() => categoriesData || [], [categoriesData]);
-
-  // Obtener todas las subcategorías disponibles
-  const { data: subcategoriesData, refetch: refetchSubcategories } = useQuery('subcategoriesList', () => listSubcategories(), { 
-    staleTime: 30000, // 30 segundos
-    refetchOnWindowFocus: true 
-  });
-  const subcategories = useMemo(() => subcategoriesData || [], [subcategoriesData]);
+  // Sistema de categorías obsoleto eliminado
 
   // Obtener el proyecto seleccionado para sus categorías
   const selectedProjectData = useMemo(() => {

@@ -1,7 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
+const roleDashboardController = require('../controllers/roleDashboardController');
 const auth = require('../middlewares/auth');
+
+// Endpoint de prueba sin autenticación
+router.get('/gerencia-test', (req, res) => {
+  res.json({ message: 'Endpoint de prueba funcionando', timestamp: new Date().toISOString() });
+});
+
+// Endpoint de prueba del controlador sin autenticación
+router.get('/gerencia-controller-test', roleDashboardController.getGerenciaDashboard);
 
 // Aplicar middleware de autenticación a todas las rutas
 router.use(auth());
@@ -25,6 +34,6 @@ router.get('/facturacion', dashboardController.getBillingDashboard);
 router.get('/soporte', dashboardController.getSupportDashboard);
 
 // Dashboard para Gerencia
-router.get('/gerencia', dashboardController.getManagementDashboard);
+router.get('/gerencia', roleDashboardController.getGerenciaDashboard);
 
 module.exports = router;

@@ -683,8 +683,8 @@ export default function Clientes() {
               onDelete={handleDelete}
               emptyMessage="No hay clientes registrados"
               // Props para paginación del backend
-              totalItems={data?.total || 0}
-              itemsPerPage={20}
+              totalItems={data?.pagination?.total || 0}
+              itemsPerPage={data?.pagination?.limit || 20}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
               onSearch={handleSearch}
