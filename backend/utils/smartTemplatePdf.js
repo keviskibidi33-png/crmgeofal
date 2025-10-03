@@ -244,22 +244,22 @@ html, body {
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 8px;
 }
 
 .footer-item svg {
   fill: #FF6B35;
-  height: 12px;
-  width: 12px;
+  height: 10px;
+  width: 10px;
   flex-shrink: 0;
 }
 
 .footer-item div {
   display: inline;
-  line-height: 1.1;
-  font-size: 10px;
+  line-height: 1.0;
+  font-size: 8px;
 }
 /* El resto estilos similares al de antes */
 
@@ -470,24 +470,25 @@ a {
   position: relative;
   margin-top: auto;
   height: auto;
-  padding: 2px 5mm;
+  padding: 3px 5mm 5px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 9px;
+  font-size: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
   page-break-inside: avoid;
-  min-height: 40px;
+  min-height: 25px;
 }
 
 .second-page .header {
   position: relative;
   height: 100px;
   margin-bottom: 2px;
+  margin-top: 30px;
   display: flex;
   align-items: flex-start;
   width: 100%;
@@ -503,7 +504,7 @@ a {
 
 .second-page .page-content-wrapper {
   flex: 1;
-  padding: 0 10mm 60px 10mm;
+  padding: 0 10mm 0px 10mm;
   margin: 0;
   display: flex;
   flex-direction: column;
