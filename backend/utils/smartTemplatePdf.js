@@ -318,21 +318,21 @@ html, body {
   margin-right: 5px;
 }
         .intro-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #222;
-  margin: 15px 0;
+  margin: 8px 0;
 }
 table {
   border-collapse: collapse;
             width: 100%;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   margin-left: 0;
   margin-right: 0;
         }
 th, td {
             border: 1px solid #000;
-  padding: 3px 6px;
-  font-size: 11px;
+  padding: 1px 2px;
+  font-size: 9px;
   vertical-align: middle;
   text-align: center;
 }
@@ -350,19 +350,19 @@ th {
 .section-row {
   background: #f8f9fa;
   font-weight: 700;
-  font-size: 12px;
-  margin-top: 15px;
+  font-size: 10px;
+  margin-top: 5px;
 }
 .total-row {
   background: #e9ecef;
   font-weight: 700;
-  font-size: 11px;
-  padding: 3px 6px;
+  font-size: 9px;
+  padding: 1px 2px;
 }
 
 .total-row td {
-  padding: 3px 6px !important;
-  font-size: 11px !important;
+  padding: 1px 2px !important;
+  font-size: 9px !important;
 }
         .footer-note {
   font-size: 10px;
