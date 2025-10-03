@@ -156,7 +156,7 @@ html, body {
 }
 .page-content {
   width: 180mm;
-  margin: 0 15mm;
+  margin: 10mm 15mm 0 15mm;
   box-sizing: border-box;
   min-height: 297mm;
   max-height: 297mm;
@@ -194,13 +194,6 @@ html, body {
   page-break-inside: avoid;
 }
 
-.footer-bar::before {
-  content: '';
-  width: 100%;
-  height: 1.5px;
-  background: #FF6B35;
-  margin-bottom: 8px;
-}
 
 .footer-content {
   display: flex;
@@ -248,21 +241,26 @@ html, body {
 /* El resto estilos similares al de antes */
 
 .subtitle-box {
-  display: block;
-  text-align: center;
-  margin: 20px 0 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0 8px 0;
+  width: 100%;
 }
 .subtitle-inner {
   background: white;
-  border-radius: 5px;
-  border: 2px solid #000;
+  border-radius: 3px;
+  border: 1px solid #000;
   color: #000;
   display: inline-block;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  letter-spacing: 1.2px;
-  min-width: 240px;
-  padding: 10px 30px;
+  letter-spacing: 0.5px;
+  padding: 6px 20px;
+  text-align: center;
+  width: auto;
+  max-width: 90%;
+  margin: 0 auto;
 }
 .normal-subtitle {
   font-size: 12px;
@@ -290,8 +288,7 @@ html, body {
         .title {
   font-weight: bold;
   font-size: 20px;
-  margin: 0 0 10px 0;
-  margin-top: 20px;
+  margin: 20px 0 30px 0;
             text-align: center;
             text-decoration: underline;
             position: relative;
@@ -334,8 +331,8 @@ table {
         }
 th, td {
             border: 1px solid #000;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 3px 6px;
+  font-size: 11px;
   vertical-align: middle;
   text-align: center;
 }
@@ -351,14 +348,21 @@ th {
             text-align: center;
         }
 .section-row {
-  background: #ffe5d0;
+  background: #f8f9fa;
   font-weight: 700;
   font-size: 12px;
+  margin-top: 15px;
 }
 .total-row {
   background: #e9ecef;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
+  padding: 3px 6px;
+}
+
+.total-row td {
+  padding: 3px 6px !important;
+  font-size: 11px !important;
 }
         .footer-note {
   font-size: 10px;
@@ -405,8 +409,8 @@ a {
 /* Primera página con footer fijo */
 .first-page {
   position: relative;
-  min-height: 280mm;
-  max-height: 280mm;
+  min-height: 270mm;
+  max-height: 270mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -415,7 +419,7 @@ a {
 .first-page-footer {
   position: relative;
   margin-top: auto;
-  height: 40px;
+  height: auto;
   padding: 8px 10mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
@@ -426,13 +430,14 @@ a {
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
+  page-break-inside: avoid;
 }
 
 /* Segunda página con footer en la parte inferior */
 .second-page {
   position: relative;
-  min-height: 280mm;
-  max-height: 280mm;
+  min-height: 270mm;
+  max-height: 270mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -441,7 +446,7 @@ a {
 .second-page-footer {
   position: relative;
   margin-top: auto;
-  height: 40px;
+  height: auto;
   padding: 8px 10mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
@@ -452,6 +457,7 @@ a {
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
+  page-break-inside: avoid;
 }
     </style>
 </head>
