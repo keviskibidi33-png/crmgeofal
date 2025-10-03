@@ -322,7 +322,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 4px 0 2px 0;
+  margin: 2px 0 2px 0;
   width: 100%;
 }
 .subtitle-inner {
@@ -343,7 +343,7 @@ html, body {
 .normal-subtitle {
   font-size: 11px;
   font-weight: bold;
-  margin: 3px 0 1px 0;
+  margin: 1px 0 1px 0;
   text-decoration: none;
   text-align: left;
   color: #000;
@@ -468,8 +468,8 @@ th {
 }
         .footer-note {
   font-size: 10px;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  margin-top: 2px;
+  margin-bottom: 8px;
             color: #666;
   text-align: left;
 }
