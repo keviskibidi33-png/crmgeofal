@@ -45,11 +45,14 @@ function processBundleData(bundle) {
     const variantId = bundle.quote?.variant_id;
     const variantConditions = getVariantConditions(variantId);
     
-  const condicionesTexto = `
+  const condicionesPrimeraPagina = `
     <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
     <div class="conditions-content">
       El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
     </div>
+  `;
+
+  const condicionesSegundaPagina = `
     <div class="normal-subtitle">CONTRAMUESTRA</div>
     <div class="conditions-content">
       Al finalizar los ensayos, la muestra sobrante/contramuestra permanecerán en custodia por un tiempo de 10 días calendario después de emitido el informe de ensayo. Siempre que se trate de una muestra dirimente, las contramuestras serán devueltas a los clientes, previa coordinación y autorización, caso contrario, serán eliminadas si se trata de residuos del ensayo o contramuestras de ensayo.
@@ -120,7 +123,8 @@ function processBundleData(bundle) {
       total: total.toFixed(2),
     variant_conditions: variantConditions,
     delivery_days: bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
-    condiciones_segunda_pagina: condicionesTexto,
+    condiciones_primera_pagina: condicionesPrimeraPagina,
+    condiciones_segunda_pagina: condicionesSegundaPagina,
     __dirname: __dirname
   };
 }
@@ -436,29 +440,57 @@ a {
 /* Segunda página con footer en la parte inferior */
 .second-page {
   position: relative;
-  min-height: 270mm;
-  max-height: 270mm;
+  min-height: 297mm;
+  max-height: 297mm;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .second-page-footer {
   position: relative;
   margin-top: auto;
   height: auto;
-  padding: 8px 10mm;
+  padding: 3px 10mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 12px;
+  font-size: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
   page-break-inside: avoid;
+  min-height: 50px;
 }
+
+.second-page .header {
+  position: relative;
+  height: 100px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.second-page .header img {
+  position: relative;
+  height: 100px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.second-page .page-content-wrapper {
+  flex: 1;
+  padding: 0 10mm 60px 10mm;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
     </style>
 </head>
 <body>
@@ -524,6 +556,7 @@ a {
           {{/each}}
                     </ul>
                 </div>
+      {{{condiciones_primera_pagina}}}
             </div>
 
     <!-- Footer específico para la primera página -->
@@ -558,9 +591,12 @@ a {
     </div>
     
   <div class="page-content second-page">
+    <div class="header">
+      <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
+    </div>
     <div class="page-content-wrapper">
       {{{condiciones_segunda_pagina}}}
-            </div>
+    </div>
 
     <!-- Footer específico para la segunda página -->
     <div class="footer-bar second-page-footer">
