@@ -89,7 +89,7 @@ function processBundleData(bundle) {
       Atentamente,<br/>
       Geofal SAC<br/>
       Av. Río Marañón N° 763, Los Olivos, Lima<br/>
-      Telf.: (01) 9051911 / (01) 7543070 – 982428985 - 965057624 - 993077479
+      Telf.: (01) 9051911 / (01) 7543070
     </div>`;
 
   return {
@@ -182,28 +182,68 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 40px;
-  padding: 8px 18px;
-  border-top: 1.5px solid #FF6B35;
+  height: auto;
+  padding: 0;
   background: white;
   color: #222;
   font-size: 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   box-sizing: border-box;
   margin-top: 20px;
   page-break-inside: avoid;
 }
-.footer-bar span {
+
+.footer-bar::before {
+  content: '';
+  width: 100%;
+  height: 1.5px;
+  background: #FF6B35;
+  margin-bottom: 8px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 18px;
+  width: 100%;
+}
+
+.footer-left, .footer-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.footer-left {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.footer-right {
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.footer-item {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  white-space: nowrap;
 }
-.footer-bar svg {
+
+.footer-item svg {
   fill: #FF6B35;
-  height: 18px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.footer-item div {
+  display: inline;
+  line-height: 1.2;
 }
 /* El resto estilos similares al de antes */
 
@@ -228,9 +268,9 @@ html, body {
   font-size: 12px;
   font-weight: bold;
   margin: 16px 0 8px 0;
-  text-decoration: underline;
-  text-align: left;
-  color: #FF6B35;
+  text-decoration: none;
+  text-align: center;
+  color: #000;
 }
         .header {
             position: relative;
@@ -348,6 +388,10 @@ th {
 .contact-block {
   font-size: 12px;
   margin-top: 12px;
+}
+a {
+  color: #000 !important;
+  text-decoration: none !important;
 }
 
 /* Contenedores de página específicos */
@@ -478,21 +522,32 @@ th {
 
     <!-- Footer específico para la primera página -->
     <div class="footer-bar first-page-footer">
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
-        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
-      </span>
-      <span>
-        Av. Marañón N° 763, Los Olivos, Lima
-      </span>
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M391 351c-16-16-35-27-57-30-7-1-14-1-21 2l-36 19c-16-32-36-65-56-95l31-35c5-5 6-13 2-19-8-13-24-27-37-39-5-5-13-5-18 0l-32 30-27-27c-6-6-16-7-22-2-11 8-14 16-19 25-9 16-5 47 15 78 33 51 70 84 113 92 25 4 50-17 59-26 4-4 7-10 4-18z"/></svg>
-        (01) 754-3070
-      </span>
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
-        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
-      </span>
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <div>Av. Marañón N° 763, Los Olivos, Lima</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+            <div>
+              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            <div>(01) 754-3070</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <div>
+              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+      </div>
         </div>
     </div>
     
@@ -503,22 +558,33 @@ th {
 
     <!-- Footer específico para la segunda página -->
     <div class="footer-bar second-page-footer">
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
-        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
-      </span>
-      <span>
-        Av. Marañón N° 763, Los Olivos, Lima
-      </span>
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M391 351c-16-16-35-27-57-30-7-1-14-1-21 2l-36 19c-16-32-36-65-56-95l31-35c5-5 6-13 2-19-8-13-24-27-37-39-5-5-13-5-18 0l-32 30-27-27c-6-6-16-7-22-2-11 8-14 16-19 25-9 16-5 47 15 78 33 51 70 84 113 92 25 4 50-17 59-26 4-4 7-10 4-18z"/></svg>
-        (01) 754-3070
-      </span>
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M61 17v30a5 5 0 01-2 4l-27 15a5 5 0 01-7-4V17a5 5 0 012-4l27-15a5 5 0 017 4zM50 25h-8a3 3 0 00-3 3v8a3 3 0 003 3h8a3 3 0 003-3v-8a3 3 0 00-3-3z"/></svg>
-        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
-      </span>
-                </div>
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <div>Av. Marañón N° 763, Los Olivos, Lima</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+            <div>
+              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            <div>(01) 754-3070</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <div>
+              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
             </div>
             
 </body>
