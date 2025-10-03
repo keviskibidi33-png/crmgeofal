@@ -311,7 +311,7 @@ html, body {
         .title {
   font-weight: bold;
   font-size: 20px;
-  margin: 20px 0 30px 0;
+  margin: 40px 0 30px 0;
             text-align: center;
             text-decoration: underline;
             position: relative;
