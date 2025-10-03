@@ -1,6 +1,21 @@
 const fs = require('fs').promises;
 const path = require('path');
 const puppeteer = require('puppeteer');
+
+// Función para generar número de cotización autoincremental por día
+function generateQuoteNumber() {
+  const today = new Date();
+  const year = today.getFullYear().toString().slice(-2);
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  
+  // Crear un identificador único basado en fecha y hora
+  const now = new Date();
+  const timeStamp = now.getTime();
+  const dailyCounter = Math.floor(timeStamp / (1000 * 60 * 60 * 24)) % 1000; // Contador diario
+  
+  return `0120-${year}${month}${day}-${String(dailyCounter).padStart(3, '0')}`;
+}
 const handlebars = require('handlebars');
 
 async function generateSmartTemplatePdf(bundle, outputPath) {
@@ -96,7 +111,7 @@ function processBundleData(bundle) {
     </div>`;
 
   return {
-    numero_cotizacion: `0120-${new Date().getFullYear().toString().slice(-2)}`,
+    numero_cotizacion: generateQuoteNumber(),
       fecha_emision: fechaFormateada,
       fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
     referencia: bundle.quote?.meta?.quote?.reference || bundle.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
@@ -271,7 +286,7 @@ html, body {
   font-weight: bold;
   margin: 16px 0 8px 0;
   text-decoration: none;
-  text-align: center;
+  text-align: left;
   color: #000;
 }
         .header {
