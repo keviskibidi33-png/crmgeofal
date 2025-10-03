@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Cotización {{ numero_cotizacion }}</title>
+    <link rel="stylesheet" href="template.css">
+</head>
+<body>
+  <div class="page-content first-page {{#if hasManyItems}}many-items{{/if}}">
+    <div class="page-content-wrapper">
+            <div class="header">
+        <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
+            </div>
+            <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
+            <div class="info-grid">
+        <div>
+          <div class="info-row"><span class="info-label">CLIENTE:</span>{{ cliente_nombre }}</div>
+          <div class="info-row"><span class="info-label">RUC:</span>{{ cliente_ruc }}</div>
+          <div class="info-row"><span class="info-label">CONTACTO:</span>{{ cliente_contacto }}</div>
+          <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ cliente_telefono }}</div>
+          <div class="info-row"><span class="info-label">CORREO:</span>{{ cliente_correo }}</div>
+        </div>
+        <div>
+          <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
+          <div class="info-row"><span class="info-label">UBICACIÓN:</span>{{ proyecto_ubicacion }}</div>
+          <div class="info-row"><span class="info-label">ASESOR COMERCIAL:</span>{{ asesor_comercial }}</div>
+          <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ telefono_comercial }}</div>
+          <div class="info-row"><span class="info-label">FECHA EMISIÓN:</span>{{ fecha_emision }}</div>
+        </div>
+            </div>
+            <div class="reference-row">
+        <span class="info-label">REFERENCIA:</span>{{ referencia }}
+            </div>
+            <div class="intro-text">
+        Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
+            </div>
+            <table class="table-adaptive {{#if (lt items.length 4)}}table-few-items{{else if (lt items.length 7)}}table-moderate-items{{else}}table-many-items{{/if}}">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Descripción Ensayo</th>
+            <th>Norma</th>
+            <th>Acreditación</th>
+            <th>Costo Unitario (S/)</th>
+            <th>Cantidad</th>
+            <th>Costo Parcial (S/)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="section-row">
+            <td colspan="7">MUESTRA DE SUELO Y AGREGADO</td>
+          </tr>
+          {{#each items}}
+          <tr>
+            <td>{{ codigo }}</td>
+            <td>{{ descripcion }}</td>
+            <td>{{ norma }}</td>
+            <td style="text-align:center">(*)</td>
+            <td>{{ costo_unitario }}</td>
+            <td>{{ cantidad }}</td>
+            <td>{{ costo_parcial }}</td>
+          </tr>
+          {{/each}}
+          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
+                </tbody>
+            </table>
+      <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
+      {{{condiciones_primera_pagina}}}
+            </div>
+
+    <!-- Footer específico para la primera página -->
+    <div class="footer-bar first-page-footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <div>Av. Marañón N° 763, Los Olivos, Lima</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+            <div>
+              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            <div>(01) 754-3070</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <div>
+              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
+    </div>
+    
+  <!-- FORZAR SALTO DE PÁGINA INVISIBLE -->
+  <div style="page-break-before: always; height: 1px; width: 100%; display: block; visibility: hidden; position: relative; margin: 0; padding: 0; overflow: hidden;">
+    <div style="height: 1px; width: 100%; display: block;">&nbsp;</div>
+  </div>
+  
+  <div class="page-content second-page">
+    <div class="header">
+      <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
+    </div>
+    <div class="page-content-wrapper">
+      {{{condiciones_segunda_pagina}}}
+    </div>
+
+    <!-- Footer específico para la segunda página -->
+    <div class="footer-bar second-page-footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <div>Av. Marañón N° 763, Los Olivos, Lima</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+            <div>
+              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            <div>(01) 754-3070</div>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <div>
+              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

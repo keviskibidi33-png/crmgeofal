@@ -21,7 +21,7 @@ const handlebars = require('handlebars');
 async function generateSmartTemplatePdf(bundle, outputPath) {
   try {
     const processedData = processBundleData(bundle);
-    const htmlContent = generateCleanHtmlTemplate(processedData);
+    const htmlContent = await generateCleanHtmlTemplateFromFiles(processedData);
     const tempHtmlPath = path.join(__dirname, '..', 'tmp', `temp_${Date.now()}.html`);
     
     await fs.writeFile(tempHtmlPath, htmlContent, 'utf8');
@@ -43,6 +43,12 @@ function processBundleData(bundle) {
     (item.code && item.code.trim() !== '') || 
     (item.description && item.description.trim() !== '')
   );
+  
+  // Detectar cantidad de items para layout adaptativo inteligente
+  const itemCount = items.length;
+  const hasManyItems = itemCount > 6;
+  const hasVeryManyItems = itemCount > 12;
+  const hasExtremeItems = itemCount > 15;
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -60,15 +66,60 @@ function processBundleData(bundle) {
     const variantId = bundle.quote?.variant_id;
     const variantConditions = getVariantConditions(variantId);
     
-  const condicionesPrimeraPagina = `
+  // Layout adaptativo inteligente según cantidad de items
+  let condicionesPrimeraPagina;
+  
+  if (hasExtremeItems) {
+    // Con items extremos: solo lo esencial en primera página
+    condicionesPrimeraPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+      </div>`;
+  } else if (hasManyItems) {
+    // Con muchos items: condiciones básicas + PLAZO ESTIMADO
+    condicionesPrimeraPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+      </div>
     <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
     <div class="conditions-content">
       El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>`;
+  } else {
+    // Con pocos items: layout completo en primera página
+    condicionesPrimeraPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
     </div>
-  `;
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>`;
+  }
 
-  const condicionesSegundaPagina = `
-    <div class="normal-subtitle">CONTRAMUESTRA</div>
+  // Segunda página adaptativa
+  let condicionesSegundaPagina;
+  
+  // Segunda página siempre sin PLAZO ESTIMADO (ya está en primera página)
+  condicionesSegundaPagina = `
+    <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  
+  condicionesSegundaPagina += `
     <div class="conditions-content">
       Al finalizar los ensayos, la muestra sobrante/contramuestra permanecerán en custodia por un tiempo de 10 días calendario después de emitido el informe de ensayo. Siempre que se trate de una muestra dirimente, las contramuestras serán devueltas a los clientes, previa coordinación y autorización, caso contrario, serán eliminadas si se trata de residuos del ensayo o contramuestras de ensayo.
     </div>
@@ -140,6 +191,10 @@ function processBundleData(bundle) {
     delivery_days: bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
     condiciones_primera_pagina: condicionesPrimeraPagina,
     condiciones_segunda_pagina: condicionesSegundaPagina,
+    // Variables para layout adaptativo
+    hasManyItems: hasManyItems,
+    hasVeryManyItems: hasVeryManyItems,
+    itemCount: itemCount,
     __dirname: __dirname
   };
 }
@@ -163,7 +218,7 @@ html, body {
   color: #000;
             box-sizing: border-box;
   max-height: 594mm; /* Exacto para 2 páginas */
-  overflow: visible;
+  overflow: hidden;
 }
 @page {
   size: A4;
@@ -171,15 +226,15 @@ html, body {
 }
         body {
   max-height: 594mm !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 .page-content {
   width: 180mm;
   margin: 10mm 15mm 0 15mm;
   box-sizing: border-box;
-  min-height: 297mm;
-  max-height: 297mm;
-  overflow: visible;
+  min-height: 275mm;
+  max-height: 275mm;
+  overflow: hidden;
   page-break-inside: avoid;
 }
 .page-content:not(:last-child) {
@@ -267,7 +322,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 15px 0 8px 0;
+  margin: 4px 0 2px 0;
   width: 100%;
 }
 .subtitle-inner {
@@ -286,9 +341,9 @@ html, body {
   margin: 0 auto;
 }
 .normal-subtitle {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
-  margin: 16px 0 8px 0;
+  margin: 3px 0 1px 0;
   text-decoration: none;
   text-align: left;
   color: #000;
@@ -352,6 +407,30 @@ table {
   margin-left: 0;
   margin-right: 0;
         }
+
+/* ===== LAYOUT ADAPTATIVO PARA MUCHOS ITEMS ===== */
+.many-items table {
+  font-size: 8px;
+}
+
+.many-items th, .many-items td {
+  padding: 1px 1px;
+  font-size: 8px;
+}
+
+.many-items .section-row {
+  font-size: 9px;
+  margin-top: 3px;
+}
+
+.many-items .total-row {
+  font-size: 8px;
+}
+
+.many-items .total-row td {
+  padding: 1px 1px;
+  font-size: 8px;
+        }
 th, td {
             border: 1px solid #000;
   padding: 1px 2px;
@@ -395,10 +474,10 @@ th {
   text-align: left;
 }
 .conditions-content {
-  font-size: 10px;
+  font-size: 9px;
   color: #222;
-  margin-bottom: 6px;
-  line-height: 1.4;
+  margin-bottom: 1px;
+  line-height: 1.2;
 }
 .conditions-list {
   margin-left: 15px;
@@ -409,8 +488,8 @@ th {
   font-size: 10px;
 }
 .signature-block {
-  margin-top: 15px;
-  font-size: 11px;
+  margin-top: 2px;
+  font-size: 10px;
 }
 .contact-block {
   font-size: 12px;
@@ -424,7 +503,7 @@ a {
 /* Contenedores de página específicos */
 .page-content-wrapper {
   width: 100%;
-  min-height: 250mm;
+  min-height: 200mm;
   padding: 0 10mm 20px 10mm;
   box-sizing: border-box;
 }
@@ -432,8 +511,8 @@ a {
 /* Primera página con footer fijo */
 .first-page {
   position: relative;
-  min-height: 270mm;
-  max-height: 270mm;
+  min-height: 275mm;
+  max-height: 275mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -459,11 +538,11 @@ a {
 /* Segunda página con footer en la parte inferior */
 .second-page {
   position: relative;
-  min-height: 297mm;
-  max-height: 297mm;
+  min-height: 275mm;
+  max-height: 275mm;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .second-page-footer {
@@ -486,9 +565,9 @@ a {
 
 .second-page .header {
   position: relative;
-  height: 100px;
-  margin-bottom: 2px;
-  margin-top: 30px;
+  height: 120px;
+  margin-bottom: 10px;
+  margin-top: 10px;
   display: flex;
   align-items: flex-start;
   width: 100%;
@@ -497,14 +576,14 @@ a {
 
 .second-page .header img {
   position: relative;
-  height: 100px;
+  height: 120px;
   display: block;
   flex-shrink: 0;
 }
 
 .second-page .page-content-wrapper {
   flex: 1;
-  padding: 0 10mm 0px 10mm;
+  padding: 0 10mm 2px 10mm;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -514,7 +593,7 @@ a {
     </style>
 </head>
 <body>
-  <div class="page-content first-page">
+  <div class="page-content first-page {{#if hasManyItems}}many-items{{/if}}">
     <div class="page-content-wrapper">
             <div class="header">
         <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
@@ -566,16 +645,6 @@ a {
                 </tbody>
             </table>
       <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
-      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
-                <div class="conditions-content">
-        <strong>VALIDEZ DE LA OFERTA:</strong> 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.<br/>
-        <strong>CONDICIONES ESPECÍFICAS:</strong>
-                    <ul class="conditions-list">
-          {{#each variant_conditions.conditions}}
-          <li>{{this}}</li>
-          {{/each}}
-                    </ul>
-                </div>
       {{{condiciones_primera_pagina}}}
             </div>
 
@@ -588,9 +657,9 @@ a {
             <div>Av. Marañón N° 763, Los Olivos, Lima</div>
           </div>
           <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
             <div>
-              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
             </div>
           </div>
         </div>
@@ -602,7 +671,7 @@ a {
           <div class="footer-item">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
             <div>
-              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
             </div>
           </div>
         </div>
@@ -616,7 +685,7 @@ a {
     </div>
     <div class="page-content-wrapper">
       {{{condiciones_segunda_pagina}}}
-    </div>
+            </div>
 
     <!-- Footer específico para la segunda página -->
     <div class="footer-bar second-page-footer">
@@ -627,9 +696,9 @@ a {
             <div>Av. Marañón N° 763, Los Olivos, Lima</div>
           </div>
           <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
             <div>
-              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+        <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
             </div>
           </div>
         </div>
@@ -641,12 +710,12 @@ a {
           <div class="footer-item">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
             <div>
-              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+        <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
             </div>
           </div>
         </div>
       </div>
-        </div>
+                </div>
             </div>
             
 </body>
@@ -699,13 +768,43 @@ async function convertHtmlToPdf(htmlPath, outputPath) {
   try {
     const page = await browser.newPage();
     await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' });
+    
+    // Forzar segunda página sin interferir con CSS de primera página
+    await page.evaluate(() => {
+      const secondPage = document.querySelector('.second-page');
+      if (secondPage) {
+        // Forzar salto de página
+        secondPage.style.pageBreakBefore = 'always';
+        secondPage.style.breakBefore = 'page';
+        secondPage.style.display = 'block';
+        secondPage.style.position = 'relative';
+        secondPage.style.minHeight = '297mm';
+        secondPage.style.height = '297mm';
+        
+        // Asegurar que el contenido de segunda página sea visible
+        const contentWrapper = secondPage.querySelector('.page-content-wrapper');
+        if (contentWrapper) {
+          contentWrapper.style.minHeight = '200mm';
+          contentWrapper.style.height = '200mm';
+          contentWrapper.style.visibility = 'visible';
+          contentWrapper.style.opacity = '1';
+        }
+      }
+      
+      // Forzar que el body tenga altura suficiente para dos páginas
+      document.body.style.height = '594mm';
+      document.body.style.minHeight = '594mm';
+    });
     await page.pdf({
       path: outputPath,
       format: 'A4',
       printBackground: true,
-      margin: {top: '10mm', right: '10mm', bottom: '10mm', left: '10mm'},
+      margin: {top: '5mm', right: '5mm', bottom: '5mm', left: '5mm'},
       preferCSSPageSize: false,
-      displayHeaderFooter: false
+      displayHeaderFooter: false,
+      scale: 1.0,
+      tagged: false,
+      outline: false
     });
   } finally {
     await browser.close();
@@ -751,8 +850,8 @@ async function generateQuotePDF(quoteData) {
 
     console.log('🔍 generateQuotePDF - Datos procesados:', processedData);
 
-    // Generar HTML
-    const htmlContent = generateCleanHtmlTemplate(processedData);
+    // Generar HTML usando archivos separados
+    const htmlContent = await generateCleanHtmlTemplateFromFiles(processedData);
     
     // Convertir a PDF usando Puppeteer
     let browser;
@@ -781,17 +880,45 @@ async function generateQuotePDF(quoteData) {
         timeout: 30000 
       });
       
+      // Forzar salto de página con JavaScript más agresivo
+      await page.evaluate(() => {
+        const secondPage = document.querySelector('.second-page');
+        if (secondPage) {
+          // Múltiples métodos para forzar salto de página
+          secondPage.style.pageBreakBefore = 'always';
+          secondPage.style.breakBefore = 'page';
+          secondPage.style.display = 'block';
+          secondPage.style.position = 'relative';
+          secondPage.style.minHeight = '297mm';
+          secondPage.style.height = '297mm';
+          
+          // Agregar contenido adicional si es necesario
+          const contentWrapper = secondPage.querySelector('.page-content-wrapper');
+          if (contentWrapper) {
+            contentWrapper.style.minHeight = '200mm';
+            contentWrapper.style.height = '200mm';
+          }
+        }
+        
+        // Forzar que el body tenga altura suficiente
+        document.body.style.height = '594mm';
+        document.body.style.minHeight = '594mm';
+      });
+      
       // Generar PDF con configuración mejorada
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
         preferCSSPageSize: false,
         margin: {
-          top: '10mm',
-          right: '10mm',
-          bottom: '10mm',
-          left: '10mm'
-        }
+          top: '5mm',
+          right: '5mm',
+          bottom: '5mm',
+          left: '5mm'
+        },
+        scale: 1.0,
+        tagged: false,
+        outline: false
       });
       
       console.log('✅ generateQuotePDF - PDF generado, tamaño:', pdfBuffer.length, 'bytes');
@@ -809,10 +936,51 @@ async function generateQuotePDF(quoteData) {
   }
 }
 
+
+// Función para generar HTML usando archivos separados
+async function generateCleanHtmlTemplateFromFiles(data) {
+  try {
+    console.log('🔍 Leyendo archivos template...');
+    
+    // Leer el template HTML
+    const htmlTemplate = await fs.readFile(path.join(__dirname, 'template.html'), 'utf8');
+    console.log('✅ Template HTML leído, tamaño:', htmlTemplate.length);
+    
+    // Leer el CSS
+    const cssContent = await fs.readFile(path.join(__dirname, 'template.css'), 'utf8');
+    console.log('✅ Template CSS leído, tamaño:', cssContent.length);
+    
+    // Reemplazar el link del CSS con el contenido real
+    const htmlWithCss = htmlTemplate.replace(
+      '<link rel="stylesheet" href="template.css">',
+      `<style>${cssContent}</style>`
+    );
+    
+    console.log('✅ HTML con CSS combinado, tamaño:', htmlWithCss.length);
+    
+    // Registrar helper para comparación numérica
+    handlebars.registerHelper('lt', function(a, b) {
+      return a < b;
+    });
+    
+    // Compilar con Handlebars
+    const compiledTemplate = handlebars.compile(htmlWithCss);
+    const result = compiledTemplate(data);
+    
+    console.log('✅ Template compilado, tamaño final:', result.length);
+    return result;
+  } catch (error) {
+    console.error('❌ Error generando HTML desde archivos:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   generateSmartTemplatePdf,
   generateQuotePDF,
+  generateCleanHtmlTemplateFromFiles,
   getVariantConditions,
   getPaymentConditionText,
   convertHtmlToPdf
 };
+
