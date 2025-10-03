@@ -218,14 +218,16 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 8px 18px;
+  padding: 6px 8px;
   width: 100%;
+  max-width: 160mm;
+  margin: 0 auto;
 }
 
 .footer-left, .footer-right {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   flex: 0 0 auto;
 }
 
@@ -242,20 +244,22 @@ html, body {
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   white-space: nowrap;
+  font-size: 10px;
 }
 
 .footer-item svg {
   fill: #FF6B35;
-  height: 16px;
-  width: 16px;
+  height: 12px;
+  width: 12px;
   flex-shrink: 0;
 }
 
 .footer-item div {
   display: inline;
-  line-height: 1.2;
+  line-height: 1.1;
+  font-size: 10px;
 }
 /* El resto estilos similares al de antes */
 
@@ -439,11 +443,11 @@ a {
   position: relative;
   margin-top: auto;
   height: auto;
-  padding: 8px 10mm;
+  padding: 4px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 12px;
+  font-size: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -466,18 +470,18 @@ a {
   position: relative;
   margin-top: auto;
   height: auto;
-  padding: 3px 10mm;
+  padding: 2px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 10px;
+  font-size: 9px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
   page-break-inside: avoid;
-  min-height: 50px;
+  min-height: 40px;
 }
 
 .second-page .header {
