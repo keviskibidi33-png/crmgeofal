@@ -239,11 +239,22 @@ table {
 }
 
 th, td {
-  border: 1px solid #000;
+  border: none;
   padding: 2px 3px;
   font-size: 10px;
   vertical-align: middle;
   text-align: center;
+}
+
+/* Solo las celdas con contenido tienen bordes */
+th, td:not(:empty) {
+  border: 1px solid #000;
+}
+
+/* Celdas vacías sin bordes */
+td:empty {
+  border: none;
+  padding: 0;
 }
 
 .section-row {
@@ -253,13 +264,7 @@ th, td {
   margin-top: 15px;
 }
 
-.total-row td {
-  text-align: left !important;
-}
-
-.total-row td:last-child {
-  text-align: right !important;
-}
+/* Estilos para filas de totales - ya están en el HTML inline */
 
 .footer-note {
   font-size: 9px;

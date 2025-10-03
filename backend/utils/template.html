@@ -41,7 +41,6 @@
             <th>Descripción Ensayo</th>
             <th>Norma</th>
             <th>Acreditación</th>
-            <th>Costo Unitario (S/)</th>
             <th>Cantidad</th>
             <th>Costo Parcial (S/)</th>
           </tr>
@@ -56,16 +55,37 @@
             <td>{{ descripcion }}</td>
             <td>{{ norma }}</td>
             <td style="text-align:center">(*)</td>
-            <td>{{ costo_unitario }}</td>
             <td>{{ cantidad }}</td>
             <td>{{ costo_parcial }}</td>
           </tr>
           {{/each}}
-          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
-          <tr class="total-row"><td colspan="4"></td><td></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
-          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
-                </tbody>
-            </table>
+          <!-- Filas de totales como parte de la misma tabla -->
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align:right; font-weight:bold; border-top: 2px solid #000;">Costo Parcial:</td>
+            <td style="text-align:right; font-weight:bold; border-top: 2px solid #000;">S/ {{ subtotal }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align:right; font-weight:bold;">IGV 18%:</td>
+            <td style="text-align:right; font-weight:bold;">S/ {{ igv }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align:right; font-weight:bold;">Costo Total:</td>
+            <td style="text-align:right; font-weight:bold;">S/ {{ total }}</td>
+          </tr>
+        </tbody>
+      </table>
       <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
       {{{condiciones_primera_pagina}}}
             </div>
