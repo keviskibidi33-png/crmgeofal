@@ -22,7 +22,12 @@ async function generateSmartTemplatePdf(bundle, outputPath) {
 
 function processBundleData(bundle) {
     let subtotal = 0;
-  const items = bundle.quote?.meta?.items || bundle.items || [];
+  const allItems = bundle.quote?.meta?.items || bundle.items || [];
+  // Filtrar solo items que tienen datos válidos (código o descripción)
+  const items = allItems.filter(item => 
+    (item.code && item.code.trim() !== '') || 
+    (item.description && item.description.trim() !== '')
+  );
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -32,11 +37,10 @@ function processBundleData(bundle) {
     const total = subtotal + igv;
   let fechaFormateada = '';
   if (bundle.quote?.meta?.quote?.issue_date) {
-    const [year, month, day] = bundle.quote.meta.quote.issue_date.split('-');
-    fechaFormateada = `${year.slice(-2)}-${month}-${day}`;
+    fechaFormateada = bundle.quote.meta.quote.issue_date;
   } else {
     const fechaActual = new Date();
-    fechaFormateada = `${fechaActual.getFullYear().toString().slice(-2)}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
+    fechaFormateada = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
   }
     const variantId = bundle.quote?.variant_id;
     const variantConditions = getVariantConditions(variantId);
@@ -89,7 +93,7 @@ function processBundleData(bundle) {
     </div>`;
 
   return {
-    numero_cotizacion: `COT-${bundle.quote?.id || 'XXX'}-${new Date().getFullYear().toString().slice(-2)}`,
+    numero_cotizacion: `0120-${new Date().getFullYear().toString().slice(-2)}`,
       fecha_emision: fechaFormateada,
       fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
     referencia: bundle.quote?.meta?.quote?.reference || bundle.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
@@ -151,8 +155,8 @@ html, body {
   overflow: visible !important;
 }
 .page-content {
-  width: 190mm;
-  margin: 0 10mm;
+  width: 180mm;
+  margin: 0 15mm;
   box-sizing: border-box;
   min-height: 297mm;
   max-height: 297mm;
@@ -209,17 +213,16 @@ html, body {
   margin: 20px 0 12px 0;
 }
 .subtitle-inner {
-  background: #FF6B35;
+  background: white;
   border-radius: 5px;
-  border: 1.8px solid #FF6B35;
-  color: white;
+  border: 2px solid #000;
+  color: #000;
   display: inline-block;
   font-size: 14px;
   font-weight: bold;
   letter-spacing: 1.2px;
   min-width: 240px;
   padding: 10px 30px;
-  text-shadow: 0 0 1.5px #ccc;
 }
 .normal-subtitle {
   font-size: 12px;
@@ -230,15 +233,16 @@ html, body {
   color: #FF6B35;
 }
         .header {
-            display: flex;
-            align-items: center;
-  border-bottom: 2px solid #FF6B35;
-  margin-bottom: 15px;
-  padding-bottom: 6px;
+            position: relative;
+            height: 80px;
+            margin-bottom: 10px;
 }
 .header img {
-  height: 60px;
-  margin-right: 22px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 120px;
+  z-index: 1;
 }
         .company-name {
   font-size: 14px;
@@ -246,9 +250,12 @@ html, body {
         .title {
   font-weight: bold;
   font-size: 20px;
-  margin: 15px 0 10px 0;
+  margin: 0 0 10px 0;
+  margin-top: 20px;
             text-align: center;
             text-decoration: underline;
+            position: relative;
+            z-index: 2;
         }
         .info-grid {
             display: grid;
@@ -261,6 +268,18 @@ html, body {
   width: 130px;
   display: inline-block;
 }
+.info-row {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.reference-row {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.reference-row .info-label {
+  width: auto;
+  margin-right: 5px;
+}
         .intro-text {
   font-size: 13px;
   color: #222;
@@ -269,13 +288,22 @@ html, body {
 table {
   border-collapse: collapse;
             width: 100%;
-  margin-bottom: 28px;
+  margin-bottom: 2px;
+  margin-left: 0;
+  margin-right: 0;
         }
 th, td {
             border: 1px solid #000;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 4px 8px;
+  font-size: 12px;
   vertical-align: middle;
+  text-align: center;
+}
+.total-row td {
+  text-align: left !important;
+}
+.total-row td:last-child {
+  text-align: right !important;
 }
 th {
   background: #f2f2f2;
@@ -285,23 +313,25 @@ th {
 .section-row {
   background: #ffe5d0;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
 }
 .total-row {
   background: #e9ecef;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
 }
         .footer-note {
   font-size: 10px;
-  margin-top: 18px;
+  margin-top: 0px;
+  margin-bottom: 0px;
             color: #666;
   text-align: left;
 }
 .conditions-content {
   font-size: 10px;
+  color: #222;
   margin-bottom: 6px;
-  line-height: 1.2;
+  line-height: 1.4;
 }
 .conditions-list {
   margin-left: 15px;
@@ -324,26 +354,25 @@ th {
 .page-content-wrapper {
   width: 100%;
   min-height: 250mm;
-  padding-bottom: 20px;
+  padding: 0 10mm 20px 10mm;
+  box-sizing: border-box;
 }
 
 /* Primera página con footer fijo */
 .first-page {
   position: relative;
-  min-height: 297mm;
-  max-height: 297mm;
+  min-height: 280mm;
+  max-height: 280mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .first-page-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  margin-top: auto;
   height: 40px;
-  padding: 8px 18px;
+  padding: 8px 10mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
@@ -352,26 +381,24 @@ th {
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
-  z-index: 1000;
+  flex-shrink: 0;
 }
 
 /* Segunda página con footer en la parte inferior */
 .second-page {
   position: relative;
-  min-height: 297mm;
-  max-height: 297mm;
+  min-height: 280mm;
+  max-height: 280mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .second-page-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  margin-top: auto;
   height: 40px;
-  padding: 8px 18px;
+  padding: 8px 10mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
@@ -380,8 +407,8 @@ th {
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
-  z-index: 1000;
-        }
+  flex-shrink: 0;
+}
     </style>
 </head>
 <body>
@@ -389,7 +416,6 @@ th {
     <div class="page-content-wrapper">
             <div class="header">
         <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
-                <div class="company-name">Ingeniería y laboratorio de materiales</div>
             </div>
             <div class="title">COTIZACIÓN N° {{ numero_cotizacion }}</div>
             <div class="info-grid">
@@ -400,7 +426,6 @@ th {
           <div class="info-row"><span class="info-label">TELÉFONO:</span>{{ cliente_telefono }}</div>
           <div class="info-row"><span class="info-label">CORREO:</span>{{ cliente_correo }}</div>
           <div class="info-row"><span class="info-label">FECHA SOLICITUD:</span>{{ fecha_solicitud }}</div>
-          <div class="info-row"><span class="info-label">REFERENCIA:</span>{{ referencia }}</div>
                     </div>
         <div>
           <div class="info-row"><span class="info-label">PROYECTO:</span>{{ proyecto_nombre }}</div>
@@ -410,30 +435,32 @@ th {
           <div class="info-row"><span class="info-label">FECHA DE EMISIÓN:</span>{{ fecha_emision }}</div>
                 </div>
             </div>
+            <div class="info-row reference-row"><span class="info-label">REFERENCIA:</span>{{ referencia }}</div>
             <div class="intro-text">
                 Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
             </div>
       <table>
                 <thead>
                     <tr>
-            <th>Código</th><th>Descripción Ensayo</th><th>Norma</th><th>Costo Unitario (S/)</th><th>Cantidad</th><th>Costo Parcial (S/)</th>
+            <th>Código</th><th>Descripción Ensayo</th><th>Norma</th><th>Acreditación</th><th>Costo Unitario (S/)</th><th>Cantidad</th><th>Costo Parcial (S/)</th>
                     </tr>
                 </thead>
                 <tbody>
-          <tr class="section-row"><td colspan="3">{{variant_conditions.title}}</td><td></td><td></td><td></td></tr>
+          <tr class="section-row"><td colspan="3">{{variant_conditions.title}}</td><td></td><td></td><td></td><td></td></tr>
                     {{#each items}}
                     <tr>
                         <td>{{codigo}}</td>
                         <td>{{descripcion}}</td>
                         <td>{{norma}}</td>
-            <td style="text-align:right">{{costo_unitario}}</td>
+            <td style="text-align:center">(*)</td>
+            <td style="text-align:center">{{costo_unitario}}</td>
             <td style="text-align:center">{{cantidad}}</td>
-            <td style="text-align:right">{{costo_parcial}}</td>
+            <td style="text-align:center">{{costo_parcial}}</td>
                     </tr>
                     {{/each}}
-          <tr class="total-row"><td colspan="4"></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
-          <tr class="total-row"><td colspan="4"></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
-          <tr class="total-row"><td colspan="4"></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Parcial:</td><td style="text-align:right">S/ {{ subtotal }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td></td><td>IGV 18%:</td><td style="text-align:right">S/ {{ igv }}</td></tr>
+          <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
                 </tbody>
             </table>
       <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
@@ -548,8 +575,8 @@ async function convertHtmlToPdf(htmlPath, outputPath) {
       path: outputPath,
       format: 'A4',
       printBackground: true,
-      margin: {top: '15mm', right: '10mm', bottom: '15mm', left: '10mm'},
-      preferCSSPageSize: true,
+      margin: {top: '10mm', right: '10mm', bottom: '10mm', left: '10mm'},
+      preferCSSPageSize: false,
       displayHeaderFooter: false
     });
   } finally {
@@ -630,12 +657,12 @@ async function generateQuotePDF(quoteData) {
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
-        preferCSSPageSize: true,
+        preferCSSPageSize: false,
         margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
+          top: '10mm',
+          right: '10mm',
+          bottom: '10mm',
+          left: '10mm'
         }
       });
       
