@@ -189,24 +189,20 @@ body {
   position: relative;
   height: 120px;
   margin-bottom: 30px;
-  margin-top: 5px;
+  margin-top: 25px;
   display: flex;
   align-items: flex-start;
   gap: 15px;
 }
 
-/* HEADER OPTIMIZADO PARA 25+ ITEMS */
-.medium-items .header,
-.very-many-items .header,
-.extreme-items .header {
-  margin-top: -15px;
+/* HEADER PROTEGIDO - NUNCA REDUCIR MÁRGENES */
+.header {
+  margin-top: 25px !important;
 }
 
-/* SEGUNDA PÁGINA: HEADER OPTIMIZADO para 25+ items */
-.second-page.medium-items .header,
-.second-page.very-many-items .header,
-.second-page.extreme-items .header {
-  margin-top: 5px;
+/* SEGUNDA PÁGINA: HEADER PROTEGIDO */
+.second-page .header {
+  margin-top: 25px !important;
   margin-bottom: 30px;
   display: flex;
   align-items: flex-start;
@@ -214,7 +210,7 @@ body {
 }
 
 .header img {
-  height: 120px;
+  height: 120px !important;
   margin-bottom: 20px;
   position: relative;
   z-index: 1;
@@ -222,11 +218,28 @@ body {
   flex-shrink: 0;
 }
 
-/* SEGUNDA PÁGINA: IMAGEN HEADER para 25+ items */
-.second-page.medium-items .header img,
-.second-page.very-many-items .header img,
-.second-page.extreme-items .header img {
+/* SEGUNDA PÁGINA: IMAGEN HEADER PROTEGIDA */
+.second-page .header img {
+  height: 120px !important;
   margin-bottom: 20px;
+}
+
+/* PROTECCIÓN COMPLETA DEL HEADER - NUNCA MODIFICAR */
+.header,
+.first-page .header,
+.second-page .header {
+  margin-top: 25px !important;
+  height: 120px !important;
+  margin-bottom: 30px !important;
+}
+
+.header img,
+.first-page .header img,
+.second-page .header img {
+  height: 120px !important;
+  margin-bottom: 20px !important;
+  display: block !important;
+  flex-shrink: 0 !important;
 }
 
 .title {
@@ -657,6 +670,53 @@ td:empty {
 
 .second-page .footer-bar {
   margin-top: 25px;
+}
+
+/* ===== REDUCCIÓN DE LETRA PARA 22+ ITEMS - SOLO SEGUNDA PÁGINA ===== */
+.second-page.reduced-font .subtitle-box .subtitle-inner {
+  font-size: 12px;
+  padding: 6px 18px;
+}
+
+.second-page.reduced-font .normal-subtitle {
+  font-size: 11px;
+  margin: 5px 0 4px 0;
+}
+
+.second-page.reduced-font .conditions-content {
+  font-size: 9px;
+  line-height: 1.2;
+  margin-bottom: 5px;
+}
+
+.second-page.reduced-font .subtitle-box {
+  margin: 4px 0 3px 0;
+}
+
+.second-page.reduced-font .signature-block {
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.second-page.reduced-font .contact-block {
+  font-size: 11px;
+  margin-top: 12px;
+}
+
+/* Footer optimizado para texto reducido - SOLO SEGUNDA PÁGINA */
+.second-page.reduced-font .second-page-footer {
+  font-size: 9px;
+  padding: 4px 5mm 5px 5mm;
+  min-height: 22px;
+}
+
+.second-page.reduced-font .footer-item {
+  font-size: 9px;
+}
+
+.second-page.reduced-font .footer-item svg {
+  height: 12px;
+  width: 12px;
 }
 
 /* ===== ENLACES ===== */

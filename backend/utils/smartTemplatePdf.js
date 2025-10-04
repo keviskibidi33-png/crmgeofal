@@ -52,6 +52,7 @@ function processBundleData(bundle) {
   const hasMediumItems = itemCount >= 25 && itemCount <= 27; // ITEMS MEDIOS: condiciones básicas a segunda página
   const hasVeryManyItems = itemCount >= 28; // MUY MUCHOS ITEMS: tabla compacta, condiciones a segunda página
   const hasExtremeItems = itemCount > 30; // ITEMS EXTREMOS: tabla muy compacta
+  const hasReducedFont = itemCount >= 22; // REDUCCIÓN DE LETRA: para 22+ items en segunda página
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -230,8 +231,11 @@ function processBundleData(bundle) {
     // Variables para layout adaptativo
     hasFewItems: hasFewItems,
     hasManyItems: hasManyItems,
+    hasPartialItems: hasPartialItems,
+    hasMediumItems: hasMediumItems,
     hasVeryManyItems: hasVeryManyItems,
     hasExtremeItems: hasExtremeItems,
+    hasReducedFont: hasReducedFont,
     itemCount: itemCount,
     __dirname: __dirname
   };
