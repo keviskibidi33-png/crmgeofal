@@ -49,18 +49,18 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testMoveSections() {
+  console.log('🧪 PROBANDO MOVIMIENTO DE SECCIONES A SEGUNDA PÁGINA\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 3, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 5, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 7, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 8, description: 'MUCHOS ITEMS (8-14): Todo en primera página' },
+    { count: 12, description: 'MUCHOS ITEMS (8-14): Todo en primera página' },
+    { count: 15, description: 'MUY MUCHOS ITEMS (15+): Secciones a segunda página' },
+    { count: 20, description: 'MUY MUCHOS ITEMS (15+): Secciones a segunda página' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +68,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `mover-secciones-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +87,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 SISTEMA DE MOVIMIENTO DE SECCIONES:');
+  console.log('• ≤14 items: Todo en primera página (tabla + condiciones + acreditación)');
+  console.log('• 15+ items: Solo tabla en primera página, resto a segunda página');
+  console.log('\n📋 Secciones que se mueven con 15+ items:');
+  console.log('• (*) Ensayo dentro del alcance de acreditación INACAL.');
+  console.log('• I. CONDICIONES DEL SERVICIO');
+  console.log('• VALIDEZ DE LA OFERTA: 30 días calendario...');
+  console.log('• CONDICIONES ESPECÍFICAS:');
+  console.log('• PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO');
+  console.log('• CONTRAMUESTRA');
+  console.log('\n✨ ¡Sistema de movimiento de secciones funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testMoveSections().catch(console.error);

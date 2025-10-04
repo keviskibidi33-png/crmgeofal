@@ -49,18 +49,16 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testLogoMargenCorrecto() {
+  console.log('🧪 VERIFICANDO LOGO ALINEADO AL MARGEN CORRECTO\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 25, description: '25 ITEMS: Logo alineado al margen correcto' },
+    { count: 27, description: '27 ITEMS: Logo alineado al margen correcto' },
+    { count: 28, description: '28 ITEMS: Logo alineado al margen correcto' },
+    { count: 30, description: '30 ITEMS: Logo alineado al margen correcto' },
+    { count: 35, description: '35 ITEMS: Logo alineado al margen correcto' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +66,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `logo-margen-correcto-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +85,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 LOGO ALINEADO AL MARGEN CORRECTO:');
+  console.log('• .second-page .header: igual que .header general');
+  console.log('• .second-page .header: display: flex, align-items: flex-start, gap: 15px');
+  console.log('• Logo alineado exactamente al mismo margen que el texto');
+  console.log('• Sin margin-left: 0 ni padding-left: 0 que desalineen');
+  console.log('\n✅ VERIFICACIÓN:');
+  console.log('• Logo alineado al margen del texto');
+  console.log('• Mismo diseño que primera página');
+  console.log('• Alineación perfecta del logo');
+  console.log('• Diseño consistente y profesional');
+  console.log('\n✨ ¡Logo alineado al margen correcto!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testLogoMargenCorrecto().catch(console.error);

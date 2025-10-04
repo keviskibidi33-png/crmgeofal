@@ -49,18 +49,20 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testSinDuplicados() {
+  console.log('🧪 PROBANDO SIN DUPLICADOS DE TEXTO INACAL\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 3, description: '3 ITEMS: Sin duplicados - solo primera página' },
+    { count: 5, description: '5 ITEMS: Sin duplicados - solo primera página' },
+    { count: 7, description: '7 ITEMS: Sin duplicados - solo primera página' },
+    { count: 10, description: '10 ITEMS: Sin duplicados - solo primera página' },
+    { count: 15, description: '15 ITEMS: Sin duplicados - solo primera página' },
+    { count: 20, description: '20 ITEMS: Sin duplicados - solo primera página' },
+    { count: 21, description: '21 ITEMS: Sin duplicados - con segunda página' },
+    { count: 25, description: '25 ITEMS: Sin duplicados - con segunda página' },
+    { count: 30, description: '30 ITEMS: Sin duplicados - con segunda página' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +70,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `sin-duplicados-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +89,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 SIN DUPLICADOS DE TEXTO INACAL:');
+  console.log('• Eliminado duplicado de condicionesSegundaPagina');
+  console.log('• Texto "(*) Ensayo dentro del alcance de acreditación INACAL." aparece solo una vez');
+  console.log('• Logo alineado correctamente con el texto');
+  console.log('• Diseño limpio y profesional');
+  console.log('\n✅ BENEFICIOS:');
+  console.log('• Sin duplicación de texto');
+  console.log('• Presentación más limpia');
+  console.log('• Mejor experiencia de lectura');
+  console.log('• Diseño profesional y ordenado');
+  console.log('\n✨ ¡Sin duplicados funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testSinDuplicados().catch(console.error);

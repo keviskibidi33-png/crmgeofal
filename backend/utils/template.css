@@ -34,6 +34,25 @@ body {
   page-break-inside: avoid;
 }
 
+/* Mover contenido más abajo */
+.page-content-wrapper {
+  margin-top: 10px;
+}
+
+/* OPTIMIZACIÓN PARA 25+ ITEMS: Reducir espacio en segunda página */
+.medium-items .page-content-wrapper,
+.very-many-items .page-content-wrapper,
+.extreme-items .page-content-wrapper {
+  margin-top: -15px;
+}
+
+/* SEGUNDA PÁGINA: MÁS ESPACIO para 25+ items */
+.second-page.medium-items .page-content-wrapper,
+.second-page.very-many-items .page-content-wrapper,
+.second-page.extreme-items .page-content-wrapper {
+  margin-top: -25px;
+}
+
 .page-content:not(:last-child) {
   page-break-after: always;
 }
@@ -148,6 +167,7 @@ body {
   height: 120px;
   display: block;
   flex-shrink: 0;
+  margin-bottom: 20px;
 }
 
 .second-page .page-content-wrapper {
@@ -163,28 +183,57 @@ body {
   display: block !important;
 }
 
+
 /* ===== HEADER Y TÍTULO ===== */
 .header {
   position: relative;
   height: 120px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  margin-top: 5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+/* HEADER OPTIMIZADO PARA 25+ ITEMS */
+.medium-items .header,
+.very-many-items .header,
+.extreme-items .header {
+  margin-top: -15px;
+}
+
+/* SEGUNDA PÁGINA: HEADER OPTIMIZADO para 25+ items */
+.second-page.medium-items .header,
+.second-page.very-many-items .header,
+.second-page.extreme-items .header {
+  margin-top: 5px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
 }
 
 .header img {
   height: 120px;
   margin-bottom: 20px;
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   z-index: 1;
   display: block;
+  flex-shrink: 0;
+}
+
+/* SEGUNDA PÁGINA: IMAGEN HEADER para 25+ items */
+.second-page.medium-items .header img,
+.second-page.very-many-items .header img,
+.second-page.extreme-items .header img {
+  margin-bottom: 20px;
 }
 
 .title {
   font-size: 20px;
   font-weight: bold;
   color: #000;
-  margin: 30px 0 20px 0;
+  margin: 30px 0 25px 0;
   text-align: center;
   position: relative;
   z-index: 2;
@@ -195,8 +244,8 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-top: 20px;
-  margin-bottom: 15px;
+  margin-top: 25px;
+  margin-bottom: 20px;
 }
 
 .info-row {
@@ -301,7 +350,7 @@ td:empty {
 .normal-subtitle {
   font-size: 12px;
   font-weight: bold;
-  margin: 7px 0 7px 0;
+  margin: 7px 0 10px 0;
   text-decoration: none;
   text-align: left;
   color: #000;
@@ -310,7 +359,7 @@ td:empty {
 .conditions-content {
   font-size: 10px;
   color: #222;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   line-height: 1.3;
 }
 
@@ -434,6 +483,180 @@ td:empty {
 .many-items .total-row td {
   padding: 1px 1px;
   font-size: 8px;
+}
+
+/* ===== SISTEMA ADAPTATIVO INTELIGENTE ===== */
+
+/* POCOS ITEMS (≤7): Tabla compacta siempre */
+.few-items {
+  /* Tabla compacta siempre */
+}
+
+.few-items th, .few-items td {
+  padding: 3px 4px;
+  font-size: 9px;
+  line-height: 1.1;
+}
+
+.few-items .section-row {
+  font-size: 8px;
+  margin-top: 2px;
+}
+
+.few-items .total-row {
+  font-size: 9px;
+}
+
+.few-items .total-row td {
+  padding: 3px 4px;
+  font-size: 9px;
+}
+
+/* Espaciado moderado entre secciones para pocos items */
+.few-items .normal-subtitle {
+  margin: 6px 0 4px 0;
+}
+
+.few-items .conditions-content {
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.few-items .subtitle-box {
+  margin: 8px 0 6px 0;
+}
+
+/* MUCHOS ITEMS (8+): Espaciado compacto */
+.many-items {
+  /* Tabla con espaciado compacto */
+}
+
+.many-items th, .many-items td {
+  padding: 3px 3px;
+  font-size: 8px;
+  line-height: 1.1;
+}
+
+.many-items .section-row {
+  font-size: 8px;
+  margin-top: 4px;
+}
+
+.many-items .total-row {
+  font-size: 9px;
+}
+
+.many-items .total-row td {
+  padding: 3px 3px;
+  font-size: 9px;
+}
+
+/* Espaciado compacto entre secciones para muchos items */
+.many-items .normal-subtitle {
+  margin: 6px 0 4px 0;
+}
+
+.many-items .conditions-content {
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.many-items .subtitle-box {
+  margin: 8px 0 6px 0;
+}
+
+/* ITEMS EXTREMOS (15+): Espaciado muy compacto */
+.extreme-items {
+  /* Tabla con espaciado muy compacto */
+}
+
+.extreme-items th, .extreme-items td {
+  padding: 2px 2px;
+  font-size: 7px;
+  line-height: 1.0;
+}
+
+.extreme-items .section-row {
+  font-size: 7px;
+  margin-top: 2px;
+}
+
+.extreme-items .total-row {
+  font-size: 8px;
+}
+
+.extreme-items .total-row td {
+  padding: 2px 2px;
+  font-size: 8px;
+}
+
+/* Espaciado muy compacto entre secciones para items extremos */
+.extreme-items .normal-subtitle {
+  margin: 4px 0 3px 0;
+}
+
+.extreme-items .conditions-content {
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+
+.extreme-items .subtitle-box {
+  margin: 6px 0 4px 0;
+}
+
+/* OPTIMIZACIÓN ESPECÍFICA PARA 25+ ITEMS EN SEGUNDA PÁGINA */
+.second-page.medium-items .subtitle-box,
+.second-page.very-many-items .subtitle-box,
+.second-page.extreme-items .subtitle-box {
+  margin: 3px 0 2px 0;
+}
+
+.second-page.medium-items .conditions-content,
+.second-page.very-many-items .conditions-content,
+.second-page.extreme-items .conditions-content {
+  margin-bottom: 4px;
+  line-height: 1.0;
+  font-size: 6px;
+}
+
+.second-page.medium-items .normal-subtitle,
+.second-page.very-many-items .normal-subtitle,
+.second-page.extreme-items .normal-subtitle {
+  margin: 2px 0 1px 0;
+  font-size: 7px;
+}
+
+/* FOOTER OPTIMIZADO PARA 25+ ITEMS */
+.second-page.medium-items .footer-bar,
+.second-page.very-many-items .footer-bar,
+.second-page.extreme-items .footer-bar {
+  margin-top: 16px;
+}
+
+/* ===== CLASES ADAPTATIVAS - SOLO SEGUNDA PÁGINA ===== */
+
+.second-page .subtitle-box {
+  margin: 4px 0 3px 0;
+}
+
+.second-page .subtitle-box .subtitle-inner {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.second-page .conditions-content {
+  margin-bottom: 10px;
+  line-height: 1.3;
+  font-size: 10px;
+}
+
+.second-page .normal-subtitle {
+  margin: 8px 0 6px 0;
+  font-size: 12px;
+}
+
+.second-page .footer-bar {
+  margin-top: 25px;
 }
 
 /* ===== ENLACES ===== */

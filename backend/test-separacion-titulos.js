@@ -49,18 +49,19 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testSeparacionTitulos() {
+  console.log('🧪 PROBANDO SEPARACIÓN ENTRE TÍTULOS Y TEXTOS\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 3, description: '3 ITEMS: Separación entre títulos y textos' },
+    { count: 5, description: '5 ITEMS: Separación entre títulos y textos' },
+    { count: 7, description: '7 ITEMS: Separación entre títulos y textos' },
+    { count: 10, description: '10 ITEMS: Separación entre títulos y textos' },
+    { count: 15, description: '15 ITEMS: Separación entre títulos y textos' },
+    { count: 20, description: '20 ITEMS: Separación entre títulos y textos' },
+    { count: 25, description: '25 ITEMS: Separación entre títulos y textos' },
+    { count: 30, description: '30 ITEMS: Separación entre títulos y textos' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +69,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `separacion-titulos-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +88,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 SEPARACIÓN ENTRE TÍTULOS Y TEXTOS:');
+  console.log('• .normal-subtitle: margin: 7px 0 10px 0');
+  console.log('• .conditions-content: margin-bottom: 12px');
+  console.log('• Mejor separación entre títulos y contenido');
+  console.log('• Texto más legible y organizado');
+  console.log('\n✅ BENEFICIOS:');
+  console.log('• Títulos no están pegados al texto');
+  console.log('• Mejor legibilidad del contenido');
+  console.log('• Presentación más profesional');
+  console.log('• Espaciado más cómodo para leer');
+  console.log('\n✨ ¡Separación entre títulos funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testSeparacionTitulos().catch(console.error);

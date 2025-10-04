@@ -49,18 +49,20 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testOptimizacionEspacio() {
+  console.log('🧪 PROBANDO OPTIMIZACIÓN DE ESPACIO\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 3, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 5, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 7, description: 'POCOS ITEMS (≤7): Todo en primera página' },
+    { count: 8, description: 'MUCHOS ITEMS (8-14): Todo en primera página' },
+    { count: 12, description: 'MUCHOS ITEMS (8-14): Todo en primera página' },
+    { count: 15, description: 'MUCHOS ITEMS (15-24): Todo en primera página' },
+    { count: 20, description: 'MUCHOS ITEMS (15-24): Todo en primera página - APROVECHAR ESPACIO' },
+    { count: 25, description: 'MUY MUCHOS ITEMS (25+): Condiciones a segunda página' },
+    { count: 30, description: 'MUY MUCHOS ITEMS (25+): Condiciones a segunda página' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +70,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `optimizacion-espacio-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +89,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 OPTIMIZACIÓN DE ESPACIO IMPLEMENTADA:');
+  console.log('• ≤7 items: Todo en primera página');
+  console.log('• 8-14 items: Todo en primera página');
+  console.log('• 15-24 items: Todo en primera página - APROVECHAR ESPACIO');
+  console.log('• 25+ items: Condiciones a segunda página');
+  console.log('\n✅ BENEFICIOS:');
+  console.log('• Con 20 items: Condiciones suben a primera página');
+  console.log('• Aprovecha espacio disponible en primera página');
+  console.log('• Solo mueve a segunda página cuando realmente no quepa');
+  console.log('• Optimización inteligente del espacio');
+  console.log('\n✨ ¡Optimización de espacio funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testOptimizacionEspacio().catch(console.error);

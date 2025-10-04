@@ -46,9 +46,12 @@ function processBundleData(bundle) {
   
   // Detectar cantidad de items para layout adaptativo inteligente
   const itemCount = items.length;
-  const hasManyItems = itemCount > 6;
-  const hasVeryManyItems = itemCount > 12;
-  const hasExtremeItems = itemCount > 15;
+  const hasFewItems = itemCount <= 7;  // POCOS ITEMS: tabla compacta, todo en primera página
+  const hasManyItems = itemCount >= 8 && itemCount <= 14; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
+  const hasPartialItems = itemCount >= 21 && itemCount <= 24; // ITEMS PARCIALES: solo PLAZO ESTIMADO a segunda página
+  const hasMediumItems = itemCount >= 25 && itemCount <= 27; // ITEMS MEDIOS: condiciones básicas a segunda página
+  const hasVeryManyItems = itemCount >= 28; // MUY MUCHOS ITEMS: tabla compacta, condiciones a segunda página
+  const hasExtremeItems = itemCount > 30; // ITEMS EXTREMOS: tabla muy compacta
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -69,8 +72,8 @@ function processBundleData(bundle) {
   // Layout adaptativo inteligente según cantidad de items
   let condicionesPrimeraPagina;
   
-  if (hasExtremeItems) {
-    // Con items extremos: solo lo esencial en primera página
+  if (hasPartialItems) {
+    // Con ITEMS PARCIALES (21-24): condiciones básicas en primera página, PLAZO ESTIMADO a segunda página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
       <div class="conditions-content">
@@ -79,24 +82,15 @@ function processBundleData(bundle) {
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
         El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
-      </div>`;
-  } else if (hasManyItems) {
-    // Con muchos items: condiciones básicas + PLAZO ESTIMADO
-    condicionesPrimeraPagina = `
-      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
-      <div class="conditions-content">
-        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
-      </div>
-      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
-      <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
-      </div>
-    <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
-    <div class="conditions-content">
-      El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
-      </div>`;
+    </div>`;
+  } else if (hasMediumItems) {
+    // Con ITEMS MEDIOS (25-27): solo tabla en primera página, condiciones básicas a segunda página
+    condicionesPrimeraPagina = ``;
+  } else if (hasVeryManyItems) {
+    // Con MUY MUCHOS items (28+): solo tabla en primera página, condiciones a segunda página
+    condicionesPrimeraPagina = ``;
   } else {
-    // Con pocos items: layout completo en primera página
+    // Con pocos/muchos items (≤20): layout completo en primera página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
       <div class="conditions-content">
@@ -115,9 +109,51 @@ function processBundleData(bundle) {
   // Segunda página adaptativa
   let condicionesSegundaPagina;
   
-  // Segunda página siempre sin PLAZO ESTIMADO (ya está en primera página)
-  condicionesSegundaPagina = `
-    <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  if (hasPartialItems) {
+    // Con ITEMS PARCIALES (21-24): solo PLAZO ESTIMADO a segunda página
+    condicionesSegundaPagina = `
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } else if (hasMediumItems) {
+    // Con ITEMS MEDIOS (25-27): condiciones básicas a segunda página
+    condicionesSegundaPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+      </div>
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } else if (hasVeryManyItems) {
+    // Con MUY MUCHOS items (28+): todas las condiciones van a segunda página
+    condicionesSegundaPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+      </div>
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } else {
+    // Con pocos/muchos items (≤20): PLAZO ESTIMADO ya está en primera página
+    condicionesSegundaPagina = `
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  }
   
   condicionesSegundaPagina += `
     <div class="conditions-content">
@@ -192,8 +228,10 @@ function processBundleData(bundle) {
     condiciones_primera_pagina: condicionesPrimeraPagina,
     condiciones_segunda_pagina: condicionesSegundaPagina,
     // Variables para layout adaptativo
+    hasFewItems: hasFewItems,
     hasManyItems: hasManyItems,
     hasVeryManyItems: hasVeryManyItems,
+    hasExtremeItems: hasExtremeItems,
     itemCount: itemCount,
     __dirname: __dirname
   };
@@ -593,7 +631,7 @@ a {
     </style>
 </head>
 <body>
-  <div class="page-content first-page {{#if hasManyItems}}many-items{{/if}}">
+  <div class="page-content first-page {{#if hasFewItems}}few-items{{else if hasManyItems}}many-items{{else if hasExtremeItems}}extreme-items{{/if}}">
     <div class="page-content-wrapper">
             <div class="header">
         <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
@@ -644,7 +682,7 @@ a {
           <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
                 </tbody>
             </table>
-      <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
+      {{#unless hasVeryManyItems}}<div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>{{/unless}}
       {{{condiciones_primera_pagina}}}
             </div>
 

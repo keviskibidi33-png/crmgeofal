@@ -49,18 +49,18 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function test25ItemsOptimizado() {
+  console.log('🧪 PROBANDO OPTIMIZACIÓN PARA 25+ ITEMS\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 24, description: '24 ITEMS: Solo PLAZO ESTIMADO a segunda página - SIN OPTIMIZACIÓN' },
+    { count: 25, description: '25 ITEMS: Condiciones básicas a segunda página - CON OPTIMIZACIÓN (-25px)' },
+    { count: 26, description: '26 ITEMS: Condiciones básicas a segunda página - CON OPTIMIZACIÓN (-25px)' },
+    { count: 27, description: '27 ITEMS: Condiciones básicas a segunda página - CON OPTIMIZACIÓN (-25px)' },
+    { count: 28, description: '28 ITEMS: Todas las condiciones a segunda página - CON OPTIMIZACIÓN (-25px)' },
+    { count: 30, description: '30 ITEMS: Todas las condiciones a segunda página - CON OPTIMIZACIÓN (-25px)' },
+    { count: 35, description: '35 ITEMS: Todas las condiciones a segunda página - CON OPTIMIZACIÓN (-25px)' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +68,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `25-items-optimizado-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +87,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 OPTIMIZACIÓN PARA 25+ ITEMS IMPLEMENTADA:');
+  console.log('• 25+ items: margin-top: -25px en segunda página');
+  console.log('• Header optimizado: margin-top: -25px, margin-bottom: 5px');
+  console.log('• Contenido más compacto: font-size: 6px, line-height: 1.0');
+  console.log('• Footer optimizado: margin-top: 5px');
+  console.log('\n✅ BENEFICIOS:');
+  console.log('• Reduce espacio en encabezado de segunda página');
+  console.log('• Footer "III. ACEPTACIÓN" se ve correctamente');
+  console.log('• Contenido más compacto y legible');
+  console.log('• Mejor aprovechamiento del espacio');
+  console.log('\n✨ ¡Optimización para 25+ items funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+test25ItemsOptimizado().catch(console.error);

@@ -49,18 +49,13 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testLetrasIguales() {
+  console.log('🔤 VERIFICANDO TAMAÑO DE LETRAS IGUALES EN AMBAS PÁGINAS\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 17, description: '17 ITEMS: Letras normales en ambas páginas' },
+    { count: 25, description: '25 ITEMS: Letras pequeñas solo en segunda página' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +63,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `letras-iguales-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +82,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 TAMAÑOS DE LETRA APLICADOS:');
+  console.log('• PÁGINA 1: Letras normales (10px-12px)');
+  console.log('• PÁGINA 2: Letras normales (10px-12px) para casos intermedios');
+  console.log('• PÁGINA 2: Letras pequeñas (6px-7px) solo para 25+ items');
+  console.log('\n✅ VERIFICACIÓN:');
+  console.log('• .second-page .subtitle-box .subtitle-inner: 12px');
+  console.log('• .second-page .conditions-content: 10px');
+  console.log('• .second-page .normal-subtitle: 12px');
+  console.log('• Espaciado mejorado: margin-bottom: 10px');
+  console.log('• Line-height: 1.3 para mejor legibilidad');
+  console.log('\n✨ ¡Letras iguales en ambas páginas!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testLetrasIguales().catch(console.error);

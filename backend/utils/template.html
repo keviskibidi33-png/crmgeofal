@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="template.css">
 </head>
 <body>
-  <div class="page-content first-page {{#if hasManyItems}}many-items{{/if}}">
+  <div class="page-content first-page {{#if hasFewItems}}few-items{{else if hasManyItems}}many-items{{else if hasPartialItems}}partial-items{{else if hasMediumItems}}medium-items{{else if hasVeryManyItems}}very-many-items{{else if hasExtremeItems}}extreme-items{{/if}}">
     <div class="page-content-wrapper">
             <div class="header">
         <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
@@ -126,38 +126,38 @@
     <div style="height: 1px; width: 100%; display: block;">&nbsp;</div>
   </div>
   
-  <div class="page-content second-page">
-    <div class="header">
-      <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
-    </div>
+  <div class="page-content second-page {{#if hasFewItems}}few-items{{else if hasManyItems}}many-items{{else if hasExtremeItems}}extreme-items{{/if}}">
     <div class="page-content-wrapper">
+      <div class="header">
+        <img src="file://{{__dirname}}/../image/ENCABEZADOS_FOOTER/logogeofal.png" alt="Logo Geofal" />
+      </div>
       {{{condiciones_segunda_pagina}}}
-    </div>
 
-    <!-- Footer específico para la segunda página -->
-    <div class="footer-bar second-page-footer">
-      <div class="footer-content">
-        <div class="footer-left">
-          <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <div>Av. Marañón N° 763, Los Olivos, Lima</div>
-          </div>
-          <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
-            <div>
-              <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+      <!-- Footer específico para la segunda página -->
+      <div class="footer-bar second-page-footer">
+        <div class="footer-content">
+          <div class="footer-left">
+            <div class="footer-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <div>Av. Marañón N° 763, Los Olivos, Lima</div>
+            </div>
+            <div class="footer-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 2v.01L12 13 4 6.01V6h16z"/></svg>
+              <div>
+                <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="footer-right">
-          <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-            <div>(01) 754-3070</div>
-          </div>
-          <div class="footer-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            <div>
-              <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+          <div class="footer-right">
+            <div class="footer-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+              <div>(01) 754-3070</div>
+            </div>
+            <div class="footer-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <div>
+                <a href="https://www.geofal.com.pe">www.geofal.com.pe</a>
+              </div>
             </div>
           </div>
         </div>

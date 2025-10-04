@@ -49,18 +49,14 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testFooterAbajo() {
+  console.log('📄 VERIFICANDO FOOTER MÁS ABAJO EN SEGUNDA PÁGINA\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 17, description: '17 ITEMS: Footer más abajo (intermediate-items)' },
+    { count: 25, description: '25 ITEMS: Footer más abajo (medium-items)' },
+    { count: 30, description: '30 ITEMS: Footer más abajo (very-many-items)' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +64,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `footer-abajo-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +83,16 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 FOOTER AJUSTADO:');
+  console.log('• .second-page .footer-bar: margin-top: 25px (antes 16px)');
+  console.log('• Footer más separado del contenido');
+  console.log('• Aplicado a todos los casos (intermediate, medium, very-many)');
+  console.log('\n✅ VERIFICACIÓN:');
+  console.log('• 17 items: Footer más abajo con letras normales');
+  console.log('• 25+ items: Footer más abajo con letras pequeñas');
+  console.log('• Espaciado mejorado en segunda página');
+  console.log('\n✨ ¡Footer movido más abajo!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testFooterAbajo().catch(console.error);

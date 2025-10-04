@@ -49,18 +49,19 @@ function createTestBundle(itemCount) {
   };
 }
 
-async function testCompactTable() {
-  console.log('🧪 PROBANDO TABLA COMPACTA Y SISTEMA ADAPTATIVO\n');
+async function testContenidoAbajo() {
+  console.log('🧪 PROBANDO CONTENIDO MÁS ABAJO\n');
   
   // Casos de prueba específicos
   const testCases = [
-    { count: 3, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 5, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 7, description: 'POCOS ITEMS (≤7): Tabla compacta, todo en primera página' },
-    { count: 8, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 12, description: 'MUCHOS ITEMS (8+): Tabla compacta, PLAZO ESTIMADO a segunda página' },
-    { count: 15, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' },
-    { count: 20, description: 'ITEMS EXTREMOS (15+): Tabla muy compacta, condiciones a segunda página' }
+    { count: 3, description: '3 ITEMS: Contenido más abajo' },
+    { count: 5, description: '5 ITEMS: Contenido más abajo' },
+    { count: 7, description: '7 ITEMS: Contenido más abajo' },
+    { count: 10, description: '10 ITEMS: Contenido más abajo' },
+    { count: 15, description: '15 ITEMS: Contenido más abajo' },
+    { count: 20, description: '20 ITEMS: Contenido más abajo' },
+    { count: 25, description: '25 ITEMS: Contenido más abajo' },
+    { count: 30, description: '30 ITEMS: Contenido más abajo' }
   ];
   
   for (const testCase of testCases) {
@@ -68,7 +69,7 @@ async function testCompactTable() {
       console.log(`📊 ${testCase.description} - ${testCase.count} items`);
       
       const bundle = createTestBundle(testCase.count);
-      const outputPath = `tabla-compacta-${testCase.count}-items.pdf`;
+      const outputPath = `contenido-abajo-${testCase.count}-items.pdf`;
       
       await generateSmartTemplatePdf(bundle, outputPath);
       console.log(`✅ PDF generado: ${outputPath}`);
@@ -87,12 +88,18 @@ async function testCompactTable() {
     console.log('─'.repeat(60));
   }
   
-  console.log('\n🎯 SISTEMA ADAPTATIVO COMPACTO IMPLEMENTADO:');
-  console.log('• ≤7 items: Tabla compacta, espaciado generoso, todo en primera página');
-  console.log('• 8-14 items: Tabla compacta, PLAZO ESTIMADO a segunda página');
-  console.log('• 15+ items: Tabla muy compacta, condiciones a segunda página');
-  console.log('\n✨ ¡Sistema adaptativo compacto funcionando correctamente!');
+  console.log('\n🎯 CONTENIDO MÁS ABAJO:');
+  console.log('• .page-content-wrapper: margin-top: 10px');
+  console.log('• .header: margin-bottom: 30px, margin-top: 5px');
+  console.log('• .title: margin: 30px 0 25px 0');
+  console.log('• .info-grid: margin-top: 25px, margin-bottom: 20px');
+  console.log('\n✅ BENEFICIOS:');
+  console.log('• Más espacio entre logo y contenido');
+  console.log('• Mejor distribución vertical');
+  console.log('• Presentación más profesional');
+  console.log('• Contenido bien espaciado');
+  console.log('\n✨ ¡Contenido más abajo funcionando!');
 }
 
 // Ejecutar pruebas
-testCompactTable().catch(console.error);
+testContenidoAbajo().catch(console.error);
