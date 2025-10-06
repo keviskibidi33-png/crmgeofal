@@ -767,18 +767,6 @@ export default function CotizacionInteligente() {
               />
             </div>
 
-            {/* Condiciones específicas */}
-            <div className="mt-3">
-              <label className="form-label">Condiciones Específicas</label>
-              <textarea
-                className="form-control"
-                rows={4}
-                placeholder="Las condiciones se auto-completan según la variante seleccionada"
-                value={conditionsText}
-                onChange={e => setConditionsText(e.target.value)}
-              />
-            </div>
-
             {/* Selector de Categoría Principal */}
             <div className="mt-4">
               <label className="form-label">Categoría Principal</label>
@@ -821,6 +809,18 @@ export default function CotizacionInteligente() {
                   <strong>💡 Importante:</strong> Selecciona la categoría principal para que el sistema pueda categorizar automáticamente los ítems y alimentar el embudo de ventas.
                 </small>
               </div>
+            </div>
+
+            {/* Condiciones específicas */}
+            <div className="mt-3">
+              <label className="form-label">Condiciones Específicas</label>
+              <textarea
+                className="form-control"
+                rows={4}
+                placeholder="Las condiciones se auto-completan según la variante seleccionada"
+                value={conditionsText}
+                onChange={e => setConditionsText(e.target.value)}
+              />
             </div>
 
             {/* Ítems */}

@@ -203,8 +203,8 @@
 
 .nav-link.active {
   background: #eff6ff;
-  color: #2563eb;
-  border-right: 3px solid #2563eb;
+  color: #f84616;
+  border-right: 3px solid #f84616;
 }
 
 .nav-link.collapsed {
@@ -261,7 +261,7 @@
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: #2563eb;
+  background: #f84616;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -401,7 +401,7 @@
 }
 
 .nav-link.active .nav-icon {
-  color: #2563eb;
+  color: #f84616;
 }
 
 /* Scrollbar personalizado */

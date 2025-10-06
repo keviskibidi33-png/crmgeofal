@@ -82,10 +82,10 @@
   font-size: 0.9rem;
 }
 .lem-steps .lem-step.active {
-  color: #0d6efd;
+  color: #f84616;
 }
 .lem-steps .lem-step.active .lem-step-index {
-  background: #0d6efd;
+  background: #f84616;
   color: #fff;
 }
 .lem-steps .lem-step.done {
@@ -143,7 +143,7 @@
 
 /* Botón Siguiente mejorado */
 .lem-sticky-actions .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f84616 0%, #f84616 100%);
   color: white;
   font-size: 1rem;
   padding: 0.875rem 2rem;

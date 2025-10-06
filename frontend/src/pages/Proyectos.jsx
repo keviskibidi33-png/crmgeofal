@@ -1015,7 +1015,7 @@ export default function Proyectos() {
                     }
                     .upload-area:hover {
                       background-color: #e9ecef !important;
-                      border-color: #007bff !important;
+                      border-color: #f84616 !important;
                     }
                   `}</style>
                   <div className="row g-4">

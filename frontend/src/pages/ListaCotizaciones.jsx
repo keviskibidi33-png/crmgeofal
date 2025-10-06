@@ -213,7 +213,7 @@ export default function ListaCotizaciones() {
               onClick={handleCreate}
               className="px-4 py-2 shadow-sm"
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #f84616 0%, #f84616 100%)',
                 border: 'none',
                 fontWeight: '600',
                 fontSize: '1.1rem'
