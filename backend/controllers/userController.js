@@ -13,11 +13,11 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { name, email, role, area, notification_enabled, active, password } = req.body;
+    const { name, email, role, area, phone, notification_enabled, active, password } = req.body;
     
-    console.log('🔍 updateUser - Datos recibidos:', { userId, name, email, role, area, active, password: !!password });
+    console.log('🔍 updateUser - Datos recibidos:', { userId, name, email, role, area, phone, active, password: !!password });
     
-    const updateData = { name, email, role, area, notification_enabled };
+    const updateData = { name, email, role, area, phone, notification_enabled };
     
     // Solo incluir active si se proporciona
     if (active !== undefined) {
@@ -79,7 +79,7 @@ exports.createUser = async (req, res) => {
   try {
     console.log('🔍 createUser - Datos recibidos:', req.body);
     
-    const { name, apellido, email, password, role, area, notification_enabled } = req.body;
+    const { name, apellido, email, phone, password, role, area, notification_enabled } = req.body;
     
     // Basic validation: required fields
     if (!name || !email || !password) {
@@ -93,6 +93,7 @@ exports.createUser = async (req, res) => {
       name, 
       apellido, 
       email, 
+      phone,
       password, 
       role, 
       area, 
@@ -103,6 +104,16 @@ exports.createUser = async (req, res) => {
     res.status(201).json(user);
   } catch (err) {
     console.error('❌ createUser - Error:', err.message);
+    
+    // Manejar error de email duplicado
+    if (err.message.includes('users_email_key') || err.message.includes('duplicate key')) {
+      return res.status(400).json({ 
+        error: 'El email ya está registrado en el sistema',
+        field: 'email',
+        code: 'EMAIL_DUPLICATE'
+      });
+    }
+    
     res.status(500).json({ error: 'Error creating user: ' + err.message });
   }
 };

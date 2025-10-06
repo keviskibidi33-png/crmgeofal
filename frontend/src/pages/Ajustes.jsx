@@ -21,8 +21,10 @@ const Ajustes = () => {
     name: user?.name || '',
     apellido: user?.apellido || '',
     email: user?.email || '',
+    phone: user?.phone || '',
     area: user?.area || ''
   });
+  const [availableAreas, setAvailableAreas] = useState([]);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -37,6 +39,7 @@ const Ajustes = () => {
   // Cargar datos del perfil actual al montar el componente
   useEffect(() => {
     loadUserProfile();
+    loadAvailableAreas();
   }, []);
 
   const loadUserProfile = async () => {
@@ -49,6 +52,7 @@ const Ajustes = () => {
         name: userData.name || '',
         apellido: userData.apellido || '',
         email: userData.email || '',
+        phone: userData.phone || '',
         area: userData.area || ''
       });
     } catch (err) {
@@ -56,6 +60,15 @@ const Ajustes = () => {
       setError('Error al cargar los datos del perfil');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableAreas = async () => {
+    try {
+      const response = await apiFetch('/api/users/areas');
+      setAvailableAreas(response.areas || []);
+    } catch (err) {
+      console.error('Error cargando áreas:', err);
     }
   };
 
@@ -214,12 +227,13 @@ const Ajustes = () => {
                   <div className="p-3">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                       <h5>Información Personal</h5>
-                      <Button
-                        variant={editingProfile ? "success" : "outline-primary"}
-                        size="sm"
-                        onClick={() => editingProfile ? handleProfileSave() : setEditingProfile(true)}
-                        disabled={loading}
-                      >
+                      {user?.role === 'admin' && (
+                        <Button
+                          variant={editingProfile ? "success" : "outline-primary"}
+                          size="sm"
+                          onClick={() => editingProfile ? handleProfileSave() : setEditingProfile(true)}
+                          disabled={loading}
+                        >
                         {loading ? (
                           <>
                             <Spinner size="sm" className="me-1" />
@@ -237,6 +251,13 @@ const Ajustes = () => {
                           </>
                         )}
                       </Button>
+                      )}
+                      {user?.role !== 'admin' && (
+                        <div className="alert alert-info">
+                          <FiInfo className="me-2" />
+                          Solo los administradores pueden editar la información del perfil.
+                        </div>
+                      )}
                     </div>
 
                     {error && (
@@ -289,13 +310,31 @@ const Ajustes = () => {
                       </Col>
                       <Col md={6}>
                         <Form.Group>
-                          <Form.Label>Área</Form.Label>
+                          <Form.Label>Teléfono</Form.Label>
                           <Form.Control
-                            type="text"
+                            type="tel"
+                            value={profileData.phone}
+                            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                            disabled={!editingProfile || loading}
+                            placeholder="Número de teléfono"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label>Área</Form.Label>
+                          <Form.Select
                             value={profileData.area}
                             onChange={(e) => setProfileData({ ...profileData, area: e.target.value })}
                             disabled={!editingProfile || loading}
-                          />
+                          >
+                            <option value="">Seleccionar área</option>
+                            {availableAreas.map((area, index) => (
+                              <option key={index} value={area}>{area}</option>
+                            ))}
+                          </Form.Select>
                         </Form.Group>
                       </Col>
                     </Row>

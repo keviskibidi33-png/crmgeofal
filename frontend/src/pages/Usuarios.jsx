@@ -5,11 +5,12 @@ import { FiPlus, FiEdit, FiTrash2, FiLock, FiUser, FiUsers, FiShield, FiSettings
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
+import UserFormRedesigned from '../components/UserFormRedesigned';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { listUsers, createUser, updateUser, deleteUser, getUserStats } from '../services/users';
 
-const emptyForm = { name: '', apellido: '', email: '', role: 'vendedor_comercial', area: 'Comercial', password: '' };
+const emptyForm = { id: null, name: '', apellido: '', email: '', phone: '', role: 'vendedor_comercial', area: 'Comercial', password: '' };
 
 const ROLES = [
   { value: 'admin', label: 'Administrador' },
@@ -366,6 +367,13 @@ export default function Usuarios() {
       placeholder: 'usuario@ejemplo.com'
     },
     {
+      name: 'phone',
+      label: 'Teléfono',
+      type: 'tel',
+      required: false,
+      placeholder: 'Número de teléfono'
+    },
+    {
       name: 'role',
       label: 'Rol',
       type: 'select',
@@ -517,15 +525,13 @@ export default function Usuarios() {
           </Card.Body>
         </Card>
 
-      <ModalForm
+      <UserFormRedesigned
         show={showModal}
         onHide={() => setShowModal(false)}
-        title={editingUser?.id ? 'Editar Usuario' : 'Nuevo Usuario'}
         data={editingUser || emptyForm}
-        fields={formFields}
         onSubmit={handleSubmit}
         loading={createMutation.isLoading || updateMutation.isLoading}
-        submitText={editingUser?.id ? 'Actualizar' : 'Crear'}
+        isEditing={!!editingUser?.id}
       />
 
       {/* Modal de restablecer contraseña eliminado */}

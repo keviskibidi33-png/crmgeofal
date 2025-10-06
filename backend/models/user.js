@@ -2,8 +2,8 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 const User = {
-  async updateUser(id, { name, apellido, email, role, area, notification_enabled, active, password }) {
-    console.log('🔍 User.updateUser - Datos recibidos:', { id, name, apellido, email, role, area, notification_enabled, active, password: !!password });
+  async updateUser(id, { name, apellido, email, role, area, phone, notification_enabled, active, password }) {
+    console.log('🔍 User.updateUser - Datos recibidos:', { id, name, apellido, email, role, area, phone, notification_enabled, active, password: !!password });
     
     // Solo actualiza los campos enviados
     let fields = [];
@@ -13,6 +13,7 @@ const User = {
     if (email !== undefined) { fields.push('email = $' + (params.length+1)); params.push(email); }
     if (role !== undefined) { fields.push('role = $' + (params.length+1)); params.push(role); }
     if (area !== undefined) { fields.push('area = $' + (params.length+1)); params.push(area); }
+    if (phone !== undefined) { fields.push('phone = $' + (params.length+1)); params.push(phone); }
     if (notification_enabled !== undefined) { fields.push('notification_enabled = $' + (params.length+1)); params.push(notification_enabled); }
     if (active !== undefined) { 
       console.log('🔍 User.updateUser - Actualizando campo active:', active);
@@ -34,7 +35,7 @@ const User = {
     }
     
     params.push(id);
-    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, name, apellido, email, role, area, notification_enabled, active, created_at`;
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${params.length} RETURNING id, name, apellido, email, role, area, phone, notification_enabled, active, created_at`;
     console.log('🔍 User.updateUser - Query:', query);
     console.log('🔍 User.updateUser - Parámetros finales:', params);
     
@@ -141,11 +142,11 @@ const User = {
   const res = await pool.query("SELECT DISTINCT area FROM users WHERE area IS NOT NULL AND area <> ''");
   return res.rows.map(r => r.area);
   },
-  async create({ name, apellido, email, password, role, area, notification_enabled = true }) {
+  async create({ name, apellido, email, phone, password, role, area, notification_enabled = true }) {
     const password_hash = await bcrypt.hash(password, 10);
     const res = await pool.query(
-      'INSERT INTO users (name, apellido, email, password_hash, role, area, notification_enabled) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, apellido, email, role, area, notification_enabled',
-      [name, apellido, email, password_hash, role, area, notification_enabled]
+      'INSERT INTO users (name, apellido, email, phone, password_hash, role, area, notification_enabled) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, apellido, email, phone, role, area, notification_enabled',
+      [name, apellido, email, phone, password_hash, role, area, notification_enabled]
     );
     return res.rows[0];
   },
