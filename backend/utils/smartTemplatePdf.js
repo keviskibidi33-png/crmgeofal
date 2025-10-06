@@ -47,7 +47,8 @@ function processBundleData(bundle) {
   // Detectar cantidad de items para layout adaptativo inteligente
   const itemCount = items.length;
   const hasFewItems = itemCount <= 7;  // POCOS ITEMS: tabla compacta, todo en primera página
-  const hasManyItems = itemCount >= 8 && itemCount <= 14; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
+  const hasManyItems = itemCount >= 8 && itemCount <= 10; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
+  const hasPlazoItems = itemCount >= 11 && itemCount <= 20; // ITEMS CON PLAZO: PLAZO ESTIMADO a segunda página
   const hasPartialItems = itemCount >= 21 && itemCount <= 24; // ITEMS PARCIALES: solo PLAZO ESTIMADO a segunda página
   const hasMediumItems = itemCount >= 25 && itemCount <= 27; // ITEMS MEDIOS: condiciones básicas a segunda página
   const hasVeryManyItems = itemCount >= 28; // MUY MUCHOS ITEMS: tabla compacta, condiciones a segunda página
@@ -73,7 +74,18 @@ function processBundleData(bundle) {
   // Layout adaptativo inteligente según cantidad de items
   let condicionesPrimeraPagina;
   
-  if (hasPartialItems) {
+  if (hasPlazoItems) {
+    // Con ITEMS CON PLAZO (11-20): PLAZO ESTIMADO a segunda página
+    condicionesPrimeraPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+    </div>`;
+  } else if (hasPartialItems) {
     // Con ITEMS PARCIALES (21-24): condiciones básicas en primera página, PLAZO ESTIMADO a segunda página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
@@ -110,7 +122,15 @@ function processBundleData(bundle) {
   // Segunda página adaptativa
   let condicionesSegundaPagina;
   
-  if (hasPartialItems) {
+  if (hasPlazoItems) {
+    // Con ITEMS CON PLAZO (11-20): PLAZO ESTIMADO a segunda página
+    condicionesSegundaPagina = `
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } else if (hasPartialItems) {
     // Con ITEMS PARCIALES (21-24): solo PLAZO ESTIMADO a segunda página
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
