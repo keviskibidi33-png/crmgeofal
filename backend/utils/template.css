@@ -36,7 +36,7 @@ body {
 
 /* Mover contenido más abajo */
 .page-content-wrapper {
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 /* OPTIMIZACIÓN PARA 25+ ITEMS: Reducir espacio en segunda página */
@@ -95,31 +95,40 @@ body {
   box-sizing: border-box;
 }
 
+/* Espaciado específico para primera página */
+.first-page .page-content-wrapper {
+  padding-bottom: 60px;
+  margin-bottom: 50px;
+}
+
 /* ===== PRIMERA PÁGINA ===== */
 .first-page {
   position: relative;
-  min-height: 275mm;
-  max-height: 275mm;
+  min-height: 270mm;
+  max-height: 270mm;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  padding-bottom: 10mm;
 }
 
 .first-page-footer {
   position: relative;
-  margin-top: 50px;
+  margin-top: 80px;
+  margin-bottom: 15mm;
   height: auto;
-  padding: 4px 5mm;
+  padding: 12px 5mm 15px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
-  font-size: 8px;
+  font-size: 9px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
   page-break-inside: avoid;
+  min-height: 50px;
 }
 
 /* ===== SEGUNDA PÁGINA ===== */
@@ -189,7 +198,7 @@ body {
   position: relative;
   height: 120px;
   margin-bottom: 30px;
-  margin-top: 25px;
+  margin-top: 15px;
   display: flex;
   align-items: flex-start;
   gap: 15px;
@@ -197,7 +206,7 @@ body {
 
 /* HEADER PROTEGIDO - NUNCA REDUCIR MÁRGENES */
 .header {
-  margin-top: 25px !important;
+  margin-top: 15px !important;
 }
 
 /* SEGUNDA PÁGINA: HEADER PROTEGIDO */
@@ -401,7 +410,7 @@ td:empty {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 6px 8px;
+  padding: 10px 12px;
   width: 100%;
   max-width: 160mm;
   margin: 0 auto;
@@ -410,7 +419,7 @@ td:empty {
 .footer-left, .footer-right {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   flex: 0 0 auto;
 }
 
@@ -427,9 +436,10 @@ td:empty {
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
   font-size: 9px;
+  margin-bottom: 2px;
 }
 
 .footer-item svg {

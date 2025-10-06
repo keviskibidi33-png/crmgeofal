@@ -2,6 +2,28 @@
 const Quote = require('../models/quote');
 const AuditQuote = require('../models/auditQuote');
 
+// Función para validar RUC
+function validateRUC(ruc) {
+  if (!ruc) {
+    return { valid: false, message: 'RUC es requerido' };
+  }
+  
+  // Convertir a string y limpiar espacios
+  const rucStr = ruc.toString().trim();
+  
+  // Verificar que tenga exactamente 11 dígitos
+  if (!/^\d{11}$/.test(rucStr)) {
+    return { valid: false, message: 'RUC debe tener exactamente 11 dígitos' };
+  }
+  
+  // Verificar que empiece con "20"
+  if (!rucStr.startsWith('20')) {
+    return { valid: false, message: 'RUC debe empezar con "20"' };
+  }
+  
+  return { valid: true, message: 'RUC válido' };
+}
+
 exports.getAll = async (req, res) => {
   try {
     const { project_id, company_id, status, page, limit, date_from, date_to } = req.query;
@@ -33,6 +55,19 @@ exports.create = async (req, res) => {
     // Validar que project_id existe y es válido
     if (!data.project_id) {
       return res.status(400).json({ error: 'project_id es requerido' });
+    }
+    
+    // ✅ NUEVA VALIDACIÓN: Verificar RUC si está presente
+    if (data.meta && data.meta.company && data.meta.company.ruc) {
+      const rucValidation = validateRUC(data.meta.company.ruc);
+      if (!rucValidation.valid) {
+        return res.status(400).json({ 
+          error: `RUC inválido: ${rucValidation.message}`,
+          field: 'ruc',
+          value: data.meta.company.ruc
+        });
+      }
+      console.log('✅ RUC validado correctamente:', data.meta.company.ruc);
     }
     
     // Verificar que el proyecto existe
