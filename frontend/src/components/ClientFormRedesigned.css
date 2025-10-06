@@ -190,6 +190,16 @@
   background: #fff5f5;
 }
 
+.client-form-input.valid {
+  border-color: #28a745;
+  background: #f8fff8;
+}
+
+.client-form-input.valid:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.1);
+}
+
 .client-form-error {
   color: #dc3545;
   font-size: 0.85rem;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiUser, FiMail, FiPhone, FiMapPin, FiBuilding, FiUserCheck, FiX, FiSave, FiHome } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiUserCheck, FiX, FiSave } from 'react-icons/fi';
 import './ClientFormRedesigned.css';
 
 const CLIENT_TYPES = [
@@ -74,10 +74,44 @@ const ClientFormRedesigned = ({
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validación en tiempo real para RUC y DNI
+    if (field === 'ruc' && formData.type === 'empresa') {
+      if (value && !validateRUC(value)) {
+        setErrors(prev => ({ ...prev, ruc: 'El RUC debe empezar con 20 y tener 11 dígitos' }));
+      } else {
+        setErrors(prev => ({ ...prev, ruc: '' }));
+      }
+    }
+    
+    if (field === 'dni' && formData.type === 'persona') {
+      if (value && !validateDNI(value)) {
+        setErrors(prev => ({ ...prev, dni: 'El DNI debe tener exactamente 8 dígitos' }));
+      } else {
+        setErrors(prev => ({ ...prev, dni: '' }));
+      }
+    }
+    
     // Limpiar error cuando el usuario empiece a escribir
-    if (errors[field]) {
+    if (errors[field] && field !== 'ruc' && field !== 'dni') {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  // Función para validar RUC peruano
+  const validateRUC = (ruc) => {
+    if (!ruc) return false;
+    // RUC debe empezar con 20 y tener 11 dígitos
+    const rucRegex = /^20\d{9}$/;
+    return rucRegex.test(ruc);
+  };
+
+  // Función para validar DNI peruano
+  const validateDNI = (dni) => {
+    if (!dni) return false;
+    // DNI debe tener exactamente 8 dígitos
+    const dniRegex = /^\d{8}$/;
+    return dniRegex.test(dni);
   };
 
   const validateForm = () => {
@@ -87,12 +121,20 @@ const ClientFormRedesigned = ({
       newErrors.name = 'El nombre/razón social es requerido';
     }
 
-    if (formData.type === 'empresa' && !formData.ruc.trim()) {
-      newErrors.ruc = 'El RUC es requerido para empresas';
+    if (formData.type === 'empresa') {
+      if (!formData.ruc.trim()) {
+        newErrors.ruc = 'El RUC es requerido para empresas';
+      } else if (!validateRUC(formData.ruc)) {
+        newErrors.ruc = 'El RUC debe empezar con 20 y tener 11 dígitos';
+      }
     }
 
-    if (formData.type === 'persona' && !formData.dni.trim()) {
-      newErrors.dni = 'El DNI es requerido para personas naturales';
+    if (formData.type === 'persona') {
+      if (!formData.dni.trim()) {
+        newErrors.dni = 'El DNI es requerido para personas naturales';
+      } else if (!validateDNI(formData.dni)) {
+        newErrors.dni = 'El DNI debe tener exactamente 8 dígitos';
+      }
     }
 
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
@@ -155,7 +197,7 @@ const ClientFormRedesigned = ({
             <div className="client-form-row">
               <div className="client-form-group">
                 <label className="client-form-label">
-                  <FiBuilding className="client-form-icon" />
+                  <FiHome className="client-form-icon" />
                   Tipo de Cliente <span className="required">*</span>
                 </label>
                 <select
@@ -191,18 +233,19 @@ const ClientFormRedesigned = ({
               {formData.type === 'empresa' ? (
                 <div className="client-form-group">
                   <label className="client-form-label">
-                    <FiBuilding className="client-form-icon" />
+                    <FiHome className="client-form-icon" />
                     RUC <span className="required">*</span>
                   </label>
                   <input
                     type="text"
-                    className={`client-form-input ${errors.ruc ? 'error' : ''}`}
+                    className={`client-form-input ${errors.ruc ? 'error' : (formData.ruc && validateRUC(formData.ruc) ? 'valid' : '')}`}
                     value={formData.ruc}
                     onChange={(e) => handleInputChange('ruc', e.target.value)}
-                    placeholder="Ingresa el RUC"
+                    placeholder="20123456789"
+                    maxLength="11"
                   />
                   {errors.ruc && <div className="client-form-error">{errors.ruc}</div>}
-                  <div className="client-form-help">Solo para empresas</div>
+                  <div className="client-form-help">Solo para empresas - Debe empezar con 20 y tener 11 dígitos</div>
                 </div>
               ) : (
                 <div className="client-form-group">
@@ -212,13 +255,14 @@ const ClientFormRedesigned = ({
                   </label>
                   <input
                     type="text"
-                    className={`client-form-input ${errors.dni ? 'error' : ''}`}
+                    className={`client-form-input ${errors.dni ? 'error' : (formData.dni && validateDNI(formData.dni) ? 'valid' : '')}`}
                     value={formData.dni}
                     onChange={(e) => handleInputChange('dni', e.target.value)}
-                    placeholder="Ingresa el DNI"
+                    placeholder="12345678"
+                    maxLength="8"
                   />
                   {errors.dni && <div className="client-form-error">{errors.dni}</div>}
-                  <div className="client-form-help">Solo para personas naturales</div>
+                  <div className="client-form-help">Solo para personas naturales - Debe tener exactamente 8 dígitos</div>
                 </div>
               )}
 
@@ -321,7 +365,7 @@ const ClientFormRedesigned = ({
             <div className="client-form-row single">
               <div className="client-form-group">
                 <label className="client-form-label">
-                  <FiBuilding className="client-form-icon" />
+                  <FiHome className="client-form-icon" />
                   Sector
                 </label>
                 <select
