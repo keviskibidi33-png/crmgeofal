@@ -1,0 +1,34 @@
+RESUMEN DE USUARIOS - CRMGeoFal
+================================
+Fecha: 6/10/2025, 5:16:42 p. m.
+Total de usuarios: 1006
+
+ESTADÍSTICAS POR ROL:
+====================
+admin: 3 usuarios
+jefa_comercial: 168 usuarios
+jefe_laboratorio: 167 usuarios
+usuario_laboratorio: 167 usuarios
+soporte: 167 usuarios
+gerencia: 165 usuarios
+vendedor_comercial: 168 usuarios
+facturacion: 1 usuarios
+
+ESTADÍSTICAS POR ÁREA:
+=====================
+Sistemas: 2 usuarios
+Laboratorio: 250 usuarios
+Soporte: 250 usuarios
+Gerencia: 250 usuarios
+Comercial: 254 usuarios
+
+ESTADO DE USUARIOS:
+===================
+Activos: 1002
+Inactivos: 4
+
+ARCHIVOS GENERADOS:
+==================
+- users_data.json: Datos completos en formato JSON
+- users_backup.sql: Script SQL para restaurar usuarios
+- users_summary.txt: Este archivo de resumen
