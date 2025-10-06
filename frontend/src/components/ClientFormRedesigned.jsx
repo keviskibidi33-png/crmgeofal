@@ -92,6 +92,14 @@ const ClientFormRedesigned = ({
       }
     }
     
+    if (field === 'phone') {
+      if (value && !validatePhone(value)) {
+        setErrors(prev => ({ ...prev, phone: 'El teléfono debe tener 9 dígitos' }));
+      } else {
+        setErrors(prev => ({ ...prev, phone: '' }));
+      }
+    }
+    
     // Limpiar error cuando el usuario empiece a escribir
     if (errors[field] && field !== 'ruc' && field !== 'dni') {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -112,6 +120,14 @@ const ClientFormRedesigned = ({
     // DNI debe tener exactamente 8 dígitos
     const dniRegex = /^\d{8}$/;
     return dniRegex.test(dni);
+  };
+
+  // Función para validar teléfono peruano
+  const validatePhone = (phone) => {
+    if (!phone) return true; // Teléfono es opcional
+    // Teléfono debe tener 9 dígitos
+    const phoneRegex = /^\d{9}$/;
+    return phoneRegex.test(phone);
   };
 
   const validateForm = () => {
@@ -139,6 +155,10 @@ const ClientFormRedesigned = ({
 
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'El email no es válido';
+    }
+
+    if (formData.phone && !validatePhone(formData.phone)) {
+      newErrors.phone = 'El teléfono debe tener 9 dígitos';
     }
 
     setErrors(newErrors);
@@ -312,11 +332,14 @@ const ClientFormRedesigned = ({
                 </label>
                 <input
                   type="tel"
-                  className="client-form-input"
+                  className={`client-form-input ${errors.phone ? 'error' : (formData.phone && validatePhone(formData.phone) ? 'valid' : '')}`}
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="+51 999 999 999"
+                  placeholder="930238631"
+                  maxLength="9"
                 />
+                {errors.phone && <div className="client-form-error">{errors.phone}</div>}
+                <div className="client-form-help">Debe tener 9 dígitos</div>
               </div>
             </div>
           </div>

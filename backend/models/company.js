@@ -54,6 +54,10 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE ruc = $1', [ruc]);
     return res.rows[0];
   },
+  async getByDni(dni) {
+    const res = await pool.query('SELECT * FROM companies WHERE dni = $1', [dni]);
+    return res.rows[0];
+  },
   async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
     const res = await pool.query(
       `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector)

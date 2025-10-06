@@ -173,6 +173,8 @@ const searchCompanies = async (req, res) => {
 // Crear empresa
 const createCompany = async (req, res) => {
   try {
+    console.log('🔍 createCompany - Datos recibidos:', req.body);
+    
     const { 
       type = 'empresa',
       ruc, 
@@ -186,24 +188,44 @@ const createCompany = async (req, res) => {
       dni
     } = req.body;
     
-    // Validaciones obligatorias
-    if (!ruc || !name) {
+    // Validaciones obligatorias según el tipo
+    if (!name) {
       return res.status(400).json({ 
-        error: 'RUC y nombre son campos obligatorios' 
+        error: 'El nombre es obligatorio' 
       });
     }
     
-    // Verificar si ya existe una empresa con ese RUC
-    const existingCompany = await Company.getByRuc(ruc);
+    if (type === 'empresa' && !ruc) {
+      return res.status(400).json({ 
+        error: 'El RUC es obligatorio para empresas' 
+      });
+    }
+    
+    if (type === 'persona' && !dni) {
+      return res.status(400).json({ 
+        error: 'El DNI es obligatorio para personas naturales' 
+      });
+    }
+    
+    console.log('✅ createCompany - Validaciones pasadas, tipo:', type, 'ruc:', ruc, 'dni:', dni);
+    
+    // Verificar si ya existe una empresa con ese RUC o DNI
+    let existingCompany = null;
+    if (type === 'empresa' && ruc) {
+      existingCompany = await Company.getByRuc(ruc);
+    } else if (type === 'persona' && dni) {
+      existingCompany = await Company.getByDni(dni);
+    }
+    
     if (existingCompany) {
       // Si la empresa ya existe, devolver la empresa existente en lugar de error
       console.log('✅ Empresa existente encontrada, devolviendo datos existentes');
       return res.status(200).json(existingCompany);
     }
     
-    const company = await Company.create({
+    console.log('🔨 createCompany - Creando empresa con datos:', {
       type,
-      ruc,
+      ruc: type === 'empresa' ? ruc : null,
       name,
       address,
       email,
@@ -211,7 +233,20 @@ const createCompany = async (req, res) => {
       contact_name,
       city,
       sector,
-      dni
+      dni: type === 'persona' ? dni : null
+    });
+    
+    const company = await Company.create({
+      type,
+      ruc: type === 'empresa' ? ruc : null,
+      name,
+      address,
+      email,
+      phone,
+      contact_name,
+      city,
+      sector,
+      dni: type === 'persona' ? dni : null
     });
     
     // Auditoría
