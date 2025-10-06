@@ -6,12 +6,14 @@ import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, Fi
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
+import ClientFormRedesigned from '../components/ClientFormRedesigned';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats, getCompanyFilterOptions } from '../services/companies';
 import { getCurrentUser, canCreateClient, logUserInfo } from '../utils/authHelper';
 
 const emptyForm = {
+  id: null,
   type: 'empresa',
   ruc: '',
   dni: '',
@@ -695,15 +697,13 @@ export default function Clientes() {
           </Card.Body>
         </Card>
 
-      <ModalForm
+      <ClientFormRedesigned
         show={showModal}
         onHide={() => setShowModal(false)}
-        title={editingClient?.id ? 'Editar Cliente' : 'Nuevo Cliente'}
         data={editingClient || emptyForm}
-        fields={formFields}
         onSubmit={handleSubmit}
         loading={createMutation.isLoading || updateMutation.isLoading}
-        submitText={editingClient?.id ? 'Actualizar' : 'Crear'}
+        isEditing={!!editingClient?.id}
       />
 
       {/* Modal de confirmación para eliminar cliente */}
