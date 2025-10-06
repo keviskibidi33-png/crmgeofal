@@ -197,8 +197,13 @@ const Header = ({ onToggleSidebar }) => {
         </Button>
 
         {/* Logo */}
-        <Navbar.Brand href="/" className="fw-bold text-primary">
-          <span className="text-gradient">CRMGeoFal</span>
+        <Navbar.Brand href="/" className="fw-bold text-primary ms-4">
+          <img 
+            src="/logogeofal.png" 
+            alt="CRMGeoFal" 
+            style={{ height: '80px', width: 'auto' }}
+            className="me-3"
+          />
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" />

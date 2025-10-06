@@ -377,9 +377,52 @@ tr {
 .footer-note {
   font-size: 9px;
   color: #666;
-  margin-top: 5px;
-  margin-bottom: 15px;
+  margin-top: 2px;
+  margin-bottom: 8px;
   text-align: left;
+}
+
+/* ESPACIADO ADAPTATIVO PARA TEXTO DE INACAL */
+/* Para pocos items (1-7): espaciado normal */
+.few-items .footer-note {
+  margin-top: 3px;
+  margin-bottom: 10px;
+  font-size: 9px;
+}
+
+/* Para muchos items (8-10): espaciado reducido */
+.many-items .footer-note {
+  margin-top: 2px;
+  margin-bottom: 8px;
+  font-size: 8px;
+}
+
+/* Para items con plazo (11-12): espaciado compacto */
+.plazo-items .footer-note {
+  margin-top: 1px;
+  margin-bottom: 6px;
+  font-size: 8px;
+}
+
+/* Para items con condiciones (13-20): espaciado muy compacto */
+.condiciones-items .footer-note {
+  margin-top: 1px;
+  margin-bottom: 4px;
+  font-size: 7px;
+}
+
+/* Para muchos items (25+): espaciado ultra compacto */
+.very-many-items .footer-note {
+  margin-top: 0px;
+  margin-bottom: 3px;
+  font-size: 6px;
+}
+
+/* Para items extremos (30+): espaciado mínimo */
+.extreme-items .footer-note {
+  margin-top: 0px;
+  margin-bottom: 2px;
+  font-size: 5px;
 }
 
 /* ===== CONDICIONES ===== */
