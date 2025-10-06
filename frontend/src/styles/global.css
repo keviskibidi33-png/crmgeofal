@@ -1,6 +1,6 @@
 /* Variables CSS */
 :root {
-  --primary-color: #0d6efd; /* Bootstrap primary */
+  --primary-color: #f84616; /* Bootstrap primary */
   --secondary-color: #6c757d; /* Bootstrap secondary */
   --success-color: #198754; /* Bootstrap success */
   --danger-color: #dc3545; /* Bootstrap danger */
@@ -20,7 +20,7 @@
   --box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   --box-shadow-xl: 0 1rem 3rem rgba(0, 0, 0, 0.175);
 
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-primary: linear-gradient(135deg, #f84616 0%, #f84616 100%);
   --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -252,9 +252,9 @@ a:hover {
 }
 
 .pagination-dynamic .btn-primary {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+  background-color: #f84616;
+  border-color: #f84616;
+  box-shadow: 0 2px 4px rgba(248, 70, 22, 0.3);
 }
 
 .pagination-dynamic input[type="number"] {
@@ -266,8 +266,8 @@ a:hover {
 }
 
 .pagination-dynamic input[type="number"]:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  border-color: #f84616;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25);
 }
 
 /* Estilos para búsqueda y filtros */
@@ -283,8 +283,8 @@ a:hover {
 }
 
 .table-controls .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  border-color: #f84616;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25);
   transform: translateY(-1px);
 }
 
@@ -782,4 +782,54 @@ a:hover {
 
 .list-group-item:last-child {
   border-bottom: none;
+}
+
+
+/* Hover effects added */
+
+.btn-primary:hover {
+  background-color: #e6390a !important;
+  border-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.btn-outline-primary:hover {
+  background-color: #f84616 !important;
+  border-color: #f84616 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  text-decoration: underline;
+}
+
+.card-header.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(248, 70, 22, 0.2);
+}
+
+.badge.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: scale(1.05);
+}
+
+[style*="linear-gradient(135deg, #f84616"]:hover {
+  background: linear-gradient(135deg, #e6390a 0%, #e6390a 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  transform: scale(1.1);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #f84616 !important;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25) !important;
 }

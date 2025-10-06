@@ -53,5 +53,5 @@
 /* Estilo para el campo con autocompletado */
 .form-control:focus + .autocomplete-suggestions {
   border-color: #86b7fe;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(248, 70, 22, 0.25);
 }

@@ -6,7 +6,7 @@
 }
 
 .intelligent-intro {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f84616 0%, #f84616 100%);
   color: white;
   border: none !important;
   border-radius: 10px;
@@ -45,7 +45,7 @@
 
 .section-icon {
   font-size: 2.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f84616 0%, #f84616 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -116,13 +116,13 @@
 }
 
 .intelligent-actions .btn-outline-primary {
-  border: 2px solid #007bff;
-  color: #007bff;
+  border: 2px solid #f84616;
+  color: #f84616;
   background: white;
 }
 
 .intelligent-actions .btn-outline-primary:hover {
-  background: #007bff;
+  background: #f84616;
   color: white;
   transform: translateY(-2px);
 }
@@ -144,8 +144,8 @@
 
 .section-content .form-control:focus,
 .section-content .form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  border-color: #f84616;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25);
 }
 
 /* Tabla de ítems */
@@ -156,7 +156,7 @@
 }
 
 .section-content .table thead th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f84616 0%, #f84616 100%);
   color: white;
   border: none;
   font-weight: 600;
@@ -242,4 +242,54 @@
   100% {
     box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
   }
+}
+
+
+/* Hover effects added */
+
+.btn-primary:hover {
+  background-color: #e6390a !important;
+  border-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.btn-outline-primary:hover {
+  background-color: #f84616 !important;
+  border-color: #f84616 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  text-decoration: underline;
+}
+
+.card-header.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(248, 70, 22, 0.2);
+}
+
+.badge.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: scale(1.05);
+}
+
+[style*="linear-gradient(135deg, #f84616"]:hover {
+  background: linear-gradient(135deg, #e6390a 0%, #e6390a 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  transform: scale(1.1);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #f84616 !important;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25) !important;
 }

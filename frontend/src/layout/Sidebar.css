@@ -421,3 +421,53 @@
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+
+/* Hover effects added */
+
+.btn-primary:hover {
+  background-color: #e6390a !important;
+  border-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.btn-outline-primary:hover {
+  background-color: #f84616 !important;
+  border-color: #f84616 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  text-decoration: underline;
+}
+
+.card-header.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(248, 70, 22, 0.2);
+}
+
+.badge.bg-primary:hover {
+  background-color: #e6390a !important;
+  transform: scale(1.05);
+}
+
+[style*="linear-gradient(135deg, #f84616"]:hover {
+  background: linear-gradient(135deg, #e6390a 0%, #e6390a 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(248, 70, 22, 0.3);
+}
+
+.text-primary:hover {
+  color: #e6390a !important;
+  transform: scale(1.1);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #f84616 !important;
+  box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25) !important;
+}
