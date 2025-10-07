@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
-import { createQuote } from '../services/quotes';
+import { createQuote, getQuote } from '../services/quotes';
 import { getExistingServices, listProjects, createProject } from '../services/projects';
 import { getOrCreateCompany, listCompanies } from '../services/companies';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
-import SubserviceAutocomplete from '../components/SubserviceAutocomplete';
+import SubserviceAutocompleteFinal from '../components/SubserviceAutocompleteFinal';
 import './CotizacionInteligente.css';
 import '../styles/autocomplete.css';
 
@@ -65,6 +66,9 @@ const getVariantText = (v) => {
 };
 
 export default function CotizacionInteligente() {
+  const [searchParams] = useSearchParams();
+  const editQuoteId = searchParams.get('edit');
+  
   const [variants, setVariants] = useState([]);
   const [variantId, setVariantId] = useState('');
   const [client, setClient] = useState(emptyClient);
@@ -79,6 +83,7 @@ export default function CotizacionInteligente() {
   const [projectSuggestions, setProjectSuggestions] = useState([]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
   const [suggestedFileName, setSuggestedFileName] = useState('');
+  const [loadingQuote, setLoadingQuote] = useState(false);
   
   // Estados para el buscador de clientes
   const [clients, setClients] = useState([]);
@@ -280,6 +285,116 @@ export default function CotizacionInteligente() {
     setClient(emptyClient);
   };
 
+
+  // Cargar cotización existente para edición
+  useEffect(() => {
+    if (editQuoteId && clients.length > 0) {
+      loadExistingQuote(editQuoteId);
+    }
+  }, [editQuoteId, clients]);
+
+  const loadExistingQuote = async (quoteId) => {
+    setLoadingQuote(true);
+    try {
+      console.log('🔄 Cargando cotización existente:', quoteId);
+      const existingQuote = await getQuote(quoteId);
+      console.log('✅ Cotización cargada:', existingQuote);
+      
+      // Cargar datos del cliente
+      if (existingQuote.client_contact || existingQuote.client_company) {
+        // Ahora tenemos las columnas correctas: client_company, client_ruc, project_location, project_name
+        const companyName = existingQuote.client_company || existingQuote.client_contact || '';
+        const contactName = existingQuote.client_contact || '';
+        
+        setClient(prev => ({
+          ...prev,
+          company_name: companyName,
+          ruc: existingQuote.client_ruc || '',
+          contact_name: contactName,
+          contact_phone: existingQuote.client_phone || '',
+          contact_email: existingQuote.client_email || '',
+          project_location: existingQuote.project_location || '',
+          project_name: existingQuote.project_name || ''
+        }));
+        
+        // Configurar el campo de búsqueda de clientes con la razón social
+        setClientSearch(companyName);
+        console.log('🔍 Configurando búsqueda de cliente:', companyName);
+        console.log('🔍 RUC del cliente:', existingQuote.client_ruc);
+        console.log('🔍 Teléfono del cliente:', existingQuote.client_phone);
+        
+        // Si hay RUC, buscar el cliente en la lista
+        if (existingQuote.client_ruc) {
+          console.log('🔍 Buscando cliente por RUC:', existingQuote.client_ruc);
+          const foundClient = clients.find(c => c.ruc === existingQuote.client_ruc);
+          if (foundClient) {
+            console.log('✅ Cliente encontrado:', foundClient);
+            setSelectedClient(foundClient);
+          } else {
+            console.log('❌ Cliente no encontrado en la lista, creando cliente simulado');
+            // Si no se encuentra el cliente, crear un objeto simulado con los datos de la cotización
+            const simulatedClient = {
+              id: 'existing',
+              name: companyName,
+              ruc: existingQuote.client_ruc || '',
+              email: existingQuote.client_email || '',
+              phone: existingQuote.client_phone || '',
+              contact_name: contactName,
+              address: existingQuote.project_location || ''
+            };
+            setSelectedClient(simulatedClient);
+            console.log('✅ Cliente simulado creado:', simulatedClient);
+          }
+        } else {
+          // Si no hay RUC pero hay nombre de cliente, crear cliente simulado
+          const simulatedClient = {
+            id: 'existing',
+            name: companyName,
+            ruc: '',
+            email: existingQuote.client_email || '',
+            phone: existingQuote.client_phone || '',
+            contact_name: contactName,
+            address: existingQuote.project_location || ''
+          };
+          setSelectedClient(simulatedClient);
+          console.log('✅ Cliente simulado creado (sin RUC):', simulatedClient);
+        }
+      }
+      
+      // Cargar datos de la cotización
+      setQuote(prev => ({
+        ...prev,
+        request_date: existingQuote.request_date || '',
+        issue_date: new Date().toISOString().slice(0, 10), // Nueva fecha
+        commercial_name: existingQuote.commercial_name || '',
+        commercial_phone: existingQuote.commercial_phone || '',
+        payment_terms: existingQuote.payment_terms || 'adelantado',
+        reference: existingQuote.reference || '',
+        reference_type: existingQuote.reference_type || ['email', 'phone'],
+        igv: existingQuote.igv !== false,
+        delivery_days: existingQuote.delivery_days || 4,
+        category_main: existingQuote.category_main || 'laboratorio'
+      }));
+      
+      // Cargar items si existen
+      if (existingQuote.items && existingQuote.items.length > 0) {
+        setItems(existingQuote.items);
+      }
+      
+      // Cargar variante si existe
+      if (existingQuote.variant_id) {
+        setVariantId(existingQuote.variant_id);
+      }
+      
+      console.log('✅ Datos de cotización cargados para edición');
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+      setError('Error al cargar la cotización existente: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoadingQuote(false);
+    }
+  };
+
   // Cargar clientes al montar el componente
   useEffect(() => {
     fetchClients();
@@ -479,7 +594,20 @@ export default function CotizacionInteligente() {
   };
 
   return (
-    <ModuloBase titulo="📋 Cotización Inteligente" descripcion="Formulario unificado para crear cotizaciones de forma rápida e intuitiva">
+    <ModuloBase 
+      titulo={editQuoteId ? "📝 Editar Cotización" : "📋 Cotización Inteligente"} 
+      descripcion={editQuoteId ? "Edita una cotización existente con nueva fecha" : "Formulario unificado para crear cotizaciones de forma rápida e intuitiva"}
+    >
+      {loadingQuote && (
+        <div className="alert alert-info">
+          <div className="d-flex align-items-center">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            Cargando cotización existente...
+          </div>
+        </div>
+      )}
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={onSubmit} className="intelligent-quote-form">
@@ -851,7 +979,7 @@ export default function CotizacionInteligente() {
                           />
                         </td>
                         <td>
-                          <SubserviceAutocomplete
+                          <SubserviceAutocompleteFinal
                             value={it.description}
                             onChange={(value) => onChangeItem(idx, { description: value })}
                             onSelect={(subservice) => {
@@ -936,7 +1064,7 @@ export default function CotizacionInteligente() {
             className="btn btn-success btn-lg"
             disabled={saving || !client.company_name || !client.ruc}
           >
-            {saving ? '💾 Guardando...' : '💾 GUARDAR COTIZACIÓN'}
+            {saving ? '💾 Guardando...' : (editQuoteId ? '💾 CREAR NUEVA COTIZACIÓN' : '💾 GUARDAR COTIZACIÓN')}
           </button>
           <button 
             type="button" 

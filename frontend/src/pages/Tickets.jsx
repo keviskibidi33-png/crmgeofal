@@ -1,59 +1,103 @@
 import React, { useState, useMemo } from 'react';
-import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
+import { Button, Badge, Row, Col, Card, Container, Alert, Spinner, Form, InputGroup } from 'react-bootstrap';
 import { 
   FiPlus, FiEdit, FiTrash2, FiMessageSquare, FiClock, 
   FiCheckCircle, FiX, FiAlertTriangle, FiUser, FiCalendar,
-  FiEye, FiFlag
+  FiEye, FiFlag, FiSearch, FiFilter, FiRefreshCw, FiTrendingUp,
+  FiLayers, FiTag, FiActivity
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
-import DataTable from '../components/common/DataTable';
-import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
+import TicketFormUnified from '../components/TicketFormUnified';
+import TicketHistoryWithChat from '../components/TicketHistoryWithChat';
 import { listTickets, createTicket, updateTicketStatus } from '../services/tickets';
+import { getUsersForAssignment, getModules, getCategories, getTypes, getTicketStats } from '../services/ticketFilters';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import './Tickets.css';
 
-const emptyForm = { title: '', description: '', priority: 'media' };
+const emptyForm = { 
+  title: '', 
+  description: '', 
+  priority: 'media',
+  module: 'sistema',
+  category: 'tecnico',
+  type: 'solicitud',
+  assigned_to: '',
+  estimated_time: '',
+  tags: '',
+  additional_notes: ''
+};
 
 export default function Tickets() {
   const [showModal, setShowModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
-  const [deletingTicket, setDeletingTicket] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery(
+  const { data: tickets, isLoading, error } = useQuery(
     ['tickets'],
     () => listTickets(),
-    { keepPreviousData: true }
+    { 
+      keepPreviousData: true,
+      onSuccess: (data) => {
+        console.log('🎫 Tickets cargados:', data);
+        console.log('🎫 Tipo de datos:', typeof data);
+        console.log('🎫 Es array:', Array.isArray(data));
+      },
+      onError: (error) => {
+        console.error('❌ Error cargando tickets:', error);
+      }
+    }
   );
+
+  // Consultas para filtros dinámicos
+  const { data: users = [] } = useQuery(['users'], getUsersForAssignment);
+  const { data: modules = [] } = useQuery(['ticket-modules'], getModules);
+  const { data: categories = [] } = useQuery(['ticket-categories'], getCategories);
+  const { data: types = [] } = useQuery(['ticket-types'], getTypes);
+  const { data: ticketStats = {} } = useQuery(['ticket-stats'], getTicketStats);
 
   const createMutation = useMutation(createTicket, {
     onSuccess: () => {
       queryClient.invalidateQueries('tickets');
       setShowModal(false);
       setEditingTicket(null);
+      // Mostrar notificación de éxito
+      alert('✅ Ticket creado exitosamente');
     },
-    onError: (error) => console.error('Error creating ticket:', error)
+    onError: (error) => {
+      console.error('Error creating ticket:', error);
+      alert('❌ Error al crear el ticket');
+    }
   });
 
-  const updateMutation = useMutation(updateTicketStatus, {
+  const updateMutation = useMutation(
+    ({ id, status }) => updateTicketStatus(id, status),
+    {
     onSuccess: () => {
       queryClient.invalidateQueries('tickets');
-    },
-    onError: (error) => console.error('Error updating ticket:', error)
-  });
-
-  // const deleteMutation = useMutation(deleteTicket, {
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries('tickets');
-  //     setDeletingTicket(null);
-  //   },
-  //   onError: (error) => console.error('Error deleting ticket:', error)
-  // });
+        // Mostrar notificación de éxito
+        alert('✅ Estado del ticket actualizado exitosamente');
+      },
+      onError: (error) => {
+        console.error('Error updating ticket:', error);
+        alert('❌ Error al actualizar el ticket');
+      }
+    }
+  );
 
   const handleCreate = () => {
-    setEditingTicket(emptyForm);
+    setEditingTicket(null);
     setShowModal(true);
+  };
+
+  const handleCreateTicket = (formData) => {
+    createMutation.mutate(formData);
   };
 
   const handleEdit = (ticket) => {
@@ -61,245 +105,333 @@ export default function Tickets() {
     setShowModal(true);
   };
 
-  // const handleDelete = (ticket) => {
-  //   if (window.confirm(`¿Estás seguro de que quieres eliminar el ticket "${ticket.title}"?`)) {
-  //     deleteMutation.mutate(ticket.id);
-  //   }
-  // };
-
-  const handleStatusChange = (ticket, newStatus) => {
-    updateMutation.mutate({ id: ticket.id, status: newStatus });
+  const handleViewHistory = (ticket) => {
+    setSelectedTicket(ticket);
+    setShowHistory(true);
   };
 
-  const handleSubmit = async (formData) => {
-    if (editingTicket.id) {
-      await updateMutation.mutateAsync({ id: editingTicket.id, ...formData });
+  const handleSubmit = (formData) => {
+    if (editingTicket?.id) {
+      updateMutation.mutate({ id: editingTicket.id, ...formData });
     } else {
-      await createMutation.mutateAsync(formData);
+      createMutation.mutate(formData);
     }
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      'abierto': { bg: 'primary', text: 'Abierto', icon: FiMessageSquare },
-      'en_progreso': { bg: 'warning', text: 'En Progreso', icon: FiClock },
-      'resuelto': { bg: 'success', text: 'Resuelto', icon: FiCheckCircle },
-      'cerrado': { bg: 'secondary', text: 'Cerrado', icon: FiX }
+  const handleStatusUpdate = (ticketId, newStatus) => {
+    updateMutation.mutate({ id: ticketId, status: newStatus });
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'abierto': 'warning',
+      'en_progreso': 'info',
+      'resuelto': 'success',
+      'cerrado': 'secondary',
+      'cancelado': 'danger'
     };
-    
-    const config = statusConfig[status] || { bg: 'secondary', text: status, icon: FiMessageSquare };
-    const Icon = config.icon;
-    
-    return (
-      <Badge bg={config.bg} className="status-badge d-flex align-items-center">
-        <Icon size={12} className="me-1" />
-        {config.text}
-      </Badge>
-    );
+    return colors[status] || 'secondary';
   };
 
-  const getPriorityBadge = (priority) => {
-    const priorityConfig = {
-      'baja': { bg: 'success', text: 'Baja', icon: FiFlag },
-      'media': { bg: 'warning', text: 'Media', icon: FiAlertTriangle },
-      'alta': { bg: 'danger', text: 'Alta', icon: FiAlertTriangle }
+  const getStatusLabel = (status) => {
+    const labels = {
+      'abierto': 'Abierto',
+      'en_progreso': 'En Progreso',
+      'resuelto': 'Resuelto',
+      'cerrado': 'Cerrado',
+      'cancelado': 'Cancelado'
     };
-    
-    const config = priorityConfig[priority] || { bg: 'secondary', text: priority, icon: FiFlag };
-    const Icon = config.icon;
-    
-    return (
-      <Badge bg={config.bg} className="status-badge d-flex align-items-center">
-        <Icon size={12} className="me-1" />
-        {config.text}
-      </Badge>
-    );
+    return labels[status] || status;
   };
 
-  const columns = [
-    {
-      header: 'ID',
-      accessor: 'id',
-      width: '80px'
-    },
-    {
-      header: 'Título',
-      accessor: 'title',
-      render: (value, row) => (
-        <div>
-          <div className="fw-medium">{row.title}</div>
-          <small className="text-muted">
-            <FiUser size={12} className="me-1" />
-            {row.user?.name || 'Usuario'}
-          </small>
-        </div>
-      )
-    },
-    {
-      header: 'Descripción',
-      accessor: 'description',
-      render: (value) => (
-        <div className="text-truncate" style={{ maxWidth: '200px' }} title={value}>
-          {value}
-        </div>
-      )
-    },
-    {
-      header: 'Prioridad',
-      accessor: 'priority',
-      render: (value) => getPriorityBadge(value)
-    },
-    {
-      header: 'Estado',
-      accessor: 'status',
-      render: (value) => getStatusBadge(value)
-    },
-    {
-      header: 'Fecha',
-      accessor: 'created_at',
-      render: (value) => (
-        <div className="d-flex align-items-center">
-          <FiCalendar size={12} className="me-1 text-muted" />
-          <small>{new Date(value).toLocaleDateString('es-ES')}</small>
-        </div>
-      )
-    }
-  ];
+  const getPriorityColor = (priority) => {
+    const colors = {
+      'baja': 'success',
+      'media': 'warning',
+      'alta': 'danger',
+      'critica': 'dark'
+    };
+    return colors[priority] || 'secondary';
+  };
 
-  const formFields = [
-    {
-      name: 'title',
-      label: 'Título',
-      type: 'text',
-      required: true,
-      placeholder: 'Ingresa el título del ticket'
-    },
-    {
-      name: 'description',
-      label: 'Descripción',
-      type: 'textarea',
-      required: true,
-      placeholder: 'Describe el problema o solicitud',
-      rows: 4
-    },
-    {
-      name: 'priority',
-      label: 'Prioridad',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'baja', label: 'Baja' },
-        { value: 'media', label: 'Media' },
-        { value: 'alta', label: 'Alta' }
-      ]
-    }
-  ];
+  const getPriorityLabel = (priority) => {
+    const labels = {
+      'baja': 'Baja',
+      'media': 'Media',
+      'alta': 'Alta',
+      'critica': 'Crítica'
+    };
+    return labels[priority] || priority;
+  };
 
-  // Calcular estadísticas
+  const filteredTickets = useMemo(() => {
+    if (!tickets || !Array.isArray(tickets)) return [];
+    
+    return tickets.filter(ticket => {
+      const matchesSearch = ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           ticket.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = !statusFilter || ticket.status === statusFilter;
+      const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
+      
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+
   const stats = useMemo(() => {
-    const tickets = data?.tickets || [];
+    // Usar estadísticas del servidor si están disponibles, sino calcular localmente
+    if (ticketStats && Object.keys(ticketStats).length > 0) {
     return {
-      total: tickets.length,
-      abiertos: tickets.filter(t => t.status === 'abierto').length,
-      enProgreso: tickets.filter(t => t.status === 'en_progreso').length,
-      resueltos: tickets.filter(t => t.status === 'resuelto').length,
-      cerrados: tickets.filter(t => t.status === 'cerrado').length,
-      alta: tickets.filter(t => t.priority === 'alta').length,
-      media: tickets.filter(t => t.priority === 'media').length,
-      baja: tickets.filter(t => t.priority === 'baja').length
-    };
-  }, [data]);
+        total: ticketStats.total || 0,
+        open: ticketStats.abierto || 0,
+        inProgress: ticketStats.en_progreso || 0,
+        resolved: ticketStats.resuelto || 0
+      };
+    }
+    
+    if (!tickets || !Array.isArray(tickets)) return { total: 0, open: 0, inProgress: 0, resolved: 0 };
+    
+    const total = tickets.length;
+    const open = tickets.filter(t => t.status === 'abierto').length;
+    const inProgress = tickets.filter(t => t.status === 'en_progreso').length;
+    const resolved = tickets.filter(t => t.status === 'resuelto').length;
+    
+    return { total, open, inProgress, resolved };
+  }, [tickets, ticketStats]);
+
+  if (error) {
+    return (
+      <Container fluid className="py-4">
+        <Alert variant="danger">
+          <FiAlertTriangle className="me-2" />
+          Error al cargar los tickets: {error.message}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
+    <div className="tickets-page">
     <Container fluid className="py-4">
-      <div className="fade-in">
         <PageHeader
-          title="Gestión de Tickets"
-          subtitle="Crear, editar y gestionar tickets de soporte"
-          icon={FiMessageSquare}
-          actions={
-            <Button variant="primary" onClick={handleCreate}>
-              <FiPlus className="me-2" />
-              Nuevo Ticket
-            </Button>
-          }
+          title="🎫 Gestión de Tickets"
+          subtitle="Administra y da seguimiento a los tickets de soporte"
         />
 
         {/* Estadísticas */}
-        <Row className="g-4 mb-4">
-          <Col md={6} lg={3}>
+        <Row className="mb-4">
+          <Col md={3}>
             <StatsCard
               title="Total Tickets"
               value={stats.total}
               icon={FiMessageSquare}
               color="primary"
-              subtitle="Tickets registrados"
             />
           </Col>
-          <Col md={6} lg={3}>
+          <Col md={3}>
             <StatsCard
               title="Abiertos"
-              value={stats.abiertos}
-              icon={FiClock}
+              value={stats.open}
+              icon={FiAlertTriangle}
               color="warning"
-              subtitle="Pendientes de atención"
             />
           </Col>
-          <Col md={6} lg={3}>
+          <Col md={3}>
             <StatsCard
               title="En Progreso"
-              value={stats.enProgreso}
-              icon={FiAlertTriangle}
+              value={stats.inProgress}
+              icon={FiClock}
               color="info"
-              subtitle="En proceso de resolución"
             />
           </Col>
-          <Col md={6} lg={3}>
+          <Col md={3}>
             <StatsCard
               title="Resueltos"
-              value={stats.resueltos}
+              value={stats.resolved}
               icon={FiCheckCircle}
               color="success"
-              subtitle="Completados"
             />
           </Col>
         </Row>
 
-        {/* Tabla de tickets */}
-        <Card className="shadow-sm border-0">
-          <Card.Header className="bg-white border-bottom">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">
-                <FiMessageSquare className="me-2 text-primary" />
-                Lista de Tickets
-              </h5>
-              <Badge bg="light" text="dark" className="px-3 py-2">
-                {stats.total} tickets
-              </Badge>
-            </div>
-          </Card.Header>
-          <Card.Body className="p-0">
-            <DataTable
-              data={data?.tickets || []}
-              columns={columns}
-              loading={isLoading}
-              onEdit={handleEdit}
-              emptyMessage="No hay tickets registrados"
-            />
+        {/* Filtros y Búsqueda */}
+        <Card className="mb-4 tickets-filters-card">
+          <Card.Body>
+            <Row className="align-items-center">
+              <Col md={4}>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <FiSearch />
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    placeholder="Buscar tickets..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="tickets-search-input"
+                  />
+                </InputGroup>
+              </Col>
+              <Col md={3}>
+                <Form.Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="tickets-filter-select"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="abierto">Abierto</option>
+                  <option value="en_progreso">En Progreso</option>
+                  <option value="resuelto">Resuelto</option>
+                  <option value="cerrado">Cerrado</option>
+                  <option value="cancelado">Cancelado</option>
+                </Form.Select>
+              </Col>
+              <Col md={3}>
+                <Form.Select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="tickets-filter-select"
+                >
+                  <option value="">Todas las prioridades</option>
+                  <option value="baja">Baja</option>
+                  <option value="media">Media</option>
+                  <option value="alta">Alta</option>
+                  <option value="critica">Crítica</option>
+                </Form.Select>
+              </Col>
+              <Col md={2}>
+                <Button
+                  variant="outline-primary"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('');
+                    setPriorityFilter('');
+                  }}
+                  className="w-100"
+                >
+                  <FiRefreshCw className="me-1" />
+                  Limpiar
+                </Button>
+              </Col>
+            </Row>
           </Card.Body>
         </Card>
 
-      <ModalForm
+        {/* Lista de Tickets */}
+        <Card className="tickets-list-card">
+          <Card.Header className="tickets-list-header">
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                <FiMessageSquare className="me-2" />
+                Tickets de Soporte ({filteredTickets.length})
+              </h5>
+              <Button variant="primary" onClick={handleCreate} className="tickets-create-btn">
+                <FiPlus className="me-2" />
+                Nuevo Ticket
+              </Button>
+            </div>
+          </Card.Header>
+          <Card.Body className="tickets-list-body">
+            {isLoading ? (
+              <div className="text-center py-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3 text-muted">Cargando tickets...</p>
+              </div>
+            ) : filteredTickets.length === 0 ? (
+              <div className="text-center py-5">
+                <FiMessageSquare size={48} className="text-muted mb-3" />
+                <h5 className="text-muted">No hay tickets</h5>
+                <p className="text-muted">No se encontraron tickets que coincidan con los filtros.</p>
+                <Button variant="primary" onClick={handleCreate}>
+                  <FiPlus className="me-2" />
+                  Crear Primer Ticket
+                </Button>
+              </div>
+            ) : (
+              <div className="tickets-grid">
+                {filteredTickets.map((ticket) => (
+                  <Card key={ticket.id} className="ticket-card">
+                    <Card.Body>
+                      <div className="ticket-header">
+                        <div className="ticket-title">
+                          <h6 className="mb-1">#{ticket.id} - {ticket.title}</h6>
+                          <small className="text-muted">
+                            {ticket.description?.substring(0, 100)}...
+                          </small>
+                        </div>
+                        <div className="ticket-badges">
+                          <Badge bg={getStatusColor(ticket.status)} className="me-1">
+                            {getStatusLabel(ticket.status)}
+                          </Badge>
+                          <Badge bg={getPriorityColor(ticket.priority)}>
+                            {getPriorityLabel(ticket.priority)}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="ticket-meta">
+                        <div className="ticket-info">
+                          <small className="text-muted">
+                            <FiCalendar className="me-1" />
+                            {new Date(ticket.created_at).toLocaleDateString()}
+                          </small>
+                          {ticket.module && (
+                            <small className="text-muted ms-3">
+                              <FiLayers className="me-1" />
+                              {ticket.module}
+                            </small>
+                          )}
+                          {ticket.category && (
+                            <small className="text-muted ms-3">
+                              <FiTag className="me-1" />
+                              {ticket.category}
+                            </small>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="ticket-actions">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleViewHistory(ticket)}
+                          className="me-2"
+                        >
+                          <FiEye className="me-1" />
+                          Ver
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => handleEdit(ticket)}
+                        >
+                          <FiEdit className="me-1" />
+                          Editar
+                        </Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+
+        {/* Modal de Formulario */}
+        <TicketFormUnified
         show={showModal}
         onHide={() => setShowModal(false)}
-        title={editingTicket?.id ? 'Editar Ticket' : 'Nuevo Ticket'}
-        data={editingTicket || emptyForm}
-        fields={formFields}
-        onSubmit={handleSubmit}
-        loading={createMutation.isLoading || updateMutation.isLoading}
-        submitText={editingTicket?.id ? 'Actualizar' : 'Crear'}
-      />
+          onSubmit={handleCreateTicket}
+          isLoading={createMutation.isLoading}
+        />
+
+        {/* Modal de Historial */}
+        <TicketHistoryWithChat
+          show={showHistory}
+          onHide={() => setShowHistory(false)}
+          ticket={selectedTicket}
+          onUpdateStatus={handleStatusUpdate}
+        />
+      </Container>
       </div>
-    </Container>
   );
-};
+}

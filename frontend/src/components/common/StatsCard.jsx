@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, Spinner } from 'react-bootstrap';
+import './StatsCard.css';
 
 const StatsCard = ({
   title,
@@ -43,12 +44,12 @@ const StatsCard = ({
   };
 
   return (
-    <Card className={`stats-card border-0 shadow-sm h-100 ${className}`}>
+    <Card className={`stats-card ${color} ${loading ? 'loading' : ''} ${className}`}>
       <Card.Body className="p-4">
         <div className="d-flex align-items-center justify-content-between">
           <div className="flex-grow-1">
-            <h6 className="text-muted mb-2 fw-medium">{title}</h6>
-            <h3 className="mb-1 fw-bold text-dark">
+            <h6>{title}</h6>
+            <h3>
               {loading ? (
                 <Spinner size="sm" className="me-2" />
               ) : (
@@ -66,7 +67,7 @@ const StatsCard = ({
           </div>
           
           {Icon && (
-            <div className={`icon-wrapper ${getColorClasses(color)} rounded-3 p-3`}>
+            <div className="icon-wrapper">
               <Icon size={24} />
             </div>
           )}

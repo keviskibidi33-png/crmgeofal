@@ -1,0 +1,357 @@
+/* Lista de Cotizaciones - Selección Múltiple Estilo Excel */
+
+.quote-row {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.quote-row:hover {
+  background-color: #f8f9fa !important;
+}
+
+.quote-row.selected {
+  background-color: #e3f2fd !important;
+  border-left: 4px solid #2196f3;
+}
+
+.quote-row.selecting {
+  background-color: #bbdefb !important;
+}
+
+.selection-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.quote-row.selected .selection-indicator {
+  background-color: #2196f3;
+  border-color: #2196f3;
+  color: white;
+}
+
+.quote-row:hover .selection-indicator {
+  border-color: #2196f3;
+}
+
+/* Indicador de selección en lote */
+.bulk-selection-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(33, 150, 243, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Animaciones para selección */
+@keyframes selectPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.quote-row.selecting {
+  animation: selectPulse 0.3s ease-in-out;
+}
+
+/* Estilos para la barra de acciones en lote */
+.bulk-actions-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.bulk-actions-bar .btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.bulk-actions-bar .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.bulk-actions-bar .btn-danger {
+  background: rgba(244, 67, 54, 0.8);
+  border-color: #f44336;
+}
+
+.bulk-actions-bar .btn-danger:hover {
+  background: #f44336;
+  border-color: #d32f2f;
+}
+
+/* Mejoras en la tabla */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table th {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table td {
+  border-bottom: 1px solid #f1f3f4;
+  vertical-align: middle;
+  padding: 12px 8px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Indicador de selección en el header */
+.table th:first-child {
+  background: #e3f2fd;
+  border-right: 2px solid #2196f3;
+}
+
+/* Efectos de hover mejorados */
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table tbody tr.selected:hover {
+  background-color: #e3f2fd;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+}
+
+/* Prevenir efectos de hover cuando se está sobre botones de acción */
+.table tbody tr:hover .btn-group {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Prevenir que los eventos de la fila afecten a los botones */
+.table tbody tr .btn-group {
+  pointer-events: auto;
+  position: relative;
+  z-index: 25;
+}
+
+.table tbody tr .btn-group .btn {
+  pointer-events: auto;
+  position: relative;
+  z-index: 26;
+}
+
+/* Desactivar eventos de mouse en la fila cuando se está sobre botones */
+.table tbody tr:has(.btn-group:hover) {
+  pointer-events: none;
+}
+
+.table tbody tr:has(.btn-group:hover) .btn-group {
+  pointer-events: auto;
+}
+
+/* Aislar los botones de acción de los efectos de la fila */
+.btn-group {
+  isolation: isolate;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.btn-group .btn {
+  isolation: isolate;
+  position: relative;
+  z-index: 21;
+  pointer-events: auto;
+  background-color: #fff !important;
+  border: 1px solid #dee2e6 !important;
+  color: #212529 !important;
+}
+
+/* Prevenir completamente la propagación de eventos */
+.btn-group .btn:active,
+.btn-group .btn:focus,
+.btn-group .btn:hover {
+  background-color: var(--bs-btn-hover-bg) !important;
+  border-color: var(--bs-btn-hover-border-color) !important;
+  color: var(--bs-btn-hover-color) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Aislar completamente la celda de botones */
+.table td:last-child {
+  position: relative;
+  z-index: 15;
+  background-color: #fff;
+  border-left: 2px solid #f8f9fa;
+}
+
+/* Botones de acción mejorados */
+.btn-group .btn {
+  border-radius: 4px;
+  margin: 0 1px;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-group .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Prevenir propagación de eventos en botones de acción */
+.btn-group {
+  position: relative;
+  z-index: 10;
+}
+
+.btn-group .btn {
+  pointer-events: auto;
+  position: relative;
+  z-index: 11;
+}
+
+/* Evitar que los botones activen la selección de fila */
+.btn-group .btn:active,
+.btn-group .btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Prevenir efectos de hover en la fila cuando se está sobre un botón */
+.quote-row:hover .btn-group .btn {
+  background-color: inherit;
+}
+
+/* Asegurar que los botones no hereden efectos de la fila */
+.btn-group .btn {
+  background-color: var(--bs-btn-bg, #fff);
+  border-color: var(--bs-btn-border-color, #dee2e6);
+  color: var(--bs-btn-color, #212529);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .btn-group .btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .selection-indicator {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Estados de carga */
+.table-loading {
+  position: relative;
+  opacity: 0.6;
+}
+
+.table-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+/* Animación de entrada para filas */
+@keyframes slideInRow {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.table tbody tr {
+  animation: slideInRow 0.3s ease-out;
+}
+
+/* Efecto de selección con gradiente */
+.quote-row.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #2196f3, #1976d2);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Mejoras en los badges de estado */
+.badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Efectos de transición suaves */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Indicador de rango de selección */
+.selection-range {
+  position: absolute;
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px dashed #2196f3;
+  pointer-events: none;
+  z-index: 5;
+}

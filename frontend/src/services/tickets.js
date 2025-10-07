@@ -1,19 +1,50 @@
 import { apiFetch } from './api';
 
-export const listTickets = (params = {}) => {
+export const listTickets = async (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   const path = qs ? `/api/tickets?${qs}` : '/api/tickets';
-  return apiFetch(path);
+  const response = await apiFetch(path);
+  
+  // Manejar diferentes formatos de respuesta
+  if (Array.isArray(response)) {
+    return response;
+  } else if (response && Array.isArray(response.data)) {
+    return response.data;
+  } else if (response && Array.isArray(response.tickets)) {
+    return response.tickets;
+  } else {
+    console.warn('⚠️ Formato de respuesta inesperado para tickets:', response);
+    return [];
+  }
 };
 
 export const getTicket = (id) => apiFetch(`/api/tickets/${id}`);
 
-export const createTicket = async ({ title, description, priority, file }) => {
+export const createTicket = async ({ 
+  title, 
+  description, 
+  priority, 
+  module,
+  category,
+  type,
+  assigned_to,
+  estimated_time,
+  tags,
+  additional_notes,
+  file 
+}) => {
   // multipart form for optional attachment under field name 'attachment'
   const form = new FormData();
   if (title) form.append('title', title);
   if (description) form.append('description', description);
   if (priority) form.append('priority', priority);
+  if (module) form.append('module', module);
+  if (category) form.append('category', category);
+  if (type) form.append('type', type);
+  if (assigned_to) form.append('assigned_to', assigned_to);
+  if (estimated_time) form.append('estimated_time', estimated_time);
+  if (tags) form.append('tags', tags);
+  if (additional_notes) form.append('additional_notes', additional_notes);
   if (file) form.append('attachment', file);
   return apiFetch('/api/tickets', {
     method: 'POST',

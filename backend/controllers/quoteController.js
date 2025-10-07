@@ -28,8 +28,15 @@ exports.getAll = async (req, res) => {
   try {
     const { project_id, company_id, status, page, limit, date_from, date_to } = req.query;
     const result = await Quote.getAll({ project_id, company_id, status, page, limit, date_from, date_to });
-    res.json(result);
+    // Asegurar que la respuesta tenga la estructura esperada por el frontend
+    res.json({
+      data: result.quotes || [],
+      total: result.total || 0,
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 20
+    });
   } catch (err) {
+    console.error('Error getting quotes:', err);
     res.status(500).json({ error: 'Error al obtener cotizaciones' });
   }
 };

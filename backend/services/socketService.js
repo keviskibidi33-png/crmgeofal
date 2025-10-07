@@ -71,6 +71,17 @@ class SocketService {
         socket.leave(room);
         console.log(`Usuario ${socket.userId} salió de la sala ${room}`);
       });
+
+      // Eventos específicos para tickets
+      socket.on('join_ticket', (ticketId) => {
+        socket.join(`ticket_${ticketId}`);
+        console.log(`Usuario ${socket.userId} se unió al ticket ${ticketId}`);
+      });
+
+      socket.on('leave_ticket', (ticketId) => {
+        socket.leave(`ticket_${ticketId}`);
+        console.log(`Usuario ${socket.userId} salió del ticket ${ticketId}`);
+      });
     });
 
     return this.io;
@@ -133,6 +144,29 @@ class SocketService {
       totalConnections: this.connectedUsers.size,
       connectedUsers: this.getConnectedUsers()
     };
+  }
+
+  // Enviar notificación de nuevo comentario en ticket
+  sendTicketComment(ticketId, comment) {
+    if (this.io) {
+      this.io.to(`ticket_${ticketId}`).emit('new_comment', {
+        comment: comment,
+        ticket_id: ticketId
+      });
+      console.log(`Nuevo comentario en ticket ${ticketId} enviado a todos los usuarios`);
+    }
+  }
+
+  // Enviar notificación de cambio de estado de ticket
+  sendTicketStatusUpdate(ticketId, status, updatedBy) {
+    if (this.io) {
+      this.io.to(`ticket_${ticketId}`).emit('ticket_status_update', {
+        ticket_id: ticketId,
+        status: status,
+        updated_by: updatedBy
+      });
+      console.log(`Cambio de estado en ticket ${ticketId} enviado a todos los usuarios`);
+    }
   }
 }
 

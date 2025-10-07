@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import NotificationToast from '../components/NotificationToast';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +22,7 @@ const Layout = ({ children }) => {
           </Container>
         </main>
       </div>
+      <NotificationToast />
     </div>
   );
 };

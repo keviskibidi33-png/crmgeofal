@@ -25,13 +25,31 @@ exports.getById = async (req, res) => {
 };
 exports.create = async (req, res) => {
   try {
-    const { title, description, priority } = req.body;
+    const { 
+      title, 
+      description, 
+      priority, 
+      module,
+      category,
+      type,
+      assigned_to,
+      estimated_time,
+      tags,
+      additional_notes
+    } = req.body;
     const attachment_url = req.file ? `/uploads/${req.file.filename}` : null;
     const ticket = await Ticket.create({
       user_id: req.user.id,
       title,
       description,
       priority,
+      module,
+      category,
+      type,
+      assigned_to,
+      estimated_time,
+      tags,
+      additional_notes,
       attachment_url
     });
     // Auditoría: creación de ticket

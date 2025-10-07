@@ -1,0 +1,189 @@
+/* StatsCard - Componente de tarjetas de estadísticas */
+
+.stats-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f84616, #ff6b35);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #f84616;
+}
+
+.stats-card:hover::before {
+  opacity: 1;
+}
+
+.stats-card .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.stats-card h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.stats-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a2233;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.stats-card .icon-wrapper {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover .icon-wrapper {
+  transform: scale(1.1);
+}
+
+/* Colores específicos para cada tipo de estadística */
+.stats-card.primary .icon-wrapper {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.stats-card.secondary .icon-wrapper {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.stats-card.success .icon-wrapper {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.stats-card.danger .icon-wrapper {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.stats-card.warning .icon-wrapper {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.stats-card.info .icon-wrapper {
+  background: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
+}
+
+/* Animación de entrada */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stats-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+/* Efecto de pulso para valores importantes */
+.stats-card .pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stats-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-card .icon-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .stats-card h6 {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-card {
+    margin-bottom: 1rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 1.25rem;
+  }
+  
+  .stats-card .icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Estados de carga */
+.stats-card.loading {
+  opacity: 0.7;
+}
+
+.stats-card.loading .icon-wrapper {
+  animation: pulse 1.5s infinite;
+}
+
+/* Efecto de gradiente en el fondo */
+.stats-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(248, 70, 22, 0.02) 0%, rgba(255, 107, 53, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.stats-card:hover::after {
+  opacity: 1;
+}

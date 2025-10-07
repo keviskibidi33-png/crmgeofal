@@ -15,10 +15,23 @@
   gap: 1.2rem;
   min-width: 320px;
 }
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.login-logo img {
+  height: 100px;
+  width: auto;
+  max-width: 300px;
+}
+
 .login-form h2 {
   margin: 0 0 0.5rem 0;
   color: #1a2233;
   font-weight: 600;
+  text-align: center;
 }
 .login-form input {
   padding: 0.7rem 1rem;

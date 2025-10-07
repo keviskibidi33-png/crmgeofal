@@ -25,6 +25,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleSubmit} autoComplete="on">
+        <div className="login-logo">
+          <img src="/logogeofal.png" alt="Logo Geofal" />
+        </div>
         <h2>Iniciar Sesión</h2>
         <input
           type="email"

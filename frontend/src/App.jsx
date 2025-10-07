@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SocketProvider } from './contexts/SocketContext';
 import Layout from './layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import RequireRole from './components/RequireRole';
@@ -32,6 +33,7 @@ const Evidencias = lazy(() => import('./pages/Evidencias'));
 
 // Tickets y soporte
 const Tickets = lazy(() => import('./pages/Tickets'));
+const TicketsVendedor = lazy(() => import('./pages/TicketsVendedor'));
 const HistorialTickets = lazy(() => import('./pages/HistorialTickets'));
 
 // Reportes y auditoría
@@ -79,14 +81,15 @@ function PrivateRoute({ children }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Suspense fallback={<div>Cargando...</div>}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/*" element={
-              <RequireAuthLayout>
-                <Routes>
+    <SocketProvider>
+      <AuthProvider>
+        <Router>
+          <Suspense fallback={<div>Cargando...</div>}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/*" element={
+                <RequireAuthLayout>
+                  <Routes>
                   <Route path="/" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   
@@ -112,6 +115,7 @@ function App() {
                   <Route path="/cotizaciones/:id" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","gerencia"]}><DetalleCotizacion /></RequireRole></ErrorBoundary>} />
                   <Route path="/adjuntos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Adjuntos /></RequireRole></ErrorBoundary>} />
                   <Route path="/tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte","jefa_comercial","vendedor_comercial"]}><Tickets /></RequireRole></ErrorBoundary>} />
+                  <Route path="/tickets-vendedor" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><TicketsVendedor /></RequireRole></ErrorBoundary>} />
                   <Route path="/reportes" element={<ErrorBoundary><RequireRole roles={["admin","gerencia","jefa_comercial"]}><Reportes /></RequireRole></ErrorBoundary>} />
                   {/* <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} /> */}
                   {/* <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} /> */}
@@ -151,9 +155,10 @@ function App() {
               </RequireAuthLayout>
             } />
           </Routes>
-        </Suspense>
-      </Router>
-    </AuthProvider>
+          </Suspense>
+        </Router>
+      </AuthProvider>
+    </SocketProvider>
   );
 }
 

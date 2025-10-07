@@ -4,7 +4,7 @@ import ModuloBase from '../components/ModuloBase';
 import { createQuote } from '../services/quotes';
 import { getExistingServices, listProjects } from '../services/projects';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
-import SubserviceAutocomplete from '../components/SubserviceAutocomplete';
+import SubserviceAutocompleteFinal from '../components/SubserviceAutocompleteFinal';
 import './CotizacionNuevaLEM.css';
 import '../styles/autocomplete.css';
 

@@ -4,9 +4,20 @@ exports.getByProject = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const { rows, total } = await ProjectHistory.getByProject(req.params.project_id, req.user, { page, limit });
+    const search = req.query.search || '';
+    const action = req.query.action || '';
+    const date = req.query.date || '';
+    
+    const { rows, total } = await ProjectHistory.getByProject(req.params.project_id, req.user, { 
+      page, 
+      limit, 
+      search, 
+      action, 
+      date 
+    });
     res.json({ data: rows, total });
   } catch (err) {
+    console.error('Error getting project history:', err);
     res.status(500).json({ error: 'Error al obtener historial' });
   }
 };

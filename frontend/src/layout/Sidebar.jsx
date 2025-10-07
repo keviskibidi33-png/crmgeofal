@@ -46,7 +46,8 @@ const sectionsByRole = {
           label: 'Tickets',
           icon: FiMessageSquare,
           children: [
-            { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
+            { path: '/tickets', label: 'Tickets de Soporte', icon: FiMessageSquare },
+            { path: '/tickets-vendedor', label: 'Mis Tickets', icon: FiUser },
             { path: '/historial-tickets', label: 'Historial Tickets', icon: FiClock },
           ]
         },
@@ -109,7 +110,7 @@ const sectionsByRole = {
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
         { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
-        { path: '/tickets', label: 'Tickets', icon: FiMessageSquare },
+        { path: '/tickets-vendedor', label: 'Mis Tickets', icon: FiMessageSquare },
       ]
     },
     { title: 'Cuenta', items: [ { path: '/ajustes', label: 'Ajustes', icon: FiSettings } ] },
