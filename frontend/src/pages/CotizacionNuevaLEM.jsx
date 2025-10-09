@@ -179,23 +179,35 @@ export default function CotizacionNuevaLEM() {
     }
   }, [selection.company, selection.project]);
 
-  // Auto-completar datos del asesor comercial según el usuario logueado
+  // Auto-completar datos del asesor comercial desde el API
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const loadUserData = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.name) {
-          setQuote(prev => ({
-            ...prev,
-            commercial_name: payload.name,
-            commercial_phone: payload.phone || ''
-          }));
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch('http://localhost:4000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setQuote(prev => ({
+              ...prev,
+              commercial_name: data.user.name || prev.commercial_name,
+              commercial_phone: data.user.phone || prev.commercial_phone
+            }));
+          }
         }
       } catch (e) {
-        console.warn('No se pudo decodificar el token:', e);
+        console.warn('No se pudo obtener datos del usuario:', e);
       }
-    }
+    };
+    
+    loadUserData();
   }, []);
 
   // Generar nombre de archivo automáticamente cuando cambien los datos del cliente

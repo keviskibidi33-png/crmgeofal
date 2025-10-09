@@ -22,6 +22,8 @@ const AuthReducer = (state, action) => {
       return { ...state, user: action.payload.user, token: action.payload.token, loading: false };
     case 'LOGIN_FAILURE':
       return { ...state, error: action.payload, loading: false };
+    case 'UPDATE_USER':
+      return { ...state, user: { ...state.user, ...action.payload } };
     case 'LOGOUT':
       return { ...initialState };
     default:
@@ -78,8 +80,12 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGOUT' });
   };
 
+  const updateUser = (userData) => {
+    dispatch({ type: 'UPDATE_USER', payload: userData });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

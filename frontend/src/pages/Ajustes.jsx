@@ -10,7 +10,7 @@ import PageHeader from '../components/common/PageHeader';
 import apiFetch from '../services/api';
 
 const Ajustes = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -133,6 +133,11 @@ const Ajustes = () => {
         },
         body: JSON.stringify(profileData)
       });
+      
+      // Actualizar el contexto de autenticación con los nuevos datos
+      if (response.user) {
+        updateUser(response.user);
+      }
       
       setEditingProfile(false);
       setSuccess('Perfil actualizado exitosamente');
