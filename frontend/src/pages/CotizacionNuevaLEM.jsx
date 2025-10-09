@@ -468,7 +468,7 @@ export default function CotizacionNuevaLEM() {
       if (!id) return alert('Guarde la cotización antes de generar el borrador');
       
       const base = import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || '';
-      const path = `/api/quotes/${id}/export/pdf-draft`;
+      const path = `/api/quotes/${id}/export/pdf-v2`; // ✨ USANDO SISTEMA V2
       const url = base && /\/api$/i.test(base) ? `${base}${path.replace(/^\/api/, '')}` : `${base}${path}`;
       
       // Obtener token de autenticación

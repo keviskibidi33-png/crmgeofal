@@ -564,7 +564,7 @@ export default function CotizacionInteligente() {
       if (!id) return alert('Guarde la cotización antes de generar el borrador');
       
       const base = import.meta.env?.VITE_API_URL?.replace(/\/$/, '') || '';
-      const path = `/api/quotes/${id}/export/pdf-draft`;
+      const path = `/api/quotes/${id}/export/pdf-v2`; // ✨ USANDO SISTEMA V2
       const url = base && /\/api$/i.test(base) ? `${base}${path.replace(/^\/api/, '')}` : `${base}${path}`;
       
       // Obtener token de autenticación
@@ -573,13 +573,14 @@ export default function CotizacionInteligente() {
         throw new Error('No se encontró token de autenticación');
       }
       
-      // Realizar la petición con el token
+      // Realizar la petición con el token Y los items
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST', // ✨ Cambio a POST para enviar items
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ items }) // ✨ Enviar items al backend
       });
       
       if (!response.ok) {

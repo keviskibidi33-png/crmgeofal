@@ -3,6 +3,7 @@ const fs = require('fs');
 const { exportToExcel } = require('../utils/exporter');
 const { renderQuotePdf } = require('../utils/quotePdfTemplate');
 const { generateSmartTemplatePdf } = require('../utils/smartTemplatePdf');
+const smartTemplatePdfV2 = require('../utils/smartTemplatePdf_v2'); // NUEVO SISTEMA
 const pdfConfig = require('../config/pdf-config');
 const pool = require('../config/db');
 const ProjectAttachment = require('../models/projectAttachment');
@@ -270,5 +271,61 @@ exports.exportPdfDraft = async (req, res) => {
     res.download(destPath, path.basename(destPath));
   } catch (e) {
     res.status(500).json({ error: 'Error al exportar PDF borrador' });
+  }
+};
+
+/**
+ * NUEVO: Exportar PDF con sistema v2 (CSS Print moderno)
+ */
+exports.exportPdfV2 = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log('🚀 ===== EXPORTANDO CON SISTEMA V2 (CSS PRINT) =====');
+    console.log('🔍 exportPdfV2 - ID recibido:', id);
+    
+    const bundle = await loadQuoteBundle(id);
+    if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
+    
+    // Agregar ítems del frontend
+    if (req.body && req.body.items && Array.isArray(req.body.items)) {
+      bundle.items = req.body.items;
+      console.log('✅ exportPdfV2 - Ítems recibidos:', req.body.items.length);
+    } else {
+      bundle.items = bundle.items || [];
+    }
+    
+    // Procesar datos con sistema v2 (simplificado)
+    const data = smartTemplatePdfV2.processBundleData(bundle);
+    
+    // Generar HTML con template v2
+    const html = await smartTemplatePdfV2.generateCleanHtmlTemplateFromFiles(data);
+    
+    // Guardar HTML temporal
+    const tmp = path.join(__dirname, '../tmp');
+    if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
+    
+    const htmlPath = path.join(tmp, `quote_v2_${id}_${Date.now()}.html`);
+    const pdfPath = path.join(tmp, `quote_v2_${id}_${Date.now()}.pdf`);
+    
+    await fs.promises.writeFile(htmlPath, html, 'utf-8');
+    console.log('✅ HTML generado:', htmlPath);
+    
+    // Convertir a PDF
+    await smartTemplatePdfV2.convertHtmlToPdf(htmlPath, pdfPath);
+    console.log('✅ PDF generado:', pdfPath);
+    
+    // Limpiar HTML temporal
+    fs.unlink(htmlPath, () => {});
+    
+    // Enviar PDF
+    res.download(pdfPath, `Cotizacion_V2_${id}.pdf`, (err) => {
+      if (err) console.error('Error enviando PDF:', err);
+      // Limpiar PDF temporal después de enviarlo
+      fs.unlink(pdfPath, () => {});
+    });
+    
+  } catch (error) {
+    console.error('❌ exportPdfV2 - Error:', error);
+    res.status(500).json({ error: 'Error al exportar PDF v2', details: error.message });
   }
 };

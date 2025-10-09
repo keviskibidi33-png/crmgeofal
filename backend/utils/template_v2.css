@@ -1,0 +1,447 @@
+/**
+ * ============================================
+ * CSS PRINT MODERNO PARA COTIZACIONES
+ * ============================================
+ * 
+ * FILOSOFÍA: El navegador pagina automáticamente.
+ * Solo definimos QUÉ NO cortar y DÓNDE forzar saltos.
+ */
+
+/* ========== BASE ========== */
+
+/**
+ * TAMAÑO DE PÁGINA: A4 (210mm × 297mm)
+ * 
+ * Se define en 3 lugares:
+ * 1. @page { size: A4 } ← CSS Print (navegador)
+ * 2. .page { width: 210mm; min-height: 297mm } ← Dimensiones explícitas
+ * 3. Puppeteer: format: 'A4' ← Generación PDF
+ */
+
+@page {
+  size: A4; /* Tamaño de página para impresión */
+  margin: 0; /* Sin márgenes automáticos (los manejamos manualmente) */
+}
+
+html, body {
+  width: 210mm; /* Ancho A4 */
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  color: #000;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ========== ESTRUCTURA DE PÁGINA ========== */
+.page {
+  width: 210mm;        /* Ancho A4 */
+  min-height: 297mm;   /* Alto A4 */
+  padding: 15mm;       /* Márgenes internos */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  page-break-after: always; /* Cada .page crea una página nueva */
+  break-after: page;
+}
+
+.page:last-child {
+  page-break-after: avoid; /* NO crear página vacía al final */
+  break-after: avoid;
+}
+
+/* ========== HEADER ========== */
+.header {
+  position: relative;
+  height: 80px; /* Aumentado de 60px a 80px para dar espacio al logo */
+  margin-bottom: 15px; /* Aumentado de 10px a 15px */
+  flex-shrink: 0;
+}
+
+.header img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100px;
+  z-index: 1;
+  max-width: 200px; /* Limitar ancho del logo */
+}
+
+/* ========== CONTENT ========== */
+.content {
+  flex: 1;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  margin-top: auto; /* SIEMPRE empujar al fondo */
+  padding-top: 10px;
+  border-top: 1.5px solid #FF6B35;
+  flex-shrink: 0;
+  page-break-inside: avoid; /* NO cortar el footer */
+  break-inside: avoid;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.footer-left, .footer-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8px;
+}
+
+.footer-item svg {
+  width: 10px;
+  height: 10px;
+  fill: #FF6B35;
+  flex-shrink: 0;
+}
+
+/* ========== TÍTULO Y INFO ========== */
+.title {
+  font-size: 18px; /* Reducido de 20px a 18px */
+  font-weight: bold;
+  text-align: center;
+  text-decoration: underline;
+  margin: 10px 0 12px 0; /* Reducido margen superior de 20px a 10px */
+  position: relative;
+  z-index: 2; /* Asegurar que esté sobre el logo */
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px; /* Reducido de 15px a 10px */
+  margin-bottom: 8px; /* Reducido de 12px a 8px */
+}
+
+.info-row {
+  margin-bottom: 3px; /* Reducido de 4px a 3px */
+  line-height: 1.25; /* Reducido de 1.3 a 1.25 */
+  font-size: 11px; /* Reducido de 12px a 11px */
+}
+
+.info-label {
+  font-weight: bold;
+  display: inline-block;
+  width: 130px;
+}
+
+.reference-row {
+  margin: 10px 0;
+}
+
+.intro-text {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ========== TABLA ========== */
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 11px;
+  page-break-inside: auto; /* Permitir que la tabla se divida */
+  break-inside: auto;
+}
+
+.items-table thead {
+  display: table-header-group; /* Repetir header en cada página */
+}
+
+.items-table th,
+.items-table td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.items-table th {
+  background: #f2f2f2;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.items-table tr {
+  page-break-inside: avoid; /* NO cortar filas */
+  break-inside: avoid;
+}
+
+.section-row {
+  background: #f8f9fa;
+  font-weight: 700;
+}
+
+.total-row {
+  background: #e9ecef;
+  font-weight: 700;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+/* ========== CONDICIONES ========== */
+.conditions-initial,
+.conditions-block,
+.payment-block {
+  margin-top: 8px;
+}
+
+/* Compactar bloques en página 3 */
+.page-3 .payment-block,
+.page-3 .conditions-block {
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+}
+
+.subtitle-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 6px 0 3px 0;
+  width: 100%;
+  page-break-after: avoid; /* Subtítulo SIEMPRE con su contenido */
+}
+
+/* Compactar en página 3 */
+.page-3 .subtitle-box {
+  margin: 3px 0 2px 0 !important;
+  break-after: avoid;
+}
+
+.subtitle-inner {
+  background: white;
+  border-radius: 3px;
+  border: 1px solid #000;
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 5px 18px;
+  text-align: center;
+}
+
+.normal-subtitle {
+  font-size: 11px;
+  font-weight: bold;
+  margin: 6px 0 2px 0;
+  text-align: left;
+  color: #000;
+  page-break-after: avoid; /* Subtítulo SIEMPRE con su contenido */
+  break-after: avoid;
+}
+
+.conditions-content {
+  font-size: 10px;
+  color: #222;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  text-align: justify;
+}
+
+.signature-block {
+  margin-top: 6px;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+/* Compactar aún más en página 3 */
+.page-3 .signature-block {
+  margin-top: 4px !important;
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+}
+
+/* ========== REGLAS DE PAGINACIÓN POR MODO ========== */
+
+/* SALTOS DE PÁGINA CONTROLADOS MANUALMENTE */
+.force-page-break {
+  page-break-before: always !important;
+  break-before: page !important;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.force-page-break-before-payment {
+  page-break-before: always !important;
+  break-before: page !important;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.few-items .conditions-block {
+  page-break-inside: avoid !important; /* NO fragmentar condiciones */
+  break-inside: avoid !important;
+  max-height: none; /* Permitir que crezca */
+}
+
+.few-items .conditions-content {
+  font-size: 10px; /* Compacto para que quepa */
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.few-items .normal-subtitle {
+  font-size: 11px; /* Compacto */
+  margin: 4px 0 2px 0;
+  font-weight: bold;
+}
+
+.few-items .subtitle-inner {
+  font-size: 12px; /* Compacto */
+  padding: 4px 12px;
+  margin: 4px 0;
+}
+
+/* ========== PÁGINA 3: OPTIMIZACIÓN PARA PAGO ========== */
+/*
+ * PROBLEMA RESUELTO: El contenido de pago (4 cuentas bancarias + aceptación + firma)
+ * era demasiado extenso y creaba una página 4 vacía.
+ * 
+ * SOLUCIÓN:
+ * 1. Reducir fuentes a 8-10px (legible pero compacto)
+ * 2. Minimizar márgenes y paddings
+ * 3. Reducir altura del header (60px en lugar de 80px)
+ * 4. Usar max-height: 240mm para aprovechar TODO el espacio
+ * 
+ * RESULTADO: 3 páginas exactas, sin página 4.
+ */
+
+.page-3 .conditions-content {
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 1px !important;
+}
+
+.page-3 .subtitle-inner {
+  font-size: 10px !important;
+  padding: 2px 8px !important;
+  margin: 2px 0 !important;
+}
+
+.page-3 .payment-block {
+  margin-top: 2px !important;
+}
+
+.page-3 .content {
+  max-height: 240mm !important;
+  overflow: visible !important;
+}
+
+.page-3 .header {
+  height: 60px !important;
+  margin-bottom: 8px !important;
+}
+
+.page-3 .header img {
+  height: 80px !important;
+}
+
+.page-3 .footer {
+  padding-top: 6px !important;
+}
+
+.few-items .conditions-block {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+/* MODO COMPACTO (6-10 items): Paginación inteligente */
+.moderate-items .page-2 {
+  page-break-before: always;
+  break-before: page;
+}
+
+.moderate-items .page-3 {
+  page-break-before: always;
+  break-before: page;
+}
+
+.moderate-items .conditions-content {
+  font-size: 10px;
+}
+
+/* MODO ULTRA-COMPACTO (11+ items): Fragmentación agresiva */
+.many-items .page-2 {
+  page-break-before: always;
+  break-before: page;
+}
+
+.many-items .page-3 {
+  page-break-before: always;
+  break-before: page;
+}
+
+.many-items .items-table {
+  font-size: 9px;
+}
+
+.many-items .items-table th,
+.many-items .items-table td {
+  padding: 2px 4px;
+  font-size: 9px;
+}
+
+.many-items .conditions-content {
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+/* ========== FORZAR SALTOS ESPECÍFICOS ========== */
+.force-new-page {
+  page-break-before: always; /* SIEMPRE nueva página */
+  break-before: page;
+}
+
+.keep-together {
+  page-break-inside: avoid; /* NO cortar este bloque */
+  break-inside: avoid;
+}
+
+/* ========== ENLACES ========== */
+a {
+  color: #000 !important;
+  text-decoration: none !important;
+}
+
+/* ========== AJUSTES FINALES ========== */
+.page-1 .content {
+  /* Primera página: permitir que el contenido fluya */
+  overflow: visible;
+}
+
+.page-2 .content,
+.page-3 .content {
+  /* Páginas 2 y 3: asegurar espacio para footer */
+  min-height: 220mm;
+}
+

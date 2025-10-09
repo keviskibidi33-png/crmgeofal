@@ -35,4 +35,7 @@ router.post('/:id/export/pdf', auth(['jefa_comercial','vendedor_comercial','admi
 router.post('/:id/export/excel', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportExcel);
 router.post('/:id/export/pdf-draft', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdfDraft);
 
+// NUEVO: Sistema v2 con CSS Print moderno
+router.post('/:id/export/pdf-v2', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdfV2);
+
 module.exports = router;
