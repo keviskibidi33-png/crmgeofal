@@ -1,16 +1,21 @@
+/* ========================================
+   SISTEMA DE PDF PROFESIONAL CON FRAGMENTACIÓN
+   - Soporte para 3+ páginas
+   - Fuente SIEMPRE 13px mínimo (NUNCA se reduce)
+   - Solo se compactan paddings y márgenes
+   - Logo y footer fijos en CADA página
+   ======================================== */
+
 /* ===== CONFIGURACIÓN BASE ===== */
 html, body {
   width: 210mm;
-  height: 297mm;
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  font-size: 13px;
+  font-size: 13px; /* FUENTE BASE FIJA - NUNCA CAMBIAR */
   background: #fff;
   color: #000;
   box-sizing: border-box;
-  max-height: 594mm; /* Exacto para 2 páginas */
-  overflow: hidden;
 }
 
 @page {
@@ -18,274 +23,96 @@ html, body {
   margin: 0;
 }
 
-body {
-  max-height: 594mm !important;
-  overflow: hidden !important;
-}
-
-/* ===== CONTENEDORES PRINCIPALES ===== */
+/* ===== CONTENEDORES DE PÁGINA ===== */
 .page-content {
   width: 180mm;
   margin: 10mm 15mm 0 15mm;
   box-sizing: border-box;
   min-height: 275mm;
   max-height: 275mm;
-  overflow: hidden;
+  overflow: visible; /* CAMBIADO: debe ser visible para no cortar contenido */
   page-break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
 }
 
-/* Mover contenido más abajo */
-.page-content-wrapper {
-  margin-top: 5px;
-}
-
-/* OPTIMIZACIÓN PARA 25+ ITEMS: Reducir espacio en segunda página */
-.medium-items .page-content-wrapper,
-.very-many-items .page-content-wrapper,
-.extreme-items .page-content-wrapper {
-  margin-top: -15px;
-}
-
-/* SEGUNDA PÁGINA: MÁS ESPACIO para 25+ items */
-.second-page.medium-items .page-content-wrapper,
-.second-page.very-many-items .page-content-wrapper,
-.second-page.extreme-items .page-content-wrapper {
-  margin-top: -25px;
-}
-
+/* CLAVE: Solo agregar salto de página si NO es el último elemento */
 .page-content:not(:last-child) {
   page-break-after: always;
-}
-
-/* Forzar salto de página para segunda página */
-.first-page {
-  page-break-after: always !important;
-  break-after: page !important;
-}
-
-.second-page {
-  page-break-before: always !important;
-  break-before: page !important;
-  page-break-inside: avoid;
-}
-
-/* Ocultar todos menos primeras 2 paginas */
-.page-content:nth-child(n+3) {
-  display: none;
-}
-
-/* Asegurar que la segunda página se muestre */
-.second-page {
-  display: block !important;
-  page-break-before: always !important;
-  break-before: page !important;
-  min-height: 275mm !important;
-  max-height: 275mm !important;
-  position: relative !important;
-  overflow: visible !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  margin-top: 20mm;
+  break-after: page;
 }
 
 .page-content-wrapper {
-  width: 100%;
-  min-height: 200mm;
-  padding: 0 10mm 20px 10mm;
-  box-sizing: border-box;
-}
-
-/* Espaciado específico para primera página */
-.first-page .page-content-wrapper {
-  padding-bottom: 60px;
-  margin-bottom: 50px;
-}
-
-/* ===== PRIMERA PÁGINA ===== */
-.first-page {
-  position: relative;
-  min-height: 270mm;
-  max-height: 270mm;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-bottom: 10mm;
-}
-
-.first-page-footer {
-  position: relative;
-  margin-top: 80px;
-  margin-bottom: 15mm;
-  height: auto;
-  padding: 12px 5mm 15px 5mm;
-  border-top: 1.5px solid #FF6B35;
-  background: white;
-  color: #222;
-  font-size: 9px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  page-break-inside: avoid;
-  min-height: 50px;
-}
-
-/* ===== SEGUNDA PÁGINA ===== */
-.second-page {
-  position: relative;
-  min-height: 275mm;
-  max-height: 275mm;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.second-page-footer {
-  position: relative;
-  margin-top: auto;
-  height: auto;
-  padding: 2px 5mm 3px 5mm;
-  border-top: 1.5px solid #FF6B35;
-  background: white;
-  color: #222;
-  font-size: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  page-break-inside: avoid;
-  min-height: 20px;
-  margin-top: 15px;
-}
-
-.second-page .header {
-  position: relative;
-  height: 120px;
-  margin-bottom: 15px;
-  margin-top: 20px;
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.second-page .header img {
-  position: relative;
-  height: 120px;
-  display: block;
-  flex-shrink: 0;
-  margin-bottom: 20px;
-}
-
-.second-page .page-content-wrapper {
   flex: 1;
-  padding: 0 10mm 10px 10mm;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  padding: 0 0 10px 0;
+  box-sizing: border-box;
   overflow: visible;
-  min-height: 180mm;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: block !important;
 }
 
-
-/* ===== HEADER Y TÍTULO ===== */
+/* ===== HEADER (LOGO) FIJO EN CADA PÁGINA ===== */
 .header {
   position: relative;
-  height: 120px;
-  margin-bottom: 30px;
-  margin-top: 15px;
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-}
-
-/* HEADER PROTEGIDO - NUNCA REDUCIR MÁRGENES */
-.header {
-  margin-top: 15px !important;
-}
-
-/* SEGUNDA PÁGINA: HEADER PROTEGIDO */
-.second-page .header {
-  margin-top: 25px !important;
-  margin-bottom: 30px;
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
+  height: 70px; /* Compactado: antes 80px, ahora 70px */
+  margin-bottom: 6px; /* Compactado: antes 10px, ahora 6px */
+  flex-shrink: 0;
 }
 
 .header img {
-  height: 120px !important;
-  margin-bottom: 20px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 110px; /* Compactado: antes 120px, ahora 110px */
   z-index: 1;
-  display: block;
-  flex-shrink: 0;
 }
 
-/* SEGUNDA PÁGINA: IMAGEN HEADER PROTEGIDA */
-.second-page .header img {
-  height: 120px !important;
-  margin-bottom: 20px;
-}
-
-/* PROTECCIÓN COMPLETA DEL HEADER - NUNCA MODIFICAR */
-.header,
-.first-page .header,
-.second-page .header {
-  margin-top: 25px !important;
-  height: 120px !important;
-  margin-bottom: 30px !important;
-}
-
-.header img,
-.first-page .header img,
-.second-page .header img {
-  height: 120px !important;
-  margin-bottom: 20px !important;
-  display: block !important;
-  flex-shrink: 0 !important;
-}
-
+/* ===== TÍTULOS ===== */
 .title {
-  font-size: 20px;
   font-weight: bold;
-  color: #000;
-  margin: 30px 0 25px 0;
+  font-size: 20px; /* Títulos destacados */
+  margin: 15px 0 12px 0; /* Compactado: antes 40/30, ahora 15/12 */
   text-align: center;
+  text-decoration: underline;
   position: relative;
   z-index: 2;
 }
 
-/* ===== INFORMACIÓN DEL CLIENTE ===== */
+.title-continuation {
+  font-weight: bold;
+  font-size: 16px;
+  margin: 8px 0 12px 0; /* Compactado: antes 10/20, ahora 8/12 */
+  text-align: center;
+  color: #333;
+}
+
+/* ===== INFO GRID ===== */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 25px;
-  margin-bottom: 20px;
-}
-
-.info-row {
-  margin-bottom: 6px;
-  line-height: 1.3;
-  font-size: 13px;
+  gap: 12px; /* Compactado: antes 22px, ahora 12px */
+  margin-bottom: 10px; /* Compactado: antes 18px, ahora 10px */
+  font-size: 13px; /* FIJO */
 }
 
 .info-label {
   font-weight: bold;
-  color: #000;
-  margin-right: 8px;
+  width: 130px;
+  display: inline-block;
+  font-size: 13px; /* FIJO */
+}
+
+.info-row {
+  margin-bottom: 4px; /* Compactado: antes 8px, ahora 4px */
+  line-height: 1.3; /* Compactado: antes 1.4, ahora 1.3 */
+  font-size: 13px; /* FIJO */
 }
 
 .reference-row {
-  margin-top: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-top: 8px; /* Compactado: antes 15px, ahora 8px */
+  margin-bottom: 8px; /* Compactado: antes 15px, ahora 8px */
+  font-size: 13px; /* FIJO */
 }
 
 .reference-row .info-label {
@@ -294,135 +121,126 @@ body {
 }
 
 .intro-text {
-  font-size: 13px;
+  font-size: 13px; /* FIJO */
   color: #222;
-  margin: 8px 0;
-  line-height: 1.4;
+  margin: 6px 0; /* Compactado: antes 8px, ahora 6px */
 }
 
-/* ===== TABLA ===== */
+/* ===== TABLAS - COMPACTACIÓN SOLO POR PADDINGS/MÁRGENES ===== */
 table {
   border-collapse: collapse;
   width: 100%;
-  margin-bottom: 1px;
-  margin-left: 0;
-  margin-right: 0;
+  margin-bottom: 3px; /* Compactado: antes 1px, ahora 3px para separar un poco de lo siguiente */
+  margin-top: 3px; /* Agregado: separar un poco del título */
+  font-size: 13px; /* FUENTE FIJA - NUNCA CAMBIAR */
+  page-break-inside: auto;
+}
+
+tr {
+  page-break-inside: avoid;
+  page-break-after: auto;
 }
 
 th, td {
-  border: none;
-  padding: 2px 3px;
-  font-size: 10px;
-  vertical-align: top;
-  text-align: center;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  line-height: 1.2;
-  min-height: 20px;
-}
-
-/* Solo las celdas con contenido tienen bordes */
-th, td:not(:empty) {
   border: 1px solid #000;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 13px; /* FUENTE FIJA - NUNCA CAMBIAR */
 }
 
-/* Celdas vacías sin bordes */
-td:empty {
-  border: none;
-  padding: 0;
+th {
+  background: #f2f2f2;
+  font-weight: 700;
+  text-align: center;
+  font-size: 13px; /* FUENTE FIJA */
 }
 
-/* Manejo especial para descripciones largas */
-td:nth-child(2) {
-  text-align: left;
-  max-width: 200px;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  line-height: 1.3;
+/* COMPACTACIÓN POR CLASES: SOLO AFECTA PADDINGS, NO FUENTE */
+
+/* Clase: few-items (≤7 ítems) - Padding generoso */
+.few-items th,
+.few-items td {
+  padding: 6px 10px;
+  font-size: 13px; /* FUENTE FIJA */
+}
+
+/* Clase: many-items (8-10 ítems) - Padding reducido */
+.many-items th,
+.many-items td {
+  padding: 5px 8px;
+  font-size: 13px; /* FUENTE FIJA */
+}
+
+/* Clase: plazo-items (11-12 ítems) - Padding moderado */
+.plazo-items th,
+.plazo-items td {
+  padding: 4px 7px;
+  font-size: 13px; /* FUENTE FIJA */
+}
+
+/* Clase: condiciones-items (13-20 ítems) - Padding compacto */
+.condiciones-items th,
+.condiciones-items td {
   padding: 4px 6px;
+  font-size: 13px; /* FUENTE FIJA */
 }
 
-/* Ajuste automático de altura para filas con texto largo */
-tr {
-  height: auto;
-  min-height: 25px;
+/* Clase: partial-items (21-24 ítems) - Padding mínimo */
+.partial-items th,
+.partial-items td {
+  padding: 3px 5px;
+  font-size: 13px; /* FUENTE FIJA */
 }
 
-/* Estilos específicos para tablas con muchos items */
-.many-items td:nth-child(2) {
-  max-width: 150px;
-  font-size: 7px;
-  line-height: 1.1;
+/* Clase: medium-items (25-27 ítems) - Padding muy compacto */
+.medium-items th,
+.medium-items td {
+  padding: 3px 4px;
+  font-size: 13px; /* FUENTE FIJA */
+}
+
+/* Clase: extreme-items (28+ ítems) - Padding extremo */
+.extreme-items th,
+.extreme-items td {
   padding: 2px 3px;
+  font-size: 13px; /* FUENTE FIJA */
 }
 
-.extreme-items td:nth-child(2) {
-  max-width: 120px;
-  font-size: 6px;
-  line-height: 1.0;
-  padding: 1px 2px;
-}
-
+/* Filas especiales */
 .section-row {
   background: #f8f9fa;
-  font-weight: bold;
-  color: #000;
-  margin-top: 15px;
+  font-weight: 700;
+  font-size: 13px; /* FIJO */
 }
 
-/* Estilos para filas de totales - ya están en el HTML inline */
+.total-row {
+  background: #e9ecef;
+  font-weight: 700;
+  font-size: 13px; /* FIJO */
+}
 
+.total-row td {
+  text-align: left !important;
+  font-size: 13px; /* FIJO */
+}
+
+.total-row td:last-child {
+  text-align: right !important;
+}
+
+/* ===== FOOTER NOTE ===== */
 .footer-note {
-  font-size: 9px;
-  color: #666;
+  font-size: 13px; /* FIJO */
   margin-top: 2px;
   margin-bottom: 8px;
+  color: #666;
   text-align: left;
 }
 
-/* ESPACIADO ADAPTATIVO PARA TEXTO DE INACAL */
-/* Para pocos items (1-7): espaciado normal */
-.few-items .footer-note {
-  margin-top: 3px;
-  margin-bottom: 10px;
-  font-size: 9px;
-}
-
-/* Para muchos items (8-10): espaciado reducido */
-.many-items .footer-note {
-  margin-top: 2px;
-  margin-bottom: 8px;
-  font-size: 8px;
-}
-
-/* Para items con plazo (11-12): espaciado compacto */
-.plazo-items .footer-note {
-  margin-top: 1px;
-  margin-bottom: 6px;
-  font-size: 8px;
-}
-
-/* Para items con condiciones (13-20): espaciado muy compacto */
-.condiciones-items .footer-note {
-  margin-top: 1px;
-  margin-bottom: 4px;
-  font-size: 7px;
-}
-
-/* Para muchos items (25+): espaciado ultra compacto */
-.very-many-items .footer-note {
-  margin-top: 0px;
-  margin-bottom: 3px;
-  font-size: 6px;
-}
-
-/* Para items extremos (30+): espaciado mínimo */
+/* Compactación de footer-note para tablas extremas */
 .extreme-items .footer-note {
-  margin-top: 0px;
-  margin-bottom: 2px;
-  font-size: 5px;
+  margin-top: 1px;
+  margin-bottom: 3px;
 }
 
 /* ===== CONDICIONES ===== */
@@ -430,7 +248,7 @@ tr {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 8px 0 6px 0;
+  margin: 2px 0;
   width: 100%;
 }
 
@@ -439,8 +257,9 @@ tr {
   border-radius: 3px;
   border: 1px solid #000;
   color: #000;
+  display: inline-block;
+  font-size: 13px; /* FIJO */
   font-weight: bold;
-  font-size: 12px;
   letter-spacing: 0.5px;
   padding: 6px 20px;
   text-align: center;
@@ -450,47 +269,51 @@ tr {
 }
 
 .normal-subtitle {
-  font-size: 12px;
+  font-size: 13px; /* FIJO */
   font-weight: bold;
-  margin: 7px 0 10px 0;
+  margin: 1px 0;
   text-decoration: none;
   text-align: left;
   color: #000;
 }
 
 .conditions-content {
-  font-size: 10px;
+  font-size: 13px; /* FIJO */
   color: #222;
-  margin-bottom: 12px;
-  line-height: 1.3;
-}
-
-.conditions-list {
-  margin-left: 15px;
   margin-bottom: 1px;
-}
-
-.conditions-list li {
-  margin-bottom: 0px;
-  font-size: 10px;
+  line-height: 1.2;
 }
 
 .signature-block {
-  margin-top: 1px;
-  font-size: 10px;
+  margin-top: 2px;
+  font-size: 13px; /* FIJO */
 }
 
-.contact-block {
-  font-size: 12px;
-  margin-top: 12px;
+/* ===== FOOTER FIJO EN CADA PÁGINA ===== */
+.footer-bar {
+  position: relative;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+  padding: 0;
+  background: white;
+  color: #222;
+  font-size: 10px; /* Footer ligeramente más pequeño para compactar */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin-top: auto;
+  page-break-inside: avoid;
+  flex-shrink: 0;
+  border-top: 1.5px solid #FF6B35;
 }
 
-/* ===== FOOTER ===== */
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 10px 12px;
+  padding: 6px 8px;
   width: 100%;
   max-width: 160mm;
   margin: 0 auto;
@@ -499,7 +322,7 @@ tr {
 .footer-left, .footer-right {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   flex: 0 0 auto;
 }
 
@@ -516,301 +339,130 @@ tr {
 .footer-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   white-space: nowrap;
-  font-size: 9px;
-  margin-bottom: 2px;
+  font-size: 8px; /* Footer compacto */
 }
 
 .footer-item svg {
   fill: #FF6B35;
-  height: 12px;
-  width: 12px;
+  height: 10px;
+  width: 10px;
   flex-shrink: 0;
 }
 
 .footer-item div {
   display: inline;
-  line-height: 1.1;
-  font-size: 9px;
-}
-
-/* ===== LAYOUT ADAPTATIVO PARA MUCHOS ITEMS ===== */
-.many-items table {
-  font-size: 8px;
-}
-
-/* Tabla adaptativa según cantidad de items */
-.table-adaptive {
-  transition: all 0.3s ease;
-}
-
-/* Para pocos items (1-3): tabla grande */
-.table-few-items th, 
-.table-few-items td {
-  font-size: 11px;
-  padding: 4px 6px;
-  line-height: 1.4;
-}
-
-/* Para items moderados (4-6): tabla mediana */
-.table-moderate-items th, 
-.table-moderate-items td {
-  font-size: 10px;
-  padding: 3px 4px;
-  line-height: 1.3;
-}
-
-/* Para muchos items (7+): tabla pequeña */
-.table-many-items th, 
-.table-many-items td {
-  font-size: 8px;
-  padding: 2px 3px;
-  line-height: 1.2;
-}
-
-.many-items th, .many-items td {
-  padding: 1px 1px;
-  font-size: 8px;
-}
-
-.many-items .section-row {
-  font-size: 9px;
-  margin-top: 3px;
-}
-
-.many-items .total-row {
-  font-size: 8px;
-}
-
-.many-items .total-row td {
-  padding: 1px 1px;
-  font-size: 8px;
-}
-
-/* ===== SISTEMA ADAPTATIVO INTELIGENTE ===== */
-
-/* POCOS ITEMS (≤7): Tabla compacta siempre */
-.few-items {
-  /* Tabla compacta siempre */
-}
-
-.few-items th, .few-items td {
-  padding: 3px 4px;
-  font-size: 9px;
-  line-height: 1.1;
-}
-
-.few-items .section-row {
-  font-size: 8px;
-  margin-top: 2px;
-}
-
-.few-items .total-row {
-  font-size: 9px;
-}
-
-.few-items .total-row td {
-  padding: 3px 4px;
-  font-size: 9px;
-}
-
-/* Espaciado moderado entre secciones para pocos items */
-.few-items .normal-subtitle {
-  margin: 6px 0 4px 0;
-}
-
-.few-items .conditions-content {
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.few-items .subtitle-box {
-  margin: 8px 0 6px 0;
-}
-
-/* MUCHOS ITEMS (8+): Espaciado compacto */
-.many-items {
-  /* Tabla con espaciado compacto */
-}
-
-.many-items th, .many-items td {
-  padding: 3px 3px;
-  font-size: 8px;
-  line-height: 1.1;
-}
-
-.many-items .section-row {
-  font-size: 8px;
-  margin-top: 4px;
-}
-
-.many-items .total-row {
-  font-size: 9px;
-}
-
-.many-items .total-row td {
-  padding: 3px 3px;
-  font-size: 9px;
-}
-
-/* Espaciado compacto entre secciones para muchos items */
-.many-items .normal-subtitle {
-  margin: 6px 0 4px 0;
-}
-
-.many-items .conditions-content {
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.many-items .subtitle-box {
-  margin: 8px 0 6px 0;
-}
-
-/* ITEMS EXTREMOS (15+): Espaciado muy compacto */
-.extreme-items {
-  /* Tabla con espaciado muy compacto */
-}
-
-.extreme-items th, .extreme-items td {
-  padding: 2px 2px;
-  font-size: 7px;
   line-height: 1.0;
-}
-
-.extreme-items .section-row {
-  font-size: 7px;
-  margin-top: 2px;
-}
-
-.extreme-items .total-row {
   font-size: 8px;
 }
 
-.extreme-items .total-row td {
-  padding: 2px 2px;
-  font-size: 8px;
+/* ===== FOOTERS ESPECÍFICOS POR TIPO DE PÁGINA ===== */
+.first-page-footer {
+  padding: 4px 5mm;
 }
 
-/* Espaciado muy compacto entre secciones para items extremos */
-.extreme-items .normal-subtitle {
-  margin: 4px 0 3px 0;
+.second-page-footer,
+.table-page-footer,
+.conditions-page-footer {
+  padding: 3px 5mm 5px 5mm;
+  min-height: 25px;
 }
 
-.extreme-items .conditions-content {
-  margin-bottom: 6px;
-  line-height: 1.1;
+/* ===== PÁGINAS ESPECÍFICAS ===== */
+.first-page {
+  min-height: 275mm;
+  max-height: 275mm;
 }
 
-.extreme-items .subtitle-box {
-  margin: 6px 0 4px 0;
+.second-page {
+  min-height: 275mm;
+  max-height: 275mm;
+  margin-top: 0;
 }
 
-/* OPTIMIZACIÓN ESPECÍFICA PARA 25+ ITEMS EN SEGUNDA PÁGINA */
-.second-page.medium-items .subtitle-box,
-.second-page.very-many-items .subtitle-box,
-.second-page.extreme-items .subtitle-box {
-  margin: 3px 0 2px 0;
+.table-page {
+  min-height: 275mm;
+  max-height: 275mm;
 }
 
-.second-page.medium-items .conditions-content,
-.second-page.very-many-items .conditions-content,
-.second-page.extreme-items .conditions-content {
-  margin-bottom: 4px;
-  line-height: 1.0;
-  font-size: 6px;
+.conditions-page {
+  min-height: 275mm;
+  max-height: 275mm;
 }
 
-.second-page.medium-items .normal-subtitle,
-.second-page.very-many-items .normal-subtitle,
-.second-page.extreme-items .normal-subtitle {
-  margin: 2px 0 1px 0;
-  font-size: 7px;
-}
+/* ===== SEGUNDA PÁGINA: HEADER ESPECÍFICO ===== */
+/* REMOVIDO: causaba inconsistencias con el header compactado global */
+/* Ahora todas las páginas usan el mismo header de 70px/110px definido arriba */
 
-/* FOOTER OPTIMIZADO PARA 25+ ITEMS */
-.second-page.medium-items .footer-bar,
-.second-page.very-many-items .footer-bar,
-.second-page.extreme-items .footer-bar {
-  margin-top: 16px;
-}
-
-/* ===== CLASES ADAPTATIVAS - SOLO SEGUNDA PÁGINA ===== */
-
-.second-page .subtitle-box {
-  margin: 4px 0 3px 0;
-}
-
-.second-page .subtitle-box .subtitle-inner {
-  font-size: 12px;
-  padding: 4px 8px;
-}
-
-.second-page .conditions-content {
-  margin-bottom: 10px;
-  line-height: 1.3;
-  font-size: 10px;
-}
-
-.second-page .normal-subtitle {
-  margin: 8px 0 6px 0;
-  font-size: 12px;
-}
-
-.second-page .footer-bar {
-  margin-top: 25px;
-}
-
-/* ===== REDUCCIÓN DE LETRA PARA 22+ ITEMS - SOLO SEGUNDA PÁGINA ===== */
-.second-page.reduced-font .subtitle-box .subtitle-inner {
-  font-size: 12px;
-  padding: 6px 18px;
-}
-
-.second-page.reduced-font .normal-subtitle {
-  font-size: 11px;
-  margin: 5px 0 4px 0;
-}
-
-.second-page.reduced-font .conditions-content {
-  font-size: 9px;
-  line-height: 1.2;
-  margin-bottom: 5px;
-}
-
-.second-page.reduced-font .subtitle-box {
-  margin: 4px 0 3px 0;
-}
-
-.second-page.reduced-font .signature-block {
-  font-size: 10px;
-  margin-top: 3px;
-}
-
-.second-page.reduced-font .contact-block {
-  font-size: 11px;
-  margin-top: 12px;
-}
-
-/* Footer optimizado para texto reducido - SOLO SEGUNDA PÁGINA */
-.second-page.reduced-font .second-page-footer {
-  font-size: 9px;
-  padding: 4px 5mm 5px 5mm;
-  min-height: 22px;
-}
-
-.second-page.reduced-font .footer-item {
-  font-size: 9px;
-}
-
-.second-page.reduced-font .footer-item svg {
-  height: 12px;
-  width: 12px;
+.second-page .page-content-wrapper {
+  flex: 1;
+  padding: 0 10mm 2px 10mm;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
 
 /* ===== ENLACES ===== */
 a {
   color: #000 !important;
   text-decoration: none !important;
+}
+
+/* (Removido) estilos legacy de saltos manuales */
+
+/* ===== COMPACTACIÓN ADICIONAL PARA EXTREMOS ===== */
+/* REMOVIDO: estas reglas sobrescribían la compactación global uniforme */
+/* Todas las páginas ahora usan los mismos valores compactados definidos arriba */
+
+/* ===== ASEGURAR QUE NO SE OCULTEN PÁGINAS DE FRAGMENTACIÓN ===== */
+.table-page,
+.conditions-page {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ===== OPTIMIZACIÓN DE MÁRGENES PARA SEGUNDA PÁGINA CON MUCHOS ITEMS ===== */
+/* REMOVIDO: márgenes negativos pueden causar superposiciones */
+/* La compactación se maneja exclusivamente por paddings en las clases adaptativas */
+
+/* ===== RESPONSIVE PARA DESCRIPCIÓN LARGA ===== */
+td {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 300px;
+}
+
+/* ===== ASEGURAR FUENTE CONSISTENTE EN TODOS LOS ELEMENTOS ===== */
+* {
+  font-size: inherit; /* Heredar tamaño base de 13px */
+}
+
+body, html, div, p, span, td, th, li, a {
+  font-size: 13px !important; /* NUNCA CAMBIAR */
+}
+
+/* Excepciones permitidas solo para títulos y footer */
+.title {
+  font-size: 20px !important;
+}
+
+.title-continuation {
+  font-size: 16px !important;
+}
+
+.footer-item,
+.footer-item div,
+.footer-item svg {
+  font-size: 8px !important; /* Footer compacto pero legible */
+}
+
+.subtitle-inner {
+  font-size: 13px !important;
+}
+
+.normal-subtitle {
+  font-size: 13px !important;
 }

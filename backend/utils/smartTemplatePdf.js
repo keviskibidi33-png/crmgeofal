@@ -18,6 +18,525 @@ function generateQuoteNumber() {
 }
 const handlebars = require('handlebars');
 
+/**
+ * Función para obtener las clases CSS adaptativas según el número de ítems
+ * NOTA IMPORTANTE: Las clases solo compactan paddings/márgenes, NUNCA reducen el tamaño de fuente
+ * El tamaño de letra se mantiene siempre en mínimo 13px para legibilidad profesional
+ * @param {number} itemCount - Número de ítems en la cotización
+ * @returns {Object} - Objeto con las clases y banderas adaptativas
+ */
+function getAdaptiveClasses(itemCount) {
+  // Determinar la clase de compactación solo para paddings/márgenes
+  let pageClass = '';
+  
+  if (itemCount <= 7) {
+    pageClass = 'few-items';        // Padding generoso: 6px 10px
+  } else if (itemCount >= 8 && itemCount <= 10) {
+    pageClass = 'many-items';       // Padding reducido: 5px 8px
+  } else if (itemCount >= 11 && itemCount <= 12) {
+    pageClass = 'plazo-items';      // Padding moderado: 4px 7px
+  } else if (itemCount >= 13 && itemCount <= 20) {
+    pageClass = 'condiciones-items'; // Padding compacto: 4px 6px
+  } else if (itemCount >= 21 && itemCount <= 24) {
+    pageClass = 'partial-items';     // Padding mínimo: 3px 5px
+  } else if (itemCount >= 25 && itemCount <= 27) {
+    pageClass = 'medium-items';      // Padding muy compacto: 3px 4px
+  } else if (itemCount >= 28) {
+    pageClass = 'extreme-items';     // Padding extremo: 2px 3px
+  }
+  
+  return {
+    pageClass,
+    // Banderas para compatibilidad con el sistema actual
+    hasFewItems: itemCount <= 7,
+    hasManyItems: itemCount >= 8 && itemCount <= 10,
+    hasPlazoItems: itemCount >= 11 && itemCount <= 12,
+    hasCondicionesItems: itemCount >= 13 && itemCount <= 20,
+    hasPartialItems: itemCount >= 21 && itemCount <= 24,
+    hasMediumItems: itemCount >= 25 && itemCount <= 27,
+    hasVeryManyItems: itemCount >= 28,
+    hasExtremeItems: itemCount > 30
+  };
+}
+
+/**
+ * CÁLCULO INTELIGENTE DE ESPACIO DISPONIBLE POR PÁGINA
+ * Calcula dinámicamente cuántas filas de tabla caben en una página
+ * considerando todos los elementos fijos (header, footer, info, etc.)
+ */
+function calculateAvailableSpace(pageClass, isFirstPage = false, pageType = 'table') {
+  // Altura total de página A4 en mm
+  const PAGE_HEIGHT_MM = 275; // Espacio útil después de márgenes
+  
+  // Espacios fijos (en mm aproximado)
+  const HEADER_HEIGHT = 20;  // Logo y espacio (compactado: antes 25mm, ahora 20mm)
+  const FOOTER_HEIGHT = 15;  // Footer fijo
+  
+  // Espacios variables según si es primera página o no
+  let usedSpace = HEADER_HEIGHT + FOOTER_HEIGHT;
+  
+  if (pageType === 'table') {
+    if (isFirstPage) {
+      usedSpace += 70;  // Título + Info Grid + Referencia + Intro (compactado: antes 90mm, ahora 70mm)
+    } else {
+      usedSpace += 12;  // Solo título de continuación (compactado: antes 15mm, ahora 12mm)
+    }
+    
+    // Altura de fila según clase (padding + fuente + border)
+    const rowHeights = {
+      'few-items': 8,
+      'many-items': 7,
+      'plazo-items': 6.5,
+      'condiciones-items': 6,
+      'partial-items': 5.5,
+      'medium-items': 5,
+      'extreme-items': 4.5
+    };
+    
+    const rowHeight = rowHeights[pageClass] || 6;
+    const availableSpace = PAGE_HEIGHT_MM - usedSpace;
+    const maxRows = Math.floor(availableSpace / rowHeight);
+    
+    return {
+      maxRows: maxRows,
+      maxRowsWithTotals: Math.max(1, maxRows - 4),
+      rowHeight: rowHeight,
+      availableSpace: availableSpace
+    };
+  } else if (pageType === 'conditions') {
+    // Para páginas de condiciones
+    usedSpace += 15; // Margen superior + espaciado
+    const availableSpace = PAGE_HEIGHT_MM - usedSpace - 15; // Margen moderado de seguridad
+    
+    // Estimación: 1 línea de texto = ~4.5mm
+    const LINE_HEIGHT_MM = 4.5;
+    const maxLines = Math.floor(availableSpace / LINE_HEIGHT_MM);
+    
+    return {
+      availableSpace: availableSpace, // ~230mm (espacio generoso para agrupar bloques)
+      maxLines: maxLines,
+      maxChars: maxLines * 100 // ~100 caracteres por línea
+    };
+  }
+}
+
+/**
+ * ESTIMA ALTURA REAL DE UNA FILA DE TABLA
+ * Considera descripciones largas que expanden la fila
+ * @param {object} item - Ítem de la tabla
+ * @param {string} pageClass - Clase CSS para altura base
+ * @returns {number} - Altura estimada en mm
+ */
+function estimateTableRowHeight(item, pageClass) {
+  // Alturas base por clase (padding + fuente + border)
+  const baseHeights = {
+    'few-items': 8,
+    'many-items': 7,
+    'plazo-items': 6.5,
+    'condiciones-items': 6,
+    'partial-items': 5.5,
+    'medium-items': 5,
+    'extreme-items': 4.5
+  };
+  
+  const baseHeight = baseHeights[pageClass] || 6;
+  const desc = (item.description || item.descripcion || '').toString();
+  
+  // Estimar líneas en la descripción (~85 caracteres por línea en columna de descripción)
+  const lines = Math.max(1, Math.ceil(desc.length / 85));
+  
+  // Cada línea adicional agrega ~3.5mm de altura
+  const extraHeight = (lines - 1) * 3.5;
+  
+  return baseHeight + extraHeight;
+}
+
+/**
+ * ESTIMA ALTURA TOTAL DE LA TABLA
+ * Suma altura de todas las filas + filas de totales si aplica
+ * @param {Array} items - Lista de ítems
+ * @param {string} pageClass - Clase CSS
+ * @param {boolean} includeTotals - Si incluir filas de totales
+ * @returns {number} - Altura total en mm
+ */
+function estimateTableHeight(items, pageClass, includeTotals = false) {
+  let totalHeight = 0;
+  
+  // Sumar altura de cada fila
+  for (const item of items) {
+    totalHeight += estimateTableRowHeight(item, pageClass);
+  }
+  
+  // Agregar filas de totales (3 filas con altura base)
+  if (includeTotals) {
+    const baseHeights = {
+      'few-items': 8,
+      'many-items': 7,
+      'plazo-items': 6.5,
+      'condiciones-items': 6,
+      'partial-items': 5.5,
+      'medium-items': 5,
+      'extreme-items': 4.5
+    };
+    const baseHeight = baseHeights[pageClass] || 6;
+    totalHeight += baseHeight * 3; // 3 filas de totales
+  }
+  
+  return totalHeight;
+}
+
+/**
+ * EXTRAE BLOQUES LÓGICOS COMPLETOS DEL HTML DE CONDICIONES
+ * Identifica secciones completas (subtítulos + contenido) para mantenerlas juntas
+ * @param {string} htmlContent - HTML completo
+ * @returns {Array} - Array de bloques lógicos
+ */
+function extractLogicalBlocks(htmlContent) {
+  if (!htmlContent || htmlContent.trim() === '') {
+    return [];
+  }
+  
+  const blocks = [];
+  
+  // Dividir por secciones principales (subtitle-box)
+  const mainSections = htmlContent.split(/(?=<div class="subtitle-box">)/g);
+  
+  for (const section of mainSections) {
+    if (!section.trim()) continue;
+    
+    // Si la sección tiene un subtitle-box, es una sección principal completa
+    if (section.includes('subtitle-box')) {
+      blocks.push({
+        type: 'main-section',
+        html: section.trim(),
+        estimatedHeight: estimateBlockHeight(section),
+        isBreakable: false // No dividir esta sección
+      });
+    } else {
+      // Dividir por subsecciones (normal-subtitle)
+      const subsections = section.split(/(?=<div class="normal-subtitle">)/g);
+      
+      for (const subsection of subsections) {
+        if (!subsection.trim()) continue;
+        
+        blocks.push({
+          type: 'subsection',
+          html: subsection.trim(),
+          estimatedHeight: estimateBlockHeight(subsection),
+          isBreakable: false // Mantener subsección completa
+        });
+      }
+    }
+  }
+  
+  return blocks;
+}
+
+/**
+ * ESTIMA LA ALTURA DE UN BLOQUE HTML
+ * Calcula aproximadamente cuánto espacio ocupará en mm
+ * @param {string} htmlBlock - Bloque HTML
+ * @returns {number} - Altura estimada en mm
+ */
+function estimateBlockHeight(htmlBlock) {
+  if (!htmlBlock) return 0;
+  
+  // Contar elementos que ocupan espacio vertical
+  const subtitleBoxCount = (htmlBlock.match(/<div class="subtitle-box">/g) || []).length;
+  const normalSubtitleCount = (htmlBlock.match(/<div class="normal-subtitle">/g) || []).length;
+  const contentDivs = (htmlBlock.match(/<div class="conditions-content">/g) || []).length;
+  const signatureBlock = htmlBlock.includes('signature-block');
+  
+  let totalHeight = 0;
+  
+  // Alturas aproximadas en mm (realistas para permitir agrupación)
+  totalHeight += subtitleBoxCount * 15;      // subtitle-box: ~15mm
+  totalHeight += normalSubtitleCount * 8;    // normal-subtitle: ~8mm
+  totalHeight += signatureBlock ? 25 : 0;    // signature-block: ~25mm
+  
+  // Para content divs, estimar por longitud de texto
+  for (const match of htmlBlock.matchAll(/<div class="conditions-content">(.*?)<\/div>/gs)) {
+    const textContent = match[1].replace(/<[^>]*>/g, ''); // Quitar HTML
+    const textLength = textContent.length;
+    const lines = Math.ceil(textLength / 100); // ~100 chars por línea
+    totalHeight += lines * 4.5; // ~4.5mm por línea
+  }
+  
+  // Agregar margen de seguridad del 10%
+  return Math.ceil(totalHeight * 1.1);
+}
+
+/**
+ * Divide un bloque lógico demasiado grande en subfragmentos por párrafos
+ * Mantiene el/los subtítulos al inicio del primer fragmento y replica el principal cuando sea necesario
+ * @param {string} htmlBlock
+ * @param {number} availableHeightMm
+ * @returns {Array<string>} fragmentos que caben página por página
+ */
+function splitBlockByParagraphs(htmlBlock, availableHeightMm) {
+  const fragments = [];
+  if (!htmlBlock || !availableHeightMm) return [htmlBlock];
+
+  // Extraer encabezados (subtitle-box y/o normal-subtitle) y cuerpo (conditions-content)
+  const headerMatches = [];
+  const headerPatterns = [
+    /<div class="subtitle-box">[\s\S]*?<\/div>/g,
+    /<div class="normal-subtitle">[\s\S]*?<\/div>/g
+  ];
+  let headerHtml = '';
+  let bodyHtml = htmlBlock;
+  for (const pat of headerPatterns) {
+    const m = htmlBlock.match(pat);
+    if (m && m.length) {
+      headerMatches.push(...m);
+    }
+  }
+  if (headerMatches.length) {
+    headerHtml = headerMatches.join('\n');
+    bodyHtml = htmlBlock.replace(headerHtml, '');
+  }
+
+  // Extraer secciones de contenido
+  const contentBlocks = [];
+  const reContent = /<div class="conditions-content">([\s\S]*?)<\/div>/g;
+  let match;
+  while ((match = reContent.exec(bodyHtml)) !== null) {
+    const inner = match[1].trim();
+    if (!inner) continue;
+    
+    // Dividir por saltos de línea dobles, <br/><br/>, o simplemente agregar como bloque completo si es corto
+    if (inner.length < 300) {
+      // Texto corto: mantener completo
+      contentBlocks.push(`<div class="conditions-content">${inner}</div>`);
+    } else {
+      // Texto largo: dividir por saltos de línea dobles o <br/>
+      const parts = inner.split(/(<br\s*\/?\s*>){2,}|\n\s*\n/i);
+      parts.filter(p => p && p.trim() && !p.match(/^<br/i)).forEach(p => {
+        contentBlocks.push(`<div class="conditions-content">${p.trim()}</div>`);
+      });
+    }
+  }
+  
+  if (contentBlocks.length === 0) {
+    // Fallback: si no pudimos separar, devolver el bloque tal cual
+    return [htmlBlock];
+  }
+
+  let current = headerHtml ? headerHtml : '';
+  let currentMm = headerHtml ? estimateBlockHeight(headerHtml) : 0;
+  for (const part of contentBlocks) {
+    const h = estimateBlockHeight(part);
+    if (currentMm + h > availableHeightMm) {
+      if (current.trim()) fragments.push(current);
+      // Reiniciar página con encabezado principal si existe
+      current = headerHtml ? headerHtml + '\n' + part : part;
+      currentMm = (headerHtml ? estimateBlockHeight(headerHtml) : 0) + h;
+    } else {
+      current += '\n' + part;
+      currentMm += h;
+    }
+  }
+  if (current.trim()) fragments.push(current);
+
+  return fragments.length ? fragments : [htmlBlock];
+}
+/**
+ * FRAGMENTACIÓN INTELIGENTE POR BLOQUES LÓGICOS
+ * Divide condiciones en páginas respetando bloques completos
+ * NUNCA corta una sección a mitad - si no cabe, salta completa a la siguiente página
+ * @param {string} htmlContent - HTML de condiciones completo
+ * @param {string} pageClass - Clase CSS para calcular espacio
+ * @returns {Array} - Array de páginas con bloques agrupados
+ */
+function fragmentConditions(htmlContent, pageClass) {
+  if (!htmlContent || htmlContent.trim() === '') {
+    return [''];
+  }
+  
+  const spaceCalc = calculateAvailableSpace(pageClass, false, 'conditions');
+  const availableHeightMm = spaceCalc.availableSpace;
+  
+  console.log(`📄 Procesando condiciones (${htmlContent.length} chars)...`);
+  console.log(`   Espacio disponible por página: ${availableHeightMm}mm`);
+  
+  // Extraer bloques lógicos
+  const logicalBlocks = extractLogicalBlocks(htmlContent);
+  
+  if (logicalBlocks.length === 0) {
+    return [htmlContent];
+  }
+  
+  console.log(`   Bloques lógicos identificados: ${logicalBlocks.length}`);
+  
+  // Paginar bloques
+  const pages = [];
+  let currentPageBlocks = [];
+  let currentPageHeight = 0;
+  
+  for (let i = 0; i < logicalBlocks.length; i++) {
+    const block = logicalBlocks[i];
+    
+    console.log(`   Bloque ${i + 1}: ${block.type}, altura estimada: ${block.estimatedHeight}mm`);
+    
+    // Si el bloque por sí solo excede la página, dividir por párrafos
+    if (block.estimatedHeight > availableHeightMm) {
+      console.log(`   ↪️ Bloque ${i + 1} excede una página; fragmentando por párrafos...`);
+      const splitted = splitBlockByParagraphs(block.html, availableHeightMm);
+      splitted.forEach((sub, idx) => {
+        const h = estimateBlockHeight(sub);
+        if (currentPageHeight + h > availableHeightMm && currentPageBlocks.length > 0) {
+          const pageHtml = currentPageBlocks.map(b => b.html).join('\n');
+          pages.push(pageHtml);
+          console.log(`   ✅ Página ${pages.length} completada (${currentPageHeight}mm usados)`);
+          currentPageBlocks = [];
+          currentPageHeight = 0;
+        }
+        currentPageBlocks.push({ html: sub, estimatedHeight: h });
+        currentPageHeight += h;
+      });
+      continue;
+    }
+
+    // Si agregar este bloque excede el espacio disponible
+    if (currentPageHeight + block.estimatedHeight > availableHeightMm && currentPageBlocks.length > 0) {
+      // Guardar página actual
+      const pageHtml = currentPageBlocks.map(b => b.html).join('\n');
+      pages.push(pageHtml);
+      
+      console.log(`   ✅ Página ${pages.length} completada (${currentPageHeight}mm usados)`);
+      
+      // Empezar nueva página con este bloque
+      currentPageBlocks = [block];
+      currentPageHeight = block.estimatedHeight;
+    } else {
+      // Agregar bloque a la página actual
+      currentPageBlocks.push(block);
+      currentPageHeight += block.estimatedHeight;
+    }
+  }
+  
+  // Agregar última página
+  if (currentPageBlocks.length > 0) {
+    const pageHtml = currentPageBlocks.map(b => b.html).join('\n');
+    pages.push(pageHtml);
+    console.log(`   ✅ Página ${pages.length} completada (${currentPageHeight}mm usados)`);
+  }
+  
+  console.log(`📄 Fragmentación completada: ${pages.length} página(s) de condiciones`);
+  
+  return pages.length > 0 ? pages : [htmlContent];
+}
+
+/**
+ * Determina si una tabla necesita fragmentarse en múltiples páginas
+ * ACTUALIZADO: Usa altura real estimada en lugar de conteo de filas
+ * @param {Array} items - Lista de ítems de la cotización
+ * @param {string} pageClass - Clase CSS aplicada
+ * @returns {boolean} - true si necesita fragmentación
+ */
+function shouldFragmentTable(items, pageClass) {
+  const spaceCalc = calculateAvailableSpace(pageClass, true, 'table');
+  const estimatedHeight = estimateTableHeight(items, pageClass, true);
+  
+  console.log(`📐 Análisis: espacio=${spaceCalc.availableSpace.toFixed(1)}mm, altura tabla=${estimatedHeight.toFixed(1)}mm`);
+  
+  return estimatedHeight > spaceCalc.availableSpace;
+}
+
+/**
+ * FRAGMENTACIÓN INTELIGENTE DE TABLA BASADA EN ALTURA REAL
+ * Fragmenta la tabla acumulando altura de filas, no por conteo
+ * Considera descripciones largas que expanden filas
+ * @param {Array} items - Lista completa de ítems
+ * @param {string} pageClass - Clase CSS para calcular espacio
+ * @returns {Array} - Array de fragmentos (páginas) con metadata
+ */
+function fragmentTable(items, pageClass) {
+  if (!items || items.length === 0) {
+    return [{
+      items: [],
+      pageNumber: 1,
+      isFirstPage: true,
+      isLastPage: true,
+      isEmpty: true
+    }];
+  }
+  
+  const fragments = [];
+  let currentPageItems = [];
+  let currentHeightMm = 0;
+  let globalIndex = 0;
+  
+  // Altura fija de las 3 filas de totales
+  const baseHeights = {
+    'few-items': 8,
+    'many-items': 7,
+    'plazo-items': 6.5,
+    'condiciones-items': 6,
+    'partial-items': 5.5,
+    'medium-items': 5,
+    'extreme-items': 4.5
+  };
+  const totalsHeight = (baseHeights[pageClass] || 6) * 3;
+  
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const isFirstPage = fragments.length === 0 && currentPageItems.length === 0;
+    const spaceCalc = calculateAvailableSpace(pageClass, isFirstPage, 'table');
+    const itemHeight = estimateTableRowHeight(item, pageClass);
+    
+    // Si es la última iteración, reservar espacio para totales
+    const isLastItem = (i === items.length - 1);
+    const reserveForTotals = isLastItem ? totalsHeight : 0;
+    
+    // Si agregar este ítem excede el espacio (y ya hay ítems en la página), cerrar página
+    if (currentHeightMm + itemHeight + reserveForTotals > spaceCalc.availableSpace && currentPageItems.length > 0) {
+      // Guardar fragmento actual
+      fragments.push({
+        items: [...currentPageItems],
+        pageNumber: fragments.length + 1,
+        isFirstPage: fragments.length === 0,
+        isLastPage: false,
+        isEmpty: false,
+        totalItems: currentPageItems.length,
+        startIndex: globalIndex - currentPageItems.length,
+        endIndex: globalIndex - 1
+      });
+      
+      // Reiniciar para nueva página
+      currentPageItems = [];
+      currentHeightMm = 0;
+    }
+    
+    // Agregar ítem a la página actual
+    currentPageItems.push(item);
+    currentHeightMm += itemHeight;
+    globalIndex++;
+  }
+  
+  // Agregar última página si tiene ítems
+  if (currentPageItems.length > 0) {
+    fragments.push({
+      items: currentPageItems,
+      pageNumber: fragments.length + 1,
+      isFirstPage: fragments.length === 0,
+      isLastPage: true,
+      isEmpty: false,
+      totalItems: currentPageItems.length,
+      startIndex: globalIndex - currentPageItems.length,
+      endIndex: globalIndex - 1
+    });
+  }
+  
+  console.log(`📊 Fragmentación basada en altura: ${items.length} ítems → ${fragments.length} página(s)`);
+  fragments.forEach(f => {
+    const heightMm = f.items.reduce((sum, it) => sum + estimateTableRowHeight(it, pageClass), 0);
+    console.log(`  📄 Página ${f.pageNumber}: ${f.totalItems} ítems (${f.startIndex + 1}-${f.endIndex + 1}), altura≈${heightMm.toFixed(1)}mm`);
+  });
+  
+  return fragments;
+}
+
 async function generateSmartTemplatePdf(bundle, outputPath) {
   try {
     const processedData = processBundleData(bundle);
@@ -44,17 +563,34 @@ function processBundleData(bundle) {
     (item.description && item.description.trim() !== '')
   );
   
-  // Detectar cantidad de items para layout adaptativo inteligente
+  // Obtener clases adaptativas según el número de ítems
   const itemCount = items.length;
-  const hasFewItems = itemCount <= 7;  // POCOS ITEMS: tabla compacta, todo en primera página
-  const hasManyItems = itemCount >= 8 && itemCount <= 10; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
-  const hasPlazoItems = itemCount >= 11 && itemCount <= 12; // ITEMS CON PLAZO: PLAZO ESTIMADO a segunda página
-  const hasCondicionesItems = itemCount >= 13 && itemCount <= 20; // ITEMS CON CONDICIONES: I. CONDICIONES DEL SERVICIO a segunda página
-  const hasPartialItems = itemCount >= 21 && itemCount <= 24; // ITEMS PARCIALES: solo PLAZO ESTIMADO a segunda página
-  const hasMediumItems = itemCount >= 25 && itemCount <= 27; // ITEMS MEDIOS: condiciones básicas a segunda página
-  const hasVeryManyItems = itemCount >= 28; // MUY MUCHOS ITEMS: tabla compacta, condiciones a segunda página
-  const hasExtremeItems = itemCount > 30; // ITEMS EXTREMOS: tabla muy compacta
-  const hasReducedFont = itemCount >= 13; // REDUCCIÓN DE LETRA: para 13+ items en segunda página
+  const adaptiveClasses = getAdaptiveClasses(itemCount);
+  
+  // Desestructurar las clases y banderas adaptativas
+  const { 
+    pageClass, 
+    hasFewItems, 
+    hasManyItems, 
+    hasPlazoItems, 
+    hasCondicionesItems, 
+    hasPartialItems, 
+    hasMediumItems, 
+    hasVeryManyItems, 
+    hasExtremeItems 
+  } = adaptiveClasses;
+  
+  // Determinar si se necesita fragmentar la tabla (basado en altura real)
+  const needsFragmentation = shouldFragmentTable(items, pageClass);
+  const tableFragments = needsFragmentation ? fragmentTable(items, pageClass) : null;
+
+  // Detección de ÍTEMS GRANDES (para regla estricta del usuario)
+  const isLargeItem = (it) => {
+    const desc = (it.description || '').toString();
+    return desc.length > 85 || desc.split('\n').length > 2 || desc.includes('\n\n');
+  };
+  const largeItemsCount = items.filter(isLargeItem).length;
+  console.log(`🧮 Ítems grandes detectados: ${largeItemsCount} / ${items.length}`);
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -74,8 +610,14 @@ function processBundleData(bundle) {
     
   // Layout adaptativo inteligente según cantidad de items
   let condicionesPrimeraPagina;
+  let shouldMoveAllConditionsToNextPage = false;
   
-  if (hasPlazoItems) {
+  // REGLA ESTRICTA: Si la tabla se fragmenta O hay 2+ ítems grandes, NO mezclar condiciones en primera página
+  if (needsFragmentation || largeItemsCount >= 2) {
+    condicionesPrimeraPagina = '';
+    shouldMoveAllConditionsToNextPage = true;
+    console.log(`🚫 Tabla fragmentada o ítems grandes detectados → condiciones van SOLO en páginas separadas`);
+  } else if (hasPlazoItems) {
     // Con ITEMS CON PLAZO (11-12): PLAZO ESTIMADO a segunda página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
@@ -124,9 +666,29 @@ function processBundleData(bundle) {
   }
 
   // Segunda página adaptativa
-  let condicionesSegundaPagina;
+  let condicionesSegundaPagina = '';
   
-  if (hasPlazoItems) {
+  // PRIORIDAD 1: Si movemos TODAS las condiciones a páginas separadas (tabla fragmentada)
+  if (shouldMoveAllConditionsToNextPage) {
+    console.log(`✅ Generando condiciones COMPLETAS para páginas separadas (incluye: CONDICIONES + PLAZO + CONTRAMUESTRA)`);
+    // Incluir TODO: CONDICIONES + PLAZO + CONTRAMUESTRA (inicio)
+    condicionesSegundaPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+      </div>
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } 
+  // PRIORIDAD 2: Lógica normal según cantidad de ítems (sin fragmentación)
+  else if (hasPlazoItems) {
     // Con ITEMS CON PLAZO (11-12): PLAZO ESTIMADO a segunda página
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
@@ -191,7 +753,8 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else {
-    // Con pocos/muchos items (≤20): PLAZO ESTIMADO ya está en primera página
+    // Con pocos/muchos items (≤10): PLAZO ESTIMADO ya está en primera página
+    // SOLO agregar CONTRAMUESTRA (las demás condiciones se agregan después)
     condicionesSegundaPagina = `
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   }
@@ -215,7 +778,10 @@ function processBundleData(bundle) {
     <div class="normal-subtitle">HORARIO DE ATENCIÓN</div>
     <div class="conditions-content">
       El horario para recepción de muestra y entrega de informes es de Lunes a Viernes de 8:30am a 1:00pm y 2:00pm a 5:30pm, y Sábado de 8:30am a 12:30pm.
-    </div>
+    </div>`;
+  
+  // BLOQUE SEPARADO PARA PAGO Y ACEPTACIÓN (forzar en página nueva si es necesario)
+  const condicionesPagoYAceptacion = `
     <div class="subtitle-box"><span class="subtitle-inner">II. CONDICIÓN DE PAGO</span></div>
     <div class="conditions-content">
       <span style="font-weight:bold;">CONDICIÓN:</span> ${getPaymentConditionText(bundle.quote?.meta?.quote?.payment_terms)}<br/>
@@ -237,6 +803,154 @@ function processBundleData(bundle) {
       Av. Río Marañón N° 763, Los Olivos, Lima<br/>
       Telf.: (01) 9051911 / (01) 7543070
     </div>`;
+
+  // SISTEMA UNIFICADO DE PÁGINAS - BLOQUES INDEPENDIENTES POR SECCIÓN
+  // Crear bloques separados para cada sección individual (máximo control)
+  const conditionBlocks = [];
+  
+  // Solo agregar bloques de condiciones de servicio si fueron generados
+  if (condicionesPrimeraPagina && condicionesPrimeraPagina.trim()) {
+    // Este caso solo ocurre cuando NO hay fragmentación (tabla pequeña)
+    conditionBlocks.push({
+      name: 'I. Condiciones (Primera Página)',
+      html: condicionesPrimeraPagina,
+      order: 1,
+      forceNewPage: false
+    });
+  }
+  
+  // Bloques de segunda página: TODO JUNTO (sin dividir por CONTRAMUESTRA)
+  // Solo agregar si hay contenido
+  if (condicionesSegundaPagina && condicionesSegundaPagina.trim()) {
+    conditionBlocks.push({
+      name: 'Condiciones generales',
+      html: condicionesSegundaPagina,
+      order: 2,
+      forceNewPage: false,
+      noFragment: true // NO fragmentar, mantener todo junto
+    });
+  }
+  
+  // BLOQUE INDEPENDIENTE: Pago y Aceptación (SIEMPRE separado en página nueva)
+  conditionBlocks.push({
+    name: 'II. Pago + III. Aceptación',
+    html: condicionesPagoYAceptacion,
+    order: 10, // Alta prioridad para ir al final
+    forceNewPage: true // FORZAR nueva página
+  });
+  
+  console.log(`📋 Bloques de condiciones generados: ${conditionBlocks.length}`);
+  conditionBlocks.forEach((block, i) => {
+    console.log(`   ${block.order}. ${block.name} (${block.html.length} chars)`);
+  });
+  
+  // Fragmentar cada bloque independientemente
+  const allConditionsFragments = [];
+  for (const block of conditionBlocks.sort((a, b) => a.order - b.order)) {
+    console.log(`📄 Procesando: ${block.name}...`);
+    
+    // Si el bloque fuerza nueva página o no debe fragmentarse, agregarlo completo
+    if (block.forceNewPage || block.noFragment) {
+      if (block.forceNewPage) {
+        console.log(`   🔒 Bloque forzado a nueva página independiente`);
+      }
+      if (block.noFragment) {
+        console.log(`   📦 Bloque completo sin fragmentar (${block.html.length} chars)`);
+      }
+      allConditionsFragments.push(block.html);
+    } else {
+      const fragments = fragmentConditions(block.html, pageClass);
+      fragments.forEach((frag, idx) => {
+        if (frag && frag.trim()) {
+          allConditionsFragments.push(frag);
+          console.log(`   ✅ Fragmento ${idx + 1} generado (${frag.length} chars)`);
+        }
+      });
+    }
+  }
+  
+  const conditionsFragments = allConditionsFragments;
+  
+  // Crear array unificado de todas las páginas
+  const allPages = [];
+  
+  if (needsFragmentation) {
+    // MODO FRAGMENTACIÓN: Agregar páginas de tabla
+    tableFragments.forEach((fragment, index) => {
+      // Validar que el fragmento tenga contenido real
+      if (fragment.items && fragment.items.length > 0) {
+        allPages.push({
+          type: 'table',
+          ...fragment,
+          absolutePageNumber: allPages.length + 1
+        });
+      }
+    });
+  } else {
+    // MODO NORMAL: Una sola página de tabla
+    const tableItems = items.map(item => ({
+      codigo: item.code || '',
+      descripcion: item.description || '',
+      norma: item.norm || '',
+      costo_unitario: parseFloat(item.unit_price || 0).toFixed(2),
+      cantidad: parseInt(item.quantity || 1),
+      costo_parcial: (parseFloat(item.unit_price || 0) * parseInt(item.quantity || 1)).toFixed(2)
+    }));
+    
+    // Solo agregar si hay ítems
+    if (tableItems.length > 0) {
+      allPages.push({
+        type: 'table',
+        items: tableItems,
+        pageNumber: 1,
+        isFirstPage: true,
+        isLastPage: true,
+        absolutePageNumber: 1
+      });
+    }
+  }
+  
+  // Agregar páginas de condiciones (solo las que tienen contenido)
+  conditionsFragments.forEach((conditionFragment, index) => {
+    // Validar que el fragmento tenga contenido real (no solo espacios)
+    if (conditionFragment && conditionFragment.trim().length > 0) {
+      allPages.push({
+        type: 'conditions',
+        html: conditionFragment,
+        pageNumber: index + 1,
+        isFirstConditionPage: index === 0,
+        isLastConditionPage: index === conditionsFragments.length - 1,
+        absolutePageNumber: allPages.length + 1
+      });
+    }
+  });
+  
+  // VALIDACIÓN FINAL: Eliminar cualquier página vacía que pudiera haberse generado
+  const validPages = allPages.filter(page => {
+    if (page.type === 'table') {
+      return page.items && page.items.length > 0;
+    } else if (page.type === 'conditions') {
+      return page.html && page.html.trim().length > 0;
+    }
+    return true;
+  });
+  
+  console.log(`📄 Total de páginas en el PDF: ${validPages.length}`);
+  console.log(`  - Páginas de tabla: ${validPages.filter(p => p.type === 'table').length}`);
+  console.log(`  - Páginas de condiciones: ${validPages.filter(p => p.type === 'conditions').length}`);
+  
+  // Actualizar absolutePageNumber después de filtrar
+  validPages.forEach((page, index) => {
+    page.absolutePageNumber = index + 1;
+  });
+  
+  // LOG CRÍTICO: Verificar que allPages siempre tenga contenido
+  if (validPages.length === 0) {
+    console.error('❌ ERROR CRÍTICO: allPages está vacío. Esto causará que el PDF use código legacy.');
+    console.error('   Items:', items.length, 'Fragmentos tabla:', tableFragments?.length, 'Fragmentos condiciones:', conditionsFragments.length);
+  } else {
+    console.log(`✅ allPages poblado correctamente con ${validPages.length} página(s)`);
+  }
 
   return {
     numero_cotizacion: generateQuoteNumber(),
@@ -268,15 +982,25 @@ function processBundleData(bundle) {
     delivery_days: bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
     condiciones_primera_pagina: condicionesPrimeraPagina,
     condiciones_segunda_pagina: condicionesSegundaPagina,
-    // Variables para layout adaptativo
+    // Variables para layout adaptativo profesional
+    pageClass: pageClass,              // Clase CSS principal para el layout (compacta solo paddings/márgenes)
+    // Banderas booleanas para compatibilidad con el sistema actual
     hasFewItems: hasFewItems,
     hasManyItems: hasManyItems,
+    hasPlazoItems: hasPlazoItems,
+    hasCondicionesItems: hasCondicionesItems,
     hasPartialItems: hasPartialItems,
     hasMediumItems: hasMediumItems,
     hasVeryManyItems: hasVeryManyItems,
     hasExtremeItems: hasExtremeItems,
-    hasReducedFont: hasReducedFont,
     itemCount: itemCount,
+    // Variables para fragmentación de tablas en múltiples páginas
+    needsFragmentation: needsFragmentation,
+    tableFragments: tableFragments,
+    // NUEVO SISTEMA UNIFICADO DE PÁGINAS (validadas y limpias)
+    allPages: validPages,
+    totalPages: validPages.length,
+    hasMultipleConditionPages: conditionsFragments.length > 1,
     __dirname: __dirname
   };
 }
@@ -726,7 +1450,6 @@ a {
           <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
                 </tbody>
             </table>
-      {{#unless hasVeryManyItems}}<div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>{{/unless}}
       {{{condiciones_primera_pagina}}}
             </div>
 
@@ -1040,9 +1763,13 @@ async function generateCleanHtmlTemplateFromFiles(data) {
     
     console.log('✅ HTML con CSS combinado, tamaño:', htmlWithCss.length);
     
-    // Registrar helper para comparación numérica
+    // Registrar helpers de Handlebars
     handlebars.registerHelper('lt', function(a, b) {
       return a < b;
+    });
+    
+    handlebars.registerHelper('eq', function(a, b) {
+      return a === b;
     });
     
     // Compilar con Handlebars
