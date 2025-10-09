@@ -126,7 +126,7 @@ function generatePaymentHTML(paymentTerms) {
   return `
     <div class="payment-block">
       <div class="subtitle-box"><span class="subtitle-inner">II. CONDICIÓN DE PAGO</span></div>
-      <div class="conditions-content" style="font-size: 8.5px; line-height: 1.2;">
+      <div class="conditions-content">
         <b>CONDICIÓN:</b> ${paymentText}<br/>
         <b>RAZON SOCIAL:</b> Geofal S.A.C. <b>RUC:</b> 20549356762<br/>
         Sírvase realizar el depósito a nuestra cuenta bancaria:<br/>
@@ -138,11 +138,11 @@ function generatePaymentHTML(paymentTerms) {
       </div>
       
       <div class="subtitle-box"><span class="subtitle-inner">III. ACEPTACIÓN DE LA COTIZACIÓN</span></div>
-      <div class="conditions-content" style="font-size: 8.5px; line-height: 1.2;">
+      <div class="conditions-content">
         La aceptación será mediante: Pago del servicio, envío de orden de servicio, o correo a <a href="mailto:laboratorio@geofal.com.pe">laboratorio@geofal.com.pe</a> / <a href="mailto:asesorcomercial@geofal.com.pe">asesorcomercial@geofal.com.pe</a>.
       </div>
       
-      <div class="signature-block" style="margin-top: 8px; font-size: 9px;">
+      <div class="signature-block">
         Atentamente,<br/>
         Geofal SAC<br/>
         Av. Río Marañón N° 763, Los Olivos, Lima<br/>

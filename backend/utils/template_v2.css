@@ -275,8 +275,8 @@ html, body {
 /* Compactar aún más en página 3 */
 .page-3 .signature-block {
   margin-top: 4px !important;
-  font-size: 8px !important;
-  line-height: 1.2 !important;
+  font-size: 10px !important; /* Aumentado de 8px a 10px */
+  line-height: 1.3 !important;
 }
 
 /* ========== REGLAS DE PAGINACIÓN POR MODO ========== */
@@ -305,19 +305,19 @@ html, body {
 }
 
 .few-items .conditions-content {
-  font-size: 10px; /* Compacto para que quepa */
-  line-height: 1.3;
+  font-size: 13px; /* Aumentado para mejor legibilidad */
+  line-height: 1.4;
   margin-bottom: 3px;
 }
 
 .few-items .normal-subtitle {
-  font-size: 11px; /* Compacto */
+  font-size: 13px; /* Aumentado para mejor legibilidad */
   margin: 4px 0 2px 0;
   font-weight: bold;
 }
 
 .few-items .subtitle-inner {
-  font-size: 12px; /* Compacto */
+  font-size: 13px; /* Aumentado para mejor legibilidad */
   padding: 4px 12px;
   margin: 4px 0;
 }
@@ -337,13 +337,13 @@ html, body {
  */
 
 .page-3 .conditions-content {
-  font-size: 8px !important;
-  line-height: 1.2 !important;
-  margin-bottom: 1px !important;
+  font-size: 13px !important; /* Tamaño estándar 13px */
+  line-height: 1.25 !important; /* Reducido para compensar */
+  margin-bottom: 0px !important; /* Sin margen para ganar espacio */
 }
 
 .page-3 .subtitle-inner {
-  font-size: 10px !important;
+  font-size: 13px !important; /* Aumentado a 13px */
   padding: 2px 8px !important;
   margin: 2px 0 !important;
 }
