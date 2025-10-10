@@ -1706,7 +1706,7 @@ export default function Proyectos() {
                                 setEditingData({
                                   ...editingData,
                                   queries_history: updatedHistory,
-                                  queries: newQuery.trim() // Mantener compatibilidad
+                                  queries: JSON.stringify(updatedHistory) // Enviar como JSON string al backend
                                 });
                                 
                                 setNewQuery(''); // Limpiar el campo
