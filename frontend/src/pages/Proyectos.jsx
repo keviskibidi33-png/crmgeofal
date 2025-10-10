@@ -42,6 +42,7 @@ export default function Proyectos() {
   const [showQueriesModal, setShowQueriesModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showViewOnlyModal, setShowViewOnlyModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
   
@@ -78,6 +79,10 @@ export default function Proyectos() {
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Obtener parámetros de URL para abrir proyecto específico
+  const urlParams = new URLSearchParams(location.search);
+  const viewProjectId = urlParams.get('view');
   
   // Obtener cliente pre-seleccionado desde la navegación
   const selectedClient = location.state?.selectedClient;
@@ -134,6 +139,18 @@ export default function Proyectos() {
       }
     }
   );
+
+  // Efecto para abrir proyecto específico desde URL
+  useEffect(() => {
+    if (viewProjectId && data?.data) {
+      const project = data.data.find(p => p.id == viewProjectId);
+      if (project) {
+        handleViewProject(project);
+        // Limpiar la URL después de abrir el modal
+        navigate('/proyectos', { replace: true });
+      }
+    }
+  }, [viewProjectId, data?.data]);
 
   // Sistema de servicios moderno implementado
 
@@ -542,6 +559,13 @@ export default function Proyectos() {
     setShowStatusModal(true);
   };
 
+  // Función para abrir modal de solo lectura (Ver Proyecto)
+  const handleViewOnlyProject = (project) => {
+    setSelectedProject(project);
+    setShowViewOnlyModal(true);
+  };
+
+  // Función para abrir modal de gestión completa
   const handleViewProject = (project) => {
     console.log('🔍 handleViewProject - Project recibido:', project);
     console.log('🔍 handleViewProject - Project.id:', project?.id);
@@ -1088,7 +1112,7 @@ export default function Proyectos() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               actions={[
-                { label: 'Gestionar', icon: FiEye, onClick: handleViewProject, variant: 'outline-primary' },
+                { label: 'Ver', icon: FiEye, onClick: handleViewOnlyProject, variant: 'outline-primary' },
                 { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
               ]}
               emptyMessage="No hay proyectos registrados"
@@ -1137,7 +1161,7 @@ export default function Proyectos() {
             type: 'custom',
             render: (project) => (
               <div className="project-management-modal">
-                <style>{`
+                  <style>{`
                   .project-management-modal {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                   }
@@ -1173,7 +1197,7 @@ export default function Proyectos() {
                   .info-card h6 {
                     color: #495057;
                     font-weight: 600;
-                    margin-bottom: 1rem;
+                      margin-bottom: 1rem;
                     padding-bottom: 0.5rem;
                     border-bottom: 2px solid #f8f9fa;
                   }
@@ -1186,13 +1210,13 @@ export default function Proyectos() {
                     display: flex;
                     flex-direction: column;
                     gap: 0.25rem;
-                  }
-                  .info-item label {
-                    font-size: 0.75rem;
-                    font-weight: 600;
+                    }
+                    .info-item label {
+                      font-size: 0.75rem;
+                      font-weight: 600;
                     color: #6c757d;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
                   }
                   .info-item .value {
                     font-weight: 500;
@@ -1276,25 +1300,25 @@ export default function Proyectos() {
                   }
                   .file-item:hover {
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                  }
-                `}</style>
+                    }
+                  `}</style>
                 
                 <div className="project-header">
                   <h4>📋 {project.name}</h4>
                   <div className="project-id">ID: #{project.id}</div>
                 </div>
 
-                <div className="row g-4">
-                  {/* Información Principal */}
-                  <div className="col-lg-8">
+                  <div className="row g-4">
+                    {/* Información Principal */}
+                    <div className="col-lg-8">
                     <div className="info-card">
                       <h6>📊 Información del Proyecto</h6>
                       <div className="info-grid">
-                        <div className="info-item">
+                              <div className="info-item">
                           <label>Ubicación</label>
                           <div className="value">{project.location || 'No especificada'}</div>
-                        </div>
-                        <div className="info-item">
+                              </div>
+                              <div className="info-item">
                           <label>Estado Actual</label>
                           <div>
                             <span className={`status-badge status-${project.status || 'pendiente'}`}>
@@ -1303,41 +1327,41 @@ export default function Proyectos() {
                                project.status === 'completado' ? 'Completado' :
                                project.status === 'cancelado' ? 'Cancelado' : project.status}
                             </span>
-                          </div>
-                        </div>
-                        <div className="info-item">
+                              </div>
+                            </div>
+                              <div className="info-item">
                           <label>Prioridad</label>
-                          <div>
+                                <div>
                             <span className={`priority-badge priority-${project.priority || 'normal'}`}>
                               {project.priority === 'urgent' ? '🔴 Urgente' :
                                project.priority === 'high' ? '🟠 Alta' :
                                project.priority === 'normal' ? '🟢 Normal' :
                                project.priority === 'low' ? '🔵 Baja' : '🟢 Normal'}
                             </span>
-                          </div>
-                        </div>
-                      </div>
+                                </div>
+                              </div>
+                            </div>
                     </div>
 
                     <div className="info-card">
                       <h6>🏢 Información de la Empresa</h6>
                       <div className="info-grid">
-                        <div className="info-item">
+                              <div className="info-item">
                           <label>Empresa</label>
                           <div className="value fw-bold">{project.company_name || 'Sin empresa'}</div>
-                        </div>
+                                </div>
                         <div className="info-item">
                           <label>RUC</label>
                           <div className="value">{project.company_ruc || 'Sin RUC'}</div>
-                        </div>
+                              </div>
                         <div className="info-item">
                           <label>Contacto</label>
                           <div className="value fw-bold">{project.contact_name || 'Sin contacto'}</div>
-                        </div>
+                            </div>
                         <div className="info-item">
                           <label>Teléfono</label>
                           <div className="value">{project.contact_phone || 'Sin teléfono'}</div>
-                        </div>
+                          </div>
                         <div className="info-item">
                           <label>Email</label>
                           <div className="value">{project.contact_email || 'Sin email'}</div>
@@ -1370,26 +1394,26 @@ export default function Proyectos() {
                                       <div className="small text-muted">
                                         📧 {user.email}
                                         {user.phone && <span> • 📞 {user.phone}</span>}
-                                      </div>
+                      </div>
                                       <div className="small">
                                         <span className="badge bg-primary">
                                           Vendedor Comercial
                                         </span>
-                                      </div>
-                                    </div>
+                    </div>
+                        </div>
                                   ))
                                 ) : (
                                   <div className="p-2 text-muted">No se encontraron vendedores</div>
-                                )}
-                              </div>
+                              )}
+                            </div>
                             )}
                           </div>
-                        </div>
+                            </div>
                         <div className="info-item">
                           <label>Responsable Laboratorio</label>
                           <div className="position-relative">
-                            <input
-                              type="text"
+                              <input 
+                                type="text" 
                               className="form-control form-control-sm"
                               placeholder="Buscar responsable de laboratorio..."
                               value={laboratorioSearch}
@@ -1413,24 +1437,24 @@ export default function Proyectos() {
                                       <div className="small text-muted">
                                         📧 {user.email}
                                         {user.phone && <span> • 📞 {user.phone}</span>}
-                                      </div>
+                            </div>
                                       <div className="small">
                                         <span className="badge bg-info">
                                           Usuario Laboratorio
                                         </span>
-                                      </div>
-                                    </div>
+                            </div>
+                            </div>
                                   ))
                                 ) : (
                                   <div className="p-2 text-muted">No se encontraron responsables de laboratorio</div>
                                 )}
-                              </div>
+                            </div>
                             )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
                   {/* Panel de Control */}
                   <div className="col-lg-4">
@@ -1439,60 +1463,60 @@ export default function Proyectos() {
                       <div className="d-grid gap-3">
                         <div>
                           <label className="form-label small fw-bold">Estado del Proyecto</label>
-                          <select 
-                            className="form-select"
+                            <select 
+                              className="form-select" 
                             value={editingData.status || 'pendiente'} 
-                            onChange={(e) => setEditingData({...editingData, status: e.target.value})}
-                          >
+                              onChange={(e) => setEditingData({...editingData, status: e.target.value})}
+                            >
                             <option value="pendiente">🟡 Pendiente</option>
                             <option value="activo">🟢 Activo</option>
                             <option value="en_proceso">🔵 En Proceso</option>
                             <option value="completado">✅ Completado</option>
                             <option value="pausado">⏸️ Pausado</option>
                             <option value="cancelado">❌ Cancelado</option>
-                          </select>
-                        </div>
+                            </select>
+                          </div>
                         
                         <div>
                           <label className="form-label small fw-bold">Prioridad</label>
-                          <select 
-                            className="form-select"
-                            value={editingData.priority || 'normal'} 
-                            onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
-                          >
+                            <select 
+                              className="form-select" 
+                              value={editingData.priority || 'normal'} 
+                              onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
+                            >
                             <option value="low">🔵 Baja</option>
                             <option value="normal">🟢 Normal</option>
-                            <option value="high">🟠 Alta</option>
-                            <option value="urgent">🔴 Urgente</option>
-                          </select>
-                        </div>
+                              <option value="high">🟠 Alta</option>
+                              <option value="urgent">🔴 Urgente</option>
+                            </select>
+                          </div>
 
                         <div>
                           <label className="form-label small fw-bold">Estado Laboratorio</label>
-                          <select 
-                            className="form-select"
+                            <select 
+                              className="form-select" 
                             value={editingData.laboratorio_status || 'no_requerido'} 
-                            onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
-                          >
-                            <option value="no_requerido">No Requerido</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en_proceso">En Proceso</option>
-                            <option value="completado">Completado</option>
-                          </select>
-                        </div>
+                              onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
+                            >
+                              <option value="no_requerido">No Requerido</option>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="en_proceso">En Proceso</option>
+                              <option value="completado">Completado</option>
+                            </select>
+                          </div>
 
                         <div>
                           <label className="form-label small fw-bold">Estado Ingeniería</label>
-                          <select 
-                            className="form-select"
+                            <select 
+                              className="form-select" 
                             value={editingData.ingenieria_status || 'no_requerido'} 
-                            onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
-                          >
-                            <option value="no_requerido">No Requerido</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en_proceso">En Proceso</option>
-                            <option value="completado">Completado</option>
-                          </select>
+                              onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
+                            >
+                              <option value="no_requerido">No Requerido</option>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="en_proceso">En Proceso</option>
+                              <option value="completado">Completado</option>
+                            </select>
                         </div>
                       </div>
                     </div>
@@ -1505,47 +1529,47 @@ export default function Proyectos() {
                           <div>
                             <div className="small text-muted">Creado</div>
                             <div className="fw-bold">{new Date(project.created_at).toLocaleDateString()}</div>
-                          </div>
                         </div>
+                          </div>
                         <div className="d-flex align-items-center gap-2">
                           <FiClock className="text-muted" size={16} />
                           <div>
                             <div className="small text-muted">Actualizado</div>
                             <div className="fw-bold">{new Date(project.updated_at).toLocaleDateString()}</div>
                           </div>
+                          </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Notas y Consultas */}
+                    {/* Notas y Consultas */}
                 <div className="row g-4 mt-2">
-                  <div className="col-md-6">
+                            <div className="col-md-6">
                     <div className="info-card">
                       <h6>📝 Notas del Estado</h6>
-                      <textarea 
-                        className="form-control" 
-                        rows="4"
-                        value={editingData.status_notes || ''} 
-                        onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
-                        placeholder="Agrega comentarios sobre el estado del proyecto..."
-                      />
+                              <textarea 
+                                className="form-control" 
+                                rows="4"
+                                value={editingData.status_notes || ''} 
+                                onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
+                                placeholder="Agrega comentarios sobre el estado del proyecto..."
+                              />
                     </div>
-                  </div>
-                  <div className="col-md-6">
+                            </div>
+                            <div className="col-md-6">
                     <div className="info-card">
                       <h6>❓ Consultas del Cliente</h6>
-                      <textarea 
-                        className="form-control" 
-                        rows="4"
-                        value={editingData.queries || ''} 
-                        onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
-                        placeholder="Consultas y dudas del cliente..."
-                      />
-                    </div>
-                  </div>
-                </div>
+                              <textarea 
+                                className="form-control" 
+                                rows="4"
+                                value={editingData.queries || ''} 
+                                onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
+                                placeholder="Consultas y dudas del cliente..."
+                              />
+                            </div>
+                          </div>
+                        </div>
 
                 {/* Archivos Adjuntos */}
                 <div className="info-card mt-3">
@@ -1563,7 +1587,7 @@ export default function Proyectos() {
                       onChange={handleFileSelect}
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
                     />
-                  </div>
+                      </div>
                   
                   {selectedFile && (
                     <div className="alert alert-info d-flex align-items-center mb-3">
@@ -1572,7 +1596,7 @@ export default function Proyectos() {
                         <strong>{selectedFile.name}</strong>
                         <br />
                         <small>📏 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
-                      </div>
+                    </div>
                       <Button 
                         variant="primary" 
                         size="sm"
@@ -1615,7 +1639,7 @@ export default function Proyectos() {
                               </div>
                             </div>
                             <div className="d-flex gap-2">
-                              <Button 
+                        <Button 
                                 variant="outline-primary" 
                                 size="sm"
                                 onClick={() => handleFileDownload(attachment)}
@@ -1638,52 +1662,306 @@ export default function Proyectos() {
                 </div>
 
                 {/* Botones de Acción */}
-                <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                  <Button 
-                    variant="secondary" 
-                    onClick={() => setShowViewModal(false)}
-                    className="px-4"
-                  >
-                    <FiX className="me-2" />
-                    Cancelar
-                  </Button>
-                  <Button 
-                    variant="primary" 
-                    size="lg"
-                    onClick={() => {
-                      const projectId = selectedProject?.id;
-                      
-                      if (!projectId) {
-                        showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                        return;
-                      }
-                      
-                      updateMutation.mutate({ 
-                        id: projectId, 
-                        data: editingData
-                      }, {
-                        onSuccess: (data) => {
-                          showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-                          setShowViewModal(false);
-                        },
-                        onError: (error) => {
-                          console.error('❌ Error al actualizar:', error);
-                          showNotification('❌ Error al actualizar proyecto', 'danger');
-                        }
-                      });
-                    }}
-                    disabled={updateMutation.isLoading}
-                    className="px-4"
-                  >
-                    <FiSave className="me-2" />
-                    {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
-                  </Button>
-                </div>
-              </div>
+                <div className="d-flex justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+                  <div>
+                    {selectedProject?.quote_id && (
+                      <Button
+                        variant="outline-info"
+                        onClick={() => navigate(`/cotizaciones?view=${selectedProject.quote_id}`)}
+                        className="px-3"
+                      >
+                        <FiFileText className="me-2" />
+                        📄 Ver Cotización Relacionada
+                      </Button>
+                    )}
+                  </div>
+                  <div className="d-flex gap-3">
+                    <Button 
+                      variant="secondary" 
+                          onClick={() => setShowViewModal(false)}
+                      className="px-4"
+                        >
+                      <FiX className="me-2" />
+                          Cancelar
+                        </Button>
+                        <Button 
+                          variant="primary" 
+                          size="lg"
+                          onClick={() => {
+                            const projectId = selectedProject?.id;
+                            
+                            if (!projectId) {
+                              showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
+                              return;
+                            }
+                            
+                            updateMutation.mutate({ 
+                              id: projectId, 
+                              data: editingData
+                            }, {
+                              onSuccess: (data) => {
+                                showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+                                setShowViewModal(false);
+                              },
+                              onError: (error) => {
+                                console.error('❌ Error al actualizar:', error);
+                                showNotification('❌ Error al actualizar proyecto', 'danger');
+                              }
+                            });
+                          }}
+                          disabled={updateMutation.isLoading}
+                          className="px-4"
+                        >
+                          <FiSave className="me-2" />
+                          {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
             )
           }
         ]}
         onSubmit={() => setShowViewModal(false)}
+        submitText="Cerrar"
+      />
+
+      {/* Modal de Ver Proyecto (Solo Lectura) */}
+      <ModalForm
+        show={showViewOnlyModal}
+        onHide={() => setShowViewOnlyModal(false)}
+        title={`👁️ Ver Proyecto - ${selectedProject?.name || ''}`}
+        data={selectedProject}
+        size="lg"
+        fields={[
+          {
+            name: 'project_view',
+            label: 'Información del Proyecto',
+            type: 'custom',
+            render: (project) => (
+              <div className="project-view-modal">
+                <style>{`
+                  .project-view-modal {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  }
+                  .project-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 2rem;
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                  }
+                  .project-header h4 {
+                    margin: 0;
+                    font-weight: 600;
+                    font-size: 1.5rem;
+                  }
+                  .project-header .project-id {
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    margin-top: 0.5rem;
+                    display: inline-block;
+                  }
+                  .info-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+                    border: 1px solid #e9ecef;
+                  }
+                  .info-card h6 {
+                    color: #495057;
+                    font-weight: 600;
+                    margin-bottom: 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 2px solid #f8f9fa;
+                  }
+                  .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 1rem;
+                  }
+                  .info-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                  }
+                  .info-item label {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #6c757d;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                  }
+                  .info-item .value {
+                    font-weight: 500;
+                    color: #212529;
+                    font-size: 0.95rem;
+                  }
+                  .priority-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .priority-urgent { background: #fee2e2; color: #dc2626; }
+                  .priority-high { background: #fef3c7; color: #d97706; }
+                  .priority-normal { background: #d1fae5; color: #059669; }
+                  .priority-low { background: #e0e7ff; color: #3730a3; }
+                  .status-badge {
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .status-pendiente { background: #fef3c7; color: #d97706; }
+                  .status-activo { background: #d1fae5; color: #059669; }
+                  .status-completado { background: #dbeafe; color: #2563eb; }
+                  .status-cancelado { background: #fee2e2; color: #dc2626; }
+                `}</style>
+                
+                <div className="project-header">
+                  <h4>👁️ {project.name}</h4>
+                  <div className="project-id">ID: #{project.id}</div>
+                </div>
+
+                  <div className="row g-4">
+                  {/* Información Principal */}
+                  <div className="col-lg-8">
+                    <div className="info-card">
+                      <h6>📊 Información del Proyecto</h6>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <label>Ubicación</label>
+                          <div className="value">{project.location || 'No especificada'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Estado Actual</label>
+                          <div>
+                            <span className={`status-badge status-${project.status || 'pendiente'}`}>
+                              {project.status === 'pendiente' ? 'Pendiente' :
+                               project.status === 'activo' ? 'Activo' :
+                               project.status === 'completado' ? 'Completado' :
+                               project.status === 'cancelado' ? 'Cancelado' : project.status}
+                            </span>
+                            </div>
+                          </div>
+                        <div className="info-item">
+                          <label>Prioridad</label>
+                              <div>
+                            <span className={`priority-badge priority-${project.priority || 'normal'}`}>
+                              {project.priority === 'urgent' ? '🔴 Urgente' :
+                               project.priority === 'high' ? '🟠 Alta' :
+                               project.priority === 'normal' ? '🟢 Normal' :
+                               project.priority === 'low' ? '🔵 Baja' : '🟢 Normal'}
+                            </span>
+                              </div>
+                            </div>
+                      </div>
+                    </div>
+
+                    <div className="info-card">
+                      <h6>🏢 Información de la Empresa</h6>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <label>Empresa</label>
+                          <div className="value fw-bold">{project.company_name || 'Sin empresa'}</div>
+                          </div>
+                        <div className="info-item">
+                          <label>RUC</label>
+                          <div className="value">{project.company_ruc || 'Sin RUC'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Contacto</label>
+                          <div className="value fw-bold">{project.contact_name || 'Sin contacto'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Teléfono</label>
+                          <div className="value">{project.contact_phone || 'Sin teléfono'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Email</label>
+                          <div className="value">{project.contact_email || 'Sin email'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Vendedor Asignado</label>
+                          <div className="value fw-bold">{project.vendedor_name || 'Sin asignar'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Responsable Laboratorio</label>
+                          <div className="value fw-bold">{project.laboratorio_name || 'Sin asignar'}</div>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+
+                  {/* Información Adicional */}
+                  <div className="col-lg-4">
+                    <div className="info-card">
+                      <h6>📅 Detalles del Proyecto</h6>
+                      <div className="info-item mb-3">
+                        <label>Fecha de Creación</label>
+                        <div className="value">
+                          {project.created_at ? new Date(project.created_at).toLocaleDateString('es-ES') : 'No disponible'}
+                          </div>
+                        </div>
+                      <div className="info-item mb-3">
+                        <label>Última Actualización</label>
+                        <div className="value">
+                          {project.updated_at ? new Date(project.updated_at).toLocaleDateString('es-ES') : 'No disponible'}
+                            </div>
+                                        </div>
+                      {project.queries && (
+                        <div className="info-item">
+                          <label>Consultas/Notas</label>
+                          <div className="value" style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
+                            {project.queries}
+                                          </div>
+                                          </div>
+                                          )}
+                                        </div>
+                                      </div>
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="d-flex justify-content-center gap-3 mt-4 pt-3 border-top">
+                                        <Button 
+                    variant="primary"
+                    onClick={() => {
+                      setShowViewOnlyModal(false);
+                      handleViewProject(project);
+                    }}
+                    className="px-4"
+                  >
+                    <FiSettings className="me-2" />
+                    ⚙️ Gestionar Proyecto
+                                        </Button>
+                  
+                  {project.quote_id && (
+                                        <Button 
+                      variant="outline-info"
+                      onClick={() => {
+                        setShowViewOnlyModal(false);
+                        navigate(`/cotizaciones?view=${project.quote_id}`);
+                      }}
+                      className="px-4"
+                    >
+                      <FiFileText className="me-2" />
+                      📄 Ver Evidencias
+                                        </Button>
+                          )}
+                        </div>
+                      </div>
+            )
+          }
+        ]}
+        onSubmit={() => setShowViewOnlyModal(false)}
         submitText="Cerrar"
       />
       

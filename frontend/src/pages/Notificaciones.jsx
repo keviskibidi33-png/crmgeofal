@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Container, Row, Col, Card, Badge, Button, Alert, Spinner, Modal } from 'react-bootstrap';
-import { FiBell, FiCheck, FiX, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiBell, FiCheck, FiX, FiEye, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from '../services/notifications';
 import { useAuth } from '../contexts/AuthContext';
 
 const Notificaciones = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -72,6 +74,23 @@ const Notificaciones = () => {
     }
   };
 
+  const handleGoToProject = (notification) => {
+    // Cerrar el modal primero
+    setShowModal(false);
+    
+    // Navegar al proyecto específico
+    if (notification.type === 'project_assignment' && notification.data) {
+      const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
+      if (data.project_id) {
+        navigate(`/proyectos?view=${data.project_id}`);
+      } else {
+        navigate('/proyectos');
+      }
+    } else {
+      navigate('/proyectos');
+    }
+  };
+
   const getNotificationIcon = (type) => {
     const icons = {
       payment_proof_uploaded: '💰',
@@ -82,6 +101,7 @@ const Notificaciones = () => {
       quote_rejected: '❌',
       project_created: '🏗️',
       project_updated: '🔄',
+      project_assignment: '🎯',
       ticket_created: '🎫',
       ticket_updated: '🔄',
       system_update: '🆕'
@@ -99,6 +119,7 @@ const Notificaciones = () => {
       quote_rejected: 'danger',
       project_created: 'primary',
       project_updated: 'info',
+      project_assignment: 'warning',
       ticket_created: 'warning',
       ticket_updated: 'info',
       system_update: 'secondary'
@@ -323,9 +344,27 @@ const Notificaciones = () => {
           )}
         </Modal.Body>
         <Modal.Footer className="p-2">
-          <Button variant="primary" onClick={() => setShowModal(false)} size="sm">
-            ✅ Entendido
-          </Button>
+          <div className="d-flex gap-2 w-100">
+            {selectedNotification?.type === 'project_assignment' && (
+              <Button 
+                variant="warning" 
+                onClick={() => handleGoToProject(selectedNotification)} 
+                size="sm"
+                className="flex-grow-1"
+              >
+                <FiExternalLink className="me-1" />
+                🎯 Ver Proyecto
+              </Button>
+            )}
+            <Button 
+              variant="primary" 
+              onClick={() => setShowModal(false)} 
+              size="sm"
+              className={selectedNotification?.type === 'project_assignment' ? '' : 'w-100'}
+            >
+              ✅ Entendido
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
     </Container>

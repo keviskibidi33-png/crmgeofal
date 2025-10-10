@@ -98,7 +98,21 @@ const Header = ({ onToggleSidebar }) => {
     }
     
     // Navegar según el tipo de notificación
-    if (notification.data) {
+    if (notification.type === 'project_assignment') {
+      // Para notificaciones de asignación de proyectos
+      if (notification.data) {
+        const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
+        if (data.project_id) {
+          // Navegar al proyecto específico
+          navigate(`/proyectos?view=${data.project_id}`);
+        } else {
+          // Si no hay ID específico, ir a la lista de proyectos
+          navigate('/proyectos');
+        }
+      } else {
+        navigate('/proyectos');
+      }
+    } else if (notification.data) {
       const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
       if (data.projectId) navigate(`/proyectos`);
       if (data.quoteId) navigate(`/cotizaciones`);
