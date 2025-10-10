@@ -573,6 +573,8 @@ export default function Proyectos() {
     console.log('🔍 handleViewProject - Project recibido:', project);
     console.log('🔍 handleViewProject - Project.id:', project?.id);
     console.log('🔍 handleViewProject - Type of project.id:', typeof project?.id);
+    console.log('🔍 handleViewProject - Project.queries:', project?.queries);
+    console.log('🔍 handleViewProject - Project.queries_history:', project?.queries_history);
     
     setSelectedProject(project);
     
@@ -599,7 +601,48 @@ export default function Proyectos() {
       vendedor_id: project.vendedor_id || '',
       laboratorio_id: project.laboratorio_id || '',
       // Inicializar historial de consultas
-      queries_history: project.queries_history || []
+      queries_history: (() => {
+        try {
+          console.log('🔍 Parseando queries_history - project.queries_history:', project.queries_history);
+          console.log('🔍 Parseando queries_history - project.queries:', project.queries);
+          
+          // Si project.queries_history existe y es un array, usarlo
+          if (project.queries_history && Array.isArray(project.queries_history)) {
+            console.log('✅ Usando project.queries_history como array:', project.queries_history);
+            return project.queries_history;
+          }
+          
+          // Si project.queries es un JSON string, parsearlo
+          if (project.queries && typeof project.queries === 'string') {
+            try {
+              const parsed = JSON.parse(project.queries);
+              console.log('✅ Parseado project.queries como JSON:', parsed);
+              if (Array.isArray(parsed)) {
+                return parsed;
+              }
+            } catch (jsonError) {
+              // Si no es JSON válido, tratar como texto plano y crear un historial
+              console.log('⚠️ project.queries no es JSON válido, tratando como texto plano');
+              if (project.queries.trim()) {
+                // Crear un historial con el texto existente
+                const historyEntry = {
+                  message: project.queries.trim(),
+                  user_name: 'Usuario Anterior',
+                  created_at: new Date().toISOString()
+                };
+                console.log('✅ Creado historial desde texto plano:', historyEntry);
+                return [historyEntry];
+              }
+            }
+          }
+          
+          console.log('⚠️ No se encontró queries_history válido, retornando array vacío');
+          return [];
+        } catch (e) {
+          console.warn('❌ Error parseando queries_history:', e);
+          return [];
+        }
+      })()
     };
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
@@ -1651,24 +1694,38 @@ export default function Proyectos() {
                       {/* Área de comentarios existentes */}
                       <div className="mb-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                         {editingData.queries_history && editingData.queries_history.length > 0 ? (
-                          editingData.queries_history.map((comment, index) => (
-                            <div key={index} className="mb-2 p-2 bg-light rounded border-start border-3 border-primary">
-                              <div className="d-flex justify-content-between align-items-start mb-1">
-                                <small className="fw-bold text-primary">
-                                  👤 {comment.user_name || 'Usuario'}
-                                </small>
-                                <small className="text-muted">
-                                  {new Date(comment.created_at).toLocaleString('es-ES', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </small>
+                          editingData.queries_history.map((comment, index) => {
+                            // Color consistente por usuario
+                            const getUserColor = (userName) => {
+                              const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+                              const hash = userName.split('').reduce((a, b) => {
+                                a = ((a << 5) - a) + b.charCodeAt(0);
+                                return a & a;
+                              }, 0);
+                              return colors[Math.abs(hash) % colors.length];
+                            };
+                            
+                            const color = getUserColor(comment.user_name || 'Usuario');
+                            
+                            return (
+                              <div key={index} className="mb-2 p-2 bg-light rounded border-start border-3" style={{ borderLeftColor: color }}>
+                                <div className="d-flex justify-content-between align-items-start mb-1">
+                                  <small className="fw-bold" style={{ color: color }}>
+                                    👤 {comment.user_name || 'Usuario'}
+                                  </small>
+                                  <small className="text-muted">
+                                    {new Date(comment.created_at).toLocaleString('es-ES', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </small>
+                                </div>
+                                <div className="small">{comment.message}</div>
                               </div>
-                              <div className="small">{comment.message}</div>
-                            </div>
-                          ))
+                            );
+                          })
                         ) : (
                           <div className="text-center text-muted py-3">
                             <small>No hay consultas registradas</small>
@@ -2078,23 +2135,46 @@ export default function Proyectos() {
                               // Intentar parsear como JSON (historial de consultas)
                               const history = JSON.parse(project.queries);
                               if (Array.isArray(history) && history.length > 0) {
-                                return history.map((entry, index) => (
-                                  <div key={index} className="mb-2 pb-2" style={{ borderBottom: index < history.length - 1 ? '1px dotted #eee' : 'none' }}>
-                                    <div className="fw-bold d-flex align-items-center">
-                                      <FiMessageSquare className="me-1 text-primary" />
-                                      👤 {entry.user_name || 'Usuario Desconocido'}
-                                      <span className="ms-auto text-muted small" style={{ fontSize: '0.75rem' }}>
-                                        {new Date(entry.created_at).toLocaleString('es-ES', { 
-                                          day: '2-digit', 
-                                          month: '2-digit', 
-                                          hour: '2-digit', 
-                                          minute: '2-digit' 
-                                        })}
-                                      </span>
-                                    </div>
-                                    <p className="mb-0 ms-3" style={{ fontSize: '0.85rem' }}>{entry.message}</p>
-                                  </div>
-                                ));
+                return history.map((entry, index) => {
+                  // Color consistente por usuario
+                  const getUserColor = (userName) => {
+                    const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+                    const hash = userName.split('').reduce((a, b) => {
+                      a = ((a << 5) - a) + b.charCodeAt(0);
+                      return a & a;
+                    }, 0);
+                    return colors[Math.abs(hash) % colors.length];
+                  };
+                  
+                  const color = getUserColor(entry.user_name || 'Usuario Desconocido');
+                  
+                  return (
+                    <div key={index} className="mb-2 pb-2" style={{ borderBottom: index < history.length - 1 ? '1px dotted #eee' : 'none' }}>
+                      <div className="fw-bold d-flex align-items-center">
+                        <div 
+                          className="me-2" 
+                          style={{ 
+                            width: '4px', 
+                            height: '20px', 
+                            backgroundColor: color,
+                            borderRadius: '2px'
+                          }}
+                        />
+                        <FiMessageSquare className="me-1" style={{ color: color }} />
+                        👤 {entry.user_name || 'Usuario Desconocido'}
+                        <span className="ms-auto text-muted small" style={{ fontSize: '0.75rem' }}>
+                          {new Date(entry.created_at).toLocaleString('es-ES', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
+                      <p className="mb-0 ms-3" style={{ fontSize: '0.85rem' }}>{entry.message}</p>
+                    </div>
+                  );
+                });
                               } else {
                                 return <p className="text-muted">No hay consultas registradas.</p>;
                               }
@@ -2108,6 +2188,53 @@ export default function Proyectos() {
                     )}
                                         </div>
                                       </div>
+                </div>
+
+                {/* Archivos Adjuntos */}
+                <div className="info-card">
+                  <h6>📎 Archivos Adjuntos</h6>
+                  
+                  {attachments.length === 0 ? (
+                    <div className="text-center py-4 text-muted">
+                      <FiFolder size={48} className="mb-2 opacity-50" />
+                      <div>No hay archivos adjuntos</div>
+                      <small>Este proyecto no tiene archivos adjuntos</small>
+                    </div>
+                  ) : (
+                    <div className="row g-2">
+                      {attachments.map((attachment) => (
+                        <div key={attachment.id} className="col-12">
+                          <div className="file-item">
+                            <div className="d-flex align-items-center">
+                              <FiFileText className="text-primary me-3" size={20} />
+                              <div>
+                                <div className="fw-bold">{attachment.original_name}</div>
+                                <div className="small text-muted">
+                                  📏 {attachment.file_size ? `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
+                                  <span className="mx-2">•</span>
+                                  📅 {new Date(attachment.created_at).toLocaleDateString()}
+                                  <span className="mx-2">•</span>
+                                  👤 {attachment.uploaded_by_name || 'Usuario'}
+                                </div>
+                                {attachment.description && (
+                                  <div className="small text-muted mt-1">{attachment.description}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="d-flex gap-2">
+                              <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => handleFileDownload(attachment)}
+                              >
+                                <FiDownload size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Botones de Acción */}

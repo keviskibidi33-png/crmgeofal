@@ -259,7 +259,7 @@ const Project = {
           contact_phone, 
           contact_email,
           queries,
-          queries_history,
+          queries_history ? JSON.stringify(queries_history) : null,
           priority,
           marked,
           status,
