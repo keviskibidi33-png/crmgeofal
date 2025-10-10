@@ -171,7 +171,11 @@ export default function CotizacionInteligente() {
             setQuote(prev => ({
               ...prev,
               commercial_name: data.user.name || prev.commercial_name,
-              commercial_phone: data.user.phone || prev.commercial_phone
+              commercial_phone: data.user.phone || prev.commercial_phone,
+              // Inicializar fecha de emisión con la fecha actual si está vacía
+              issue_date: prev.issue_date || new Date().toISOString().slice(0, 10),
+              // Inicializar fecha de solicitud con la fecha actual si está vacía
+              request_date: prev.request_date || new Date().toISOString().slice(0, 10)
             }));
           }
         }
