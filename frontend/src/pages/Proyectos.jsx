@@ -10,6 +10,7 @@ import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectQueries, updateProjectMark } from '../services/projects';
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
+import { listUsers } from '../services/users';
 import ProjectServiceForm from '../components/ProjectServiceForm';
 import ProjectFormRedesigned from '../components/ProjectFormRedesigned';
 
@@ -102,6 +103,18 @@ export default function Proyectos() {
       cacheTime: 300000, // 5 minutos - cachear datos
       retry: 2, // Reintentar máximo 2 veces
       retryDelay: 1000, // Esperar 1 segundo entre reintentos
+    }
+  );
+
+  // Cargar usuarios para los dropdowns
+  const { data: usersData, isLoading: usersLoading } = useQuery(
+    'users',
+    () => listUsers(),
+    {
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+      staleTime: 300000, // 5 minutos
+      cacheTime: 600000, // 10 minutos
     }
   );
 
@@ -292,7 +305,7 @@ export default function Proyectos() {
         user_id: userId,
         type: 'project_assignment',
         title: `Proyecto Asignado - ${project.name}`,
-        message: `Se te ha asignado el proyecto "${project.name}" como ${role === 'vendedor' ? 'vendedor responsable' : 'responsable de laboratorio'}.`,
+        message: `Se te ha asignado el proyecto "${project.name}" como ${role === 'vendedor' ? 'vendedor comercial responsable' : 'usuario de laboratorio responsable'}.`,
         project_id: project.id,
         priority: 'normal'
       };
@@ -308,7 +321,7 @@ export default function Proyectos() {
 
       if (response.ok) {
         console.log('✅ Notificación enviada exitosamente');
-        showNotification(`✅ Notificación enviada al ${role === 'vendedor' ? 'vendedor' : 'responsable de laboratorio'}`, 'success');
+        showNotification(`✅ Notificación enviada al ${role === 'vendedor' ? 'vendedor comercial' : 'usuario de laboratorio'}`, 'success');
       } else {
         console.warn('⚠️ No se pudo enviar la notificación');
       }
@@ -319,9 +332,9 @@ export default function Proyectos() {
 
   // Filtrar usuarios por búsqueda
   const getFilteredVendedores = () => {
-    if (!data?.users) return [];
-    return data.users.filter(user => 
-      ['vendedor_comercial', 'jefa_comercial'].includes(user.role) &&
+    if (!usersData?.data) return [];
+    return usersData.data.filter(user => 
+      user.role === 'vendedor_comercial' &&
       (vendedorSearch === '' || 
        `${user.name} ${user.apellido}`.toLowerCase().includes(vendedorSearch.toLowerCase()) ||
        user.email?.toLowerCase().includes(vendedorSearch.toLowerCase()))
@@ -329,9 +342,9 @@ export default function Proyectos() {
   };
 
   const getFilteredLaboratorio = () => {
-    if (!data?.users) return [];
-    return data.users.filter(user => 
-      ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(user.role) &&
+    if (!usersData?.data) return [];
+    return usersData.data.filter(user => 
+      user.role === 'usuario_laboratorio' &&
       (laboratorioSearch === '' || 
        `${user.name} ${user.apellido}`.toLowerCase().includes(laboratorioSearch.toLowerCase()) ||
        user.email?.toLowerCase().includes(laboratorioSearch.toLowerCase()))
@@ -889,8 +902,8 @@ export default function Proyectos() {
       name: 'vendedor_id',
       label: 'Vendedor Asignado',
       type: 'select',
-      options: data?.users?.filter(user => 
-        ['vendedor_comercial', 'jefa_comercial'].includes(user.role)
+      options: usersData?.data?.filter(user => 
+        user.role === 'vendedor_comercial'
       ).map(user => ({
         value: user.id,
         label: `${user.name} ${user.apellido}`
@@ -900,8 +913,8 @@ export default function Proyectos() {
       name: 'laboratorio_id',
       label: 'Responsable de Laboratorio',
       type: 'select',
-      options: data?.users?.filter(user => 
-        ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(user.role)
+      options: usersData?.data?.filter(user => 
+        user.role === 'usuario_laboratorio'
       ).map(user => ({
         value: user.id,
         label: `${user.name} ${user.apellido}`
@@ -1320,8 +1333,8 @@ export default function Proyectos() {
                                         {user.phone && <span> • 📞 {user.phone}</span>}
                                       </div>
                                       <div className="small">
-                                        <span className={`badge bg-${user.role === 'jefa_comercial' ? 'warning' : 'primary'}`}>
-                                          {user.role === 'jefa_comercial' ? 'Jefa Comercial' : 'Vendedor'}
+                                        <span className="badge bg-primary">
+                                          Vendedor Comercial
                                         </span>
                                       </div>
                                     </div>
@@ -1363,8 +1376,8 @@ export default function Proyectos() {
                                         {user.phone && <span> • 📞 {user.phone}</span>}
                                       </div>
                                       <div className="small">
-                                        <span className={`badge bg-${user.role === 'jefe_laboratorio' ? 'success' : 'info'}`}>
-                                          {user.role === 'jefe_laboratorio' ? 'Jefe Lab.' : 'Usuario Lab.'}
+                                        <span className="badge bg-info">
+                                          Usuario Laboratorio
                                         </span>
                                       </div>
                                     </div>
