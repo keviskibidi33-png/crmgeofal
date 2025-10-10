@@ -30,7 +30,32 @@ export default function ListaCotizaciones() {
 
   const { data, isLoading, error } = useQuery(
     ['quotes'],
-    () => listQuotes(),
+    async () => {
+      const result = await listQuotes();
+      // Enriquecer cotizaciones con datos del meta
+      if (result?.data) {
+        result.data = result.data.map(quote => {
+          let meta = null;
+          if (quote.meta && typeof quote.meta === 'string') {
+            try {
+              meta = JSON.parse(quote.meta);
+            } catch (e) {
+              meta = null;
+            }
+          } else if (quote.meta && typeof quote.meta === 'object') {
+            meta = quote.meta;
+          }
+          
+          if (meta && meta.customer) {
+            quote.client_company = meta.customer.company_name || quote.company_name;
+            quote.client_ruc = meta.customer.ruc || quote.company_ruc;
+          }
+          
+          return quote;
+        });
+      }
+      return result;
+    },
     { keepPreviousData: true }
   );
 
@@ -356,11 +381,21 @@ export default function ListaCotizaciones() {
                     </td>
                     <td>
                       <div>
-                        <div className="fw-medium">{quote.client_contact}</div>
-                        <div className="text-muted small">
-                          <FiUser size={12} className="me-1" />
-                          {quote.client_email}
-                        </div>
+                        <div className="fw-bold">{quote.client_company || quote.client_contact || 'Sin razón social'}</div>
+                        {quote.client_ruc && (
+                          <div className="text-muted small">RUC: {quote.client_ruc}</div>
+                        )}
+                        {quote.client_contact && quote.client_company && (
+                          <div className="text-muted small">
+                            <FiUser size={12} className="me-1" />
+                            {quote.client_contact}
+                          </div>
+                        )}
+                        {quote.client_email && (
+                          <div className="text-muted small">
+                            {quote.client_email}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td>
@@ -395,9 +430,10 @@ export default function ListaCotizaciones() {
                           }}
                           onMouseDown={(e) => e.stopPropagation()}
                           onMouseUp={(e) => e.stopPropagation()}
-                          title="Ver"
+                          title="Ver Evidencias"
                         >
-                          <FiEye />
+                          <FiEye className="me-1" />
+                          Evidencias
                         </Button>
                         <Button
                           variant="outline-secondary"

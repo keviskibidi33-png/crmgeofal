@@ -1,0 +1,85 @@
+.quote-evidences {
+  padding: 1rem 0;
+}
+
+.evidence-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.evidence-item {
+  transition: background-color 0.2s ease;
+}
+
+.evidence-item:hover {
+  background-color: #f8f9fa;
+}
+
+.evidence-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.evidence-item {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Mejoras de UI */
+.btn-outline-primary:hover,
+.btn-outline-danger:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Estilos para el modal de visualización */
+.evidence-item-view {
+  transition: all 0.2s ease;
+}
+
+.evidence-item-view:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.evidences-view {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .evidence-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .evidence-item .d-flex.gap-2 {
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .evidence-item-view .d-flex {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .evidence-item-view .d-flex.gap-2 {
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+

@@ -3,6 +3,10 @@ const router = express.Router();
 const quoteController = require('../controllers/quoteController');
 const auth = require('../middlewares/auth');
 const quoteExportController = require('../controllers/quoteExportController');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const quoteEvidencesController = require('../controllers/quoteEvidencesController');
 
 
 // Listar todas las cotizaciones o por proyecto
@@ -34,5 +38,125 @@ router.get('/:id/export/pdf-draft', auth(['jefa_comercial','vendedor_comercial',
 router.post('/:id/export/pdf', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdf);
 router.post('/:id/export/excel', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportExcel);
 router.post('/:id/export/pdf-draft', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdfDraft);
+
+// ===== GESTIÓN DE EVIDENCIAS =====
+// Configurar multer para almacenar archivos de evidencias
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const quoteId = req.params.id || req.params.quoteId;
+    const uploadPath = path.join(__dirname, '../uploads/evidences', quoteId);
+    
+    // Crear directorio si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext)
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .substring(0, 50);
+    
+    cb(null, `${baseName}-${uniqueSuffix}${ext}`);
+  }
+});
+
+// Filtro de archivos permitidos
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/png',
+    'image/jpeg',
+    'image/jpg'
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Tipo de archivo no permitido. Solo se aceptan PDF, Excel (.xlsx) e imágenes (PNG, JPG)'), false);
+  }
+};
+
+const upload = multer({ 
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10 MB máximo
+  }
+});
+
+// Rutas de evidencias
+// POST /api/quotes/:id/evidences - Subir evidencia
+router.post(
+  '/:id/evidences',
+  auth(['jefa_comercial','vendedor_comercial','admin']),
+  upload.single('file'),
+  (req, res, next) => {
+    // Pasar el ID de la cotización al controlador
+    req.params.quoteId = req.params.id;
+    next();
+  },
+  quoteEvidencesController.uploadEvidence
+);
+
+// GET /api/quotes/:id/evidences - Listar evidencias de una cotización
+router.get(
+  '/:id/evidences',
+  auth(),
+  (req, res, next) => {
+    req.params.quoteId = req.params.id;
+    next();
+  },
+  quoteEvidencesController.listEvidences
+);
+
+// GET /api/quotes/:id/evidences/stats - Estadísticas de evidencias
+router.get(
+  '/:id/evidences/stats',
+  auth(),
+  (req, res, next) => {
+    req.params.quoteId = req.params.id;
+    next();
+  },
+  quoteEvidencesController.getEvidencesStats
+);
+
+// GET /api/quotes/evidences/:evidenceId/download - Descargar evidencia
+router.get(
+  '/evidences/:evidenceId/download',
+  auth(),
+  (req, res, next) => {
+    req.params.id = req.params.evidenceId;
+    next();
+  },
+  quoteEvidencesController.downloadEvidence
+);
+
+// DELETE /api/quotes/evidences/:evidenceId - Eliminar evidencia
+router.delete(
+  '/evidences/:evidenceId',
+  auth(['jefa_comercial','vendedor_comercial','admin']),
+  (req, res, next) => {
+    req.params.id = req.params.evidenceId;
+    next();
+  },
+  quoteEvidencesController.deleteEvidence
+);
+
+// PATCH /api/quotes/evidences/:evidenceId/notes - Actualizar notas
+router.patch(
+  '/evidences/:evidenceId/notes',
+  auth(['jefa_comercial','vendedor_comercial','admin']),
+  (req, res, next) => {
+    req.params.id = req.params.evidenceId;
+    next();
+  },
+  quoteEvidencesController.updateEvidenceNotes
+);
 
 module.exports = router;
