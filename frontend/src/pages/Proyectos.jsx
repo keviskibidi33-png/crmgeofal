@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave, FiMessageSquare } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -34,6 +35,7 @@ const emptyForm = {
 };
 
 export default function Proyectos() {
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
@@ -60,6 +62,7 @@ export default function Proyectos() {
   const [laboratorioSearch, setLaboratorioSearch] = useState('');
   const [showVendedorDropdown, setShowVendedorDropdown] = useState(false);
   const [showLaboratorioDropdown, setShowLaboratorioDropdown] = useState(false);
+  const [newQuery, setNewQuery] = useState('');
   
   // Estados para servicios
   const [selectedServices, setSelectedServices] = useState([]);
@@ -594,7 +597,9 @@ export default function Proyectos() {
       subcategory_name: project.subcategory_name || '',
       // Incluir IDs de usuarios asignados
       vendedor_id: project.vendedor_id || '',
-      laboratorio_id: project.laboratorio_id || ''
+      laboratorio_id: project.laboratorio_id || '',
+      // Inicializar historial de consultas
+      queries_history: project.queries_history || []
     };
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
@@ -1642,14 +1647,79 @@ export default function Proyectos() {
                             <div className="col-md-6">
                     <div className="info-card">
                       <h6>❓ Consultas del Cliente</h6>
-                              <textarea 
-                                className="form-control" 
-                                rows="4"
-                                value={editingData.queries || ''} 
-                                onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
-                                placeholder="Consultas y dudas del cliente..."
-                              />
+                      
+                      {/* Área de comentarios existentes */}
+                      <div className="mb-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                        {editingData.queries_history && editingData.queries_history.length > 0 ? (
+                          editingData.queries_history.map((comment, index) => (
+                            <div key={index} className="mb-2 p-2 bg-light rounded border-start border-3 border-primary">
+                              <div className="d-flex justify-content-between align-items-start mb-1">
+                                <small className="fw-bold text-primary">
+                                  👤 {comment.user_name || 'Usuario'}
+                                </small>
+                                <small className="text-muted">
+                                  {new Date(comment.created_at).toLocaleString('es-ES', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </small>
+                              </div>
+                              <div className="small">{comment.message}</div>
                             </div>
+                          ))
+                        ) : (
+                          <div className="text-center text-muted py-3">
+                            <small>No hay consultas registradas</small>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Área para agregar nueva consulta */}
+                      <div className="border-top pt-3">
+                        <label className="form-label small fw-bold">Agregar consulta:</label>
+                        <textarea 
+                          className="form-control" 
+                          rows="3"
+                          value={newQuery} 
+                          onChange={(e) => setNewQuery(e.target.value)}
+                          placeholder="Escribe una nueva consulta o respuesta..."
+                        />
+                        <div className="d-flex justify-content-end mt-2">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              if (newQuery && newQuery.trim()) {
+                                const newComment = {
+                                  message: newQuery.trim(),
+                                  user_name: user?.name || 'Usuario',
+                                  created_at: new Date().toISOString()
+                                };
+                                
+                                const updatedHistory = [
+                                  ...(editingData.queries_history || []),
+                                  newComment
+                                ];
+                                
+                                setEditingData({
+                                  ...editingData,
+                                  queries_history: updatedHistory,
+                                  queries: newQuery.trim() // Mantener compatibilidad
+                                });
+                                
+                                setNewQuery(''); // Limpiar el campo
+                              }
+                            }}
+                            disabled={!newQuery || !newQuery.trim()}
+                          >
+                            <FiMessageSquare className="me-1" />
+                            Agregar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                           </div>
                         </div>
 
@@ -1999,14 +2069,43 @@ export default function Proyectos() {
                           {project.updated_at ? new Date(project.updated_at).toLocaleDateString('es-ES') : 'No disponible'}
                             </div>
                                         </div>
-                      {project.queries && (
-                        <div className="info-item">
-                          <label>Consultas/Notas</label>
-                          <div className="value" style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
-                            {project.queries}
-                                          </div>
-                                          </div>
-                                          )}
+                    {project.queries && (
+                      <div className="info-item">
+                        <label>Consultas/Notas</label>
+                        <div className="value" style={{ fontSize: '0.9rem', lineHeight: '1.4', maxHeight: '200px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '5px', padding: '10px' }}>
+                          {(() => {
+                            try {
+                              // Intentar parsear como JSON (historial de consultas)
+                              const history = JSON.parse(project.queries);
+                              if (Array.isArray(history) && history.length > 0) {
+                                return history.map((entry, index) => (
+                                  <div key={index} className="mb-2 pb-2" style={{ borderBottom: index < history.length - 1 ? '1px dotted #eee' : 'none' }}>
+                                    <div className="fw-bold d-flex align-items-center">
+                                      <FiMessageSquare className="me-1 text-primary" />
+                                      👤 {entry.user_name || 'Usuario Desconocido'}
+                                      <span className="ms-auto text-muted small" style={{ fontSize: '0.75rem' }}>
+                                        {new Date(entry.created_at).toLocaleString('es-ES', { 
+                                          day: '2-digit', 
+                                          month: '2-digit', 
+                                          hour: '2-digit', 
+                                          minute: '2-digit' 
+                                        })}
+                                      </span>
+                                    </div>
+                                    <p className="mb-0 ms-3" style={{ fontSize: '0.85rem' }}>{entry.message}</p>
+                                  </div>
+                                ));
+                              } else {
+                                return <p className="text-muted">No hay consultas registradas.</p>;
+                              }
+                            } catch (e) {
+                              // Fallback si queries no es JSON válido (texto plano)
+                              return <p className="text-muted">{project.queries}</p>;
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    )}
                                         </div>
                                       </div>
                 </div>
