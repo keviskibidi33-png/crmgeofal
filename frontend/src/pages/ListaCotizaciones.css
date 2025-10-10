@@ -12,8 +12,7 @@
 }
 
 .quote-row.selected {
-  background-color: #e3f2fd !important;
-  border-left: 4px solid #2196f3;
+  background-color: #f8f9fa !important;
 }
 
 .quote-row.selecting {
@@ -33,13 +32,13 @@
 }
 
 .quote-row.selected .selection-indicator {
-  background-color: #2196f3;
-  border-color: #2196f3;
+  background-color: #007bff;
+  border-color: #007bff;
   color: white;
 }
 
 .quote-row:hover .selection-indicator {
-  border-color: #2196f3;
+  border-color: #007bff;
 }
 
 /* Indicador de selección en lote */
@@ -150,13 +149,12 @@
 /* Efectos de hover mejorados */
 .table tbody tr:hover {
   background-color: #f8f9fa;
-  transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .table tbody tr.selected:hover {
-  background-color: #e3f2fd;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  background-color: #e9ecef !important;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
 }
 
 /* Prevenir efectos de hover cuando se está sobre botones de acción */
@@ -322,16 +320,9 @@
   animation: slideInRow 0.3s ease-out;
 }
 
-/* Efecto de selección con gradiente */
-.quote-row.selected::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(to bottom, #2196f3, #1976d2);
-  border-radius: 0 2px 2px 0;
+/* Efecto de selección sutil - usando border en lugar de pseudo-elemento */
+.quote-row.selected {
+  border-left: 3px solid #007bff !important;
 }
 
 /* Mejoras en los badges de estado */

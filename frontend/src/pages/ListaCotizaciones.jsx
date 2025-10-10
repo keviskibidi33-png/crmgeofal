@@ -11,7 +11,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
-import useMultiSelect from '../hooks/useMultiSelect';
+import useSimpleMultiSelect from '../hooks/useSimpleMultiSelect';
 import { listQuotes, createQuote, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
 import { listProjects } from '../services/projects';
@@ -90,21 +90,17 @@ export default function ListaCotizaciones() {
 
   const quotes = data?.data || [];
 
-  // Hook de selección múltiple
+  // Hook de selección múltiple simple
   const {
     selectedItems,
     selectedIds,
-    isSelecting,
     isAllSelected,
     isPartiallySelected,
     isSelected,
     toggleItem,
     toggleAll,
-    handleMouseDown,
-    handleMouseEnter,
-    handleMouseUp,
     clearSelection
-  } = useMultiSelect(quotes, (quote) => quote.id);
+  } = useSimpleMultiSelect(quotes, (quote) => quote.id);
 
   const showBulkActions = selectedIds.length > 0;
 
@@ -353,22 +349,28 @@ export default function ListaCotizaciones() {
                   <th style={{ width: '120px' }}>Acciones</th>
                 </tr>
               </thead>
-              <tbody
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
+              <tbody>
                 {quotes.map((quote, index) => (
                   <tr
                     key={quote.id}
-                    className={`quote-row ${isSelected(quote) ? 'selected' : ''} ${isSelecting ? 'selecting' : ''}`}
-                    onMouseDown={(e) => handleMouseDown(quote, index, e)}
-                    onMouseEnter={(e) => handleMouseEnter(quote, index, e)}
-                    onMouseUp={handleMouseUp}
+                    className={`quote-row ${isSelected(quote) ? 'selected' : ''}`}
                   >
                     <td>
-                      <div className="selection-indicator">
-                        {isSelected(quote) && <FiCheck size={16} />}
-                      </div>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleItem(quote);
+                        }}
+                        className="p-1"
+                      >
+                        {isSelected(quote) ? (
+                          <FiCheck size={16} />
+                        ) : (
+                          <FiSquare size={16} />
+                        )}
+                      </Button>
                     </td>
                     <td>{quote.id}</td>
                     <td>

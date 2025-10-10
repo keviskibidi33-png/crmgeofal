@@ -12,6 +12,7 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
   const [selectionStart, setSelectionStart] = useState(null);
   const [selectionEnd, setSelectionEnd] = useState(null);
   const selectionRef = useRef(null);
+  const dragOccurred = useRef(false);
 
   // Obtener IDs de elementos seleccionados
   const selectedIds = Array.from(selectedItems);
@@ -87,17 +88,20 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
     setIsSelecting(true);
     setSelectionStart(startIndex);
     setSelectionEnd(startIndex);
+    dragOccurred.current = false; // Reset drag flag
   }, []);
 
   // Actualizar rango de selección
   const updateRangeSelection = useCallback((endIndex) => {
-    if (isSelecting) {
+    if (isSelecting && selectionStart !== null && endIndex !== selectionEnd) {
       setSelectionEnd(endIndex);
+      dragOccurred.current = true; // A drag has occurred
       
       const start = Math.min(selectionStart, endIndex);
       const end = Math.max(selectionStart, endIndex);
       
-      const newSelected = new Set(selectedItems);
+      // Crear un nuevo set con solo los elementos del rango actual
+      const newSelected = new Set();
       for (let i = start; i <= end; i++) {
         if (items[i]) {
           newSelected.add(getItemId(items[i]));
@@ -105,7 +109,7 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
       }
       setSelectedItems(newSelected);
     }
-  }, [isSelecting, selectionStart, selectedItems, items, getItemId]);
+  }, [isSelecting, selectionStart, selectionEnd, items, getItemId]);
 
   // Finalizar selección por rango
   const endRangeSelection = useCallback(() => {
@@ -114,11 +118,26 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
     setSelectionEnd(null);
   }, []);
 
-  // Manejar clic en elemento
+  // Limpiar selección
+  const clearSelection = useCallback(() => {
+    setSelectedItems(new Set());
+    setIsSelecting(false);
+    setSelectionStart(null);
+    setSelectionEnd(null);
+  }, []);
+
+  // Manejar clic en elemento (para checkboxes)
   const handleItemClick = useCallback((item, index, event) => {
     if (event.button === 0) { // Solo botón izquierdo
       event.preventDefault();
-      
+      event.stopPropagation();
+
+      // If a drag occurred, this click is part of the drag, so don't process as a simple click
+      if (dragOccurred.current) {
+        dragOccurred.current = false; // Reset for next interaction
+        return;
+      }
+
       if (event.ctrlKey || event.metaKey) {
         // Selección múltiple con Ctrl/Cmd
         toggleItem(item);
@@ -127,7 +146,7 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
         const start = Math.min(selectionStart, index);
         const end = Math.max(selectionStart, index);
         
-        const newSelected = new Set(selectedItems);
+        const newSelected = new Set();
         for (let i = start; i <= end; i++) {
           if (items[i]) {
             newSelected.add(getItemId(items[i]));
@@ -135,32 +154,32 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
         }
         setSelectedItems(newSelected);
       } else {
-        // Selección individual
+        // Selección individual (plain click)
         if (isSelected(item)) {
-          deselectItem(item);
+          toggleItem(item); // Deselect if already selected
         } else {
-          selectItem(item);
+          clearSelection(); // Clear others
+          selectItem(item); // Select this one
         }
         setSelectionStart(index);
       }
     }
-  }, [toggleItem, isSelected, deselectItem, selectItem, selectionStart, selectedItems, items, getItemId]);
+  }, [toggleItem, selectItem, clearSelection, selectionStart, items, getItemId, isSelected]);
 
   // Manejar mouse down para arrastrar
   const handleMouseDown = useCallback((item, index, event) => {
     if (event.button === 0) {
       event.preventDefault();
-      startRangeSelection(index);
-      toggleItem(item);
+      startRangeSelection(index); // Just start the range selection state
     }
-  }, [startRangeSelection, toggleItem]);
+  }, [startRangeSelection]);
 
   // Manejar mouse enter durante arrastre
   const handleMouseEnter = useCallback((item, index, event) => {
-    if (isSelecting) {
+    if (isSelecting && selectionStart !== null && index !== selectionEnd) {
       updateRangeSelection(index);
     }
-  }, [isSelecting, updateRangeSelection]);
+  }, [isSelecting, selectionStart, selectionEnd, updateRangeSelection]);
 
   // Manejar mouse up
   const handleMouseUp = useCallback(() => {
@@ -171,14 +190,6 @@ export const useMultiSelect = (items = [], getItemId = (item) => item.id) => {
   const getSelectedItems = useCallback(() => {
     return items.filter(item => isSelected(item));
   }, [items, isSelected]);
-
-  // Limpiar selección
-  const clearSelection = useCallback(() => {
-    setSelectedItems(new Set());
-    setIsSelecting(false);
-    setSelectionStart(null);
-    setSelectionEnd(null);
-  }, []);
 
   return {
     // Estado
