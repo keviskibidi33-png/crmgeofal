@@ -11,6 +11,7 @@ import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
+import SuccessModal from '../components/SuccessModal';
 import useSimpleMultiSelect from '../hooks/useSimpleMultiSelect';
 import { listQuotes, createQuote, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
@@ -20,6 +21,8 @@ import './ListaCotizaciones.css';
 export default function ListaCotizaciones() {
   const [deletingQuote, setDeletingQuote] = useState(null);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -148,9 +151,17 @@ export default function ListaCotizaciones() {
       };
       const created = await createQuote(payload);
       queryClient.invalidateQueries('quotes');
-      navigate(`/cotizaciones/${created.id}/editar`);
+      
+      // Mostrar modal de éxito y cargar el módulo de cotización
+      setSuccessMessage(`Cotización clonada exitosamente. Código: ${created.quote_code || created.id}`);
+      setShowSuccessModal(true);
+      
+      // Cargar el módulo de cotización con los datos clonados
+      navigate(`/cotizaciones?edit=${created.id}`);
     } catch (error) {
       console.error('Error cloning quote:', error);
+      setSuccessMessage('Error al clonar la cotización. Por favor, inténtalo de nuevo.');
+      setShowSuccessModal(true);
     }
   };
 
@@ -558,6 +569,15 @@ export default function ListaCotizaciones() {
         onCancel={() => setBulkDeleting(false)}
         confirmText="Eliminar Todas"
         confirmVariant="danger"
+      />
+
+      {/* Modal de Éxito */}
+      <SuccessModal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+        title="¡Cotización Clonada!"
+        message={successMessage}
+        buttonText="Continuar"
       />
     </Container>
   );
