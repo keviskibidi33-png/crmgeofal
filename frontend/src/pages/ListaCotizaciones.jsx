@@ -349,6 +349,7 @@ export default function ListaCotizaciones() {
                   <th>Estado</th>
                   <th>Total</th>
                   <th>Fecha</th>
+                  <th>Creado por</th>
                   <th style={{ width: '120px' }}>Acciones</th>
                 </tr>
               </thead>
@@ -418,6 +419,17 @@ export default function ListaCotizaciones() {
                       <span className="text-muted">
                         {formatDate(quote.created_at)}
                       </span>
+                    </td>
+                    <td>
+                      <div>
+                        <div className="fw-bold small">{quote.created_by_name || 'Usuario desconocido'}</div>
+                        <div className="text-muted small">
+                          {new Date(quote.created_at).toLocaleTimeString('es-ES', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
                     </td>
                     <td>
                       <div className="btn-group" role="group">
