@@ -35,56 +35,44 @@ const TicketChatVendedor = ({ ticketId }) => {
   // Sistema de conversación idéntico al módulo de proyectos (queries_history)
   useEffect(() => {
     loadComments();
-  }, [ticketId]);
+    
+    // Polling para actualizar comentarios cada 5 segundos
+    const interval = setInterval(() => {
+      if (isOnline) {
+        loadComments();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [ticketId, isOnline]);
 
   const loadComments = async () => {
     try {
-      // Intentar cargar desde backend
-      if (isOnline) {
-        const backendComments = await getCommentsByTicket(ticketId);
-        if (backendComments && backendComments.length > 0) {
-          // Convertir al formato queries_history (idéntico a proyectos)
-          const queriesHistory = backendComments.map(comment => ({
-            message: comment.comment,
-            user_name: comment.user_name || 'Usuario',
-            created_at: comment.created_at
-          }));
-          setComments(queriesHistory);
-          // Guardar como queries_history (mismo sistema que proyectos)
-          localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify(queriesHistory));
-          return;
-        }
+      // Cargar desde backend únicamente (como proyectos)
+      const backendComments = await getCommentsByTicket(ticketId);
+      console.log('🔍 Comentarios del backend:', backendComments);
+      
+      if (backendComments && backendComments.length > 0) {
+        // Convertir al formato queries_history (idéntico a proyectos)
+        const queriesHistory = backendComments.map(comment => ({
+          message: comment.comment,
+          user_name: comment.user_name || 'Usuario',
+          created_at: comment.created_at
+        }));
+        setComments(queriesHistory);
+        console.log('✅ Comentarios cargados desde backend:', queriesHistory);
+      } else {
+        // Si no hay comentarios, mostrar array vacío (como proyectos)
+        setComments([]);
+        console.log('📝 No hay comentarios en el backend');
       }
     } catch (error) {
-      console.log('Backend no disponible, usando localStorage');
-    }
-
-    // Fallback a localStorage con formato queries_history (idéntico a proyectos)
-    const savedQueriesHistory = localStorage.getItem(`ticket_${ticketId}_queries_history`);
-    if (savedQueriesHistory) {
-      try {
-        const queriesHistory = JSON.parse(savedQueriesHistory);
-        setComments(queriesHistory);
-      } catch (error) {
-        console.error('Error cargando queries_history:', error);
-        // Crear conversación inicial
-        createInitialConversation();
-      }
-    } else {
-      createInitialConversation();
+      console.error('❌ Error cargando comentarios del backend:', error);
+      // En caso de error, mostrar array vacío
+      setComments([]);
     }
   };
 
-  const createInitialConversation = () => {
-    const initialMessage = {
-      message: 'Ticket creado',
-      user_name: 'Sistema',
-      created_at: new Date().toISOString()
-    };
-    setComments([initialMessage]);
-    // Guardar como queries_history (mismo sistema que proyectos)
-    localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify([initialMessage]));
-  };
 
   // Scroll automático al final
   const scrollToBottom = () => {
@@ -101,40 +89,31 @@ const TicketChatVendedor = ({ ticketId }) => {
       setIsLoading(true);
       setSyncStatus('syncing');
       
-      // Crear mensaje en formato de conversación como en proyectos
-      const newMessage = {
-        message: newComment.trim(),
-        user_name: user?.name || 'Usuario',
-        created_at: new Date().toISOString()
-      };
+      const messageText = newComment.trim();
+      setNewComment(''); // Limpiar inmediatamente
 
-      // Agregar mensaje localmente inmediatamente (sistema idéntico a proyectos)
-      const updatedQueriesHistory = [...comments, newMessage];
-      setComments(updatedQueriesHistory);
-      localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify(updatedQueriesHistory));
-      
-      setNewComment('');
-      setIsLoading(false);
-
-      // Intentar sincronizar con backend
-      if (isOnline) {
-        try {
-          await createComment({
-            ticket_id: ticketId,
-            comment: newMessage.message
-          });
-          setSyncStatus('success');
-          alert('✅ Mensaje enviado al equipo de soporte');
-        } catch (error) {
-          console.error('Error sincronizando con backend:', error);
-          setSyncStatus('error');
-          alert('⚠️ Mensaje guardado localmente. Se sincronizará cuando el servidor esté disponible.');
-        }
-      } else {
+      try {
+        // Enviar al backend primero
+        const response = await createComment({
+          ticket_id: ticketId,
+          comment: messageText
+        });
+        
+        console.log('✅ Mensaje enviado al backend:', response);
+        
+        // Recargar comentarios desde el backend para sincronizar
+        await loadComments();
+        
+        setSyncStatus('success');
+        console.log('✅ Mensaje sincronizado correctamente');
+        
+      } catch (error) {
+        console.error('❌ Error enviando mensaje al backend:', error);
         setSyncStatus('error');
-        alert('📱 Mensaje guardado offline. Se sincronizará cuando haya conexión.');
+        // No mostrar modal, solo cambiar el estado visual
       }
 
+      setIsLoading(false);
       // Resetear estado después de 3 segundos
       setTimeout(() => setSyncStatus('idle'), 3000);
     }

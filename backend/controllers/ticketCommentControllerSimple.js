@@ -52,12 +52,13 @@ exports.create = async (req, res) => {
 exports.getByTicket = async (req, res) => {
   try {
     const { ticket_id } = req.params;
-    const comments = await TicketComment.getByTicketId(ticket_id);
+    console.log('🔍 [SIMPLE] Obteniendo comentarios para ticket:', ticket_id);
     
-    res.json({
-      success: true,
-      comments: comments
-    });
+    const comments = await TicketComment.getByTicketId(ticket_id);
+    console.log('✅ [SIMPLE] Comentarios encontrados:', comments.length);
+    
+    // Devolver directamente el array de comentarios (como espera el frontend)
+    res.json(comments);
   } catch (error) {
     console.error('❌ [SIMPLE] Error obteniendo comentarios:', error);
     res.status(500).json({ 
