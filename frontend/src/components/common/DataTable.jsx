@@ -1,7 +1,122 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Table, Form, InputGroup, Button, Badge, Dropdown, Pagination, Row, Col } from 'react-bootstrap';
 import { FiSearch, FiFilter, FiMoreVertical, FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
+import { createPortal } from 'react-dom';
 import './DataTable.css';
+
+// Componente de dropdown personalizado que se renderiza en portal
+const PortalDropdown = ({ actions, item, onEdit, onDelete, onView }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY + 5,
+        left: rect.left + window.scrollX
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleActionClick = (action) => {
+    if (action.onClick) {
+      action.onClick(item);
+    }
+    setIsOpen(false);
+  };
+
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
+        buttonRef.current && !buttonRef.current.contains(event.target)) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
+
+  const dropdownContent = isOpen && (
+    <div
+      ref={dropdownRef}
+      className="portal-dropdown-menu"
+      style={{
+        position: 'absolute',
+        top: position.top,
+        left: position.left,
+        zIndex: 9999,
+        minWidth: '160px',
+        backgroundColor: 'white',
+        border: '1px solid rgba(0, 0, 0, 0.15)',
+        borderRadius: '8px',
+        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.25)',
+        padding: '4px 0'
+      }}
+    >
+      {actions.length > 0 ? (
+        actions.map((action, actionIndex) => (
+          <button
+            key={actionIndex}
+            className={`portal-dropdown-item ${action.variant === 'outline-danger' ? 'text-danger' : ''}`}
+            onClick={() => handleActionClick(action)}
+          >
+            {action.icon && <action.icon className="me-2" />}
+            {action.label}
+          </button>
+        ))
+      ) : (
+        <>
+          {onView && (
+            <button className="portal-dropdown-item" onClick={() => { onView(item); setIsOpen(false); }}>
+              <FiEye className="me-2" />
+              Ver
+            </button>
+          )}
+          {onEdit && (
+            <button className="portal-dropdown-item" onClick={() => { onEdit(item); setIsOpen(false); }}>
+              <FiEdit className="me-2" />
+              Editar
+            </button>
+          )}
+          {onDelete && (
+            <button className="portal-dropdown-item text-danger" onClick={() => { onDelete(item); setIsOpen(false); }}>
+              <FiTrash2 className="me-2" />
+              Eliminar
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        className="portal-dropdown-toggle"
+        onClick={handleToggle}
+        style={{
+          border: 'none',
+          background: 'transparent',
+          color: '#6c757d',
+          padding: '0.25rem 0.5rem',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        <FiMoreVertical />
+      </button>
+      {isOpen && createPortal(dropdownContent, document.body)}
+    </>
+  );
+};
 
 const DataTable = ({
   data = [],
@@ -282,49 +397,13 @@ const DataTable = ({
                   
                   {actions.length > 0 && (
                     <td className="text-center">
-                      <Dropdown>
-                        <Dropdown.Toggle variant="link" size="sm" className="text-muted">
-                          <FiMoreVertical />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          {actions.length > 0 ? (
-                            actions.map((action, actionIndex) => (
-                              <Dropdown.Item 
-                                key={actionIndex}
-                                onClick={() => action.onClick && action.onClick(item)}
-                                className={action.variant === 'outline-danger' ? 'text-danger' : ''}
-                              >
-                                {action.icon && <action.icon className="me-2" />}
-                                {action.label}
-                              </Dropdown.Item>
-                            ))
-                          ) : (
-                            <>
-                              {onView && (
-                                <Dropdown.Item onClick={() => onView(item)}>
-                                  <FiEye className="me-2" />
-                                  Ver
-                                </Dropdown.Item>
-                              )}
-                              {onEdit && (
-                                <Dropdown.Item onClick={() => onEdit(item)}>
-                                  <FiEdit className="me-2" />
-                                  Editar
-                                </Dropdown.Item>
-                              )}
-                              {onDelete && (
-                                <Dropdown.Item 
-                                  onClick={() => onDelete(item)}
-                                  className="text-danger"
-                                >
-                                  <FiTrash2 className="me-2" />
-                                  Eliminar
-                                </Dropdown.Item>
-                              )}
-                            </>
-                          )}
-                        </Dropdown.Menu>
-                      </Dropdown>
+                      <PortalDropdown 
+                        actions={actions}
+                        item={item}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onView={onView}
+                      />
                     </td>
                   )}
                 </tr>
