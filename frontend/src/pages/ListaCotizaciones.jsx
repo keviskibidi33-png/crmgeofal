@@ -210,6 +210,38 @@ export default function ListaCotizaciones() {
     return project ? project.name : 'Sin proyecto';
   };
 
+  const getRoleAbbreviation = (role) => {
+    if (!role) return '';
+    
+    const roleMap = {
+      'admin': 'Admin',
+      'jefa_comercial': 'Jefa Com.',
+      'vendedor_comercial': 'Vend.',
+      'tecnico_laboratorio': 'Téc. Lab.',
+      'jefe_laboratorio': 'Jefe Lab.',
+      'supervisor_campo': 'Sup. Campo',
+      'tecnico_campo': 'Téc. Campo'
+    };
+    
+    return roleMap[role] || role.substring(0, 8);
+  };
+
+  const getRoleColor = (role) => {
+    if (!role) return 'secondary';
+    
+    const colorMap = {
+      'admin': 'danger',           // Rojo para admin
+      'jefa_comercial': 'primary', // Azul para jefa comercial
+      'vendedor_comercial': 'info', // Celeste para vendedor
+      'tecnico_laboratorio': 'success', // Verde para técnico lab
+      'jefe_laboratorio': 'success', // Verde para jefe lab
+      'supervisor_campo': 'warning', // Amarillo para supervisor
+      'tecnico_campo': 'warning'   // Amarillo para técnico campo
+    };
+    
+    return colorMap[role] || 'secondary';
+  };
+
   const stats = useMemo(() => {
     if (!quotes.length) return { total: 0, borrador: 0, enviada: 0, aprobada: 0, rechazada: 0 };
     
@@ -235,8 +267,8 @@ export default function ListaCotizaciones() {
       />
 
       {/* Estadísticas */}
-      <Row className="mb-4">
-        <Col md={2}>
+      <Row className="mb-4 g-3">
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Total"
             value={stats.total}
@@ -244,7 +276,7 @@ export default function ListaCotizaciones() {
             color="primary"
           />
         </Col>
-        <Col md={2}>
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Borradores"
             value={stats.borrador}
@@ -252,7 +284,7 @@ export default function ListaCotizaciones() {
             color="secondary"
           />
         </Col>
-        <Col md={2}>
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Enviadas"
             value={stats.enviada}
@@ -260,7 +292,7 @@ export default function ListaCotizaciones() {
             color="info"
           />
         </Col>
-        <Col md={2}>
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Aprobadas"
             value={stats.aprobada}
@@ -268,7 +300,7 @@ export default function ListaCotizaciones() {
             color="success"
           />
         </Col>
-        <Col md={2}>
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Rechazadas"
             value={stats.rechazada}
@@ -276,7 +308,7 @@ export default function ListaCotizaciones() {
             color="danger"
           />
         </Col>
-        <Col md={2}>
+        <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Seleccionadas"
             value={selectedIds.length}
@@ -425,7 +457,16 @@ export default function ListaCotizaciones() {
                     <td>
                       <div>
                         <div className="fw-bold small">{quote.created_by_name || 'Usuario desconocido'}</div>
-                        <div className="text-muted small">
+                        <div className="mt-1">
+                          <Badge 
+                            bg={getRoleColor(quote.created_by_role)} 
+                            className="small"
+                            style={{ fontSize: '0.7rem' }}
+                          >
+                            {getRoleAbbreviation(quote.created_by_role)}
+                          </Badge>
+                        </div>
+                        <div className="text-muted small mt-1">
                           {new Date(quote.created_at).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
                             minute: '2-digit'
