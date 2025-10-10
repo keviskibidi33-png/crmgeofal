@@ -153,6 +153,16 @@ const TicketChatVendedor = ({ ticketId }) => {
 
   const isSystemComment = (comment) => comment.is_system || comment.user_name === 'Sistema';
 
+  // Función para obtener color consistente por usuario
+  const getUserColor = (userName) => {
+    const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+    const hash = userName.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   const getSyncStatusIcon = () => {
     switch (syncStatus) {
       case 'syncing': return <div className="spinner-small"></div>;
@@ -179,37 +189,51 @@ const TicketChatVendedor = ({ ticketId }) => {
       </div>
 
       <div className="ticket-chat-messages">
-        {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className={`message ${isSystemComment(comment) ? 'system' : comment.user_id === user?.id ? 'own' : 'other'}`}
-          >
-            <div className="message-header">
-              <div className="message-user">
-                <FiUser className="user-icon" />
-                <span className="user-name">
-                  {isSystemComment(comment) ? 'Sistema' : `${comment.user_name} ${comment.user_apellido}`}
-                </span>
-                {comment.user_role && comment.user_role !== 'system' && (
-                  <span className="user-role">({comment.user_role})</span>
-                )}
+        {comments.map((comment) => {
+          const userColor = isSystemComment(comment) ? '#6c757d' : getUserColor(comment.user_name || 'Usuario');
+          
+          return (
+            <div
+              key={comment.id}
+              className={`message ${isSystemComment(comment) ? 'system' : comment.user_id === user?.id ? 'own' : 'other'}`}
+            >
+              <div className="message-header">
+                <div className="message-user">
+                  <div 
+                    className="user-color-bar"
+                    style={{ 
+                      width: '4px', 
+                      height: '20px', 
+                      backgroundColor: userColor,
+                      borderRadius: '2px',
+                      marginRight: '8px'
+                    }}
+                  />
+                  <FiUser className="user-icon" style={{ color: userColor }} />
+                  <span className="user-name" style={{ color: userColor }}>
+                    {isSystemComment(comment) ? 'Sistema' : `${comment.user_name} ${comment.user_apellido}`}
+                  </span>
+                  {comment.user_role && comment.user_role !== 'system' && (
+                    <span className="user-role">({comment.user_role})</span>
+                  )}
+                </div>
+                <div className="message-time">
+                  <FiClock className="time-icon" />
+                  {formatDate(comment.created_at)}
+                </div>
               </div>
-              <div className="message-time">
-                <FiClock className="time-icon" />
-                {formatDate(comment.created_at)}
+              <div className="message-content">
+                {comment.comment}
               </div>
+              {comment.is_read && (
+                <div className="message-status">
+                  <FiCheck className="read-icon" />
+                  Leído
+                </div>
+              )}
             </div>
-            <div className="message-content">
-              {comment.comment}
-            </div>
-            {comment.is_read && (
-              <div className="message-status">
-                <FiCheck className="read-icon" />
-                Leído
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
