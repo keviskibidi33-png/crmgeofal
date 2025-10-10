@@ -6,6 +6,59 @@ const auth = require('../middlewares/auth');
 // Aplicar autenticación a todas las rutas
 router.use(auth());
 
+// Crear nueva notificación (POST principal)
+router.post('/', async (req, res) => {
+  try {
+    const { user_id, type, title, message, project_id, priority = 'normal', metadata = {} } = req.body;
+    const senderId = req.user.id;
+    
+    if (!user_id || !type || !title || !message) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: user_id, type, title, message' 
+      });
+    }
+    
+    const pool = require('../config/db');
+    const result = await pool.query(`
+      INSERT INTO notifications (
+        recipient_id, 
+        sender_id, 
+        type, 
+        title, 
+        message, 
+        related_entity_type,
+        related_entity_id,
+        priority, 
+        data, 
+        created_at,
+        updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      RETURNING *
+    `, [
+      user_id, 
+      senderId, 
+      type, 
+      title, 
+      message, 
+      project_id ? 'project' : null,
+      project_id || null,
+      priority, 
+      JSON.stringify(metadata)
+    ]);
+    
+    console.log('✅ Notificación creada:', result.rows[0]);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Notificación creada exitosamente',
+      notification: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Notificar cotización aprobada
 router.post('/quote-approved', async (req, res) => {
   try {

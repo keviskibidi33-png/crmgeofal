@@ -301,14 +301,35 @@ export default function Proyectos() {
       const baseUrl = apiUrl.replace(/\/api$/, '');
       const token = localStorage.getItem('token');
       
+      // Crear fecha y hora formateada
+      const now = new Date();
+      const fechaHora = now.toLocaleString('es-PE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      const roleText = role === 'vendedor' ? 'vendedor comercial responsable' : 'usuario de laboratorio responsable';
+      
       const notificationData = {
         user_id: userId,
         type: 'project_assignment',
-        title: `Proyecto Asignado - ${project.name}`,
-        message: `Se te ha asignado el proyecto "${project.name}" como ${role === 'vendedor' ? 'vendedor comercial responsable' : 'usuario de laboratorio responsable'}.`,
+        title: `🎯 Proyecto Asignado - ${project.name}`,
+        message: `Se te ha asignado el proyecto "${project.name}" como ${roleText}.\n\n📅 Fecha y hora: ${fechaHora}\n🏢 Empresa: ${project.company_name || 'No especificada'}\n📍 Ubicación: ${project.location || 'No especificada'}\n📞 Contacto: ${project.contact_name || 'No especificado'}`,
         project_id: project.id,
-        priority: 'normal'
+        priority: 'high',
+        metadata: {
+          assignment_date: now.toISOString(),
+          role: role,
+          project_name: project.name,
+          company_name: project.company_name
+        }
       };
+
+      console.log('📤 Enviando notificación:', notificationData);
 
       const response = await fetch(`${baseUrl}/api/notifications`, {
         method: 'POST',
@@ -320,13 +341,17 @@ export default function Proyectos() {
       });
 
       if (response.ok) {
-        console.log('✅ Notificación enviada exitosamente');
-        showNotification(`✅ Notificación enviada al ${role === 'vendedor' ? 'vendedor comercial' : 'usuario de laboratorio'}`, 'success');
+        const result = await response.json();
+        console.log('✅ Notificación enviada exitosamente:', result);
+        showNotification(`✅ Notificación enviada al ${roleText} - ${fechaHora}`, 'success');
       } else {
-        console.warn('⚠️ No se pudo enviar la notificación');
+        const errorText = await response.text();
+        console.warn('⚠️ No se pudo enviar la notificación:', response.status, errorText);
+        showNotification(`⚠️ Error enviando notificación al ${roleText}`, 'warning');
       }
     } catch (error) {
       console.error('❌ Error enviando notificación:', error);
+      showNotification(`❌ Error enviando notificación al ${role === 'vendedor' ? 'vendedor comercial' : 'usuario de laboratorio'}`, 'danger');
     }
   };
 
@@ -550,6 +575,20 @@ export default function Proyectos() {
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
     setEditingData(initialEditingData);
+    
+    // Inicializar campos de búsqueda con los nombres de usuarios asignados
+    if (project.vendedor_name) {
+      setVendedorSearch(project.vendedor_name);
+    } else {
+      setVendedorSearch('');
+    }
+    
+    if (project.laboratorio_name) {
+      setLaboratorioSearch(project.laboratorio_name);
+    } else {
+      setLaboratorioSearch('');
+    }
+    
     setActiveTab('info');
     setShowViewModal(true);
   };
