@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { listTickets, createTicket, updateTicketStatus } from '../services/tickets';
 import TicketFormUnified from '../components/TicketFormUnified';
 import TicketHistoryVendedor from '../components/TicketHistoryVendedor';
+import SuccessModal from '../components/SuccessModal';
 import './TicketsVendedor.css';
 
 const TicketsVendedor = () => {
@@ -18,6 +19,8 @@ const TicketsVendedor = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('todos');
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -37,7 +40,9 @@ const TicketsVendedor = () => {
     onSuccess: () => {
       queryClient.invalidateQueries('tickets-vendedor');
       setShowCreateModal(false);
-      alert('✅ Ticket creado exitosamente');
+      // Mostrar modal de éxito personalizado
+      setSuccessMessage('El ticket ha sido creado exitosamente y está listo para ser procesado por el equipo de soporte.');
+      setShowSuccessModal(true);
     },
     onError: () => {
       alert('❌ Error al crear el ticket');
@@ -49,7 +54,9 @@ const TicketsVendedor = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('tickets-vendedor');
-        alert('✅ Estado del ticket actualizado exitosamente');
+        // Mostrar modal de éxito personalizado
+        setSuccessMessage('El estado del ticket ha sido actualizado exitosamente.');
+        setShowSuccessModal(true);
       },
       onError: () => {
         alert('❌ Error al actualizar el ticket');
@@ -343,6 +350,15 @@ const TicketsVendedor = () => {
         onHide={() => setShowHistoryModal(false)}
         ticket={selectedTicket}
         onUpdateStatus={handleUpdateStatus}
+      />
+
+      {/* Modal de Éxito */}
+      <SuccessModal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+        title="¡Ticket Procesado!"
+        message={successMessage}
+        buttonText="Continuar"
       />
     </Container>
   );

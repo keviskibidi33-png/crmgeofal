@@ -1,0 +1,117 @@
+/* Modal de Éxito con Branding */
+.success-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.success-modal-body {
+  padding: 0;
+  background: linear-gradient(135deg, #f84616 0%, #ff6b35 100%);
+  color: white;
+  text-align: center;
+}
+
+.success-content {
+  padding: 2rem 2rem 1rem 2rem;
+}
+
+.success-icon {
+  margin-bottom: 1rem;
+}
+
+.success-icon svg {
+  width: 64px;
+  height: 64px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.success-text {
+  margin-bottom: 1rem;
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.success-message {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+.success-actions {
+  padding: 1rem 2rem 2rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.success-button {
+  background: white;
+  color: #f84616;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.success-button:hover {
+  background: #f8f9fa;
+  color: #e03d14;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.success-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Animación de entrada */
+.success-modal.show .modal-content {
+  animation: successModalSlideIn 0.3s ease-out;
+}
+
+@keyframes successModalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .success-content {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+  }
+  
+  .success-actions {
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+  }
+  
+  .success-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .success-title {
+    font-size: 1.25rem;
+  }
+  
+  .success-message {
+    font-size: 0.9rem;
+  }
+}

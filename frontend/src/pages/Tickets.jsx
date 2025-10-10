@@ -10,6 +10,7 @@ import PageHeader from '../components/common/PageHeader';
 import StatsCard from '../components/common/StatsCard';
 import TicketFormUnified from '../components/TicketFormUnified';
 import TicketHistoryWithChat from '../components/TicketHistoryWithChat';
+import SuccessModal from '../components/SuccessModal';
 import { listTickets, createTicket, updateTicketStatus } from '../services/tickets';
 import { getUsersForAssignment, getModules, getCategories, getTypes, getTicketStats } from '../services/ticketFilters';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -36,6 +37,8 @@ export default function Tickets() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -67,8 +70,9 @@ export default function Tickets() {
       queryClient.invalidateQueries('tickets');
       setShowModal(false);
       setEditingTicket(null);
-      // Mostrar notificación de éxito
-      alert('✅ Ticket creado exitosamente');
+      // Mostrar modal de éxito personalizado
+      setSuccessMessage('El ticket ha sido creado exitosamente y está listo para ser procesado por el equipo de soporte.');
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       console.error('Error creating ticket:', error);
@@ -81,8 +85,9 @@ export default function Tickets() {
     {
     onSuccess: () => {
       queryClient.invalidateQueries('tickets');
-        // Mostrar notificación de éxito
-        alert('✅ Estado del ticket actualizado exitosamente');
+        // Mostrar modal de éxito personalizado
+        setSuccessMessage('El estado del ticket ha sido actualizado exitosamente.');
+        setShowSuccessModal(true);
       },
       onError: (error) => {
         console.error('Error updating ticket:', error);
@@ -430,6 +435,15 @@ export default function Tickets() {
           onHide={() => setShowHistory(false)}
           ticket={selectedTicket}
           onUpdateStatus={handleStatusUpdate}
+        />
+
+        {/* Modal de Éxito */}
+        <SuccessModal
+          show={showSuccessModal}
+          onHide={() => setShowSuccessModal(false)}
+          title="¡Ticket Procesado!"
+          message={successMessage}
+          buttonText="Continuar"
         />
       </Container>
       </div>
