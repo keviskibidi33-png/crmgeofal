@@ -32,7 +32,7 @@ const TicketChatVendedor = ({ ticketId }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Cargar comentarios (backend + localStorage)
+  // Cargar comentarios usando el sistema de conversación como en proyectos
   useEffect(() => {
     loadComments();
   }, [ticketId]);
@@ -43,9 +43,14 @@ const TicketChatVendedor = ({ ticketId }) => {
       if (isOnline) {
         const backendComments = await getCommentsByTicket(ticketId);
         if (backendComments && backendComments.length > 0) {
-          setComments(backendComments);
-          // Sincronizar con localStorage
-          localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify(backendComments));
+          // Convertir al formato de conversación como en proyectos
+          const conversationHistory = backendComments.map(comment => ({
+            message: comment.comment,
+            user_name: comment.user_name || 'Usuario',
+            created_at: comment.created_at
+          }));
+          setComments(conversationHistory);
+          localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify(conversationHistory));
           return;
         }
       }
@@ -53,31 +58,30 @@ const TicketChatVendedor = ({ ticketId }) => {
       console.log('Backend no disponible, usando localStorage');
     }
 
-    // Fallback a localStorage
-    const savedComments = localStorage.getItem(`ticket_${ticketId}_comments`);
-    if (savedComments) {
+    // Fallback a localStorage con formato de conversación
+    const savedConversation = localStorage.getItem(`ticket_${ticketId}_conversation`);
+    if (savedConversation) {
       try {
-        setComments(JSON.parse(savedComments));
+        const conversationHistory = JSON.parse(savedConversation);
+        setComments(conversationHistory);
       } catch (error) {
-        console.error('Error cargando comentarios:', error);
+        console.error('Error cargando conversación:', error);
+        // Crear conversación inicial
+        createInitialConversation();
       }
     } else {
-      // Comentario inicial del sistema
-      const initialComment = {
-        id: Date.now(),
-        ticket_id: ticketId,
-        user_id: 'system',
-        user_name: 'Sistema',
-        user_apellido: '',
-        user_role: 'system',
-        comment: 'Ticket creado por vendedor',
-        is_system: true,
-        is_read: true,
-        created_at: new Date().toISOString()
-      };
-      setComments([initialComment]);
-      localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify([initialComment]));
+      createInitialConversation();
     }
+  };
+
+  const createInitialConversation = () => {
+    const initialMessage = {
+      message: 'Ticket creado',
+      user_name: 'Sistema',
+      created_at: new Date().toISOString()
+    };
+    setComments([initialMessage]);
+    localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify([initialMessage]));
   };
 
   // Scroll automático al final
@@ -95,23 +99,17 @@ const TicketChatVendedor = ({ ticketId }) => {
       setIsLoading(true);
       setSyncStatus('syncing');
       
-      const newCommentObj = {
-        id: Date.now(),
-        ticket_id: ticketId,
-        user_id: user?.id || 'unknown',
-        user_name: user?.name || 'Vendedor',
-        user_apellido: user?.apellido || '',
-        user_role: user?.role || 'vendedor',
-        comment: newComment.trim(),
-        is_system: false,
-        is_read: true,
+      // Crear mensaje en formato de conversación como en proyectos
+      const newMessage = {
+        message: newComment.trim(),
+        user_name: user?.name || 'Usuario',
         created_at: new Date().toISOString()
       };
 
-      // Agregar comentario localmente inmediatamente
-      const updatedComments = [...comments, newCommentObj];
-      setComments(updatedComments);
-      localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify(updatedComments));
+      // Agregar mensaje localmente inmediatamente
+      const updatedConversation = [...comments, newMessage];
+      setComments(updatedConversation);
+      localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify(updatedConversation));
       
       setNewComment('');
       setIsLoading(false);
@@ -121,18 +119,18 @@ const TicketChatVendedor = ({ ticketId }) => {
         try {
           await createComment({
             ticket_id: ticketId,
-            comment: newCommentObj.comment
+            comment: newMessage.message
           });
           setSyncStatus('success');
-          alert('✅ Comentario enviado al equipo de soporte');
+          alert('✅ Mensaje enviado al equipo de soporte');
         } catch (error) {
           console.error('Error sincronizando con backend:', error);
           setSyncStatus('error');
-          alert('⚠️ Comentario guardado localmente. Se sincronizará cuando el servidor esté disponible.');
+          alert('⚠️ Mensaje guardado localmente. Se sincronizará cuando el servidor esté disponible.');
         }
       } else {
         setSyncStatus('error');
-        alert('📱 Comentario guardado offline. Se sincronizará cuando haya conexión.');
+        alert('📱 Mensaje guardado offline. Se sincronizará cuando haya conexión.');
       }
 
       // Resetear estado después de 3 segundos
@@ -151,7 +149,7 @@ const TicketChatVendedor = ({ ticketId }) => {
     });
   };
 
-  const isSystemComment = (comment) => comment.is_system || comment.user_name === 'Sistema';
+  const isSystemComment = (comment) => comment.user_name === 'Sistema';
 
   // Función para obtener color consistente por usuario
   const getUserColor = (userName) => {
@@ -189,13 +187,14 @@ const TicketChatVendedor = ({ ticketId }) => {
       </div>
 
       <div className="ticket-chat-messages">
-        {comments.map((comment) => {
-          const userColor = isSystemComment(comment) ? '#6c757d' : getUserColor(comment.user_name || 'Usuario');
+        {comments.map((message, index) => {
+          const userColor = isSystemComment(message) ? '#6c757d' : getUserColor(message.user_name || 'Usuario');
+          const isOwnMessage = message.user_name === user?.name;
           
           return (
             <div
-              key={comment.id}
-              className={`message ${isSystemComment(comment) ? 'system' : comment.user_id === user?.id ? 'own' : 'other'}`}
+              key={index}
+              className={`message ${isSystemComment(message) ? 'system' : isOwnMessage ? 'own' : 'other'}`}
             >
               <div className="message-header">
                 <div className="message-user">
@@ -211,26 +210,21 @@ const TicketChatVendedor = ({ ticketId }) => {
                   />
                   <FiUser className="user-icon" style={{ color: userColor }} />
                   <span className="user-name" style={{ color: userColor }}>
-                    {isSystemComment(comment) ? 'Sistema' : `${comment.user_name} ${comment.user_apellido}`}
+                    {message.user_name}
                   </span>
-                  {comment.user_role && comment.user_role !== 'system' && (
-                    <span className="user-role">({comment.user_role})</span>
-                  )}
                 </div>
                 <div className="message-time">
                   <FiClock className="time-icon" />
-                  {formatDate(comment.created_at)}
+                  {formatDate(message.created_at)}
                 </div>
               </div>
               <div className="message-content">
-                {comment.comment}
+                {message.message}
               </div>
-              {comment.is_read && (
-                <div className="message-status">
-                  <FiCheck className="read-icon" />
-                  Leído
-                </div>
-              )}
+              <div className="message-status">
+                <FiCheck className="read-icon" />
+                Leído
+              </div>
             </div>
           );
         })}
