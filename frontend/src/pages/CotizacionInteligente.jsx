@@ -481,6 +481,11 @@ export default function CotizacionInteligente() {
         client_contact: client.contact_name,
         client_email: client.contact_email,
         client_phone: client.contact_phone,
+        client_company: client.company_name, // ✅ NUEVO: Razón social de la empresa
+        client_ruc: client.ruc, // ✅ NUEVO: RUC de la empresa
+        project_name: client.project_name, // ✅ NUEVO: Nombre del proyecto
+        project_location: client.project_location, // ✅ NUEVO: Ubicación del proyecto
+        request_date: quote.request_date || new Date().toISOString().slice(0, 10), // ✅ NUEVO: Fecha de solicitud
         issue_date: quote.issue_date || new Date().toISOString().slice(0, 10),
         subtotal,
         igv: igvAmount,
