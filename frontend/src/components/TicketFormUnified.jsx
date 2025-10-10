@@ -11,8 +11,6 @@ const TicketFormUnified = ({ show, onHide, onSubmit, isLoading }) => {
     module: 'sistema',
     category: '',
     type: '',
-    client_name: '',
-    project_name: '',
     assigned_to: '',
     estimated_time: '',
     tags: '',
@@ -64,8 +62,6 @@ const TicketFormUnified = ({ show, onHide, onSubmit, isLoading }) => {
         module: 'sistema',
         category: '',
         type: '',
-        client_name: '',
-        project_name: '',
         assigned_to: '',
         estimated_time: '',
         tags: '',
@@ -84,8 +80,6 @@ const TicketFormUnified = ({ show, onHide, onSubmit, isLoading }) => {
       module: 'sistema',
       category: '',
       type: '',
-      client_name: '',
-      project_name: '',
       assigned_to: '',
       estimated_time: '',
       tags: '',
@@ -164,39 +158,6 @@ const TicketFormUnified = ({ show, onHide, onSubmit, isLoading }) => {
               </div>
             </div>
 
-            {/* Información del cliente */}
-            <div className="user-form-section">
-              <h5 className="user-form-section-title">
-                <FiUser />
-                Información del Cliente
-              </h5>
-              
-              <div className="user-form-row">
-                <div className="user-form-group">
-                  <label className="user-form-label">Nombre del Cliente</label>
-                  <input
-                    type="text"
-                    name="client_name"
-                    value={formData.client_name}
-                    onChange={handleChange}
-                    placeholder="Nombre completo del cliente"
-                    className="user-form-input"
-                  />
-                </div>
-                
-                <div className="user-form-group">
-                  <label className="user-form-label">Proyecto Relacionado</label>
-                  <input
-                    type="text"
-                    name="project_name"
-                    value={formData.project_name}
-                    onChange={handleChange}
-                    placeholder="Nombre del proyecto (opcional)"
-                    className="user-form-input"
-                  />
-                </div>
-              </div>
-            </div>
 
             {/* Clasificación */}
             <div className="user-form-section">

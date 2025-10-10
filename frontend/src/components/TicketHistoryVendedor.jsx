@@ -95,16 +95,6 @@ const TicketHistoryVendedor = ({ show, onHide, ticket, onUpdateStatus }) => {
                           <strong>Descripción:</strong>
                           <p className="mb-2">{ticket.description}</p>
                         </div>
-                        <div className="info-item">
-                          <strong>Cliente:</strong>
-                          <p className="mb-2">{ticket.client_name || 'No especificado'}</p>
-                        </div>
-                        {ticket.project_name && (
-                          <div className="info-item">
-                            <strong>Proyecto:</strong>
-                            <p className="mb-2">{ticket.project_name}</p>
-                          </div>
-                        )}
                       </Col>
                       <Col md={6}>
                         <div className="info-item">
