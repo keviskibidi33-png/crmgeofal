@@ -690,32 +690,60 @@ export default function Proyectos() {
     {
       header: 'Servicios',
       accessor: 'services',
-      width: '120px',
-      className: 'd-none d-lg-table-cell', // Ocultar en pantallas pequeñas
-      render: (value, row) => (
-        <div className="d-flex flex-wrap gap-1">
-          {row.requiere_laboratorio && (
-            <Badge bg="info" size="sm" className="px-1">
-              Lab
+      width: '180px',
+      className: 'd-none d-lg-table-cell',
+      render: (value, row) => {
+        // Determinar servicio activo y su estado
+        if (row.requiere_laboratorio) {
+          const estadoLabMap = {
+            'no_requerido': 'N/A',
+            'pendiente': 'Pendiente',
+            'en_proceso': 'En Proceso',
+            'completado': 'Completado'
+          };
+          const estadoLab = estadoLabMap[row.laboratorio_status] || 'N/A';
+          return (
+            <div className="d-flex flex-column gap-1">
+              <Badge bg="info" size="sm" className="px-2">
+                🔬 Laboratorio
+              </Badge>
+              <span className="small text-muted">{estadoLab}</span>
+            </div>
+          );
+        }
+        
+        if (row.requiere_ingenieria) {
+          const estadoIngMap = {
+            'no_requerido': 'N/A',
+            'pendiente': 'Pendiente',
+            'en_proceso': 'En Proceso',
+            'completado': 'Completado'
+          };
+          const estadoIng = estadoIngMap[row.ingenieria_status] || 'N/A';
+          return (
+            <div className="d-flex flex-column gap-1">
+              <Badge bg="primary" size="sm" className="px-2">
+                ⚙️ Ingeniería
+              </Badge>
+              <span className="small text-muted">{estadoIng}</span>
+            </div>
+          );
+        }
+        
+        if (row.requiere_consultoria) {
+          return (
+            <Badge bg="success" size="sm" className="px-2">
+              💼 Consultoría
             </Badge>
-          )}
-          {row.requiere_ingenieria && (
-            <Badge bg="primary" size="sm" className="px-1">
-              Ing
-            </Badge>
-          )}
-          {row.requiere_consultoria && (
-            <Badge bg="success" size="sm" className="px-1">
-              Cons
-            </Badge>
-          )}
-          {!row.requiere_laboratorio && !row.requiere_ingenieria && !row.requiere_consultoria && (
-            <Badge bg="secondary" size="sm" className="px-1">
-              N/A
-            </Badge>
-          )}
-        </div>
-      )
+          );
+        }
+        
+        return (
+          <Badge bg="secondary" size="sm" className="px-1">
+            N/A
+          </Badge>
+        );
+      }
     },
     {
       header: 'Prioridad',
@@ -1502,7 +1530,25 @@ export default function Proyectos() {
                             <select 
                               className="form-select" 
                             value={editingData.laboratorio_status || 'no_requerido'} 
-                              onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Si se activa laboratorio (no es "no_requerido"), desactivar ingeniería
+                                if (newValue !== 'no_requerido') {
+                                  setEditingData({
+                                    ...editingData, 
+                                    laboratorio_status: newValue,
+                                    ingenieria_status: 'no_requerido',
+                                    requiere_laboratorio: true,
+                                    requiere_ingenieria: false
+                                  });
+                                } else {
+                                  setEditingData({
+                                    ...editingData, 
+                                    laboratorio_status: newValue,
+                                    requiere_laboratorio: false
+                                  });
+                                }
+                              }}
                             >
                               <option value="no_requerido">No Requerido</option>
                               <option value="pendiente">Pendiente</option>
@@ -1516,7 +1562,25 @@ export default function Proyectos() {
                             <select 
                               className="form-select" 
                             value={editingData.ingenieria_status || 'no_requerido'} 
-                              onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Si se activa ingeniería (no es "no_requerido"), desactivar laboratorio
+                                if (newValue !== 'no_requerido') {
+                                  setEditingData({
+                                    ...editingData, 
+                                    ingenieria_status: newValue,
+                                    laboratorio_status: 'no_requerido',
+                                    requiere_ingenieria: true,
+                                    requiere_laboratorio: false
+                                  });
+                                } else {
+                                  setEditingData({
+                                    ...editingData, 
+                                    ingenieria_status: newValue,
+                                    requiere_ingenieria: false
+                                  });
+                                }
+                              }}
                             >
                               <option value="no_requerido">No Requerido</option>
                               <option value="pendiente">Pendiente</option>
