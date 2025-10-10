@@ -53,6 +53,12 @@ export default function Proyectos() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
   
+  // Estados para buscadores de usuarios
+  const [vendedorSearch, setVendedorSearch] = useState('');
+  const [laboratorioSearch, setLaboratorioSearch] = useState('');
+  const [showVendedorDropdown, setShowVendedorDropdown] = useState(false);
+  const [showLaboratorioDropdown, setShowLaboratorioDropdown] = useState(false);
+  
   // Estados para servicios
   const [selectedServices, setSelectedServices] = useState([]);
   const [showServiceForm, setShowServiceForm] = useState(false);
@@ -132,6 +138,21 @@ export default function Proyectos() {
     };
     loadAttachments();
   }, [selectedProject?.id, showViewModal]);
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.position-relative')) {
+        setShowVendedorDropdown(false);
+        setShowLaboratorioDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('projects');
@@ -236,6 +257,85 @@ export default function Proyectos() {
       showNotification('❌ Error al eliminar archivo', 'danger');
       setDeletingFile(null);
     }
+  };
+
+  // Funciones para manejo de usuarios
+  const handleVendedorSelect = (user) => {
+    setEditingData({...editingData, vendedor_id: user.id});
+    setVendedorSearch(`${user.name} ${user.apellido}`);
+    setShowVendedorDropdown(false);
+    
+    // Enviar notificación al vendedor asignado
+    if (user.id && selectedProject) {
+      sendAssignmentNotification(user.id, 'vendedor', selectedProject);
+    }
+  };
+
+  const handleLaboratorioSelect = (user) => {
+    setEditingData({...editingData, laboratorio_id: user.id});
+    setLaboratorioSearch(`${user.name} ${user.apellido}`);
+    setShowLaboratorioDropdown(false);
+    
+    // Enviar notificación al responsable de laboratorio asignado
+    if (user.id && selectedProject) {
+      sendAssignmentNotification(user.id, 'laboratorio', selectedProject);
+    }
+  };
+
+  const sendAssignmentNotification = async (userId, role, project) => {
+    try {
+      const apiUrl = import.meta.env?.VITE_API_URL || 'http://localhost:4000';
+      const baseUrl = apiUrl.replace(/\/api$/, '');
+      const token = localStorage.getItem('token');
+      
+      const notificationData = {
+        user_id: userId,
+        type: 'project_assignment',
+        title: `Proyecto Asignado - ${project.name}`,
+        message: `Se te ha asignado el proyecto "${project.name}" como ${role === 'vendedor' ? 'vendedor responsable' : 'responsable de laboratorio'}.`,
+        project_id: project.id,
+        priority: 'normal'
+      };
+
+      const response = await fetch(`${baseUrl}/api/notifications`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(notificationData)
+      });
+
+      if (response.ok) {
+        console.log('✅ Notificación enviada exitosamente');
+        showNotification(`✅ Notificación enviada al ${role === 'vendedor' ? 'vendedor' : 'responsable de laboratorio'}`, 'success');
+      } else {
+        console.warn('⚠️ No se pudo enviar la notificación');
+      }
+    } catch (error) {
+      console.error('❌ Error enviando notificación:', error);
+    }
+  };
+
+  // Filtrar usuarios por búsqueda
+  const getFilteredVendedores = () => {
+    if (!data?.users) return [];
+    return data.users.filter(user => 
+      ['vendedor_comercial', 'jefa_comercial'].includes(user.role) &&
+      (vendedorSearch === '' || 
+       `${user.name} ${user.apellido}`.toLowerCase().includes(vendedorSearch.toLowerCase()) ||
+       user.email?.toLowerCase().includes(vendedorSearch.toLowerCase()))
+    );
+  };
+
+  const getFilteredLaboratorio = () => {
+    if (!data?.users) return [];
+    return data.users.filter(user => 
+      ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(user.role) &&
+      (laboratorioSearch === '' || 
+       `${user.name} ${user.apellido}`.toLowerCase().includes(laboratorioSearch.toLowerCase()) ||
+       user.email?.toLowerCase().includes(laboratorioSearch.toLowerCase()))
+    );
   };
 
   // Opciones de filtros específicas para proyectos
@@ -429,7 +529,10 @@ export default function Proyectos() {
       category_id: project.category_id || '',
       subcategory_id: project.subcategory_id || '',
       category_name: project.category_name || '',
-      subcategory_name: project.subcategory_name || ''
+      subcategory_name: project.subcategory_name || '',
+      // Incluir IDs de usuarios asignados
+      vendedor_id: project.vendedor_id || '',
+      laboratorio_id: project.laboratorio_id || ''
     };
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
@@ -987,12 +1090,12 @@ export default function Proyectos() {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                   }
                   .project-header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: #f84616;
                     color: white;
                     padding: 1.5rem;
                     border-radius: 12px;
                     margin-bottom: 2rem;
-                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                    box-shadow: 0 8px 25px rgba(248, 70, 22, 0.3);
                   }
                   .project-header h4 {
                     margin: 0;
@@ -1075,11 +1178,11 @@ export default function Proyectos() {
                     transition: all 0.2s ease;
                   }
                   .form-control:focus, .form-select:focus {
-                    border-color: #667eea;
-                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    border-color: #f84616;
+                    box-shadow: 0 0 0 3px rgba(248, 70, 22, 0.1);
                   }
                   .btn-primary {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: #f84616;
                     border: none;
                     border-radius: 8px;
                     padding: 0.75rem 2rem;
@@ -1087,8 +1190,9 @@ export default function Proyectos() {
                     transition: all 0.2s ease;
                   }
                   .btn-primary:hover {
+                    background: #e03d14;
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                    box-shadow: 0 8px 25px rgba(248, 70, 22, 0.3);
                   }
                   .btn-secondary {
                     border-radius: 8px;
@@ -1105,8 +1209,8 @@ export default function Proyectos() {
                     cursor: pointer;
                   }
                   .file-upload-area:hover {
-                    border-color: #667eea;
-                    background: #f0f4ff;
+                    border-color: #f84616;
+                    background: #fff5f2;
                   }
                   .file-item {
                     background: white;
@@ -1160,10 +1264,6 @@ export default function Proyectos() {
                             </span>
                           </div>
                         </div>
-                        <div className="info-item">
-                          <label>Tipo de Proyecto</label>
-                          <div className="value">{project.project_type || 'No especificado'}</div>
-                        </div>
                       </div>
                     </div>
 
@@ -1192,11 +1292,89 @@ export default function Proyectos() {
                         </div>
                         <div className="info-item">
                           <label>Vendedor Asignado</label>
-                          <div className="value">{project.vendedor_name || 'Sin asignar'}</div>
+                          <div className="position-relative">
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              placeholder="Buscar vendedor..."
+                              value={vendedorSearch}
+                              onChange={(e) => {
+                                setVendedorSearch(e.target.value);
+                                setShowVendedorDropdown(true);
+                              }}
+                              onFocus={() => setShowVendedorDropdown(true)}
+                            />
+                            {showVendedorDropdown && (
+                              <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                {getFilteredVendedores().length > 0 ? (
+                                  getFilteredVendedores().map(user => (
+                                    <div
+                                      key={user.id}
+                                      className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                      onClick={() => handleVendedorSelect(user)}
+                                      style={{cursor: 'pointer'}}
+                                    >
+                                      <div className="fw-bold">{user.name} {user.apellido}</div>
+                                      <div className="small text-muted">
+                                        📧 {user.email}
+                                        {user.phone && <span> • 📞 {user.phone}</span>}
+                                      </div>
+                                      <div className="small">
+                                        <span className={`badge bg-${user.role === 'jefa_comercial' ? 'warning' : 'primary'}`}>
+                                          {user.role === 'jefa_comercial' ? 'Jefa Comercial' : 'Vendedor'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-muted">No se encontraron vendedores</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="info-item">
                           <label>Responsable Laboratorio</label>
-                          <div className="value">{project.laboratorio_name || 'Sin asignar'}</div>
+                          <div className="position-relative">
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              placeholder="Buscar responsable de laboratorio..."
+                              value={laboratorioSearch}
+                              onChange={(e) => {
+                                setLaboratorioSearch(e.target.value);
+                                setShowLaboratorioDropdown(true);
+                              }}
+                              onFocus={() => setShowLaboratorioDropdown(true)}
+                            />
+                            {showLaboratorioDropdown && (
+                              <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                {getFilteredLaboratorio().length > 0 ? (
+                                  getFilteredLaboratorio().map(user => (
+                                    <div
+                                      key={user.id}
+                                      className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                      onClick={() => handleLaboratorioSelect(user)}
+                                      style={{cursor: 'pointer'}}
+                                    >
+                                      <div className="fw-bold">{user.name} {user.apellido}</div>
+                                      <div className="small text-muted">
+                                        📧 {user.email}
+                                        {user.phone && <span> • 📞 {user.phone}</span>}
+                                      </div>
+                                      <div className="small">
+                                        <span className={`badge bg-${user.role === 'jefe_laboratorio' ? 'success' : 'info'}`}>
+                                          {user.role === 'jefe_laboratorio' ? 'Jefe Lab.' : 'Usuario Lab.'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-muted">No se encontraron responsables de laboratorio</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

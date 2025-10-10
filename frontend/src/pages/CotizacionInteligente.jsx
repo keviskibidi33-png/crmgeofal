@@ -84,6 +84,7 @@ export default function CotizacionInteligente() {
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
   const [suggestedFileName, setSuggestedFileName] = useState('');
   const [loadingQuote, setLoadingQuote] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // Estados para el buscador de clientes
   const [clients, setClients] = useState([]);
@@ -166,6 +167,7 @@ export default function CotizacionInteligente() {
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
+            setCurrentUser(data.user); // Guardar usuario actual
             setQuote(prev => ({
               ...prev,
               commercial_name: data.user.name || prev.commercial_name,
@@ -449,7 +451,7 @@ export default function CotizacionInteligente() {
       
       // Si no hay proyecto seleccionado, crear uno automáticamente
       if (!projectId) {
-        // Crear proyecto automáticamente
+        // Crear proyecto automáticamente con vendedor asignado
         const newProject = await createProject({
           company_id: companyId,
           name: client.project_name || `Proyecto ${client.company_name}`,
@@ -458,12 +460,17 @@ export default function CotizacionInteligente() {
           contact_phone: client.contact_phone,
           contact_email: client.contact_email,
           status: 'activo',
-          project_type: 'cotizacion',
-          priority: 'normal'
+          priority: 'normal',
+          // Asignar automáticamente el vendedor que creó la cotización
+          vendedor_id: currentUser?.id || null,
+          // Si es categoría laboratorio, permitir asignar usuario de laboratorio
+          requiere_laboratorio: quote.category_main === 'laboratorio',
+          laboratorio_status: quote.category_main === 'laboratorio' ? 'pendiente' : 'no_requerido'
         });
         
         projectId = newProject.id;
         console.log('✅ Proyecto creado automáticamente:', newProject);
+        console.log('👤 Vendedor asignado:', currentUser?.name);
       }
       
       const quoteCode = generateQuoteCode();
