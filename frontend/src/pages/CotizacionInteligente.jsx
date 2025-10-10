@@ -394,15 +394,15 @@ export default function CotizacionInteligente() {
       // Cargar datos de la cotización
       setQuote(prev => ({
         ...prev,
-        request_date: existingQuote.request_date || '',
-        issue_date: new Date().toISOString().slice(0, 10), // Nueva fecha
+        request_date: existingQuote.meta?.quote?.request_date || existingQuote.request_date || new Date().toISOString().slice(0, 10),
+        issue_date: existingQuote.issue_date || new Date().toISOString().slice(0, 10), // Mantener fecha original o usar actual
         commercial_name: existingQuote.commercial_name || '',
         commercial_phone: existingQuote.commercial_phone || '',
         payment_terms: existingQuote.payment_terms || 'adelantado',
         reference: existingQuote.reference || '',
         reference_type: existingQuote.reference_type || ['email', 'phone'],
         igv: existingQuote.igv !== false,
-        delivery_days: existingQuote.delivery_days || 4,
+        delivery_days: existingQuote.meta?.quote?.delivery_days || existingQuote.delivery_days || 4, // Mantener días hábiles originales
         category_main: existingQuote.category_main || 'laboratorio'
       }));
       
