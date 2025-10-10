@@ -32,7 +32,7 @@ const TicketChatVendedor = ({ ticketId }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Cargar comentarios usando el sistema de conversación como en proyectos
+  // Sistema de conversación idéntico al módulo de proyectos (queries_history)
   useEffect(() => {
     loadComments();
   }, [ticketId]);
@@ -43,14 +43,15 @@ const TicketChatVendedor = ({ ticketId }) => {
       if (isOnline) {
         const backendComments = await getCommentsByTicket(ticketId);
         if (backendComments && backendComments.length > 0) {
-          // Convertir al formato de conversación como en proyectos
-          const conversationHistory = backendComments.map(comment => ({
+          // Convertir al formato queries_history (idéntico a proyectos)
+          const queriesHistory = backendComments.map(comment => ({
             message: comment.comment,
             user_name: comment.user_name || 'Usuario',
             created_at: comment.created_at
           }));
-          setComments(conversationHistory);
-          localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify(conversationHistory));
+          setComments(queriesHistory);
+          // Guardar como queries_history (mismo sistema que proyectos)
+          localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify(queriesHistory));
           return;
         }
       }
@@ -58,14 +59,14 @@ const TicketChatVendedor = ({ ticketId }) => {
       console.log('Backend no disponible, usando localStorage');
     }
 
-    // Fallback a localStorage con formato de conversación
-    const savedConversation = localStorage.getItem(`ticket_${ticketId}_conversation`);
-    if (savedConversation) {
+    // Fallback a localStorage con formato queries_history (idéntico a proyectos)
+    const savedQueriesHistory = localStorage.getItem(`ticket_${ticketId}_queries_history`);
+    if (savedQueriesHistory) {
       try {
-        const conversationHistory = JSON.parse(savedConversation);
-        setComments(conversationHistory);
+        const queriesHistory = JSON.parse(savedQueriesHistory);
+        setComments(queriesHistory);
       } catch (error) {
-        console.error('Error cargando conversación:', error);
+        console.error('Error cargando queries_history:', error);
         // Crear conversación inicial
         createInitialConversation();
       }
@@ -81,7 +82,8 @@ const TicketChatVendedor = ({ ticketId }) => {
       created_at: new Date().toISOString()
     };
     setComments([initialMessage]);
-    localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify([initialMessage]));
+    // Guardar como queries_history (mismo sistema que proyectos)
+    localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify([initialMessage]));
   };
 
   // Scroll automático al final
@@ -106,10 +108,10 @@ const TicketChatVendedor = ({ ticketId }) => {
         created_at: new Date().toISOString()
       };
 
-      // Agregar mensaje localmente inmediatamente
-      const updatedConversation = [...comments, newMessage];
-      setComments(updatedConversation);
-      localStorage.setItem(`ticket_${ticketId}_conversation`, JSON.stringify(updatedConversation));
+      // Agregar mensaje localmente inmediatamente (sistema idéntico a proyectos)
+      const updatedQueriesHistory = [...comments, newMessage];
+      setComments(updatedQueriesHistory);
+      localStorage.setItem(`ticket_${ticketId}_queries_history`, JSON.stringify(updatedQueriesHistory));
       
       setNewComment('');
       setIsLoading(false);
