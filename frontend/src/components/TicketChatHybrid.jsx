@@ -32,51 +32,38 @@ const TicketChatHybrid = ({ ticketId }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Cargar comentarios (backend + localStorage)
+  // Sistema de conversación con sincronización en tiempo real
   useEffect(() => {
     loadComments();
-  }, [ticketId]);
+    
+    // Polling para actualizar comentarios cada 5 segundos
+    const interval = setInterval(() => {
+      if (isOnline) {
+        loadComments();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [ticketId, isOnline]);
 
   const loadComments = async () => {
     try {
-      // Intentar cargar desde backend
-      if (isOnline) {
-        const backendComments = await getCommentsByTicket(ticketId);
-        if (backendComments && backendComments.length > 0) {
-          setComments(backendComments);
-          // Sincronizar con localStorage
-          localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify(backendComments));
-          return;
-        }
+      // Cargar desde backend únicamente (como TicketChatVendedor)
+      const backendComments = await getCommentsByTicket(ticketId);
+      console.log('🔍 [HYBRID] Comentarios del backend:', backendComments);
+      
+      if (backendComments && backendComments.length > 0) {
+        setComments(backendComments);
+        console.log('✅ [HYBRID] Comentarios cargados desde backend:', backendComments.length);
+      } else {
+        // Si no hay comentarios, mostrar array vacío
+        setComments([]);
+        console.log('📝 [HYBRID] No hay comentarios en el backend');
       }
     } catch (error) {
-      console.log('Backend no disponible, usando localStorage');
-    }
-
-    // Fallback a localStorage
-    const savedComments = localStorage.getItem(`ticket_${ticketId}_comments`);
-    if (savedComments) {
-      try {
-        setComments(JSON.parse(savedComments));
-      } catch (error) {
-        console.error('Error cargando comentarios:', error);
-      }
-    } else {
-      // Comentario inicial del sistema
-      const initialComment = {
-        id: Date.now(),
-        ticket_id: ticketId,
-        user_id: 'system',
-        user_name: 'Sistema',
-        user_apellido: '',
-        user_role: 'system',
-        comment: 'Ticket creado',
-        is_system: true,
-        is_read: true,
-        created_at: new Date().toISOString()
-      };
-      setComments([initialComment]);
-      localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify([initialComment]));
+      console.error('❌ [HYBRID] Error cargando comentarios del backend:', error);
+      // En caso de error, mostrar array vacío
+      setComments([]);
     }
   };
 
@@ -95,46 +82,31 @@ const TicketChatHybrid = ({ ticketId }) => {
       setIsLoading(true);
       setSyncStatus('syncing');
       
-      const newCommentObj = {
-        id: Date.now(),
-        ticket_id: ticketId,
-        user_id: user?.id || 'unknown',
-        user_name: user?.name || 'Usuario',
-        user_apellido: user?.apellido || '',
-        user_role: user?.role || 'user',
-        comment: newComment.trim(),
-        is_system: false,
-        is_read: true,
-        created_at: new Date().toISOString()
-      };
+      const messageText = newComment.trim();
+      setNewComment(''); // Limpiar inmediatamente
 
-      // Agregar comentario localmente inmediatamente
-      const updatedComments = [...comments, newCommentObj];
-      setComments(updatedComments);
-      localStorage.setItem(`ticket_${ticketId}_comments`, JSON.stringify(updatedComments));
-      
-      setNewComment('');
-      setIsLoading(false);
-
-      // Intentar sincronizar con backend
-      if (isOnline) {
-        try {
-          await createComment({
-            ticket_id: ticketId,
-            comment: newCommentObj.comment
-          });
-          setSyncStatus('success');
-          alert('✅ Comentario enviado y sincronizado');
-        } catch (error) {
-          console.error('Error sincronizando con backend:', error);
-          setSyncStatus('error');
-          alert('⚠️ Comentario guardado localmente. Se sincronizará cuando el servidor esté disponible.');
-        }
-      } else {
+      try {
+        // Enviar al backend primero
+        const response = await createComment({
+          ticket_id: ticketId,
+          comment: messageText
+        });
+        
+        console.log('✅ [HYBRID] Mensaje enviado al backend:', response);
+        
+        // Recargar comentarios desde el backend para sincronizar
+        await loadComments();
+        
+        setSyncStatus('success');
+        console.log('✅ [HYBRID] Mensaje sincronizado correctamente');
+        
+      } catch (error) {
+        console.error('❌ [HYBRID] Error enviando mensaje al backend:', error);
         setSyncStatus('error');
-        alert('📱 Comentario guardado offline. Se sincronizará cuando haya conexión.');
+        // No mostrar modal, solo cambiar el estado visual
       }
 
+      setIsLoading(false);
       // Resetear estado después de 3 segundos
       setTimeout(() => setSyncStatus('idle'), 3000);
     }
@@ -152,6 +124,16 @@ const TicketChatHybrid = ({ ticketId }) => {
   };
 
   const isSystemComment = (comment) => comment.is_system || comment.user_name === 'Sistema';
+
+  // Función para obtener color consistente por usuario
+  const getUserColor = (userName) => {
+    const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+    const hash = userName.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   const getSyncStatusIcon = () => {
     switch (syncStatus) {
@@ -179,37 +161,52 @@ const TicketChatHybrid = ({ ticketId }) => {
       </div>
 
       <div className="ticket-chat-messages">
-        {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className={`message ${isSystemComment(comment) ? 'system' : comment.user_id === user?.id ? 'own' : 'other'}`}
-          >
-            <div className="message-header">
-              <div className="message-user">
-                <FiUser className="user-icon" />
-                <span className="user-name">
-                  {isSystemComment(comment) ? 'Sistema' : `${comment.user_name} ${comment.user_apellido}`}
-                </span>
-                {comment.user_role && comment.user_role !== 'system' && (
-                  <span className="user-role">({comment.user_role})</span>
-                )}
+        {comments.map((comment) => {
+          const userColor = isSystemComment(comment) ? '#6c757d' : getUserColor(comment.user_name || 'Usuario');
+          const isOwnMessage = comment.user_id === user?.id;
+          
+          return (
+            <div
+              key={comment.id}
+              className={`message ${isSystemComment(comment) ? 'system' : isOwnMessage ? 'own' : 'other'}`}
+            >
+              <div className="message-header">
+                <div className="message-user">
+                  <div 
+                    className="user-color-bar"
+                    style={{ 
+                      width: '4px', 
+                      height: '20px', 
+                      backgroundColor: userColor,
+                      borderRadius: '2px',
+                      marginRight: '8px'
+                    }}
+                  />
+                  <FiUser className="user-icon" style={{ color: userColor }} />
+                  <span className="user-name" style={{ color: userColor }}>
+                    {isSystemComment(comment) ? 'Sistema' : `${comment.user_name} ${comment.user_apellido || ''}`}
+                  </span>
+                  {comment.user_role && comment.user_role !== 'system' && (
+                    <span className="user-role">({comment.user_role})</span>
+                  )}
+                </div>
+                <div className="message-time">
+                  <FiClock className="time-icon" />
+                  {formatDate(comment.created_at)}
+                </div>
               </div>
-              <div className="message-time">
-                <FiClock className="time-icon" />
-                {formatDate(comment.created_at)}
+              <div className="message-content">
+                {comment.comment}
               </div>
+              {comment.is_read && (
+                <div className="message-status">
+                  <FiCheck className="read-icon" />
+                  Leído
+                </div>
+              )}
             </div>
-            <div className="message-content">
-              {comment.comment}
-            </div>
-            {comment.is_read && (
-              <div className="message-status">
-                <FiCheck className="read-icon" />
-                Leído
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
