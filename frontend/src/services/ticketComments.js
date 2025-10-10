@@ -1,10 +1,10 @@
 import { apiFetch } from './api';
 
 // Crear un nuevo comentario
-export const createComment = async (ticketId, comment) => {
+export const createComment = async (commentData) => {
   return apiFetch('/api/ticket-comments', {
     method: 'POST',
-    body: JSON.stringify({ ticket_id: ticketId, comment }),
+    body: JSON.stringify(commentData),
   });
 };
 
