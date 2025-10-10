@@ -1526,10 +1526,16 @@ export default function Proyectos() {
                           </div>
 
                         <div>
-                          <label className="form-label small fw-bold">Estado Laboratorio</label>
+                          <label className="form-label small fw-bold">
+                            Estado Laboratorio
+                            {editingData.ingenieria_status && editingData.ingenieria_status !== 'no_requerido' && (
+                              <span className="text-muted small ms-2">(Bloqueado - Ingeniería activa)</span>
+                            )}
+                          </label>
                             <select 
                               className="form-select" 
-                            value={editingData.laboratorio_status || 'no_requerido'} 
+                              disabled={editingData.ingenieria_status && editingData.ingenieria_status !== 'no_requerido'}
+                              value={editingData.laboratorio_status || 'no_requerido'} 
                               onChange={(e) => {
                                 const newValue = e.target.value;
                                 // Si se activa laboratorio (no es "no_requerido"), desactivar ingeniería
@@ -1558,10 +1564,16 @@ export default function Proyectos() {
                           </div>
 
                         <div>
-                          <label className="form-label small fw-bold">Estado Ingeniería</label>
+                          <label className="form-label small fw-bold">
+                            Estado Ingeniería
+                            {editingData.laboratorio_status && editingData.laboratorio_status !== 'no_requerido' && (
+                              <span className="text-muted small ms-2">(Bloqueado - Laboratorio activo)</span>
+                            )}
+                          </label>
                             <select 
                               className="form-select" 
-                            value={editingData.ingenieria_status || 'no_requerido'} 
+                              disabled={editingData.laboratorio_status && editingData.laboratorio_status !== 'no_requerido'}
+                              value={editingData.ingenieria_status || 'no_requerido'} 
                               onChange={(e) => {
                                 const newValue = e.target.value;
                                 // Si se activa ingeniería (no es "no_requerido"), desactivar laboratorio
