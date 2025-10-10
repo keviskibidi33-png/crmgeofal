@@ -2246,6 +2246,7 @@ export default function Proyectos() {
                       handleViewProject(project);
                     }}
                     className="px-4"
+                    style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
                   >
                     <FiSettings className="me-2" />
                     ⚙️ Gestionar Proyecto
