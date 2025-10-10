@@ -314,6 +314,17 @@ export default function CotizacionInteligente() {
       const existingQuote = await getQuote(quoteId);
       console.log('✅ Cotización cargada:', existingQuote);
       
+      // Parsear meta si viene como string JSON
+      if (existingQuote.meta && typeof existingQuote.meta === 'string') {
+        try {
+          existingQuote.meta = JSON.parse(existingQuote.meta);
+          console.log('✅ Meta parseado correctamente:', existingQuote.meta);
+        } catch (error) {
+          console.error('❌ Error parseando meta:', error);
+          existingQuote.meta = {};
+        }
+      }
+      
       // Cargar datos del cliente
       if (existingQuote.client_contact || existingQuote.company_name) {
         // Usar company_name del JOIN con companies (razón social real) como prioridad
@@ -391,14 +402,34 @@ export default function CotizacionInteligente() {
         category_main: existingQuote.category_main || 'laboratorio'
       }));
       
-      // Cargar items si existen
-      if (existingQuote.items && existingQuote.items.length > 0) {
-        setItems(existingQuote.items);
+      // Cargar items si existen (desde meta.items)
+      let itemsToLoad = [];
+      if (existingQuote.meta && existingQuote.meta.items && existingQuote.meta.items.length > 0) {
+        itemsToLoad = existingQuote.meta.items;
+        console.log('✅ Cargando ítems desde meta.items:', itemsToLoad.length);
+      } else if (existingQuote.items && existingQuote.items.length > 0) {
+        itemsToLoad = existingQuote.items;
+        console.log('✅ Cargando ítems desde items directo:', itemsToLoad.length);
+      }
+      
+      if (itemsToLoad.length > 0) {
+        setItems(itemsToLoad);
+        console.log('📦 Ítems cargados para edición:', itemsToLoad);
+      } else {
+        console.log('📦 No hay ítems para cargar, usando ítem vacío por defecto');
+        setItems([{ ...emptyItem }]);
       }
       
       // Cargar variante si existe
       if (existingQuote.variant_id) {
         setVariantId(existingQuote.variant_id);
+        console.log('🔄 Variante cargada:', existingQuote.variant_id);
+      }
+      
+      // Cargar condiciones específicas si existen
+      if (existingQuote.meta && existingQuote.meta.conditions_text) {
+        setConditionsText(existingQuote.meta.conditions_text);
+        console.log('📝 Condiciones específicas cargadas');
       }
       
       console.log('✅ Datos de cotización cargados para edición');
