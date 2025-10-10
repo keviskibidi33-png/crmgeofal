@@ -315,15 +315,15 @@ export default function CotizacionInteligente() {
       console.log('✅ Cotización cargada:', existingQuote);
       
       // Cargar datos del cliente
-      if (existingQuote.client_contact || existingQuote.client_company) {
-        // Ahora tenemos las columnas correctas: client_company, client_ruc, project_location, project_name
-        const companyName = existingQuote.client_company || existingQuote.client_contact || '';
+      if (existingQuote.client_contact || existingQuote.company_name) {
+        // Usar company_name del JOIN con companies (razón social real) como prioridad
+        const companyName = existingQuote.company_name || existingQuote.client_company || existingQuote.client_contact || '';
         const contactName = existingQuote.client_contact || '';
         
         setClient(prev => ({
           ...prev,
-          company_name: companyName,
-          ruc: existingQuote.client_ruc || '',
+          company_name: companyName, // ✅ Usar la razón social real de la empresa
+          ruc: existingQuote.company_ruc || existingQuote.client_ruc || '', // ✅ Usar RUC de la empresa
           contact_name: contactName,
           contact_phone: existingQuote.client_phone || '',
           contact_email: existingQuote.client_email || '',
@@ -334,13 +334,14 @@ export default function CotizacionInteligente() {
         // Configurar el campo de búsqueda de clientes con la razón social
         setClientSearch(companyName);
         console.log('🔍 Configurando búsqueda de cliente:', companyName);
-        console.log('🔍 RUC del cliente:', existingQuote.client_ruc);
+        console.log('🔍 RUC del cliente:', existingQuote.company_ruc || existingQuote.client_ruc);
         console.log('🔍 Teléfono del cliente:', existingQuote.client_phone);
         
         // Si hay RUC, buscar el cliente en la lista
-        if (existingQuote.client_ruc) {
-          console.log('🔍 Buscando cliente por RUC:', existingQuote.client_ruc);
-          const foundClient = clients.find(c => c.ruc === existingQuote.client_ruc);
+        const rucToSearch = existingQuote.company_ruc || existingQuote.client_ruc;
+        if (rucToSearch) {
+          console.log('🔍 Buscando cliente por RUC:', rucToSearch);
+          const foundClient = clients.find(c => c.ruc === rucToSearch);
           if (foundClient) {
             console.log('✅ Cliente encontrado:', foundClient);
             setSelectedClient(foundClient);
@@ -350,7 +351,7 @@ export default function CotizacionInteligente() {
             const simulatedClient = {
               id: 'existing',
               name: companyName,
-              ruc: existingQuote.client_ruc || '',
+              ruc: rucToSearch || '',
               email: existingQuote.client_email || '',
               phone: existingQuote.client_phone || '',
               contact_name: contactName,
