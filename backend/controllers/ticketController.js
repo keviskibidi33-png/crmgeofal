@@ -3,8 +3,8 @@ const TicketHistory = require('../models/ticketHistory');
 
 exports.getAll = async (req, res) => {
   try {
-    const { page, limit, status, priority } = req.query;
-    const { rows, total } = await Ticket.getAll({ page, limit, status, priority });
+    const { page, limit, status, priority, user_id } = req.query;
+    const { rows, total } = await Ticket.getAll({ page, limit, status, priority, user_id });
     res.json({ data: rows, total });
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener tickets' });

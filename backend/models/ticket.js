@@ -1,12 +1,13 @@
 const pool = require('../config/db');
 
 const Ticket = {
-  async getAll({ page = 1, limit = 20, status, priority }) {
+  async getAll({ page = 1, limit = 20, status, priority, user_id }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
     if (status) { where.push('status = $' + (params.length + 1)); params.push(status); }
     if (priority) { where.push('priority = $' + (params.length + 1)); params.push(priority); }
+    if (user_id) { where.push('user_id = $' + (params.length + 1)); params.push(user_id); }
     const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const data = await pool.query(`SELECT * FROM tickets ${whereClause} ORDER BY id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]);
     const total = await pool.query(`SELECT COUNT(*) FROM tickets ${whereClause}`, params);
