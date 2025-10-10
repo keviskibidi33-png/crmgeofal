@@ -318,6 +318,30 @@ export default function CotizacionInteligente() {
       const existingQuote = await getQuote(quoteId);
       console.log('✅ Cotización cargada:', existingQuote);
       
+      // Si no tenemos datos del usuario, cargarlos
+      if (!currentUser) {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const response = await fetch('http://localhost:4000/api/auth/me', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.user) {
+                setCurrentUser(data.user);
+                console.log('✅ Usuario cargado para edición:', data.user);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('No se pudo obtener datos del usuario para edición:', e);
+        }
+      }
+      
       // Parsear meta si viene como string JSON
       if (existingQuote.meta && typeof existingQuote.meta === 'string') {
         try {
@@ -396,8 +420,8 @@ export default function CotizacionInteligente() {
         ...prev,
         request_date: existingQuote.meta?.quote?.request_date || existingQuote.request_date || new Date().toISOString().slice(0, 10),
         issue_date: existingQuote.issue_date || new Date().toISOString().slice(0, 10), // Mantener fecha original o usar actual
-        commercial_name: existingQuote.commercial_name || '',
-        commercial_phone: existingQuote.commercial_phone || '',
+        commercial_name: existingQuote.commercial_name || currentUser?.name || '',
+        commercial_phone: existingQuote.commercial_phone || currentUser?.phone || '',
         payment_terms: existingQuote.payment_terms || 'adelantado',
         reference: existingQuote.reference || '',
         reference_type: existingQuote.reference_type || ['email', 'phone'],
