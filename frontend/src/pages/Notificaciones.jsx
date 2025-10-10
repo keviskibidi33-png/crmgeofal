@@ -258,45 +258,73 @@ const Notificaciones = () => {
         </Col>
       </Row>
 
-      {/* Modal para ver detalles de la notificación */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
+      {/* Modal para ver detalles de la notificación - COMPACTO */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="md" centered>
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title className="fw-bold">
             {selectedNotification && getNotificationIcon(selectedNotification.type)} 
             {selectedNotification?.title}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-3">
           {selectedNotification && (
             <div>
-              <p><strong>Mensaje:</strong></p>
-              <p className="mb-3">{selectedNotification.message}</p>
+              <div className="alert alert-info mb-3">
+                <strong>📝 Mensaje:</strong>
+                <p className="mb-0 mt-2">{selectedNotification.message}</p>
+              </div>
               
-              {selectedNotification.data && (
-                <div>
-                  <p><strong>Datos adicionales:</strong></p>
-                  <pre className="bg-light p-3 rounded">
-                    {JSON.stringify(selectedNotification.data, null, 2)}
-                  </pre>
+              <div className="row g-2">
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Tipo</small>
+                    <div className="fw-bold">{selectedNotification.type}</div>
+                  </div>
                 </div>
-              )}
-              
-              <div className="row">
-                <div className="col-md-6">
-                  <p><strong>Tipo:</strong> {selectedNotification.type}</p>
-                  <p><strong>Prioridad:</strong> {selectedNotification.priority}</p>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Prioridad</small>
+                    <div className="fw-bold">
+                      <Badge bg={selectedNotification.priority === 'high' ? 'danger' : 'secondary'}>
+                        {selectedNotification.priority}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <p><strong>Fecha:</strong> {new Date(selectedNotification.created_at).toLocaleString('es-ES')}</p>
-                  <p><strong>Estado:</strong> {selectedNotification.read_at ? 'Leída' : 'No leída'}</p>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Fecha</small>
+                    <div className="fw-bold" style={{ fontSize: '12px' }}>
+                      {new Date(selectedNotification.created_at).toLocaleString('es-ES')}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Estado</small>
+                    <div className="fw-bold">
+                      <Badge bg={selectedNotification.read_at ? 'success' : 'warning'}>
+                        {selectedNotification.read_at ? 'Leída' : 'No leída'}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {selectedNotification.data && (
+                <div className="mt-3">
+                  <small className="text-muted">Datos adicionales:</small>
+                  <div className="bg-light p-2 rounded mt-1" style={{ fontSize: '11px', maxHeight: '100px', overflowY: 'auto' }}>
+                    <pre className="mb-0">{JSON.stringify(selectedNotification.data, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cerrar
+        <Modal.Footer className="p-2">
+          <Button variant="primary" onClick={() => setShowModal(false)} size="sm">
+            ✅ Entendido
           </Button>
         </Modal.Footer>
       </Modal>
