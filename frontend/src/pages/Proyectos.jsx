@@ -1112,7 +1112,13 @@ export default function Proyectos() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               actions={[
-                { label: 'Ver', icon: FiEye, onClick: handleViewOnlyProject, variant: 'outline-primary' },
+                { 
+                  label: 'Ver', 
+                  icon: FiEye, 
+                  onClick: handleViewOnlyProject, 
+                  variant: 'primary',
+                  style: { backgroundColor: '#f84616', borderColor: '#f84616' }
+                },
                 { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
               ]}
               emptyMessage="No hay proyectos registrados"
@@ -1944,18 +1950,19 @@ export default function Proyectos() {
                                         </Button>
                   
                   {project.quote_id && (
-                                        <Button 
-                      variant="outline-info"
+                    <Button
+                      variant="primary"
                       onClick={() => {
                         setShowViewOnlyModal(false);
                         navigate(`/cotizaciones?view=${project.quote_id}`);
                       }}
                       className="px-4"
+                      style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
                     >
                       <FiFileText className="me-2" />
                       📄 Ver Evidencias
-                                        </Button>
-                          )}
+                    </Button>
+                  )}
                         </div>
                       </div>
             )

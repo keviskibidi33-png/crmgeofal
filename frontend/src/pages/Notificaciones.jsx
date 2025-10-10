@@ -347,10 +347,11 @@ const Notificaciones = () => {
           <div className="d-flex gap-2 w-100">
             {selectedNotification?.type === 'project_assignment' && (
               <Button 
-                variant="warning" 
+                variant="primary" 
                 onClick={() => handleGoToProject(selectedNotification)} 
                 size="sm"
                 className="flex-grow-1"
+                style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
               >
                 <FiExternalLink className="me-1" />
                 🎯 Ver Proyecto

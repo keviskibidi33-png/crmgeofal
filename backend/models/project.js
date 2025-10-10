@@ -195,6 +195,9 @@ const Project = {
     queries,
     priority,
     marked,
+    status,
+    laboratorio_status,
+    ingenieria_status,
   }, user) {
     console.log('🔍 Project.update - ID:', id);
     console.log('🔍 Project.update - User:', user);
@@ -235,8 +238,11 @@ const Project = {
           queries = $13,
           priority = $14,
           marked = $15,
+          status = $16,
+          laboratorio_status = $17,
+          ingenieria_status = $18,
           updated_at = NOW()
-        WHERE id = $16 RETURNING *`,
+        WHERE id = $19 RETURNING *`,
         [
           name, 
           location, 
@@ -253,6 +259,9 @@ const Project = {
           queries,
           priority,
           marked,
+          status,
+          laboratorio_status,
+          ingenieria_status,
           id
         ]
       );
