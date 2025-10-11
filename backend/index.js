@@ -97,6 +97,9 @@ app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 
 // Sistema de aprobaciones y métricas
 app.use('/api/approvals', require('./routes/approvalRoutes'));
+
+// jsreport - Generación de PDFs
+app.use('/api/jsreport', require('./routes/jsreportRoutes'));
 app.use('/api/funnel', require('./routes/funnelRoutes'));
 
 // Sistema de notificaciones

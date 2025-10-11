@@ -52,21 +52,26 @@ const listCompanies = async (req, res) => {
     const offset = (page - 1) * limit;
     const dataQuery = `
       SELECT 
-        id,
-        name,
-        ruc,
-        dni,
-        type,
-        contact_name,
-        email,
-        phone,
-        city,
-        sector,
-        address,
-        created_at
-      FROM companies 
+        c.id,
+        c.name,
+        c.ruc,
+        c.dni,
+        c.type,
+        c.contact_name,
+        c.email,
+        c.phone,
+        c.city,
+        c.sector,
+        c.address,
+        c.status,
+        c.managed_by,
+        c.created_at,
+        u.name as managed_by_name,
+        u.role as managed_by_role
+      FROM companies c
+      LEFT JOIN users u ON c.managed_by = u.id
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY c.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
@@ -315,11 +320,222 @@ const getOrCreateCompany = async (req, res) => {
   }
 };
 
+// Actualizar estado de cliente
+const updateClientStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validar que el estado sea válido
+    const validStatuses = Company.getAvailableStatuses();
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: 'Estado inválido',
+        validStatuses: validStatuses
+      });
+    }
+
+    // Actualizar el estado
+    const updatedClient = await Company.updateStatus(id, status);
+
+    if (!updatedClient) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    // Registrar en auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'status_updated',
+      entity: 'company',
+      entity_id: id,
+      details: JSON.stringify({ 
+        old_status: req.body.old_status || 'unknown',
+        new_status: status,
+        client_name: updatedClient.name
+      })
+    });
+
+    res.json({
+      message: 'Estado actualizado correctamente',
+      client: updatedClient
+    });
+
+  } catch (err) {
+    console.error('Error updating client status:', err);
+    res.status(500).json({ error: 'Error al actualizar estado del cliente' });
+  }
+};
+
+// Actualizar gestor de cliente
+const updateClientManager = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { managed_by } = req.body;
+
+    // Actualizar el gestor
+    const updatedClient = await Company.updateManager(id, managed_by);
+
+    if (!updatedClient) {
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    // Registrar en auditoría
+    await Audit.log({
+      user_id: req.user.id,
+      action: 'manager_updated',
+      entity: 'company',
+      entity_id: id,
+      details: JSON.stringify({ 
+        old_manager: req.body.old_manager || 'unknown',
+        new_manager: managed_by,
+        client_name: updatedClient.name
+      })
+    });
+
+    res.json({
+      message: 'Gestor actualizado correctamente',
+      client: updatedClient
+    });
+
+  } catch (err) {
+    console.error('Error updating client manager:', err);
+    res.status(500).json({ error: 'Error al actualizar gestor del cliente' });
+  }
+};
+
+// Obtener historial de cliente
+const getClientHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const history = await Company.getClientHistory(id);
+
+    res.json({
+      success: true,
+      data: history
+    });
+
+  } catch (err) {
+    console.error('Error getting client history:', err);
+    res.status(500).json({ error: 'Error al obtener historial del cliente' });
+  }
+};
+
+// Eliminar cliente (solo admin)
+const deleteCompany = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    console.log(`🗑️ deleteCompany - Usuario ${userId} intentando eliminar cliente ${id}`);
+
+    // Verificar que el cliente existe antes de eliminar
+    const existingClient = await Company.getById(id);
+    if (!existingClient) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Cliente no encontrado' 
+      });
+    }
+
+    // Eliminar el cliente
+    await Company.delete(id);
+
+    // Registrar en auditoría
+    await Audit.log({
+      user_id: userId,
+      action: 'eliminar',
+      entity: 'company',
+      entity_id: id,
+      details: JSON.stringify({ 
+        client_name: existingClient.name,
+        client_type: existingClient.type,
+        client_ruc: existingClient.ruc,
+        client_dni: existingClient.dni
+      })
+    });
+
+    console.log(`✅ deleteCompany - Cliente ${id} eliminado exitosamente por usuario ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'Cliente eliminado exitosamente',
+      deletedClient: {
+        id: existingClient.id,
+        name: existingClient.name,
+        type: existingClient.type
+      }
+    });
+
+  } catch (err) {
+    console.error('❌ deleteCompany - Error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error al eliminar cliente' 
+    });
+  }
+};
+
+// Actualizar empresa
+const updateCompany = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const updateData = req.body;
+
+    console.log(`🔄 updateCompany - Usuario ${userId} actualizando cliente ${id}`);
+
+    // Verificar que la empresa existe
+    const existingCompany = await Company.getById(id);
+    if (!existingCompany) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Cliente no encontrado' 
+      });
+    }
+
+    // Actualizar la empresa
+    const updatedCompany = await Company.update(id, updateData);
+
+    // Auditoría
+    await Audit.log({
+      user_id: userId,
+      action: 'actualizar',
+      entity: 'company',
+      entity_id: id,
+      details: JSON.stringify({ 
+        client_name: existingCompany.name,
+        updated_fields: Object.keys(updateData)
+      })
+    });
+
+    console.log(`✅ updateCompany - Cliente ${id} actualizado exitosamente por usuario ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'Cliente actualizado exitosamente',
+      data: updatedCompany
+    });
+
+  } catch (err) {
+    console.error('❌ updateCompany - Error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error al actualizar cliente' 
+    });
+  }
+};
+
 module.exports = {
   listCompanies,
   getCompanyStats,
   getCompanyFilterOptions,
   searchCompanies,
   createCompany,
-  getOrCreateCompany
+  updateCompany,
+  getOrCreateCompany,
+  updateClientStatus,
+  updateClientManager,
+  getClientHistory,
+  deleteCompany
 };

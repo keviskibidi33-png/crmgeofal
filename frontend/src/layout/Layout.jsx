@@ -17,9 +17,9 @@ const Layout = ({ children }) => {
       <div className="d-flex">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="main-content flex-grow-1">
-          <Container fluid className="py-4">
+          <div className="content-area">
             {children}
-          </Container>
+          </div>
         </main>
       </div>
       <NotificationToast />

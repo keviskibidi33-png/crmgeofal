@@ -140,7 +140,11 @@ const DataTable = ({
   // Props para filtros personalizados
   filterOptions = null,
   // Función para estilos de fila
-  getRowClassName = null
+  getRowClassName = null,
+  // Prop para habilitar/deshabilitar ordenamiento
+  sortable = true,
+  // Prop para usar flexbox layout
+  useFlexbox = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('');
@@ -165,8 +169,8 @@ const DataTable = ({
       );
     }
 
-    // Ordenamiento
-    if (sortField) {
+    // Ordenamiento (solo si está habilitado)
+    if (sortable && sortField) {
       filtered = [...filtered].sort((a, b) => {
         const aVal = a[sortField];
         const bVal = b[sortField];
@@ -185,6 +189,8 @@ const DataTable = ({
   const paginatedData = totalItems > 0 ? data : filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleSort = (field) => {
+    if (!sortable) return; // No hacer nada si el ordenamiento está deshabilitado
+    
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -232,7 +238,7 @@ const DataTable = ({
   }
 
   return (
-    <div className={`data-table ${className}`}>
+    <div className={`data-table ${useFlexbox ? 'd-flex flex-column h-100' : ''} ${className}`}>
       {/* Barra de búsqueda y filtros */}
       {(searchable || filterable) && (
         <div className="table-controls bg-light p-3 rounded-top border">
@@ -348,20 +354,20 @@ const DataTable = ({
       )}
 
       {/* Tabla */}
-      <div className="table-responsive">
+      <div className={`table-responsive ${useFlexbox ? 'flex-grow-1' : ''}`}>
         <Table hover className="mb-0">
           <thead className="table-light">
             <tr>
               {columns.map((column, index) => (
                 <th 
                   key={index}
-                  className={`${column.sortable ? 'cursor-pointer' : ''} ${column.className || ''}`}
-                  onClick={() => column.sortable && handleSort(column.accessor)}
+                  className={`${column.sortable && sortable ? 'cursor-pointer' : ''} ${column.className || ''}`}
+                  onClick={() => column.sortable && sortable && handleSort(column.accessor)}
                   style={{ minWidth: column.width || 'auto' }}
                 >
                   <div className="d-flex align-items-center">
                     {column.header}
-                    {column.sortable && (
+                    {column.sortable && sortable && (
                       <span className="ms-1 text-muted">
                         {getSortIcon(column.accessor)}
                       </span>

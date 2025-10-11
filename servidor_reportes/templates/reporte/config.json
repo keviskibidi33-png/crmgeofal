@@ -1,0 +1,15 @@
+{
+    "name": "reporte",
+    "recipe": "chrome-pdf",
+    "engine": "handlebars",
+    "helpers": "{#file:./helpers.js}",
+    "chrome": {
+        "marginTop": "1cm",
+        "marginRight": "1cm",
+        "marginBottom": "1cm",
+        "marginLeft": "1cm",
+        "format": "A4",
+        "printBackground": true,
+        "displayHeaderFooter": false
+    }
+}

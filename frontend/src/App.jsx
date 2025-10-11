@@ -21,7 +21,6 @@ const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
 
 // Cotizaciones
 const Cotizaciones = lazy(() => import('./pages/Cotizaciones'));
-const CotizacionNuevaLEM = lazy(() => import('./pages/CotizacionNuevaLEM'));
 const CotizacionInteligente = lazy(() => import('./pages/CotizacionInteligente'));
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
@@ -94,14 +93,14 @@ function App() {
                   <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                   
                   {/* Dashboards específicos por rol */}
-                  <Route path="/dashboards/jefa-comercial" element={<ErrorBoundary><RequireRole roles={["jefa_comercial"]}><JefaComercialDashboard /></RequireRole></ErrorBoundary>} />
-                  <Route path="/dashboards/vendedor-comercial" element={<ErrorBoundary><RequireRole roles={["vendedor_comercial"]}><VendedorComercialDashboard /></RequireRole></ErrorBoundary>} />
-                  <Route path="/dashboards/laboratorio" element={<ErrorBoundary><RequireRole roles={["jefe_laboratorio","usuario_laboratorio"]}><LaboratorioDashboard /></RequireRole></ErrorBoundary>} />
-                  <Route path="/dashboards/facturacion" element={<ErrorBoundary><RequireRole roles={["facturacion"]}><FacturacionDashboard /></RequireRole></ErrorBoundary>} />
-                  <Route path="/dashboards/soporte" element={<ErrorBoundary><RequireRole roles={["soporte"]}><SoporteDashboard /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboards/jefa-comercial" element={<ErrorBoundary><RequireRole roles={["jefa_comercial","admin"]}><JefaComercialDashboard /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboards/vendedor-comercial" element={<ErrorBoundary><RequireRole roles={["vendedor_comercial","admin"]}><VendedorComercialDashboard /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboards/laboratorio" element={<ErrorBoundary><RequireRole roles={["jefe_laboratorio","usuario_laboratorio","admin"]}><LaboratorioDashboard /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboards/facturacion" element={<ErrorBoundary><RequireRole roles={["facturacion","admin"]}><FacturacionDashboard /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboards/soporte" element={<ErrorBoundary><RequireRole roles={["soporte","admin"]}><SoporteDashboard /></RequireRole></ErrorBoundary>} />
                   <Route path="/dashboards/gerencia" element={<ErrorBoundary><RequireRole roles={["gerencia","admin"]}><GerenciaDashboard /></RequireRole></ErrorBoundary>} />
                   
-                  <Route path="/dashboard-asesor" element={<ErrorBoundary><RequireRole roles={["vendedor_comercial"]}><DashboardAsesor /></RequireRole></ErrorBoundary>} />
+                  <Route path="/dashboard-asesor" element={<ErrorBoundary><RequireRole roles={["vendedor_comercial","admin"]}><DashboardAsesor /></RequireRole></ErrorBoundary>} />
                   {/* Eliminada la duplicidad: solo / apunta a Dashboard */}
                   <Route path="/ajustes" element={<ErrorBoundary><Ajustes /></ErrorBoundary>} />
                   <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
@@ -109,9 +108,7 @@ function App() {
                   <Route path="/proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Proyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/lista" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><ListaCotizaciones /></RequireRole></ErrorBoundary>} />
-                  <Route path="/cotizaciones/nueva" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><CotizacionNuevaLEM /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/inteligente" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><CotizacionInteligente /></RequireRole></ErrorBoundary>} />
-                  <Route path="/cotizaciones/nueva/lem" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><CotizacionNuevaLEM /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/:id" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio","gerencia"]}><DetalleCotizacion /></RequireRole></ErrorBoundary>} />
                   <Route path="/adjuntos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Adjuntos /></RequireRole></ErrorBoundary>} />
                   <Route path="/tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte","jefa_comercial","vendedor_comercial"]}><Tickets /></RequireRole></ErrorBoundary>} />

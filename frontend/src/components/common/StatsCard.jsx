@@ -10,7 +10,8 @@ const StatsCard = ({
   color = 'primary',
   trend = null,
   loading = false,
-  className = ""
+  className = "",
+  size = 'normal' // 'compact', 'normal', 'large'
 }) => {
   const getColorClasses = (color) => {
     const colors = {
@@ -29,13 +30,13 @@ const StatsCard = ({
     
     if (trend > 0) {
       return (
-        <span className="text-success">
+        <span className="text-success small">
           <i className="bi bi-arrow-up"></i> +{trend}%
         </span>
       );
     } else if (trend < 0) {
       return (
-        <span className="text-danger">
+        <span className="text-danger small">
           <i className="bi bi-arrow-down"></i> {trend}%
         </span>
       );
@@ -43,32 +44,43 @@ const StatsCard = ({
     return null;
   };
 
+  const formatValue = (val) => {
+    if (loading) return <Spinner size="sm" className="me-1" />;
+    
+    if (typeof val === 'number') {
+      // Formatear números grandes de manera más compacta
+      if (val >= 1000000) {
+        return (val / 1000000).toFixed(1) + 'M';
+      } else if (val >= 1000) {
+        return (val / 1000).toFixed(1) + 'K';
+      }
+      return val.toLocaleString();
+    }
+    return val;
+  };
+
   return (
-    <Card className={`stats-card ${color} ${loading ? 'loading' : ''} ${className}`}>
-      <Card.Body className="p-4">
+    <Card className={`stats-card stats-card-${size} ${color} ${loading ? 'loading' : ''} ${className}`}>
+      <Card.Body className="stats-card-body">
         <div className="d-flex align-items-center justify-content-between">
-          <div className="flex-grow-1">
-            <h6>{title}</h6>
-            <h3>
-              {loading ? (
-                <Spinner size="sm" className="me-2" />
-              ) : (
-                typeof value === 'number' ? value.toLocaleString() : value
-              )}
-            </h3>
+          <div className="flex-grow-1 stats-content">
+            <div className="stats-title">{title}</div>
+            <div className="stats-value">
+              {formatValue(value)}
+            </div>
             {subtitle && (
-              <p className="text-muted mb-0 small">{subtitle}</p>
+              <div className="stats-subtitle">{subtitle}</div>
             )}
             {trend && trend !== 0 && !loading && (
-              <div className="mt-2">
+              <div className="stats-trend">
                 {getTrendIcon(trend)}
               </div>
             )}
           </div>
           
           {Icon && (
-            <div className="icon-wrapper">
-              <Icon size={24} />
+            <div className="stats-icon">
+              <Icon size={size === 'compact' ? 16 : size === 'large' ? 28 : 20} />
             </div>
           )}
         </div>

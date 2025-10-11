@@ -294,7 +294,7 @@ const Dashboard = () => {
       description: 'Generar cotización',
       icon: FiFileText,
       color: 'success',
-      onClick: () => navigate('/cotizaciones/nueva/lem')
+      onClick: () => navigate('/cotizaciones/inteligente')
     },
     {
       title: 'Nuevo Ticket',
@@ -321,8 +321,8 @@ const Dashboard = () => {
       />
 
       {/* Estadísticas principales */}
-      <Row className="mb-4">
-        <Col lg={3} md={6} className="mb-3">
+      <Row className="mb-4 g-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Total Usuarios"
             value={stats.totalUsers}
@@ -331,9 +331,10 @@ const Dashboard = () => {
             trend={stats.changePercentages?.users || null}
             subtitle={`${stats.activeUsersThisMonth || 0} usuarios activos este mes`}
             loading={statsLoading}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Proyectos Activos"
             value={stats.activeProjects}
@@ -342,9 +343,10 @@ const Dashboard = () => {
             trend={stats.changePercentages?.projects || null}
             subtitle={`${stats.totalProjects} proyectos totales`}
             loading={statsLoading}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Cotizaciones Pendientes"
             value={stats.pendingQuotes}
@@ -353,9 +355,10 @@ const Dashboard = () => {
             trend={stats.changePercentages?.quotes || null}
             subtitle={`${stats.quotesThisMonth || 0} cotizaciones este mes`}
             loading={statsLoading}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Tickets Abiertos"
             value={stats.openTickets}
@@ -364,6 +367,7 @@ const Dashboard = () => {
             trend={stats.changePercentages?.tickets || null}
             subtitle={`${stats.ticketsThisMonth || 0} tickets este mes`}
             loading={statsLoading}
+            size="normal"
           />
         </Col>
       </Row>

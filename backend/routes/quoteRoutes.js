@@ -26,6 +26,8 @@ router.post('/', (req, res, next) => {
 }, auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.create);
 // Editar cotización
 router.put('/:id', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.update);
+// Actualizar estado de cotización
+router.patch('/:id/status', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.updateStatus);
 // Eliminar cotización
 router.delete('/:id', auth(['jefa_comercial','admin']), quoteController.delete);
 

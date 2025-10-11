@@ -128,8 +128,37 @@ exports.create = async (req, res) => {
     console.log('🔍 Quote.create - Datos procesados:', JSON.stringify(data, null, 2));
     console.log('🔍 Quote.create - Meta después de procesar:', data.meta);
     console.log('🔍 Quote.create - Reference Type después de procesar:', data.reference_type);
+    console.log('🔍 Quote.create - Campos recibidos:', Object.keys(data));
+    console.log('🔍 Quote.create - Número de campos:', Object.keys(data).length);
     
-    const quote = await Quote.create(data);
+    // Extraer los campos específicos que espera el modelo
+    const quoteData = {
+      project_id: data.project_id,
+      variant_id: data.variant_id,
+      created_by: data.created_by,
+      client_contact: data.client_contact,
+      client_email: data.client_email,
+      client_phone: data.client_phone,
+      client_company: data.client_company,
+      client_ruc: data.client_ruc,
+      project_name: data.project_name,
+      project_location: data.project_location,
+      request_date: data.request_date,
+      issue_date: data.issue_date,
+      subtotal: data.subtotal || 0,
+      igv: data.igv || 0,
+      total: data.total || 0,
+      status: data.status || 'draft',
+      reference: data.reference,
+      reference_type: data.reference_type,
+      meta: data.meta,
+      category_main: data.category_main,
+      quote_code: data.quote_code
+    };
+    
+    console.log('🔍 Quote.create - Datos extraídos para el modelo:', JSON.stringify(quoteData, null, 2));
+    
+    const quote = await Quote.create(quoteData);
     console.log('✅ Quote.create - Cotización creada:', quote);
     
     // ✅ NUEVO: Insertar ítems en quote_items si existen
@@ -293,5 +322,49 @@ exports.getQuotesWithProjects = async (req, res) => {
   } catch (err) {
     console.error('❌ getQuotesWithProjects - Error:', err);
     res.status(500).json({ error: 'Error al obtener cotizaciones con proyectos: ' + err.message });
+  }
+};
+
+// Actualizar estado de cotización
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Validar que el estado sea válido
+    const validStatuses = Quote.getAvailableStatuses();
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        error: 'Estado inválido', 
+        validStatuses: validStatuses 
+      });
+    }
+    
+    // Actualizar el estado
+    const updatedQuote = await Quote.updateStatus(id, status);
+    
+    if (!updatedQuote) {
+      return res.status(404).json({ error: 'Cotización no encontrada' });
+    }
+    
+    // Registrar en auditoría
+    await AuditQuote.create({
+      quote_id: id,
+      action: 'status_updated',
+      old_values: { status: req.body.old_status || 'unknown' },
+      new_values: { status: status },
+      user_id: req.user.id,
+      user_name: req.user.name,
+      user_role: req.user.role
+    });
+    
+    res.json({
+      message: 'Estado actualizado correctamente',
+      quote: updatedQuote
+    });
+    
+  } catch (err) {
+    console.error('Error updating quote status:', err);
+    res.status(500).json({ error: 'Error al actualizar estado de cotización' });
   }
 };

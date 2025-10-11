@@ -1113,7 +1113,7 @@ export default function Proyectos() {
           />
 
           {/* Estadísticas */}
-          <Row className="g-4 mb-4">
+          <Row className="g-2 mb-4">
           <Col md={6} lg={3}>
             <StatsCard
               title="Total Proyectos"
@@ -1122,6 +1122,7 @@ export default function Proyectos() {
               color="primary"
               subtitle="Proyectos registrados"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -1132,6 +1133,7 @@ export default function Proyectos() {
               color="success"
               subtitle="En desarrollo"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -1142,6 +1144,7 @@ export default function Proyectos() {
               color="danger"
               subtitle="🔴 Urgente + 🟠 Alta"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -1152,6 +1155,7 @@ export default function Proyectos() {
               color="warning"
               subtitle="Por iniciar"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
         </Row>

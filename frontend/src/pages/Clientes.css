@@ -1,0 +1,85 @@
+/* Estilos ultra compactos para la página de clientes */
+
+.clientes-page {
+  height: 100%;
+  overflow: hidden;
+}
+
+.clientes-page .container-fluid {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Hacer que la tabla use toda la altura disponible */
+.client-table {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-table .data-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-table .data-table .table-responsive {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Hacer que las filas de la tabla sean compactas pero con mejor espaciado vertical */
+.client-table table td,
+.client-table table th {
+  padding: 0.4rem 0.15rem !important;
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+/* Ajustar los botones de acción */
+.client-table .btn-sm {
+  padding: 0.05rem 0.1rem !important;
+  font-size: 0.6rem !important;
+  line-height: 1 !important;
+}
+
+/* Hacer los badges más pequeños */
+.client-table .badge {
+  font-size: 0.6rem !important;
+  padding: 0.05rem 0.1rem !important;
+}
+
+/* Compactar los controles de la tabla */
+.client-table .table-controls {
+  padding: 0.5rem !important;
+}
+
+.client-table .table-controls .form-control {
+  font-size: 0.7rem !important;
+  padding: 0.3rem 0.5rem !important;
+}
+
+/* Compactar la paginación */
+.client-table .pagination {
+  margin-bottom: 0.5rem !important;
+}
+
+.client-table .pagination .page-link {
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.7rem !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .client-table table td,
+  .client-table table th {
+    padding: 0.125rem 0.25rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .client-table .btn-sm {
+    padding: 0.1rem 0.2rem !important;
+    font-size: 0.65rem !important;
+  }
+}

@@ -20,6 +20,18 @@ const sectionsByRole = {
       title: 'General',
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
+        {
+          label: 'Dashboards Específicos',
+          icon: FiTrendingUp,
+          children: [
+            { path: '/dashboards/jefa-comercial', label: 'Dashboard Jefa Comercial', icon: FiTrendingUp },
+            { path: '/dashboards/vendedor-comercial', label: 'Dashboard Vendedor', icon: FiTrendingUp },
+            { path: '/dashboards/laboratorio', label: 'Dashboard Laboratorio', icon: FiTrendingUp },
+            { path: '/dashboards/facturacion', label: 'Dashboard Facturación', icon: FiTrendingUp },
+            { path: '/dashboards/soporte', label: 'Dashboard Soporte', icon: FiTrendingUp },
+            { path: '/dashboards/gerencia', label: 'Dashboard Gerencia', icon: FiTrendingUp },
+          ]
+        },
       ]
     },
     {
@@ -33,15 +45,24 @@ const sectionsByRole = {
           children: [
             { path: '/proyectos', label: 'Proyectos', icon: FiHome },
             { path: '/historial-proyectos', label: 'Historial Proyectos', icon: FiClock },
+            { path: '/proyectos-activos', label: 'Proyectos Activos', icon: FiHome },
+            { path: '/proyectos-laboratorio', label: 'Proyectos Laboratorio', icon: FiActivity },
+            { path: '/facturacion-proyectos', label: 'Facturación Proyectos', icon: FiDollarSign },
           ]
         },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
+        { path: '/cotizaciones/lista', label: 'Lista Cotizaciones', icon: FiList },
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
+        { path: '/cotizacion-inteligente-mejorada', label: 'Cotización Inteligente Mejorada', icon: FiZap },
+        { path: '/cotizacion-inteligente-simplificada', label: 'Cotización Inteligente Simplificada', icon: FiZap },
         { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
+        { path: '/aprobaciones', label: 'Aprobaciones', icon: FiCheck },
         { path: '/comprobantes-pago', label: 'Comprobantes de Pago', icon: FiFileText },
         { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
+        { path: '/facturacion-dashboard', label: 'Dashboard Facturación', icon: FiTrendingUp },
         { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
+        { path: '/detalle-cotizacion', label: 'Detalle Cotización', icon: FiFileText },
         {
           label: 'Tickets',
           icon: FiMessageSquare,
@@ -53,6 +74,8 @@ const sectionsByRole = {
         },
         { path: '/recuperados', label: 'Recuperados', icon: FiCheckCircle },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
+        { path: '/reportes-nuevo', label: 'Reportes Nuevo', icon: FiBarChart2 },
+        { path: '/dashboard-asesor', label: 'Dashboard Asesor', icon: FiTrendingUp },
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
@@ -60,6 +83,11 @@ const sectionsByRole = {
         { path: '/auditoria', label: 'Auditoría', icon: FiShield },
         { path: '/exportaciones', label: 'Exportaciones', icon: FiDownload },
         { path: '/gestion-archivos', label: 'Gestión de Archivos', icon: FiHardDrive },
+        { path: '/file-management', label: 'Gestión de Archivos Avanzada', icon: FiHardDrive },
+        { path: '/notificaciones', label: 'Notificaciones', icon: FiActivity },
+        { path: '/actividades', label: 'Actividades', icon: FiActivity },
+        { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
+        { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
       ]
     },
     {
@@ -142,7 +170,6 @@ const sectionsByRole = {
         { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         // Módulos eliminados: Variantes e Items de Cotización
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },
@@ -156,7 +183,6 @@ const sectionsByRole = {
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/proyectos-laboratorio', label: 'Proyectos de Laboratorio', icon: FiActivity },
         { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
-        { path: '/cotizaciones/nueva/lem', label: 'Nueva Cotización LEM', icon: FiFileText },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },

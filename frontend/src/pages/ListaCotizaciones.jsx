@@ -5,7 +5,7 @@ import { Button, Badge, Row, Col, Card, Container, Alert } from 'react-bootstrap
 import { 
   FiPlus, FiEdit, FiTrash2, FiFileText, FiDollarSign, 
   FiCalendar, FiUser, FiHome, FiCopy, FiDownload,
-  FiEye, FiCheckCircle, FiClock, FiX, FiCheck, FiSquare
+  FiEye, FiCheckCircle, FiClock, FiX, FiCheck, FiSquare, FiMessageSquare
 } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
@@ -16,6 +16,7 @@ import useSimpleMultiSelect from '../hooks/useSimpleMultiSelect';
 import { listQuotes, createQuote, deleteQuote } from '../services/quotes';
 import { listCompanies } from '../services/companies';
 import { listProjects } from '../services/projects';
+import QuoteStatusDropdown from '../components/QuoteStatusDropdown';
 import './ListaCotizaciones.css';
 
 export default function ListaCotizaciones() {
@@ -108,7 +109,7 @@ export default function ListaCotizaciones() {
   const showBulkActions = selectedIds.length > 0;
 
   const handleCreate = () => {
-    navigate('/cotizaciones/nueva');
+    navigate('/cotizaciones/inteligente');
   };
 
   const handleEdit = (quote) => {
@@ -177,24 +178,21 @@ export default function ListaCotizaciones() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      'borrador': { bg: 'secondary', text: 'Borrador', icon: FiClock },
-      'enviada': { bg: 'primary', text: 'Enviada', icon: FiFileText },
-      'aprobada': { bg: 'success', text: 'Aprobada', icon: FiCheckCircle },
-      'rechazada': { bg: 'danger', text: 'Rechazada', icon: FiX },
-      'cancelada': { bg: 'warning', text: 'Cancelada', icon: FiX }
-    };
-    
-    const config = statusConfig[status] || { bg: 'secondary', text: status, icon: FiFileText };
-    const Icon = config.icon;
-    
-    return (
-      <Badge bg={config.bg} className="d-flex align-items-center gap-1">
-        <Icon size={12} />
-        {config.text}
-      </Badge>
-    );
+  // Función para manejar el cambio de estado
+  const handleStatusChange = (quoteId, newStatus) => {
+    // Actualizar la cotización en la lista local
+    queryClient.setQueryData(['quotes'], (oldData) => {
+      if (!oldData?.data) return oldData;
+      
+      return {
+        ...oldData,
+        data: oldData.data.map(quote => 
+          quote.id === quoteId 
+            ? { ...quote, status: newStatus }
+            : quote
+        )
+      };
+    });
   };
 
   const formatCurrency = (amount) => {
@@ -254,13 +252,31 @@ export default function ListaCotizaciones() {
   };
 
   const stats = useMemo(() => {
-    if (!quotes.length) return { total: 0, borrador: 0, enviada: 0, aprobada: 0, rechazada: 0 };
+    if (!quotes.length) return { 
+      total: 0, 
+      nuevo: 0, 
+      cotizacion_enviada: 0, 
+      pendiente_cotizacion: 0, 
+      en_negociacion: 0, 
+      seguimiento: 0, 
+      ganado: 0, 
+      perdido: 0 
+    };
     
     return quotes.reduce((acc, quote) => {
       acc.total++;
       acc[quote.status] = (acc[quote.status] || 0) + 1;
       return acc;
-    }, { total: 0, borrador: 0, enviada: 0, aprobada: 0, rechazada: 0 });
+    }, { 
+      total: 0, 
+      nuevo: 0, 
+      cotizacion_enviada: 0, 
+      pendiente_cotizacion: 0, 
+      en_negociacion: 0, 
+      seguimiento: 0, 
+      ganado: 0, 
+      perdido: 0 
+    });
   }, [quotes]);
 
   return (
@@ -278,45 +294,59 @@ export default function ListaCotizaciones() {
       />
 
       {/* Estadísticas */}
-      <Row className="mb-4 g-3">
+      <Row className="mb-4 g-2">
         <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Total"
             value={stats.total}
             icon={FiFileText}
             color="primary"
+            size="compact"
           />
         </Col>
         <Col xs={6} sm={4} md={2}>
           <StatsCard
-            title="Borradores"
-            value={stats.borrador}
+            title="Nuevas"
+            value={stats.nuevo}
             icon={FiClock}
-            color="secondary"
+            color="primary"
+            size="compact"
           />
         </Col>
         <Col xs={6} sm={4} md={2}>
           <StatsCard
             title="Enviadas"
-            value={stats.enviada}
+            value={stats.cotizacion_enviada}
             icon={FiFileText}
             color="info"
+            size="compact"
           />
         </Col>
         <Col xs={6} sm={4} md={2}>
           <StatsCard
-            title="Aprobadas"
-            value={stats.aprobada}
+            title="En Negociación"
+            value={stats.en_negociacion}
+            icon={FiMessageSquare}
+            color="secondary"
+            size="compact"
+          />
+        </Col>
+        <Col xs={6} sm={4} md={2}>
+          <StatsCard
+            title="Ganadas"
+            value={stats.ganado}
             icon={FiCheckCircle}
             color="success"
+            size="compact"
           />
         </Col>
         <Col xs={6} sm={4} md={2}>
           <StatsCard
-            title="Rechazadas"
-            value={stats.rechazada}
+            title="Perdidas"
+            value={stats.perdido}
             icon={FiX}
             color="danger"
+            size="compact"
           />
         </Col>
         <Col xs={6} sm={4} md={2}>
@@ -325,6 +355,7 @@ export default function ListaCotizaciones() {
             value={selectedIds.length}
             icon={FiCheck}
             color="warning"
+            size="compact"
           />
         </Col>
       </Row>
@@ -449,7 +480,15 @@ export default function ListaCotizaciones() {
                         {getProjectName(quote.project_id)}
                       </span>
                     </td>
-                    <td>{getStatusBadge(quote.status)}</td>
+                    <td>
+                      <QuoteStatusDropdown
+                        quoteId={quote.id}
+                        currentStatus={quote.status}
+                        onStatusChange={(newStatus) => handleStatusChange(quote.id, newStatus)}
+                        size="sm"
+                        showLabel={true}
+                      />
+                    </td>
                     <td>
                       <div>
                         <div className="fw-bold text-success">

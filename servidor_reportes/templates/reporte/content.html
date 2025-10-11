@@ -1,0 +1,153 @@
+<html>
+<head>
+    <meta charset="utf8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #333;
+        }
+        .page {
+            padding: 2cm 1.5cm;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #005a9c;
+            margin-bottom: 20px;
+        }
+        .header-table .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #005a9c;
+        }
+        .header-table .company-info {
+            text-align: right;
+            font-size: 11px;
+        }
+        .report-title-box {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .report-title-box h2 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 11px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            padding: 10px;
+        }
+        .info-grid div {
+            line-height: 1.6;
+        }
+        .info-grid strong {
+            display: inline-block;
+            width: 120px;
+            color: #555;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .summary-table th, .summary-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .summary-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .conclusion {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #005a9c;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <table class="header-table">
+            <tr>
+                <td class="logo">Geofal</td>
+                <td class="company-info">
+                    Ingeniería y laboratorio de materiales<br/>
+                    Av. Marañón Nº 763, Los Olivos, Lima<br/>
+                    www.geofal.com.pe
+                </td>
+            </tr>
+        </table>
+        
+        <div class="report-title-box">
+            <h2>REPORTE TÉCNICO N° {{numeroReporte}}</h2>
+        </div>
+        
+        <div class="info-grid">
+            <div class="client-info">
+                <strong>CLIENTE:</strong> {{cliente.nombre}}<br/>
+                <strong>RUC:</strong> {{cliente.ruc}}<br/>
+                <strong>CONTACTO:</strong> {{cliente.contacto}}<br/>
+                <strong>TELÉFONO:</strong> {{cliente.telefono}}<br/>
+                <strong>CORREO:</strong> {{cliente.correo}}
+            </div>
+            <div class="project-info">
+                <strong>PROYECTO:</strong> {{proyecto.nombre}}<br/>
+                <strong>UBICACIÓN:</strong> {{proyecto.ubicacion}}<br/>
+                <strong>INGENIERO RESPONSABLE:</strong> {{ingeniero.nombre}}<br/>
+                <strong>FECHA EMISIÓN:</strong> {{formatDate fechaEmision}}
+            </div>
+        </div>
+        
+        <h3>RESUMEN DE ENSAYOS REALIZADOS</h3>
+        
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Código</th>
+                    <th>Descripción Ensayo</th>
+                    <th>Norma</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-right">Resultado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each ensayos}}
+                <tr>
+                    <td class="text-center">{{this.codigo}}</td>
+                    <td>{{this.descripcion}}</td>
+                    <td>{{this.norma}}</td>
+                    <td class="text-center">{{this.cantidad}}</td>
+                    <td class="text-center">{{this.estado}}</td>
+                    <td class="text-right">{{this.resultado}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        
+        <div class="conclusion">
+            <h4>CONCLUSIONES</h4>
+            <p>{{conclusiones}}</p>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: right;">
+            <p><strong>Ingeniero Responsable:</strong> {{ingeniero.nombre}}</p>
+            <p><strong>Fecha:</strong> {{formatDate fechaEmision}}</p>
+        </div>
+    </div>
+</body>
+</html>

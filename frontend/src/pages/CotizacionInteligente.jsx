@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
 import { createQuote, getQuote } from '../services/quotes';
 import { getExistingServices, listProjects, createProject } from '../services/projects';
@@ -67,6 +67,7 @@ const getVariantText = (v) => {
 
 export default function CotizacionInteligente() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const editQuoteId = searchParams.get('edit');
   
   const [variants, setVariants] = useState([]);
@@ -473,6 +474,49 @@ export default function CotizacionInteligente() {
   useEffect(() => {
     fetchClients();
   }, []);
+
+  // Manejar cliente pre-seleccionado desde la navegación
+  useEffect(() => {
+    if (location.state?.selectedClient && clients.length > 0) {
+      const preSelectedClient = location.state.selectedClient;
+      console.log('🎯 Cliente pre-seleccionado desde navegación:', preSelectedClient);
+      
+      // Buscar el cliente en la lista cargada
+      const foundClient = clients.find(c => c.id === preSelectedClient.id);
+      if (foundClient) {
+        console.log('✅ Cliente encontrado en la lista, pre-llenando datos');
+        setSelectedClient(foundClient);
+        setClientSearch(foundClient.name);
+        
+        // Pre-llenar los campos del cliente
+        setClient(prev => ({
+          ...prev,
+          company_name: foundClient.name || '',
+          ruc: foundClient.ruc || foundClient.dni || '',
+          contact_name: foundClient.contact_name || '',
+          contact_phone: foundClient.phone || '',
+          contact_email: foundClient.email || '',
+          project_location: foundClient.address || ''
+        }));
+      } else {
+        console.log('⚠️ Cliente no encontrado en la lista, usando datos de navegación');
+        // Si no se encuentra en la lista, usar los datos de navegación
+        setSelectedClient(preSelectedClient);
+        setClientSearch(preSelectedClient.name);
+        
+        // Pre-llenar los campos del cliente
+        setClient(prev => ({
+          ...prev,
+          company_name: preSelectedClient.name || '',
+          ruc: preSelectedClient.ruc || preSelectedClient.dni || '',
+          contact_name: preSelectedClient.contact_name || '',
+          contact_phone: preSelectedClient.phone || '',
+          contact_email: preSelectedClient.email || '',
+          project_location: preSelectedClient.address || ''
+        }));
+      }
+    }
+  }, [location.state?.selectedClient, clients]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
