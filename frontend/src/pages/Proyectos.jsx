@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave, FiMessageSquare } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -10,6 +11,7 @@ import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectQueries, updateProjectMark } from '../services/projects';
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
+import { listUsers } from '../services/users';
 import ProjectServiceForm from '../components/ProjectServiceForm';
 import ProjectFormRedesigned from '../components/ProjectFormRedesigned';
 
@@ -33,6 +35,7 @@ const emptyForm = {
 };
 
 export default function Proyectos() {
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
@@ -41,19 +44,25 @@ export default function Proyectos() {
   const [showQueriesModal, setShowQueriesModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showViewOnlyModal, setShowViewOnlyModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
+  
+  // Estados para archivos adjuntos
+  const [attachments, setAttachments] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [editingData, setEditingData] = useState({});
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
   
-  // Estados para servicios modernos
-  
-  // Estados para adjuntos
-  const [attachments, setAttachments] = useState([]);
-  const [uploadingFile, setUploadingFile] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  // Estados para buscadores de usuarios
+  const [vendedorSearch, setVendedorSearch] = useState('');
+  const [laboratorioSearch, setLaboratorioSearch] = useState('');
+  const [showVendedorDropdown, setShowVendedorDropdown] = useState(false);
+  const [showLaboratorioDropdown, setShowLaboratorioDropdown] = useState(false);
+  const [newQuery, setNewQuery] = useState('');
   
   // Estados para servicios
   const [selectedServices, setSelectedServices] = useState([]);
@@ -73,6 +82,10 @@ export default function Proyectos() {
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Obtener parámetros de URL para abrir proyecto específico
+  const urlParams = new URLSearchParams(location.search);
+  const viewProjectId = urlParams.get('view');
   
   // Obtener cliente pre-seleccionado desde la navegación
   const selectedClient = location.state?.selectedClient;
@@ -101,6 +114,18 @@ export default function Proyectos() {
     }
   );
 
+  // Cargar usuarios para los dropdowns
+  const { data: usersData, isLoading: usersLoading } = useQuery(
+    'users',
+    () => listUsers(),
+    {
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+      staleTime: 300000, // 5 minutos
+      cacheTime: 600000, // 10 minutos
+    }
+  );
+
   // Estadísticas separadas
   const { data: statsData, isLoading: statsLoading } = useQuery(
     ['projectStats'],
@@ -118,6 +143,18 @@ export default function Proyectos() {
     }
   );
 
+  // Efecto para abrir proyecto específico desde URL
+  useEffect(() => {
+    if (viewProjectId && data?.data) {
+      const project = data.data.find(p => p.id == viewProjectId);
+      if (project) {
+        handleViewProject(project);
+        // Limpiar la URL después de abrir el modal
+        navigate('/proyectos', { replace: true });
+      }
+    }
+  }, [viewProjectId, data?.data]);
+
   // Sistema de servicios moderno implementado
 
   // Cargar adjuntos cuando se abra el modal de gestión
@@ -134,6 +171,21 @@ export default function Proyectos() {
     };
     loadAttachments();
   }, [selectedProject?.id, showViewModal]);
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.position-relative')) {
+        setShowVendedorDropdown(false);
+        setShowLaboratorioDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('projects');
@@ -238,6 +290,110 @@ export default function Proyectos() {
       showNotification('❌ Error al eliminar archivo', 'danger');
       setDeletingFile(null);
     }
+  };
+
+  // Funciones para manejo de usuarios
+  const handleVendedorSelect = (user) => {
+    setEditingData({...editingData, vendedor_id: user.id});
+    setVendedorSearch(`${user.name} ${user.apellido}`);
+    setShowVendedorDropdown(false);
+    
+    // Enviar notificación al vendedor asignado
+    if (user.id && selectedProject) {
+      sendAssignmentNotification(user.id, 'vendedor', selectedProject);
+    }
+  };
+
+  const handleLaboratorioSelect = (user) => {
+    setEditingData({...editingData, laboratorio_id: user.id});
+    setLaboratorioSearch(`${user.name} ${user.apellido}`);
+    setShowLaboratorioDropdown(false);
+    
+    // Enviar notificación al responsable de laboratorio asignado
+    if (user.id && selectedProject) {
+      sendAssignmentNotification(user.id, 'laboratorio', selectedProject);
+    }
+  };
+
+  const sendAssignmentNotification = async (userId, role, project) => {
+    try {
+      const apiUrl = import.meta.env?.VITE_API_URL || 'http://localhost:4000';
+      const baseUrl = apiUrl.replace(/\/api$/, '');
+      const token = localStorage.getItem('token');
+      
+      // Crear fecha y hora formateada
+      const now = new Date();
+      const fechaHora = now.toLocaleString('es-PE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      const roleText = role === 'vendedor' ? 'vendedor comercial responsable' : 'usuario de laboratorio responsable';
+      
+      const notificationData = {
+        user_id: userId,
+        type: 'project_assignment',
+        title: `🎯 Proyecto Asignado - ${project.name}`,
+        message: `Se te ha asignado el proyecto "${project.name}" como ${roleText}.\n\n📅 Fecha y hora: ${fechaHora}\n🏢 Empresa: ${project.company_name || 'No especificada'}\n📍 Ubicación: ${project.location || 'No especificada'}\n📞 Contacto: ${project.contact_name || 'No especificado'}`,
+        project_id: project.id,
+        priority: 'high',
+        metadata: {
+          assignment_date: now.toISOString(),
+          role: role,
+          project_name: project.name,
+          company_name: project.company_name
+        }
+      };
+
+      console.log('📤 Enviando notificación:', notificationData);
+
+      const response = await fetch(`${baseUrl}/api/notifications`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(notificationData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Notificación enviada exitosamente:', result);
+        showNotification(`✅ Notificación enviada al ${roleText} - ${fechaHora}`, 'success');
+      } else {
+        const errorText = await response.text();
+        console.warn('⚠️ No se pudo enviar la notificación:', response.status, errorText);
+        showNotification(`⚠️ Error enviando notificación al ${roleText}`, 'warning');
+      }
+    } catch (error) {
+      console.error('❌ Error enviando notificación:', error);
+      showNotification(`❌ Error enviando notificación al ${role === 'vendedor' ? 'vendedor comercial' : 'usuario de laboratorio'}`, 'danger');
+    }
+  };
+
+  // Filtrar usuarios por búsqueda
+  const getFilteredVendedores = () => {
+    if (!usersData?.data) return [];
+    return usersData.data.filter(user => 
+      user.role === 'vendedor_comercial' &&
+      (vendedorSearch === '' || 
+       `${user.name} ${user.apellido}`.toLowerCase().includes(vendedorSearch.toLowerCase()) ||
+       user.email?.toLowerCase().includes(vendedorSearch.toLowerCase()))
+    );
+  };
+
+  const getFilteredLaboratorio = () => {
+    if (!usersData?.data) return [];
+    return usersData.data.filter(user => 
+      user.role === 'usuario_laboratorio' &&
+      (laboratorioSearch === '' || 
+       `${user.name} ${user.apellido}`.toLowerCase().includes(laboratorioSearch.toLowerCase()) ||
+       user.email?.toLowerCase().includes(laboratorioSearch.toLowerCase()))
+    );
   };
 
   // Opciones de filtros específicas para proyectos
@@ -406,10 +562,19 @@ export default function Proyectos() {
     setShowStatusModal(true);
   };
 
+  // Función para abrir modal de solo lectura (Ver Proyecto)
+  const handleViewOnlyProject = (project) => {
+    setSelectedProject(project);
+    setShowViewOnlyModal(true);
+  };
+
+  // Función para abrir modal de gestión completa
   const handleViewProject = (project) => {
     console.log('🔍 handleViewProject - Project recibido:', project);
     console.log('🔍 handleViewProject - Project.id:', project?.id);
     console.log('🔍 handleViewProject - Type of project.id:', typeof project?.id);
+    console.log('🔍 handleViewProject - Project.queries:', project?.queries);
+    console.log('🔍 handleViewProject - Project.queries_history:', project?.queries_history);
     
     setSelectedProject(project);
     
@@ -431,11 +596,71 @@ export default function Proyectos() {
       category_id: project.category_id || '',
       subcategory_id: project.subcategory_id || '',
       category_name: project.category_name || '',
-      subcategory_name: project.subcategory_name || ''
+      subcategory_name: project.subcategory_name || '',
+      // Incluir IDs de usuarios asignados
+      vendedor_id: project.vendedor_id || '',
+      laboratorio_id: project.laboratorio_id || '',
+      // Inicializar historial de consultas
+      queries_history: (() => {
+        try {
+          console.log('🔍 Parseando queries_history - project.queries_history:', project.queries_history);
+          console.log('🔍 Parseando queries_history - project.queries:', project.queries);
+          
+          // Si project.queries_history existe y es un array, usarlo
+          if (project.queries_history && Array.isArray(project.queries_history)) {
+            console.log('✅ Usando project.queries_history como array:', project.queries_history);
+            return project.queries_history;
+          }
+          
+          // Si project.queries es un JSON string, parsearlo
+          if (project.queries && typeof project.queries === 'string') {
+            try {
+              const parsed = JSON.parse(project.queries);
+              console.log('✅ Parseado project.queries como JSON:', parsed);
+              if (Array.isArray(parsed)) {
+                return parsed;
+              }
+            } catch (jsonError) {
+              // Si no es JSON válido, tratar como texto plano y crear un historial
+              console.log('⚠️ project.queries no es JSON válido, tratando como texto plano');
+              if (project.queries.trim()) {
+                // Crear un historial con el texto existente
+                const historyEntry = {
+                  message: project.queries.trim(),
+                  user_name: 'Usuario Anterior',
+                  created_at: new Date().toISOString()
+                };
+                console.log('✅ Creado historial desde texto plano:', historyEntry);
+                return [historyEntry];
+              }
+            }
+          }
+          
+          console.log('⚠️ No se encontró queries_history válido, retornando array vacío');
+          return [];
+        } catch (e) {
+          console.warn('❌ Error parseando queries_history:', e);
+          return [];
+        }
+      })()
     };
     
     console.log('🔍 handleViewProject - editingData inicializado:', initialEditingData);
     setEditingData(initialEditingData);
+    
+    // Inicializar campos de búsqueda con los nombres de usuarios asignados
+    if (project.vendedor_name) {
+      setVendedorSearch(project.vendedor_name);
+    } else {
+      setVendedorSearch('');
+    }
+    
+    if (project.laboratorio_name) {
+      setLaboratorioSearch(project.laboratorio_name);
+    } else {
+      setLaboratorioSearch('');
+    }
+    
     setActiveTab('info');
     setShowViewModal(true);
   };
@@ -513,32 +738,60 @@ export default function Proyectos() {
     {
       header: 'Servicios',
       accessor: 'services',
-      width: '120px',
-      className: 'd-none d-lg-table-cell', // Ocultar en pantallas pequeñas
-      render: (value, row) => (
-        <div className="d-flex flex-wrap gap-1">
-          {row.requiere_laboratorio && (
-            <Badge bg="info" size="sm" className="px-1">
-              Lab
+      width: '180px',
+      className: 'd-none d-lg-table-cell',
+      render: (value, row) => {
+        // Determinar servicio activo y su estado
+        if (row.requiere_laboratorio) {
+          const estadoLabMap = {
+            'no_requerido': 'N/A',
+            'pendiente': 'Pendiente',
+            'en_proceso': 'En Proceso',
+            'completado': 'Completado'
+          };
+          const estadoLab = estadoLabMap[row.laboratorio_status] || 'N/A';
+          return (
+            <div className="d-flex flex-column gap-1">
+              <Badge bg="info" size="sm" className="px-2">
+                🔬 Laboratorio
+              </Badge>
+              <span className="small text-muted">{estadoLab}</span>
+            </div>
+          );
+        }
+        
+        if (row.requiere_ingenieria) {
+          const estadoIngMap = {
+            'no_requerido': 'N/A',
+            'pendiente': 'Pendiente',
+            'en_proceso': 'En Proceso',
+            'completado': 'Completado'
+          };
+          const estadoIng = estadoIngMap[row.ingenieria_status] || 'N/A';
+          return (
+            <div className="d-flex flex-column gap-1">
+              <Badge bg="primary" size="sm" className="px-2">
+                ⚙️ Ingeniería
+              </Badge>
+              <span className="small text-muted">{estadoIng}</span>
+            </div>
+          );
+        }
+        
+        if (row.requiere_consultoria) {
+          return (
+            <Badge bg="success" size="sm" className="px-2">
+              💼 Consultoría
             </Badge>
-          )}
-          {row.requiere_ingenieria && (
-            <Badge bg="primary" size="sm" className="px-1">
-              Ing
-            </Badge>
-          )}
-          {row.requiere_consultoria && (
-            <Badge bg="success" size="sm" className="px-1">
-              Cons
-            </Badge>
-          )}
-          {!row.requiere_laboratorio && !row.requiere_ingenieria && !row.requiere_consultoria && (
-            <Badge bg="secondary" size="sm" className="px-1">
-              N/A
-            </Badge>
-          )}
-        </div>
-      )
+          );
+        }
+        
+        return (
+          <Badge bg="secondary" size="sm" className="px-1">
+            N/A
+          </Badge>
+        );
+      }
     },
     {
       header: 'Prioridad',
@@ -788,8 +1041,8 @@ export default function Proyectos() {
       name: 'vendedor_id',
       label: 'Vendedor Asignado',
       type: 'select',
-      options: data?.users?.filter(user => 
-        ['vendedor_comercial', 'jefa_comercial'].includes(user.role)
+      options: usersData?.data?.filter(user => 
+        user.role === 'vendedor_comercial'
       ).map(user => ({
         value: user.id,
         label: `${user.name} ${user.apellido}`
@@ -799,8 +1052,8 @@ export default function Proyectos() {
       name: 'laboratorio_id',
       label: 'Responsable de Laboratorio',
       type: 'select',
-      options: data?.users?.filter(user => 
-        ['jefe_laboratorio', 'usuario_laboratorio', 'laboratorio'].includes(user.role)
+      options: usersData?.data?.filter(user => 
+        user.role === 'usuario_laboratorio'
       ).map(user => ({
         value: user.id,
         label: `${user.name} ${user.apellido}`
@@ -860,7 +1113,7 @@ export default function Proyectos() {
           />
 
           {/* Estadísticas */}
-          <Row className="g-4 mb-4">
+          <Row className="g-2 mb-4">
           <Col md={6} lg={3}>
             <StatsCard
               title="Total Proyectos"
@@ -869,6 +1122,7 @@ export default function Proyectos() {
               color="primary"
               subtitle="Proyectos registrados"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -879,6 +1133,7 @@ export default function Proyectos() {
               color="success"
               subtitle="En desarrollo"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -889,6 +1144,7 @@ export default function Proyectos() {
               color="danger"
               subtitle="🔴 Urgente + 🟠 Alta"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
           <Col md={6} lg={3}>
@@ -899,6 +1155,7 @@ export default function Proyectos() {
               color="warning"
               subtitle="Por iniciar"
               loading={statsLoading}
+              size="compact"
             />
           </Col>
         </Row>
@@ -935,7 +1192,13 @@ export default function Proyectos() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               actions={[
-                { label: 'Gestionar', icon: FiEye, onClick: handleViewProject, variant: 'outline-primary' },
+                { 
+                  label: 'Ver', 
+                  icon: FiEye, 
+                  onClick: handleViewOnlyProject, 
+                  variant: 'primary',
+                  style: { backgroundColor: '#f84616', borderColor: '#f84616' }
+                },
                 { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
               ]}
               emptyMessage="No hay proyectos registrados"
@@ -970,336 +1233,380 @@ export default function Proyectos() {
         submitText={editingProject?.id ? 'Actualizar' : 'Crear'}
       />
 
-      {/* Modal Unificado para Gestionar Proyecto */}
+      {/* Modal Rediseñado para Gestionar Proyecto */}
       <ModalForm
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
-        title={`Gestionar Proyecto - ${selectedProject?.name || ''}`}
+        title={`📋 Gestionar Proyecto - ${selectedProject?.name || ''}`}
         data={editingData}
+        size="xl"
         fields={[
           {
             name: 'project_management',
             label: 'Gestión del Proyecto',
             type: 'custom',
             render: (project) => (
-              <Tabs
-                activeKey={activeTab}
-                onSelect={(k) => setActiveTab(k)}
-                className="mb-3"
-              >
-                {/* Tab Información General */}
-                <Tab eventKey="info" title={
-                  <span>
-                    <FiHome className="me-1" />
-                    Información
-                  </span>
-                }>
+              <div className="project-management-modal">
                   <style>{`
-                    .info-item {
+                  .project-management-modal {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  }
+                  .project-header {
+                    background: #f84616;
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 2rem;
+                    box-shadow: 0 8px 25px rgba(248, 70, 22, 0.3);
+                  }
+                  .project-header h4 {
+                    margin: 0;
+                    font-weight: 600;
+                    font-size: 1.5rem;
+                  }
+                  .project-header .project-id {
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    margin-top: 0.5rem;
+                    display: inline-block;
+                  }
+                  .info-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+                    border: 1px solid #e9ecef;
+                  }
+                  .info-card h6 {
+                    color: #495057;
+                    font-weight: 600;
                       margin-bottom: 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 2px solid #f8f9fa;
+                  }
+                  .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 1rem;
+                  }
+                  .info-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
                     }
                     .info-item label {
                       font-size: 0.75rem;
                       font-weight: 600;
+                    color: #6c757d;
                       text-transform: uppercase;
                       letter-spacing: 0.5px;
-                      display: block;
-                      margin-bottom: 0.25rem;
-                    }
-                    .service-status {
-                      padding: 0.5rem 0;
-                      border-bottom: 1px solid #eee;
-                    }
-                    .service-status:last-child {
-                      border-bottom: none;
-                    }
-                    .upload-area:hover {
-                      background-color: #e9ecef !important;
-                      border-color: #f84616 !important;
+                  }
+                  .info-item .value {
+                    font-weight: 500;
+                    color: #212529;
+                    font-size: 0.95rem;
+                  }
+                  .priority-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .priority-urgent { background: #fee2e2; color: #dc2626; }
+                  .priority-high { background: #fef3c7; color: #d97706; }
+                  .priority-normal { background: #d1fae5; color: #059669; }
+                  .priority-low { background: #e0e7ff; color: #3730a3; }
+                  .status-badge {
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .status-pendiente { background: #fef3c7; color: #d97706; }
+                  .status-activo { background: #d1fae5; color: #059669; }
+                  .status-completado { background: #dbeafe; color: #2563eb; }
+                  .status-cancelado { background: #fee2e2; color: #dc2626; }
+                  .form-control, .form-select {
+                    border-radius: 8px;
+                    border: 1px solid #d1d5db;
+                    padding: 0.75rem;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                  }
+                  .form-control:focus, .form-select:focus {
+                    border-color: #f84616;
+                    box-shadow: 0 0 0 3px rgba(248, 70, 22, 0.1);
+                  }
+                  .btn-primary {
+                    background: #f84616;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 0.75rem 2rem;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                  }
+                  .btn-primary:hover {
+                    background: #e03d14;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(248, 70, 22, 0.3);
+                  }
+                  .btn-secondary {
+                    border-radius: 8px;
+                    padding: 0.75rem 2rem;
+                    font-weight: 600;
+                  }
+                  .file-upload-area {
+                    border: 2px dashed #d1d5db;
+                    border-radius: 12px;
+                    padding: 2rem;
+                    text-align: center;
+                    background: #f9fafb;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                  }
+                  .file-upload-area:hover {
+                    border-color: #f84616;
+                    background: #fff5f2;
+                  }
+                  .file-item {
+                    background: white;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    margin-bottom: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  }
+                  .file-item:hover {
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
                     }
                   `}</style>
+                
+                <div className="project-header">
+                  <h4>📋 {project.name}</h4>
+                  <div className="project-id">ID: #{project.id}</div>
+                </div>
+
                   <div className="row g-4">
                     {/* Información Principal */}
                     <div className="col-lg-8">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-primary text-white">
-                          <h6 className="mb-0">
-                            <FiHome className="me-2" />
-                            {project.name}
-                          </h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="row g-3">
-                            <div className="col-md-6">
+                    <div className="info-card">
+                      <h6>📊 Información del Proyecto</h6>
+                      <div className="info-grid">
                               <div className="info-item">
-                                <label className="text-muted small">ID del Proyecto</label>
-                                <p className="fw-bold mb-2">#{project.id}</p>
+                          <label>Ubicación</label>
+                          <div className="value">{project.location || 'No especificada'}</div>
+                              </div>
+                              <div className="info-item">
+                          <label>Estado Actual</label>
+                          <div>
+                            <span className={`status-badge status-${project.status || 'pendiente'}`}>
+                              {project.status === 'pendiente' ? 'Pendiente' :
+                               project.status === 'activo' ? 'Activo' :
+                               project.status === 'completado' ? 'Completado' :
+                               project.status === 'cancelado' ? 'Cancelado' : project.status}
+                            </span>
                               </div>
                             </div>
-                            <div className="col-md-6">
                               <div className="info-item">
-                                <label className="text-muted small">Ubicación</label>
-                                <p className="mb-2">{project.location}</p>
-                              </div>
-                            </div>
-                            <div className="col-md-6">
-                              <div className="info-item">
-                                <label className="text-muted small">Estado Actual</label>
+                          <label>Prioridad</label>
                                 <div>
-                                  <Badge bg="primary" className="fs-6">{project.status}</Badge>
+                            <span className={`priority-badge priority-${project.priority || 'normal'}`}>
+                              {project.priority === 'urgent' ? '🔴 Urgente' :
+                               project.priority === 'high' ? '🟠 Alta' :
+                               project.priority === 'normal' ? '🟢 Normal' :
+                               project.priority === 'low' ? '🔵 Baja' : '🟢 Normal'}
+                            </span>
                                 </div>
                               </div>
                             </div>
-                            <div className="col-md-6">
+                    </div>
+
+                    <div className="info-card">
+                      <h6>🏢 Información de la Empresa</h6>
+                      <div className="info-grid">
                               <div className="info-item">
-                                <label className="text-muted small">Tipo de Proyecto</label>
-                                <div>
-                                  <Badge bg="info" className="fs-6">{project.project_type}</Badge>
+                          <label>Empresa</label>
+                          <div className="value fw-bold">{project.company_name || 'Sin empresa'}</div>
                                 </div>
+                        <div className="info-item">
+                          <label>RUC</label>
+                          <div className="value">{project.company_ruc || 'Sin RUC'}</div>
                               </div>
+                        <div className="info-item">
+                          <label>Contacto</label>
+                          <div className="value fw-bold">{project.contact_name || 'Sin contacto'}</div>
                             </div>
+                        <div className="info-item">
+                          <label>Teléfono</label>
+                          <div className="value">{project.contact_phone || 'Sin teléfono'}</div>
                           </div>
+                        <div className="info-item">
+                          <label>Email</label>
+                          <div className="value">{project.contact_email || 'Sin email'}</div>
                         </div>
+                        <div className="info-item">
+                          <label>Vendedor Asignado</label>
+                          <div className="position-relative">
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              placeholder="Buscar vendedor..."
+                              value={vendedorSearch}
+                              onChange={(e) => {
+                                setVendedorSearch(e.target.value);
+                                setShowVendedorDropdown(true);
+                              }}
+                              onFocus={() => setShowVendedorDropdown(true)}
+                            />
+                            {showVendedorDropdown && (
+                              <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                {getFilteredVendedores().length > 0 ? (
+                                  getFilteredVendedores().map(user => (
+                                    <div
+                                      key={user.id}
+                                      className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                      onClick={() => handleVendedorSelect(user)}
+                                      style={{cursor: 'pointer'}}
+                                    >
+                                      <div className="fw-bold">{user.name} {user.apellido}</div>
+                                      <div className="small text-muted">
+                                        📧 {user.email}
+                                        {user.phone && <span> • 📞 {user.phone}</span>}
                       </div>
+                                      <div className="small">
+                                        <span className="badge bg-primary">
+                                          Vendedor Comercial
+                                        </span>
                     </div>
-
-                    {/* Panel de Estado */}
-                    <div className="col-lg-4">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-success text-white">
-                          <h6 className="mb-0">
-                            <FiSettings className="me-2" />
-                            Estado de Servicios
-                          </h6>
                         </div>
-                        <div className="card-body">
-                          <div className="service-status mb-3">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <span className="text-muted">Laboratorio</span>
-                              {project.requiere_laboratorio ? (
-                                <Badge bg="info">Requerido</Badge>
-                              ) : (
-                                <Badge bg="secondary">No requerido</Badge>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-muted">No se encontraron vendedores</div>
                               )}
                             </div>
-                            {project.requiere_laboratorio && (
-                              <small className="text-muted">Estado: {project.laboratorio_status}</small>
                             )}
                           </div>
-                          
-                          <div className="service-status">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <span className="text-muted">Ingeniería</span>
-                              {project.requiere_ingenieria ? (
-                                <Badge bg="success">Requerido</Badge>
-                              ) : (
-                                <Badge bg="secondary">No requerido</Badge>
-                              )}
                             </div>
-                            {project.requiere_ingenieria && (
-                              <small className="text-muted">Estado: {project.ingenieria_status}</small>
+                        <div className="info-item">
+                          <label>Responsable Laboratorio</label>
+                          <div className="position-relative">
+                              <input 
+                                type="text" 
+                              className="form-control form-control-sm"
+                              placeholder="Buscar responsable de laboratorio..."
+                              value={laboratorioSearch}
+                              onChange={(e) => {
+                                setLaboratorioSearch(e.target.value);
+                                setShowLaboratorioDropdown(true);
+                              }}
+                              onFocus={() => setShowLaboratorioDropdown(true)}
+                            />
+                            {showLaboratorioDropdown && (
+                              <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '200px', overflowY: 'auto'}}>
+                                {getFilteredLaboratorio().length > 0 ? (
+                                  getFilteredLaboratorio().map(user => (
+                                    <div
+                                      key={user.id}
+                                      className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                      onClick={() => handleLaboratorioSelect(user)}
+                                      style={{cursor: 'pointer'}}
+                                    >
+                                      <div className="fw-bold">{user.name} {user.apellido}</div>
+                                      <div className="small text-muted">
+                                        📧 {user.email}
+                                        {user.phone && <span> • 📞 {user.phone}</span>}
+                            </div>
+                                      <div className="small">
+                                        <span className="badge bg-info">
+                                          Usuario Laboratorio
+                                        </span>
+                            </div>
+                            </div>
+                                  ))
+                                ) : (
+                                  <div className="p-2 text-muted">No se encontraron responsables de laboratorio</div>
+                                )}
+                            </div>
                             )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Información de Contacto */}
-                    <div className="col-12">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-info text-white">
-                          <h6 className="mb-0">
-                            <FiUser className="me-2" />
-                            Información de Contacto y Asignaciones
-                          </h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="row g-3">
-                            <div className="col-md-3">
-                              <label className="text-muted small">Empresa</label>
-                              <p className="mb-2 fw-semibold">{project.company_name}</p>
-                            </div>
-                            <div className="col-md-3">
-                              <label className="text-muted small">RUC</label>
-                              <p className="mb-2">{project.company_ruc}</p>
-                            </div>
-                            <div className="col-md-3">
-                              <label className="text-muted small">Contacto</label>
-                              <p className="mb-2">{project.contact_name || 'Sin contacto'}</p>
-                            </div>
-                            <div className="col-md-3">
-                              <label className="text-muted small">Teléfono</label>
-                              <p className="mb-2">{project.contact_phone || 'Sin teléfono'}</p>
-                            </div>
-                            <div className="col-md-4">
-                              <label className="text-muted small">Email</label>
-                              <p className="mb-2">{project.contact_email || 'Sin email'}</p>
-                            </div>
-                            <div className="col-md-4">
-                              <label className="text-muted small">Vendedor Asignado</label>
-                              <p className="mb-2">{project.vendedor_name || 'Sin asignar'}</p>
-                            </div>
-                            <div className="col-md-4">
-                              <label className="text-muted small">Responsable Laboratorio</label>
-                              <p className="mb-2">{project.laboratorio_name || 'Sin asignar'}</p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Notas del Estado */}
-                    {project.status_notes && (
-                      <div className="col-12">
-                        <div className="card border-0 shadow-sm">
-                          <div className="card-header bg-warning text-dark">
-                            <h6 className="mb-0">
-                              <FiMessageCircle className="me-2" />
-                              Notas del Estado
-                            </h6>
-                          </div>
-                          <div className="card-body">
-                            <p className="mb-0">{project.status_notes}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Fechas */}
-                    <div className="col-12">
-                      <div className="row g-3">
-                        <div className="col-md-6">
-                          <div className="text-center">
-                            <FiCalendar className="text-muted mb-2" size={20} />
-                            <p className="text-muted small mb-1">Fecha de Creación</p>
-                            <p className="fw-semibold">{new Date(project.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        <div className="col-md-6">
-                          <div className="text-center">
-                            <FiClock className="text-muted mb-2" size={20} />
-                            <p className="text-muted small mb-1">Última Actualización</p>
-                            <p className="fw-semibold">{new Date(project.updated_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Tab>
-
-                {/* Tab Configuración */}
-                <Tab eventKey="config" title={
-                  <span>
-                    <FiSettings className="me-1" />
-                    Configuración
-                  </span>
-                }>
-                  <div className="row g-4">
-                    {/* Información Básica */}
-                    <div className="col-12">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-primary text-white">
-                          <h6 className="mb-0">
-                            <FiEdit className="me-2" />
-                            Información Básica del Proyecto
-                          </h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="row g-3">
-                            <div className="col-md-6">
-                              <label className="form-label">Nombre del Proyecto</label>
-                              <input 
-                                type="text" 
-                                className="form-control" 
-                                value={editingData.name || ''} 
-                                onChange={(e) => setEditingData({...editingData, name: e.target.value})}
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label">Ubicación</label>
-                              <input 
-                                type="text" 
-                                className="form-control" 
-                                value={editingData.location || ''} 
-                                onChange={(e) => setEditingData({...editingData, location: e.target.value})}
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label">Persona de Contacto</label>
-                              <input 
-                                type="text" 
-                                className="form-control" 
-                                value={editingData.contact_name || ''} 
-                                onChange={(e) => setEditingData({...editingData, contact_name: e.target.value})}
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label">Teléfono de Contacto</label>
-                              <input 
-                                type="text" 
-                                className="form-control" 
-                                value={editingData.contact_phone || ''} 
-                                onChange={(e) => setEditingData({...editingData, contact_phone: e.target.value})}
-                              />
-                            </div>
-                            <div className="col-12">
-                              <label className="form-label">Email de Contacto</label>
-                              <input 
-                                type="email" 
-                                className="form-control" 
-                                value={editingData.contact_email || ''} 
-                                onChange={(e) => setEditingData({...editingData, contact_email: e.target.value})}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Estados del Proyecto */}
-                    <div className="col-md-6">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-success text-white">
-                          <h6 className="mb-0">
-                            <FiSettings className="me-2" />
-                            Estados del Proyecto
-                          </h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="mb-3">
-                            <label className="form-label">Estado Principal</label>
+                  {/* Panel de Control */}
+                  <div className="col-lg-4">
+                    <div className="info-card">
+                      <h6>⚙️ Configuración Rápida</h6>
+                      <div className="d-grid gap-3">
+                        <div>
+                          <label className="form-label small fw-bold">Estado del Proyecto</label>
                             <select 
                               className="form-select" 
-                              value={editingData.status || ''} 
+                            value={editingData.status || 'pendiente'} 
                               onChange={(e) => setEditingData({...editingData, status: e.target.value})}
                             >
-                              <option value="pendiente">Pendiente</option>
-                              <option value="activo">Activo</option>
-                              <option value="en_proceso">En Proceso</option>
-                              <option value="completado">Completado</option>
-                              <option value="pausado">Pausado</option>
-                              <option value="cancelado">Cancelado</option>
+                            <option value="pendiente">🟡 Pendiente</option>
+                            <option value="activo">🟢 Activo</option>
+                            <option value="en_proceso">🔵 En Proceso</option>
+                            <option value="completado">✅ Completado</option>
+                            <option value="pausado">⏸️ Pausado</option>
+                            <option value="cancelado">❌ Cancelado</option>
                             </select>
                           </div>
-                          <div className="mb-3">
-                            <label className="form-label">Prioridad</label>
+                        
+                        <div>
+                          <label className="form-label small fw-bold">Prioridad</label>
                             <select 
                               className="form-select" 
                               value={editingData.priority || 'normal'} 
                               onChange={(e) => setEditingData({...editingData, priority: e.target.value})}
                             >
-                              <option value="low">🟢 Baja</option>
-                              <option value="normal">🔵 Normal</option>
+                            <option value="low">🔵 Baja</option>
+                            <option value="normal">🟢 Normal</option>
                               <option value="high">🟠 Alta</option>
                               <option value="urgent">🔴 Urgente</option>
                             </select>
                           </div>
-                          <div className="mb-3">
-                            <label className="form-label">Estado Laboratorio</label>
+
+                        <div>
+                          <label className="form-label small fw-bold">
+                            Estado Laboratorio
+                            {editingData.ingenieria_status && editingData.ingenieria_status !== 'no_requerido' && (
+                              <span className="text-muted small ms-2">(Bloqueado - Ingeniería activa)</span>
+                            )}
+                          </label>
                             <select 
                               className="form-select" 
-                              value={editingData.laboratorio_status || ''} 
-                              onChange={(e) => setEditingData({...editingData, laboratorio_status: e.target.value})}
+                              disabled={editingData.ingenieria_status && editingData.ingenieria_status !== 'no_requerido'}
+                              value={editingData.laboratorio_status || 'no_requerido'} 
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Si se activa laboratorio (no es "no_requerido"), desactivar ingeniería
+                                if (newValue !== 'no_requerido') {
+                                  setEditingData({
+                                    ...editingData, 
+                                    laboratorio_status: newValue,
+                                    ingenieria_status: 'no_requerido',
+                                    requiere_laboratorio: true,
+                                    requiere_ingenieria: false
+                                  });
+                                } else {
+                                  setEditingData({
+                                    ...editingData, 
+                                    laboratorio_status: newValue,
+                                    requiere_laboratorio: false
+                                  });
+                                }
+                              }}
                             >
                               <option value="no_requerido">No Requerido</option>
                               <option value="pendiente">Pendiente</option>
@@ -1307,110 +1614,74 @@ export default function Proyectos() {
                               <option value="completado">Completado</option>
                             </select>
                           </div>
-                          <div className="mb-3">
-                            <label className="form-label">Estado Ingeniería</label>
+
+                        <div>
+                          <label className="form-label small fw-bold">
+                            Estado Ingeniería
+                            {editingData.laboratorio_status && editingData.laboratorio_status !== 'no_requerido' && (
+                              <span className="text-muted small ms-2">(Bloqueado - Laboratorio activo)</span>
+                            )}
+                          </label>
                             <select 
                               className="form-select" 
-                              value={editingData.ingenieria_status || ''} 
-                              onChange={(e) => setEditingData({...editingData, ingenieria_status: e.target.value})}
+                              disabled={editingData.laboratorio_status && editingData.laboratorio_status !== 'no_requerido'}
+                              value={editingData.ingenieria_status || 'no_requerido'} 
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Si se activa ingeniería (no es "no_requerido"), desactivar laboratorio
+                                if (newValue !== 'no_requerido') {
+                                  setEditingData({
+                                    ...editingData, 
+                                    ingenieria_status: newValue,
+                                    laboratorio_status: 'no_requerido',
+                                    requiere_ingenieria: true,
+                                    requiere_laboratorio: false
+                                  });
+                                } else {
+                                  setEditingData({
+                                    ...editingData, 
+                                    ingenieria_status: newValue,
+                                    requiere_ingenieria: false
+                                  });
+                                }
+                              }}
                             >
                               <option value="no_requerido">No Requerido</option>
                               <option value="pendiente">Pendiente</option>
                               <option value="en_proceso">En Proceso</option>
                               <option value="completado">Completado</option>
                             </select>
-                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Servicios y Consultas */}
-                    <div className="col-md-6">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-info text-white">
-                          <h6 className="mb-0">
-                            <FiFolder className="me-2" />
-                            Servicios Requeridos
-                          </h6>
+                    <div className="info-card">
+                      <h6>📅 Fechas</h6>
+                      <div className="d-grid gap-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <FiCalendar className="text-muted" size={16} />
+                          <div>
+                            <div className="small text-muted">Creado</div>
+                            <div className="fw-bold">{new Date(project.created_at).toLocaleDateString()}</div>
                         </div>
-                        <div className="card-body">
-                          <div className="form-check mb-2">
-                            <input 
-                              className="form-check-input" 
-                              type="checkbox" 
-                              id="cat_laboratorio"
-                              checked={editingData.requiere_laboratorio || false}
-                              onChange={(e) => setEditingData({...editingData, requiere_laboratorio: e.target.checked})}
-                            />
-                            <label className="form-check-label" htmlFor="cat_laboratorio">
-                              🧪 Laboratorio
-                            </label>
                           </div>
-                          <div className="form-check mb-2">
-                            <input 
-                              className="form-check-input" 
-                              type="checkbox" 
-                              id="cat_ingenieria"
-                              checked={editingData.requiere_ingenieria || false}
-                              onChange={(e) => setEditingData({...editingData, requiere_ingenieria: e.target.checked})}
-                            />
-                            <label className="form-check-label" htmlFor="cat_ingenieria">
-                              ⚙️ Ingeniería
-                            </label>
+                        <div className="d-flex align-items-center gap-2">
+                          <FiClock className="text-muted" size={16} />
+                          <div>
+                            <div className="small text-muted">Actualizado</div>
+                            <div className="fw-bold">{new Date(project.updated_at).toLocaleDateString()}</div>
                           </div>
-                          <div className="form-check mb-2">
-                            <input 
-                              className="form-check-input" 
-                              type="checkbox" 
-                              id="cat_consultoria"
-                              checked={editingData.requiere_consultoria || false}
-                              onChange={(e) => setEditingData({...editingData, requiere_consultoria: e.target.checked})}
-                            />
-                            <label className="form-check-label" htmlFor="cat_consultoria">
-                              💼 Consultoría
-                            </label>
                           </div>
-                          <div className="form-check mb-2">
-                            <input 
-                              className="form-check-input" 
-                              type="checkbox" 
-                              id="cat_capacitacion"
-                              checked={editingData.requiere_capacitacion || false}
-                              onChange={(e) => setEditingData({...editingData, requiere_capacitacion: e.target.checked})}
-                            />
-                            <label className="form-check-label" htmlFor="cat_capacitacion">
-                              📚 Capacitación
-                            </label>
-                          </div>
-                          <div className="form-check mb-3">
-                            <input 
-                              className="form-check-input" 
-                              type="checkbox" 
-                              id="cat_auditoria"
-                              checked={editingData.requiere_auditoria || false}
-                              onChange={(e) => setEditingData({...editingData, requiere_auditoria: e.target.checked})}
-                            />
-                            <label className="form-check-label" htmlFor="cat_auditoria">
-                              📋 Auditoría
-                            </label>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Notas y Consultas */}
-                    <div className="col-12">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-warning text-dark">
-                          <h6 className="mb-0">
-                            <FiMessageCircle className="me-2" />
-                            Notas y Consultas
-                          </h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="row g-3">
+                <div className="row g-4 mt-2">
                             <div className="col-md-6">
-                              <label className="form-label">Notas del Estado</label>
+                    <div className="info-card">
+                      <h6>📝 Notas del Estado</h6>
                               <textarea 
                                 className="form-control" 
                                 rows="4"
@@ -1418,29 +1689,212 @@ export default function Proyectos() {
                                 onChange={(e) => setEditingData({...editingData, status_notes: e.target.value})}
                                 placeholder="Agrega comentarios sobre el estado del proyecto..."
                               />
+                    </div>
                             </div>
                             <div className="col-md-6">
-                              <label className="form-label">Consultas del Cliente</label>
-                              <textarea 
-                                className="form-control" 
-                                rows="4"
-                                value={editingData.queries || ''} 
-                                onChange={(e) => setEditingData({...editingData, queries: e.target.value})}
-                                placeholder="Consultas y dudas del cliente..."
-                              />
-                            </div>
+                    <div className="info-card">
+                      <h6>❓ Consultas del Cliente</h6>
+                      
+                      {/* Área de comentarios existentes */}
+                      <div className="mb-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                        {editingData.queries_history && editingData.queries_history.length > 0 ? (
+                          editingData.queries_history.map((comment, index) => {
+                            // Color consistente por usuario
+                            const getUserColor = (userName) => {
+                              const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+                              const hash = userName.split('').reduce((a, b) => {
+                                a = ((a << 5) - a) + b.charCodeAt(0);
+                                return a & a;
+                              }, 0);
+                              return colors[Math.abs(hash) % colors.length];
+                            };
+                            
+                            const color = getUserColor(comment.user_name || 'Usuario');
+                            
+                            return (
+                              <div key={index} className="mb-2 p-2 bg-light rounded border-start border-3" style={{ borderLeftColor: color }}>
+                                <div className="d-flex justify-content-between align-items-start mb-1">
+                                  <small className="fw-bold" style={{ color: color }}>
+                                    👤 {comment.user_name || 'Usuario'}
+                                  </small>
+                                  <small className="text-muted">
+                                    {new Date(comment.created_at).toLocaleString('es-ES', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </small>
+                                </div>
+                                <div className="small">{comment.message}</div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-center text-muted py-3">
+                            <small>No hay consultas registradas</small>
                           </div>
+                        )}
+                      </div>
+                      
+                      {/* Área para agregar nueva consulta */}
+                      <div className="border-top pt-3">
+                        <label className="form-label small fw-bold">Agregar consulta:</label>
+                        <textarea 
+                          className="form-control" 
+                          rows="3"
+                          value={newQuery} 
+                          onChange={(e) => setNewQuery(e.target.value)}
+                          placeholder="Escribe una nueva consulta o respuesta..."
+                        />
+                        <div className="d-flex justify-content-end mt-2">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              if (newQuery && newQuery.trim()) {
+                                const newComment = {
+                                  message: newQuery.trim(),
+                                  user_name: user?.name || 'Usuario',
+                                  created_at: new Date().toISOString()
+                                };
+                                
+                                const updatedHistory = [
+                                  ...(editingData.queries_history || []),
+                                  newComment
+                                ];
+                                
+                                setEditingData({
+                                  ...editingData,
+                                  queries_history: updatedHistory,
+                                  queries: JSON.stringify(updatedHistory) // Enviar como JSON string al backend
+                                });
+                                
+                                setNewQuery(''); // Limpiar el campo
+                              }
+                            }}
+                            disabled={!newQuery || !newQuery.trim()}
+                          >
+                            <FiMessageSquare className="me-1" />
+                            Agregar
+                          </Button>
                         </div>
                       </div>
                     </div>
+                          </div>
+                        </div>
 
-                    {/* Botón de Guardar */}
-                    <div className="col-12">
-                      <div className="d-flex justify-content-end gap-2">
+                {/* Archivos Adjuntos */}
+                <div className="info-card mt-3">
+                  <h6>📎 Archivos Adjuntos</h6>
+                  
+                  {/* Subir Archivo */}
+                  <div className="file-upload-area mb-3" onClick={() => document.getElementById('fileInput').click()}>
+                    <FiUpload size={32} className="text-muted mb-2" />
+                    <div className="fw-bold text-muted">Hacer clic para subir archivo</div>
+                    <div className="small text-muted">PDF, Word, Excel, PowerPoint, Imágenes (máx. 10MB)</div>
+                    <input 
+                      type="file" 
+                      id="fileInput"
+                      style={{ display: 'none' }}
+                      onChange={handleFileSelect}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                    />
+                      </div>
+                  
+                  {selectedFile && (
+                    <div className="alert alert-info d-flex align-items-center mb-3">
+                      <FiFileText className="me-2" />
+                      <div>
+                        <strong>{selectedFile.name}</strong>
+                        <br />
+                        <small>📏 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
+                    </div>
+                      <Button 
+                        variant="primary" 
+                        size="sm"
+                        onClick={handleFileUpload}
+                        disabled={uploadingFile}
+                        className="ms-auto"
+                      >
+                        <FiUpload className="me-1" />
+                        {uploadingFile ? 'Subiendo...' : 'Subir'}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Lista de Archivos */}
+                  {attachments.length === 0 ? (
+                    <div className="text-center py-4 text-muted">
+                      <FiFolder size={48} className="mb-2 opacity-50" />
+                      <div>No hay archivos adjuntos</div>
+                      <small>Sube cotizaciones, documentos técnicos, planos, etc.</small>
+                    </div>
+                  ) : (
+                    <div className="row g-2">
+                      {attachments.map((attachment) => (
+                        <div key={attachment.id} className="col-12">
+                          <div className="file-item">
+                            <div className="d-flex align-items-center">
+                              <FiFileText className="text-primary me-3" size={20} />
+                              <div>
+                                <div className="fw-bold">{attachment.original_name}</div>
+                                <div className="small text-muted">
+                                  📏 {attachment.file_size ? `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
+                                  <span className="mx-2">•</span>
+                                  📅 {new Date(attachment.created_at).toLocaleDateString()}
+                                  <span className="mx-2">•</span>
+                                  👤 {attachment.uploaded_by_name || 'Usuario'}
+                                </div>
+                                {attachment.description && (
+                                  <div className="small text-muted mt-1">{attachment.description}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="d-flex gap-2">
                         <Button 
-                          variant="outline-secondary" 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => handleFileDownload(attachment)}
+                              >
+                                <FiDownload size={14} />
+                              </Button>
+                              <Button 
+                                variant="outline-danger" 
+                                size="sm"
+                                onClick={() => handleFileDelete(attachment.id)}
+                              >
+                                <FiTrash2 size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="d-flex justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+                  <div>
+                    {selectedProject?.quote_id && (
+                      <Button
+                        variant="outline-info"
+                        onClick={() => navigate(`/cotizaciones?view=${selectedProject.quote_id}`)}
+                        className="px-3"
+                      >
+                        <FiFileText className="me-2" />
+                        📄 Ver Cotización Relacionada
+                      </Button>
+                    )}
+                  </div>
+                  <div className="d-flex gap-3">
+                    <Button 
+                      variant="secondary" 
                           onClick={() => setShowViewModal(false)}
+                      className="px-4"
                         >
+                      <FiX className="me-2" />
                           Cancelar
                         </Button>
                         <Button 
@@ -1450,12 +1904,10 @@ export default function Proyectos() {
                             const projectId = selectedProject?.id;
                             
                             if (!projectId) {
-                              console.error('No se encontró el ID del proyecto');
                               showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
                               return;
                             }
                             
-                            // Llamar a la mutación con todos los datos
                             updateMutation.mutate({ 
                               id: projectId, 
                               data: editingData
@@ -1479,151 +1931,352 @@ export default function Proyectos() {
                       </div>
                     </div>
                   </div>
-                </Tab>
-
-                {/* Tab Archivos */}
-                <Tab eventKey="files" title={
-                  <span>
-                    <FiFolder className="me-1" />
-                    Archivos
-                  </span>
-                }>
-                  <div className="row g-4">
-                    {/* Subir Archivo */}
-                    <div className="col-12">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-primary text-white d-flex align-items-center">
-                          <FiUpload className="me-2" />
-                          <h6 className="mb-0">Subir Archivo</h6>
-                        </div>
-                        <div className="card-body">
-                          <div className="upload-area border-2 border-dashed rounded p-4 text-center mb-3" 
-                               style={{borderColor: '#dee2e6', backgroundColor: '#f8f9fa'}}>
-                            <FiFolder size={32} className="text-muted mb-2" />
-                            <div className="mb-2">
-                              <input 
-                                type="file" 
-                                className="form-control" 
-                                onChange={handleFileSelect}
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
-                              />
-                            </div>
-                            <small className="text-muted">
-                              📁 PDF, Word, Excel, PowerPoint, Imágenes, TXT (máx. 10MB)
-                            </small>
-                          </div>
-                          
-                          {selectedFile && (
-                            <div className="alert alert-info d-flex align-items-center">
-                              <FiFileText className="me-2" />
-                              <div>
-                                <strong>{selectedFile.name}</strong>
-                                <br />
-                                <small>📏 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</small>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="d-flex justify-content-end">
-                            <Button 
-                              variant="primary" 
-                              onClick={handleFileUpload}
-                              disabled={!selectedFile || uploadingFile}
-                              className="px-4"
-                            >
-                              <FiUpload className="me-2" />
-                              {uploadingFile ? 'Subiendo...' : 'Subir Archivo'}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Lista de Archivos */}
-                    <div className="col-12">
-                      <div className="card border-0 shadow-sm">
-                        <div className="card-header bg-info text-white d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <FiFolder className="me-2" />
-                            <h6 className="mb-0">Archivos del Proyecto</h6>
-                          </div>
-                          <Badge bg="light" text="dark" className="px-3 py-2">
-                            {attachments.length} archivo{attachments.length !== 1 ? 's' : ''}
-                          </Badge>
-                        </div>
-                        <div className="card-body">
-                          {attachments.length === 0 ? (
-                            <div className="text-center py-5">
-                              <FiFolder size={48} className="text-muted mb-3" />
-                              <h6 className="text-muted">No hay archivos adjuntos</h6>
-                              <p className="text-muted small">
-                                📎 Sube cotizaciones, documentos técnicos, planos, etc.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="row g-3">
-                              {attachments.map((attachment) => (
-                                <div key={attachment.id} className="col-lg-6">
-                                  <div className="card border h-100">
-                                    <div className="card-body p-3">
-                                      <div className="d-flex align-items-start">
-                                        <div className="me-3">
-                                          <FiFileText size={24} className="text-primary" />
-                                        </div>
-                                        <div className="flex-grow-1">
-                                          <h6 className="mb-1">{attachment.original_name}</h6>
-                                          <div className="small text-muted mb-2">
-                                            📏 {attachment.file_size ? 
-                                              `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 
-                                              'N/A'
-                                            }
-                                            <span className="mx-2">•</span>
-                                            📅 {new Date(attachment.created_at).toLocaleDateString()}
-                                          </div>
-                                          <div className="small text-muted mb-3">
-                                            👤 {attachment.uploaded_by_name || 'Usuario'}
-                                          </div>
-                                          {attachment.description && (
-                                            <p className="small text-muted">{attachment.description}</p>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="d-flex gap-2 mt-3">
-                                        <Button 
-                                          variant="outline-primary" 
-                                          size="sm"
-                                          onClick={() => handleFileDownload(attachment)}
-                                          className="flex-grow-1"
-                                        >
-                                          <FiDownload className="me-1" size={14} />
-                                          Descargar
-                                        </Button>
-                                        <Button 
-                                          variant="outline-danger" 
-                                          size="sm"
-                                          onClick={() => handleFileDelete(attachment.id)}
-                                        >
-                                          <FiTrash2 size={14} />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Tab>
-              </Tabs>
             )
           }
         ]}
         onSubmit={() => setShowViewModal(false)}
         submitText="Cerrar"
-        size="xl"
+      />
+
+      {/* Modal de Ver Proyecto (Solo Lectura) */}
+      <ModalForm
+        show={showViewOnlyModal}
+        onHide={() => setShowViewOnlyModal(false)}
+        title={`👁️ Ver Proyecto - ${selectedProject?.name || ''}`}
+        data={selectedProject}
+        size="lg"
+        fields={[
+          {
+            name: 'project_view',
+            label: 'Información del Proyecto',
+            type: 'custom',
+            render: (project) => (
+              <div className="project-view-modal">
+                <style>{`
+                  .project-view-modal {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  }
+                  .project-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 2rem;
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                  }
+                  .project-header h4 {
+                    margin: 0;
+                    font-weight: 600;
+                    font-size: 1.5rem;
+                  }
+                  .project-header .project-id {
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    margin-top: 0.5rem;
+                    display: inline-block;
+                  }
+                  .info-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+                    border: 1px solid #e9ecef;
+                  }
+                  .info-card h6 {
+                    color: #495057;
+                    font-weight: 600;
+                    margin-bottom: 1rem;
+                    padding-bottom: 0.5rem;
+                    border-bottom: 2px solid #f8f9fa;
+                  }
+                  .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 1rem;
+                  }
+                  .info-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                  }
+                  .info-item label {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #6c757d;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                  }
+                  .info-item .value {
+                    font-weight: 500;
+                    color: #212529;
+                    font-size: 0.95rem;
+                  }
+                  .priority-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .priority-urgent { background: #fee2e2; color: #dc2626; }
+                  .priority-high { background: #fef3c7; color: #d97706; }
+                  .priority-normal { background: #d1fae5; color: #059669; }
+                  .priority-low { background: #e0e7ff; color: #3730a3; }
+                  .status-badge {
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                  }
+                  .status-pendiente { background: #fef3c7; color: #d97706; }
+                  .status-activo { background: #d1fae5; color: #059669; }
+                  .status-completado { background: #dbeafe; color: #2563eb; }
+                  .status-cancelado { background: #fee2e2; color: #dc2626; }
+                `}</style>
+                
+                <div className="project-header">
+                  <h4>👁️ {project.name}</h4>
+                  <div className="project-id">ID: #{project.id}</div>
+                </div>
+
+                  <div className="row g-4">
+                  {/* Información Principal */}
+                  <div className="col-lg-8">
+                    <div className="info-card">
+                      <h6>📊 Información del Proyecto</h6>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <label>Ubicación</label>
+                          <div className="value">{project.location || 'No especificada'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Estado Actual</label>
+                          <div>
+                            <span className={`status-badge status-${project.status || 'pendiente'}`}>
+                              {project.status === 'pendiente' ? 'Pendiente' :
+                               project.status === 'activo' ? 'Activo' :
+                               project.status === 'completado' ? 'Completado' :
+                               project.status === 'cancelado' ? 'Cancelado' : project.status}
+                            </span>
+                            </div>
+                          </div>
+                        <div className="info-item">
+                          <label>Prioridad</label>
+                              <div>
+                            <span className={`priority-badge priority-${project.priority || 'normal'}`}>
+                              {project.priority === 'urgent' ? '🔴 Urgente' :
+                               project.priority === 'high' ? '🟠 Alta' :
+                               project.priority === 'normal' ? '🟢 Normal' :
+                               project.priority === 'low' ? '🔵 Baja' : '🟢 Normal'}
+                            </span>
+                              </div>
+                            </div>
+                      </div>
+                    </div>
+
+                    <div className="info-card">
+                      <h6>🏢 Información de la Empresa</h6>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <label>Empresa</label>
+                          <div className="value fw-bold">{project.company_name || 'Sin empresa'}</div>
+                          </div>
+                        <div className="info-item">
+                          <label>RUC</label>
+                          <div className="value">{project.company_ruc || 'Sin RUC'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Contacto</label>
+                          <div className="value fw-bold">{project.contact_name || 'Sin contacto'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Teléfono</label>
+                          <div className="value">{project.contact_phone || 'Sin teléfono'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Email</label>
+                          <div className="value">{project.contact_email || 'Sin email'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Vendedor Asignado</label>
+                          <div className="value fw-bold">{project.vendedor_name || 'Sin asignar'}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Responsable Laboratorio</label>
+                          <div className="value fw-bold">{project.laboratorio_name || 'Sin asignar'}</div>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+
+                  {/* Información Adicional */}
+                  <div className="col-lg-4">
+                    <div className="info-card">
+                      <h6>📅 Detalles del Proyecto</h6>
+                      <div className="info-item mb-3">
+                        <label>Fecha de Creación</label>
+                        <div className="value">
+                          {project.created_at ? new Date(project.created_at).toLocaleDateString('es-ES') : 'No disponible'}
+                          </div>
+                        </div>
+                      <div className="info-item mb-3">
+                        <label>Última Actualización</label>
+                        <div className="value">
+                          {project.updated_at ? new Date(project.updated_at).toLocaleDateString('es-ES') : 'No disponible'}
+                            </div>
+                                        </div>
+                    {project.queries && (
+                      <div className="info-item">
+                        <label>Consultas/Notas</label>
+                        <div className="value" style={{ fontSize: '0.9rem', lineHeight: '1.4', maxHeight: '200px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '5px', padding: '10px' }}>
+                          {(() => {
+                            try {
+                              // Intentar parsear como JSON (historial de consultas)
+                              const history = JSON.parse(project.queries);
+                              if (Array.isArray(history) && history.length > 0) {
+                return history.map((entry, index) => {
+                  // Color consistente por usuario
+                  const getUserColor = (userName) => {
+                    const colors = ['#3b82f6', '#ef4444']; // Azul y Rojo
+                    const hash = userName.split('').reduce((a, b) => {
+                      a = ((a << 5) - a) + b.charCodeAt(0);
+                      return a & a;
+                    }, 0);
+                    return colors[Math.abs(hash) % colors.length];
+                  };
+                  
+                  const color = getUserColor(entry.user_name || 'Usuario Desconocido');
+                  
+                  return (
+                    <div key={index} className="mb-2 pb-2" style={{ borderBottom: index < history.length - 1 ? '1px dotted #eee' : 'none' }}>
+                      <div className="fw-bold d-flex align-items-center">
+                        <div 
+                          className="me-2" 
+                          style={{ 
+                            width: '4px', 
+                            height: '20px', 
+                            backgroundColor: color,
+                            borderRadius: '2px'
+                          }}
+                        />
+                        <FiMessageSquare className="me-1" style={{ color: color }} />
+                        👤 {entry.user_name || 'Usuario Desconocido'}
+                        <span className="ms-auto text-muted small" style={{ fontSize: '0.75rem' }}>
+                          {new Date(entry.created_at).toLocaleString('es-ES', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
+                      <p className="mb-0 ms-3" style={{ fontSize: '0.85rem' }}>{entry.message}</p>
+                    </div>
+                  );
+                });
+                              } else {
+                                return <p className="text-muted">No hay consultas registradas.</p>;
+                              }
+                            } catch (e) {
+                              // Fallback si queries no es JSON válido (texto plano)
+                              return <p className="text-muted">{project.queries}</p>;
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                                        </div>
+                                      </div>
+                </div>
+
+                {/* Archivos Adjuntos */}
+                <div className="info-card">
+                  <h6>📎 Archivos Adjuntos</h6>
+                  
+                  {attachments.length === 0 ? (
+                    <div className="text-center py-4 text-muted">
+                      <FiFolder size={48} className="mb-2 opacity-50" />
+                      <div>No hay archivos adjuntos</div>
+                      <small>Este proyecto no tiene archivos adjuntos</small>
+                    </div>
+                  ) : (
+                    <div className="row g-2">
+                      {attachments.map((attachment) => (
+                        <div key={attachment.id} className="col-12">
+                          <div className="file-item">
+                            <div className="d-flex align-items-center">
+                              <FiFileText className="text-primary me-3" size={20} />
+                              <div>
+                                <div className="fw-bold">{attachment.original_name}</div>
+                                <div className="small text-muted">
+                                  📏 {attachment.file_size ? `${(attachment.file_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
+                                  <span className="mx-2">•</span>
+                                  📅 {new Date(attachment.created_at).toLocaleDateString()}
+                                  <span className="mx-2">•</span>
+                                  👤 {attachment.uploaded_by_name || 'Usuario'}
+                                </div>
+                                {attachment.description && (
+                                  <div className="small text-muted mt-1">{attachment.description}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="d-flex gap-2">
+                              <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => handleFileDownload(attachment)}
+                              >
+                                <FiDownload size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="d-flex justify-content-center gap-3 mt-4 pt-3 border-top">
+                                        <Button 
+                    variant="primary"
+                    onClick={() => {
+                      setShowViewOnlyModal(false);
+                      handleViewProject(project);
+                    }}
+                    className="px-4"
+                    style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
+                  >
+                    <FiSettings className="me-2" />
+                    ⚙️ Gestionar Proyecto
+                                        </Button>
+                  
+                  {project.quote_id && (
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        setShowViewOnlyModal(false);
+                        navigate(`/cotizaciones?view=${project.quote_id}`);
+                      }}
+                      className="px-4"
+                      style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
+                    >
+                      <FiFileText className="me-2" />
+                      📄 Ver Evidencias
+                    </Button>
+                  )}
+                        </div>
+                      </div>
+            )
+          }
+        ]}
+        onSubmit={() => setShowViewOnlyModal(false)}
+        submitText="Cerrar"
       />
       
       </div>

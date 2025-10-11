@@ -1,0 +1,49 @@
+{
+    "numeroCotizacion": "COT-2025-001",
+    "fechaEmision": "2025-01-11",
+    "cliente": {
+        "nombre": "Empresa Constructora ABC S.A.C.",
+        "ruc": "20123456789",
+        "contacto": "Ing. María González",
+        "telefono": "(01) 234-5678",
+        "email": "maria.gonzalez@abc.com.pe"
+    },
+    "proyecto": {
+        "nombre": "Edificio Residencial Los Olivos",
+        "ubicacion": "Los Olivos, Lima"
+    },
+    "asesor": {
+        "nombre": "Pedro Martínez",
+        "telefono": "(01) 754-3070"
+    },
+    "referencia": "Solicitud vía email del 10/01/2025",
+    "items": [
+        { 
+            "codigo": "S001", 
+            "descripcion": "Ensayo de resistencia a la compresión de concreto", 
+            "norma": "NTP 334.009",
+            "cantidad": 3, 
+            "costoUnitario": "150.00",
+            "costoParcial": "450.00" 
+        },
+        { 
+            "codigo": "S002", 
+            "descripcion": "Ensayo de granulometría de agregados", 
+            "norma": "ASTM C136",
+            "cantidad": 2, 
+            "costoUnitario": "200.00",
+            "costoParcial": "400.00" 
+        },
+        { 
+            "codigo": "S003", 
+            "descripcion": "Ensayo de contenido de humedad en suelos", 
+            "norma": "ASTM D2216",
+            "cantidad": 5, 
+            "costoUnitario": "80.00",
+            "costoParcial": "400.00" 
+        }
+    ],
+    "subtotal": "1250.00",
+    "igv": "225.00",
+    "costoTotal": "1475.00"
+}

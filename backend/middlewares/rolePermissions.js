@@ -39,6 +39,13 @@ const ROLE_PERMISSIONS = {
         receive: true,
         send: true,
         manage: true
+      },
+      // jsreport - Generación de PDFs
+      jsreport: {
+        create: true,    // Generar PDFs
+        read: true,      // Ver estado, descargar PDFs
+        update: true,    // Probar plantillas
+        delete: false
       }
     },
     isolatedViews: [
@@ -84,6 +91,13 @@ const ROLE_PERMISSIONS = {
         receive: true,
         send: false,
         manage: false
+      },
+      // jsreport - Solo lectura para reportes
+      jsreport: {
+        create: false,   // NO puede generar PDFs
+        read: true,      // Puede ver estado y descargar
+        update: false,   // NO puede probar plantillas
+        delete: false
       }
     },
     isolatedViews: [
@@ -94,10 +108,88 @@ const ROLE_PERMISSIONS = {
     ]
   },
 
+  // VENDEDOR COMERCIAL - Gestión comercial completa
+  vendedor_comercial: {
+    name: 'Vendedor Comercial',
+    permissions: {
+      // Cotizaciones - Gestión completa
+      quotes: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        approve: false,       // NO puede aprobar (solo jefa_comercial)
+        reject: false,
+        viewAll: true,        // Ve todas las cotizaciones
+        viewPending: true,    // Ve cotizaciones pendientes
+        viewApproved: true,   // Ve cotizaciones aprobadas
+        viewRejected: true    // Ve cotizaciones rechazadas
+      },
+      // Clientes - Gestión completa
+      clients: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true
+      },
+      // Proyectos - Gestión completa
+      projects: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Reportes (operativos y analíticos)
+      reports: {
+        operational: true,    // Reportes operativos
+        financial: true,      // Reportes financieros
+        analytical: true      // Métricas analíticas
+      },
+      // Dashboard
+      dashboard: {
+        metrics: true,        // Métricas de embudo
+        funnels: true,        // Análisis de embudo
+        conversions: true,    // Conversiones por servicio
+        trends: true          // Tendencias
+      },
+      // Notificaciones
+      notifications: {
+        receive: true,
+        send: true,
+        manage: true
+      },
+      // jsreport - Generación de PDFs
+      jsreport: {
+        create: true,    // Generar PDFs
+        read: true,      // Ver estado, descargar PDFs
+        update: true,    // Probar plantillas
+        delete: false
+      },
+      // Tickets - Gestión de tickets comerciales
+      tickets: {
+        create: true,
+        read: true,
+        update: true,
+        delete: false,
+        manage: false,
+        assign: false
+      }
+    },
+    isolatedViews: [
+      'quotes-management',    // Gestión de cotizaciones
+      'clients-management',   // Gestión de clientes
+      'projects-management',  // Gestión de proyectos
+      'commercial-dashboard', // Dashboard comercial
+      'commercial-reports'    // Reportes comerciales
+    ]
+  },
+
   // ADMIN - Acceso completo
   admin: {
     name: 'Administrador',
     permissions: {
+      // Cotizaciones - Acceso completo
       quotes: {
         create: true,
         read: true,
@@ -110,14 +202,130 @@ const ROLE_PERMISSIONS = {
         viewApproved: true,
         viewRejected: true
       },
+      // Clientes - Acceso completo
+      clients: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true
+      },
+      // Proyectos - Acceso completo
+      projects: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Usuarios - Acceso completo
+      users: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Servicios - Acceso completo
+      services: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Laboratorio - Acceso completo
+      laboratory: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Tickets - Acceso completo
+      tickets: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true,
+        assign: true
+      },
+      // Reportes - Acceso completo
       reports: {
         operational: true,
         financial: true,
-        analytical: true
+        analytical: true,
+        generate: true,
+        export: true
       },
+      // Dashboard - Acceso completo
+      dashboard: {
+        metrics: true,
+        funnels: true,
+        conversions: true,
+        trends: true,
+        analytics: true
+      },
+      // Notificaciones - Acceso completo
       notifications: {
         receive: true,
         send: true,
+        manage: true,
+        configure: true
+      },
+      // jsreport - Acceso completo
+      jsreport: {
+        create: true,    // Generar PDFs
+        read: true,      // Ver estado, descargar PDFs
+        update: true,    // Probar plantillas
+        delete: true,    // Eliminar PDFs
+        manage: true     // Gestionar plantillas
+      },
+      // Comprobantes de pago - Acceso completo
+      paymentProofs: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        verify: true,
+        approve: true,
+        reject: true
+      },
+      // Aprobaciones - Acceso completo
+      approvals: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        approve: true,
+        reject: true,
+        manage: true
+      },
+      // Facturas - Acceso completo
+      invoices: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        manage: true
+      },
+      // Auditoría - Acceso completo
+      audit: {
+        read: true,
+        export: true,
+        manage: true
+      },
+      // Archivos - Acceso completo
+      files: {
+        upload: true,
+        download: true,
+        delete: true,
+        manage: true
+      },
+      // Configuración - Acceso completo
+      settings: {
+        read: true,
+        update: true,
         manage: true
       }
     },

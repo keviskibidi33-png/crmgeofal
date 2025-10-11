@@ -1,0 +1,145 @@
+/* Estilos para las notificaciones toast */
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+}
+
+.notification-toast {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: none;
+  margin-bottom: 10px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.notification-toast.notification-primary {
+  border-left: 4px solid #f84616;
+}
+
+.notification-toast.notification-success {
+  border-left: 4px solid #28a745;
+}
+
+.notification-toast.notification-info {
+  border-left: 4px solid #17a2b8;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.notification-icon {
+  font-size: 18px;
+  color: #f84616;
+}
+
+.notification-time {
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.notification-content {
+  padding: 0;
+}
+
+.notification-message {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #495057;
+}
+
+.notification-data {
+  background: #f8f9fa;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.notification-data small {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notification-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+  
+  .notification-toast {
+    margin-bottom: 8px;
+  }
+  
+  .notification-message {
+    font-size: 13px;
+  }
+}
+
+/* Hover effects */
+.notification-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Toast header styling */
+.toast-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+  padding: 12px 16px;
+}
+
+.toast-body {
+  padding: 12px 16px;
+  background: white;
+}
+
+/* Close button styling */
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #6c757d;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.btn-close:hover {
+  opacity: 1;
+  color: #dc3545;
+}

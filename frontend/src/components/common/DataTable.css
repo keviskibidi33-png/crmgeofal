@@ -119,3 +119,125 @@
   background-color: #e9ecef !important;
   color: #495057 !important;
 }
+
+/* Asegurar que el dropdown de acciones se muestre encima de TODO */
+.data-table .dropdown-menu {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: auto !important;
+  left: auto !important;
+  min-width: 160px !important;
+  max-width: 200px !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  background: white !important;
+  transform: none !important;
+}
+
+/* Mejorar la visibilidad del dropdown toggle */
+.data-table .dropdown-toggle {
+  border: none !important;
+  background: transparent !important;
+  color: #6c757d !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.data-table .dropdown-toggle:hover {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.data-table .dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Asegurar que el dropdown se muestre correctamente en tablas */
+.data-table .table-responsive {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.data-table .table {
+  position: relative !important;
+}
+
+/* Mejorar el contenedor de la tabla para evitar overflow */
+.data-table .table-responsive {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+/* Asegurar que las celdas de acciones tengan suficiente espacio */
+.data-table table td:last-child {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Mejorar el dropdown cuando está abierto */
+.data-table .dropdown.show .dropdown-menu {
+  display: block !important;
+  z-index: 9999 !important;
+}
+
+/* Asegurar que el dropdown container tenga z-index alto */
+.data-table .dropdown {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Forzar que el dropdown aparezca encima de cualquier elemento */
+.data-table .dropdown-menu.show {
+  z-index: 9999 !important;
+  position: fixed !important;
+  display: block !important;
+}
+
+/* Estilos para el dropdown personalizado con portal */
+.portal-dropdown-toggle {
+  transition: all 0.2s ease !important;
+}
+
+.portal-dropdown-toggle:hover {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.portal-dropdown-toggle:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+.portal-dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  background: transparent !important;
+  text-align: left !important;
+  font-size: 0.875rem !important;
+  color: #495057 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.portal-dropdown-item:hover {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.portal-dropdown-item.text-danger {
+  color: #dc3545 !important;
+}
+
+.portal-dropdown-item.text-danger:hover {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.portal-dropdown-menu {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}

@@ -1,12 +1,13 @@
 const pool = require('../config/db');
 
 const Ticket = {
-  async getAll({ page = 1, limit = 20, status, priority }) {
+  async getAll({ page = 1, limit = 20, status, priority, user_id }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
     if (status) { where.push('status = $' + (params.length + 1)); params.push(status); }
     if (priority) { where.push('priority = $' + (params.length + 1)); params.push(priority); }
+    if (user_id) { where.push('user_id = $' + (params.length + 1)); params.push(user_id); }
     const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     const data = await pool.query(`SELECT * FROM tickets ${whereClause} ORDER BY id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]);
     const total = await pool.query(`SELECT COUNT(*) FROM tickets ${whereClause}`, params);
@@ -16,10 +17,23 @@ const Ticket = {
     const res = await pool.query('SELECT * FROM tickets WHERE id = $1', [id]);
     return res.rows[0];
   },
-  async create({ user_id, title, description, priority, attachment_url }) {
+  async create({ 
+    user_id, 
+    title, 
+    description, 
+    priority, 
+    module,
+    category,
+    type,
+    assigned_to,
+    estimated_time,
+    tags,
+    additional_notes,
+    attachment_url 
+  }) {
     const res = await pool.query(
-      'INSERT INTO tickets (user_id, title, description, priority, attachment_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [user_id, title, description, priority, attachment_url]
+      'INSERT INTO tickets (user_id, title, description, priority, module, category, type, assigned_to, estimated_time, tags, additional_notes, attachment_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+      [user_id, title, description, priority, module, category, type, assigned_to, estimated_time, tags, additional_notes, attachment_url]
     );
     return res.rows[0];
   },

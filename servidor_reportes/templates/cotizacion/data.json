@@ -1,0 +1,61 @@
+{
+    "numeroCotizacion": "COT-2025-001",
+    "fechaEmision": "2025-01-11",
+    "cliente": {
+        "nombre": "Constructora Andina S.A.C.",
+        "ruc": "20551234567",
+        "contacto": "Luisa Gonzales",
+        "telefono": "(01) 555-9876",
+        "correo": "luisa.gonzales@constructora.com"
+    },
+    "proyecto": {
+        "nombre": "Edificio Los Portales",
+        "ubicacion": "Arequipa, Perú"
+    },
+    "asesor": {
+        "nombre": "Carlos Mendoza"
+    },
+    "referencia": "Solicitud vía email del 10/01/2025",
+    "items": [
+        {
+            "codigo": "S001",
+            "descripcion": "Análisis granulométrico de agregados finos y gruesos según norma NTP 400.012",
+            "norma": "NTP 400.012",
+            "acreditacion": "(*)",
+            "cantidad": 5,
+            "costoParcial": "350.75"
+        },
+        {
+            "codigo": "C005",
+            "descripcion": "Ensayo de resistencia a la compresión de probetas de concreto",
+            "norma": "ASTM C39",
+            "acreditacion": "(*)",
+            "cantidad": 20,
+            "costoParcial": "800.00"
+        },
+        {
+            "codigo": "A012",
+            "descripcion": "Estudio de densidad de campo mediante método del cono de arena",
+            "norma": "ASTM D1556",
+            "acreditacion": "(^)",
+            "cantidad": 2,
+            "costoParcial": "450.50"
+        },
+        {
+            "codigo": "H008",
+            "descripcion": "Determinación del contenido de humedad en suelos",
+            "norma": "ASTM D2216",
+            "acreditacion": "(*)",
+            "cantidad": 8,
+            "costoParcial": "120.25"
+        },
+        {
+            "codigo": "P015",
+            "descripcion": "Ensayo de penetración estándar (SPT) en suelos",
+            "norma": "ASTM D1586",
+            "acreditacion": "(^)",
+            "cantidad": 3,
+            "costoParcial": "650.00"
+        }
+    ]
+}

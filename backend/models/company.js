@@ -1,7 +1,22 @@
 const pool = require('../config/db');
 
+// Estados de clientes
+const CLIENT_STATUS = {
+  PROSPECCION: 'prospeccion',
+  INTERESADO: 'interesado',
+  PENDIENTE_COTIZACION: 'pendiente_cotizacion',
+  COTIZACION_ENVIADA: 'cotizacion_enviada',
+  NEGOCIACION: 'negociacion',
+  GANADO: 'ganado',
+  PERDIDO: 'perdido',
+  OTRO: 'otro'
+};
+
 const Company = {
-  async getAll({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '' }) {
+  // Exponer los estados para uso en otros módulos
+  STATUS: CLIENT_STATUS,
+
+  async getAll({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '', status = '' }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
@@ -28,12 +43,16 @@ const Company = {
       params.push(sector);
       where.push(`sector = $${params.length}`);
     }
+    if (status) {
+      params.push(status);
+      where.push(`status = $${params.length}`);
+    }
     
     let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
     params.push(limit, offset);
     
         const data = await pool.query(
-          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, created_at FROM companies ${whereClause} ORDER BY id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by, created_at FROM companies ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
           params
         );
     
@@ -58,20 +77,123 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE dni = $1', [dni]);
     return res.rows[0];
   },
-  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
+  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector, status = CLIENT_STATUS.PROSPECCION, managed_by = null }) {
     const res = await pool.query(
-      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector]
+      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by]
     );
     return res.rows[0];
   },
-  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by }) {
     const res = await pool.query(
-      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10 WHERE id = $11 RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10, status = $11, managed_by = $12 WHERE id = $13 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by, id]
     );
     return res.rows[0];
+  },
+  async updateStatus(id, status) {
+    // Validar que el estado sea válido
+    const validStatuses = Object.values(CLIENT_STATUS);
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Estado inválido: ${status}. Estados válidos: ${validStatuses.join(', ')}`);
+    }
+
+    const res = await pool.query(
+      'UPDATE companies SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+    return res.rows[0];
+  },
+  async updateManager(id, managed_by) {
+    const res = await pool.query(
+      'UPDATE companies SET managed_by = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [managed_by, id]
+    );
+    return res.rows[0];
+  },
+  // Obtener todos los estados disponibles
+  getAvailableStatuses() {
+    return Object.values(CLIENT_STATUS);
+  },
+  // Obtener historial de cotizaciones y proyectos de un cliente
+  async getClientHistory(clientId) {
+    try {
+      console.log(`📋 Company.getClientHistory - Obteniendo historial para cliente ID: ${clientId}`);
+      
+      // Obtener cotizaciones del cliente
+      const quotesResult = await pool.query(`
+        SELECT 
+          q.id,
+          q.total,
+          q.status,
+          q.created_at,
+          q.updated_at,
+          u.name as created_by_name,
+          u.role as created_by_role
+        FROM quotes q
+        LEFT JOIN users u ON q.created_by = u.id
+        LEFT JOIN companies c ON c.id = $1
+        WHERE q.client_ruc = c.ruc OR q.client_ruc = c.dni
+        ORDER BY q.created_at DESC
+      `, [clientId]);
+      
+      // Obtener proyectos del cliente
+      const projectsResult = await pool.query(`
+        SELECT 
+          p.id,
+          p.name,
+          p.status,
+          p.created_at,
+          p.updated_at,
+          u.name as created_by_name,
+          u.role as created_by_role
+        FROM projects p
+        LEFT JOIN users u ON p.vendedor_id = u.id
+        WHERE p.company_id = $1
+        ORDER BY p.created_at DESC
+      `, [clientId]);
+      
+      // Obtener información del gestor actual
+      const managerResult = await pool.query(`
+        SELECT 
+          u.id,
+          u.name,
+          u.role,
+          u.email
+        FROM users u
+        INNER JOIN companies c ON c.managed_by = u.id
+        WHERE c.id = $1
+      `, [clientId]);
+      
+      const history = {
+        quotes: quotesResult.rows,
+        projects: projectsResult.rows,
+        manager: managerResult.rows[0] || null,
+        stats: {
+          totalQuotes: quotesResult.rows.length,
+          totalProjects: projectsResult.rows.length,
+          quotesByStatus: {},
+          projectsByStatus: {}
+        }
+      };
+      
+      // Calcular estadísticas de cotizaciones por estado
+      quotesResult.rows.forEach(quote => {
+        history.stats.quotesByStatus[quote.status] = (history.stats.quotesByStatus[quote.status] || 0) + 1;
+      });
+      
+      // Calcular estadísticas de proyectos por estado
+      projectsResult.rows.forEach(project => {
+        history.stats.projectsByStatus[project.status] = (history.stats.projectsByStatus[project.status] || 0) + 1;
+      });
+      
+      console.log(`✅ Company.getClientHistory - Historial obtenido: ${history.stats.totalQuotes} cotizaciones, ${history.stats.totalProjects} proyectos`);
+      return history;
+    } catch (error) {
+      console.error('❌ Company.getClientHistory - Error:', error);
+      throw error;
+    }
   },
   async delete(id) {
     await pool.query('DELETE FROM companies WHERE id = $1', [id]);

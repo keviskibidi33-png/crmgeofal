@@ -1,0 +1,336 @@
+/* Estilos para el módulo de tickets de vendedores */
+
+.ticket-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.ticket-item {
+  border-bottom: 1px solid #e9ecef;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.ticket-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+.ticket-item:last-child {
+  border-bottom: none;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.ticket-title h6 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ticket-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ticket-content {
+  margin-top: 10px;
+}
+
+.ticket-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Estadísticas */
+.stat-card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Botones modernos */
+.btn-modern {
+  background: #ff6b35;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+  background: #e55a2b;
+}
+
+/* Badges personalizados */
+.badge {
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Filtros */
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+}
+
+/* Input group */
+.input-group .input-group-text {
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px 0 0 8px;
+}
+
+.input-group .form-control {
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+}
+
+/* Card personalizada */
+.card {
+  border: none;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: #ff6b35;
+  border-bottom: none;
+  font-weight: 600;
+  color: white;
+}
+
+/* Eliminar líneas naranjas del fondo */
+.card-body::after,
+.ticket-list::after,
+.ticket-item::after,
+.card::after,
+.ticket-list::before,
+.ticket-item::before {
+  display: none !important;
+}
+
+/* Eliminar cualquier borde naranja */
+.ticket-item {
+  border-bottom: 1px solid #e9ecef !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+.ticket-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Eliminar líneas decorativas */
+.ticket-list {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ticket-list::after,
+.ticket-list::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Eliminar cualquier línea naranja en cards */
+.card {
+  border: none !important;
+}
+
+.card-body {
+  border: none !important;
+}
+
+.card-body::after,
+.card-body::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Eliminar efectos de hover que crean líneas naranjas */
+.ticket-item:hover {
+  background: #f8f9fa !important;
+  border: none !important;
+  border-bottom: 1px solid #e9ecef !important;
+  box-shadow: none !important;
+}
+
+.ticket-item:hover::after,
+.ticket-item:hover::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Eliminar cualquier efecto de hover en la lista */
+.ticket-list:hover {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ticket-list:hover::after,
+.ticket-list:hover::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Eliminar efectos de hover en cards */
+.card:hover {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card:hover::after,
+.card:hover::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Estados de tickets - Todo naranja sólido */
+.ticket-status-abierto {
+  background: #ff6b35;
+  color: white;
+}
+
+.ticket-status-en_progreso {
+  background: #ff8c42;
+  color: white;
+}
+
+.ticket-status-cerrado {
+  background: #e55a2b;
+  color: white;
+}
+
+.ticket-status-cancelado {
+  background: #d84315;
+  color: white;
+}
+
+/* Prioridades - Todo naranja sólido */
+.ticket-priority-baja {
+  background: #ffab40;
+  color: white;
+}
+
+.ticket-priority-media {
+  background: #ff6b35;
+  color: white;
+}
+
+.ticket-priority-alta {
+  background: #e55a2b;
+  color: white;
+}
+
+.ticket-priority-urgente {
+  background: #d84315;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ticket-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ticket-actions {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .stat-card {
+    margin-bottom: 15px;
+  }
+  
+  .ticket-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ticket-item {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Scrollbar personalizado */
+.ticket-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ticket-list::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb {
+  background: #ff6b35;
+  border-radius: 3px;
+}
+
+.ticket-list::-webkit-scrollbar-thumb:hover {
+  background: #e55a2b;
+}

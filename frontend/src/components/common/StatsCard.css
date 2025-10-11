@@ -1,0 +1,357 @@
+/* StatsCard - Componente de tarjetas de estadísticas rediseñado */
+
+.stats-card {
+  transition: all 0.2s ease;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #d1d5db;
+}
+
+.stats-card-body {
+  padding: 1rem !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stats-content {
+  min-width: 0; /* Permite que el texto se trunque */
+}
+
+.stats-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.125rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-subtitle {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-bottom: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-trend {
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.stats-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+/* Tamaños de cards */
+.stats-card-compact {
+  min-height: 70px;
+}
+
+.stats-card-compact .stats-card-body {
+  padding: 0.75rem !important;
+}
+
+.stats-card-compact .stats-title {
+  font-size: 0.65rem;
+  margin-bottom: 0.125rem;
+}
+
+.stats-card-compact .stats-value {
+  font-size: 1.25rem;
+}
+
+.stats-card-compact .stats-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.stats-card-normal {
+  min-height: 85px;
+}
+
+.stats-card-large {
+  min-height: 100px;
+}
+
+.stats-card-large .stats-card-body {
+  padding: 1.25rem !important;
+}
+
+.stats-card-large .stats-title {
+  font-size: 0.8rem;
+  margin-bottom: 0.375rem;
+}
+
+.stats-card-large .stats-value {
+  font-size: 1.75rem;
+}
+
+.stats-card-large .stats-icon {
+  width: 36px;
+  height: 36px;
+}
+
+/* Colores específicos para cada tipo de estadística */
+.stats-card.primary .stats-icon {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.stats-card.secondary .stats-icon {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.stats-card.success .stats-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.stats-card.danger .stats-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.stats-card.warning .stats-icon {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.stats-card.info .stats-icon {
+  background: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
+}
+
+/* Animación de entrada */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stats-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Estados de carga */
+.stats-card.loading {
+  opacity: 0.7;
+}
+
+.stats-card.loading .stats-icon {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .stats-card-normal {
+    min-height: 75px;
+  }
+  
+  .stats-card-normal .stats-value {
+    font-size: 1.375rem;
+  }
+  
+  .stats-card-large {
+    min-height: 90px;
+  }
+  
+  .stats-card-large .stats-value {
+    font-size: 1.625rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-card-compact {
+    min-height: 65px;
+  }
+  
+  .stats-card-compact .stats-card-body {
+    padding: 0.625rem !important;
+  }
+  
+  .stats-card-compact .stats-value {
+    font-size: 1.125rem;
+  }
+  
+  .stats-card-normal {
+    min-height: 70px;
+  }
+  
+  .stats-card-normal .stats-card-body {
+    padding: 0.875rem !important;
+  }
+  
+  .stats-card-normal .stats-value {
+    font-size: 1.25rem;
+  }
+  
+  .stats-card-normal .stats-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .stats-card-large {
+    min-height: 80px;
+  }
+  
+  .stats-card-large .stats-value {
+    font-size: 1.5rem;
+  }
+  
+  .stats-card-large .stats-icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-card {
+    margin-bottom: 0.5rem;
+  }
+  
+  .stats-card-compact {
+    min-height: 60px;
+  }
+  
+  .stats-card-compact .stats-card-body {
+    padding: 0.5rem !important;
+  }
+  
+  .stats-card-compact .stats-title {
+    font-size: 0.6rem;
+  }
+  
+  .stats-card-compact .stats-value {
+    font-size: 1rem;
+  }
+  
+  .stats-card-compact .stats-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .stats-card-normal {
+    min-height: 65px;
+  }
+  
+  .stats-card-normal .stats-card-body {
+    padding: 0.75rem !important;
+  }
+  
+  .stats-card-normal .stats-title {
+    font-size: 0.7rem;
+  }
+  
+  .stats-card-normal .stats-value {
+    font-size: 1.125rem;
+  }
+  
+  .stats-card-normal .stats-icon {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .stats-card-large {
+    min-height: 75px;
+  }
+  
+  .stats-card-large .stats-value {
+    font-size: 1.375rem;
+  }
+  
+  .stats-card-large .stats-icon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Mejoras para texto largo */
+.stats-title {
+  max-width: 100%;
+}
+
+.stats-value {
+  max-width: 100%;
+}
+
+/* Hover effects mejorados */
+.stats-card:hover .stats-icon {
+  transform: scale(1.05);
+}
+
+/* Grid layout optimizado */
+.stats-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+}

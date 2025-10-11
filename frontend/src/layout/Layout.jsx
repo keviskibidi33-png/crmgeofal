@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import NotificationToast from '../components/NotificationToast';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,11 +17,12 @@ const Layout = ({ children }) => {
       <div className="d-flex">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="main-content flex-grow-1">
-          <Container fluid className="py-4">
+          <div className="content-area">
             {children}
-          </Container>
+          </div>
         </main>
       </div>
+      <NotificationToast />
     </div>
   );
 };

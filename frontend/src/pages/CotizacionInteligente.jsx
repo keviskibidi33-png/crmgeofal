@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
-import { createQuote } from '../services/quotes';
+import { createQuote, getQuote } from '../services/quotes';
 import { getExistingServices, listProjects, createProject } from '../services/projects';
 import { getOrCreateCompany, listCompanies } from '../services/companies';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
-import SubserviceAutocomplete from '../components/SubserviceAutocomplete';
+import SubserviceAutocompleteFinal from '../components/SubserviceAutocompleteFinal';
 import './CotizacionInteligente.css';
 import '../styles/autocomplete.css';
 
@@ -65,6 +66,10 @@ const getVariantText = (v) => {
 };
 
 export default function CotizacionInteligente() {
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const editQuoteId = searchParams.get('edit');
+  
   const [variants, setVariants] = useState([]);
   const [variantId, setVariantId] = useState('');
   const [client, setClient] = useState(emptyClient);
@@ -79,6 +84,8 @@ export default function CotizacionInteligente() {
   const [projectSuggestions, setProjectSuggestions] = useState([]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
   const [suggestedFileName, setSuggestedFileName] = useState('');
+  const [loadingQuote, setLoadingQuote] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // Estados para el buscador de clientes
   const [clients, setClients] = useState([]);
@@ -145,23 +152,40 @@ export default function CotizacionInteligente() {
     }
   }, [selection.company, selection.project]);
 
-  // Auto-completar datos del asesor comercial
+  // Auto-completar datos del asesor comercial desde el API
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const loadUserData = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.name) {
-          setQuote(prev => ({
-            ...prev,
-            commercial_name: payload.name,
-            commercial_phone: payload.phone || ''
-          }));
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch('http://localhost:4000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setCurrentUser(data.user); // Guardar usuario actual
+            setQuote(prev => ({
+              ...prev,
+              commercial_name: data.user.name || prev.commercial_name,
+              commercial_phone: data.user.phone || prev.commercial_phone,
+              // Inicializar fecha de emisión con la fecha actual si está vacía
+              issue_date: prev.issue_date || new Date().toISOString().slice(0, 10),
+              // Inicializar fecha de solicitud con la fecha actual si está vacía
+              request_date: prev.request_date || new Date().toISOString().slice(0, 10)
+            }));
+          }
         }
       } catch (e) {
-        console.warn('No se pudo decodificar el token:', e);
+        console.warn('No se pudo obtener datos del usuario:', e);
       }
-    }
+    };
+    
+    loadUserData();
   }, []);
 
 
@@ -280,10 +304,219 @@ export default function CotizacionInteligente() {
     setClient(emptyClient);
   };
 
+
+  // Cargar cotización existente para edición
+  useEffect(() => {
+    if (editQuoteId && clients.length > 0) {
+      loadExistingQuote(editQuoteId);
+    }
+  }, [editQuoteId, clients]);
+
+  const loadExistingQuote = async (quoteId) => {
+    setLoadingQuote(true);
+    try {
+      console.log('🔄 Cargando cotización existente:', quoteId);
+      const existingQuote = await getQuote(quoteId);
+      console.log('✅ Cotización cargada:', existingQuote);
+      
+      // Si no tenemos datos del usuario, cargarlos
+      if (!currentUser) {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const response = await fetch('http://localhost:4000/api/auth/me', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.user) {
+                setCurrentUser(data.user);
+                console.log('✅ Usuario cargado para edición:', data.user);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('No se pudo obtener datos del usuario para edición:', e);
+        }
+      }
+      
+      // Parsear meta si viene como string JSON
+      if (existingQuote.meta && typeof existingQuote.meta === 'string') {
+        try {
+          existingQuote.meta = JSON.parse(existingQuote.meta);
+          console.log('✅ Meta parseado correctamente:', existingQuote.meta);
+        } catch (error) {
+          console.error('❌ Error parseando meta:', error);
+          existingQuote.meta = {};
+        }
+      }
+      
+      // Cargar datos del cliente
+      if (existingQuote.client_contact || existingQuote.company_name) {
+        // Usar company_name del JOIN con companies (razón social real) como prioridad
+        const companyName = existingQuote.company_name || existingQuote.client_company || existingQuote.client_contact || '';
+        const contactName = existingQuote.client_contact || '';
+        
+        setClient(prev => ({
+          ...prev,
+          company_name: companyName, // ✅ Usar la razón social real de la empresa
+          ruc: existingQuote.company_ruc || existingQuote.client_ruc || '', // ✅ Usar RUC de la empresa
+          contact_name: contactName,
+          contact_phone: existingQuote.client_phone || '',
+          contact_email: existingQuote.client_email || '',
+          project_location: existingQuote.project_location || '',
+          project_name: existingQuote.project_name || ''
+        }));
+        
+        // Configurar el campo de búsqueda de clientes con la razón social
+        setClientSearch(companyName);
+        console.log('🔍 Configurando búsqueda de cliente:', companyName);
+        console.log('🔍 RUC del cliente:', existingQuote.company_ruc || existingQuote.client_ruc);
+        console.log('🔍 Teléfono del cliente:', existingQuote.client_phone);
+        
+        // Si hay RUC, buscar el cliente en la lista
+        const rucToSearch = existingQuote.company_ruc || existingQuote.client_ruc;
+        if (rucToSearch) {
+          console.log('🔍 Buscando cliente por RUC:', rucToSearch);
+          const foundClient = clients.find(c => c.ruc === rucToSearch);
+          if (foundClient) {
+            console.log('✅ Cliente encontrado:', foundClient);
+            setSelectedClient(foundClient);
+          } else {
+            console.log('❌ Cliente no encontrado en la lista, creando cliente simulado');
+            // Si no se encuentra el cliente, crear un objeto simulado con los datos de la cotización
+            const simulatedClient = {
+              id: 'existing',
+              name: companyName,
+              ruc: rucToSearch || '',
+              email: existingQuote.client_email || '',
+              phone: existingQuote.client_phone || '',
+              contact_name: contactName,
+              address: existingQuote.project_location || ''
+            };
+            setSelectedClient(simulatedClient);
+            console.log('✅ Cliente simulado creado:', simulatedClient);
+          }
+        } else {
+          // Si no hay RUC pero hay nombre de cliente, crear cliente simulado
+          const simulatedClient = {
+            id: 'existing',
+            name: companyName,
+            ruc: '',
+            email: existingQuote.client_email || '',
+            phone: existingQuote.client_phone || '',
+            contact_name: contactName,
+            address: existingQuote.project_location || ''
+          };
+          setSelectedClient(simulatedClient);
+          console.log('✅ Cliente simulado creado (sin RUC):', simulatedClient);
+        }
+      }
+      
+      // Cargar datos de la cotización
+      setQuote(prev => ({
+        ...prev,
+        request_date: existingQuote.meta?.quote?.request_date || existingQuote.request_date || new Date().toISOString().slice(0, 10),
+        issue_date: existingQuote.issue_date || new Date().toISOString().slice(0, 10), // Mantener fecha original o usar actual
+        commercial_name: existingQuote.commercial_name || currentUser?.name || '',
+        commercial_phone: existingQuote.commercial_phone || currentUser?.phone || '',
+        payment_terms: existingQuote.payment_terms || 'adelantado',
+        reference: existingQuote.reference || '',
+        reference_type: existingQuote.reference_type || ['email', 'phone'],
+        igv: existingQuote.igv !== false,
+        delivery_days: existingQuote.meta?.quote?.delivery_days || existingQuote.delivery_days || 4, // Mantener días hábiles originales
+        category_main: existingQuote.category_main || 'laboratorio'
+      }));
+      
+      // Cargar items si existen (desde meta.items)
+      let itemsToLoad = [];
+      if (existingQuote.meta && existingQuote.meta.items && existingQuote.meta.items.length > 0) {
+        itemsToLoad = existingQuote.meta.items;
+        console.log('✅ Cargando ítems desde meta.items:', itemsToLoad.length);
+      } else if (existingQuote.items && existingQuote.items.length > 0) {
+        itemsToLoad = existingQuote.items;
+        console.log('✅ Cargando ítems desde items directo:', itemsToLoad.length);
+      }
+      
+      if (itemsToLoad.length > 0) {
+        setItems(itemsToLoad);
+        console.log('📦 Ítems cargados para edición:', itemsToLoad);
+      } else {
+        console.log('📦 No hay ítems para cargar, usando ítem vacío por defecto');
+        setItems([{ ...emptyItem }]);
+      }
+      
+      // Cargar variante si existe
+      if (existingQuote.variant_id) {
+        setVariantId(existingQuote.variant_id);
+        console.log('🔄 Variante cargada:', existingQuote.variant_id);
+      }
+      
+      // Cargar condiciones específicas si existen
+      if (existingQuote.meta && existingQuote.meta.conditions_text) {
+        setConditionsText(existingQuote.meta.conditions_text);
+        console.log('📝 Condiciones específicas cargadas');
+      }
+      
+      console.log('✅ Datos de cotización cargados para edición');
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+      setError('Error al cargar la cotización existente: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoadingQuote(false);
+    }
+  };
+
   // Cargar clientes al montar el componente
   useEffect(() => {
     fetchClients();
   }, []);
+
+  // Manejar cliente pre-seleccionado desde la navegación
+  useEffect(() => {
+    if (location.state?.selectedClient && clients.length > 0) {
+      const preSelectedClient = location.state.selectedClient;
+      console.log('🎯 Cliente pre-seleccionado desde navegación:', preSelectedClient);
+      
+      // Buscar el cliente en la lista cargada
+      const foundClient = clients.find(c => c.id === preSelectedClient.id);
+      if (foundClient) {
+        console.log('✅ Cliente encontrado en la lista, pre-llenando datos');
+        setSelectedClient(foundClient);
+        setClientSearch(foundClient.name);
+        
+        // Pre-llenar los campos del cliente
+        setClient(prev => ({
+          ...prev,
+          company_name: foundClient.name || '',
+          ruc: foundClient.ruc || foundClient.dni || '',
+          contact_name: foundClient.contact_name || '',
+          contact_phone: foundClient.phone || '',
+          contact_email: foundClient.email || '',
+          project_location: foundClient.address || ''
+        }));
+      } else {
+        console.log('⚠️ Cliente no encontrado en la lista, usando datos de navegación');
+        // Si no se encuentra en la lista, usar los datos de navegación
+        setSelectedClient(preSelectedClient);
+        setClientSearch(preSelectedClient.name);
+        
+        // Pre-llenar los campos del cliente
+        setClient(prev => ({
+          ...prev,
+          company_name: preSelectedClient.name || '',
+          ruc: preSelectedClient.ruc || preSelectedClient.dni || '',
+          contact_name: preSelectedClient.contact_name || '',
+          contact_phone: preSelectedClient.phone || '',
+          contact_email: preSelectedClient.email || '',
+          project_location: preSelectedClient.address || ''
+        }));
+      }
+    }
+  }, [location.state?.selectedClient, clients]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -322,7 +555,7 @@ export default function CotizacionInteligente() {
       
       // Si no hay proyecto seleccionado, crear uno automáticamente
       if (!projectId) {
-        // Crear proyecto automáticamente
+        // Crear proyecto automáticamente con vendedor asignado
         const newProject = await createProject({
           company_id: companyId,
           name: client.project_name || `Proyecto ${client.company_name}`,
@@ -331,12 +564,17 @@ export default function CotizacionInteligente() {
           contact_phone: client.contact_phone,
           contact_email: client.contact_email,
           status: 'activo',
-          project_type: 'cotizacion',
-          priority: 'normal'
+          priority: 'normal',
+          // Asignar automáticamente el vendedor que creó la cotización
+          vendedor_id: currentUser?.id || null,
+          // Si es categoría laboratorio, permitir asignar usuario de laboratorio
+          requiere_laboratorio: quote.category_main === 'laboratorio',
+          laboratorio_status: quote.category_main === 'laboratorio' ? 'pendiente' : 'no_requerido'
         });
         
         projectId = newProject.id;
         console.log('✅ Proyecto creado automáticamente:', newProject);
+        console.log('👤 Vendedor asignado:', currentUser?.name);
       }
       
       const quoteCode = generateQuoteCode();
@@ -347,6 +585,11 @@ export default function CotizacionInteligente() {
         client_contact: client.contact_name,
         client_email: client.contact_email,
         client_phone: client.contact_phone,
+        client_company: client.company_name, // ✅ NUEVO: Razón social de la empresa
+        client_ruc: client.ruc, // ✅ NUEVO: RUC de la empresa
+        project_name: client.project_name, // ✅ NUEVO: Nombre del proyecto
+        project_location: client.project_location, // ✅ NUEVO: Ubicación del proyecto
+        request_date: quote.request_date || new Date().toISOString().slice(0, 10), // ✅ NUEVO: Fecha de solicitud
         issue_date: quote.issue_date || new Date().toISOString().slice(0, 10),
         subtotal,
         igv: igvAmount,
@@ -479,7 +722,20 @@ export default function CotizacionInteligente() {
   };
 
   return (
-    <ModuloBase titulo="📋 Cotización Inteligente" descripcion="Formulario unificado para crear cotizaciones de forma rápida e intuitiva">
+    <ModuloBase 
+      titulo={editQuoteId ? "📝 Editar Cotización" : "📋 Cotización Inteligente"} 
+      descripcion={editQuoteId ? "Edita una cotización existente con nueva fecha" : "Formulario unificado para crear cotizaciones de forma rápida e intuitiva"}
+    >
+      {loadingQuote && (
+        <div className="alert alert-info">
+          <div className="d-flex align-items-center">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            Cargando cotización existente...
+          </div>
+        </div>
+      )}
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={onSubmit} className="intelligent-quote-form">
@@ -851,7 +1107,7 @@ export default function CotizacionInteligente() {
                           />
                         </td>
                         <td>
-                          <SubserviceAutocomplete
+                          <SubserviceAutocompleteFinal
                             value={it.description}
                             onChange={(value) => onChangeItem(idx, { description: value })}
                             onSelect={(subservice) => {
@@ -936,7 +1192,7 @@ export default function CotizacionInteligente() {
             className="btn btn-success btn-lg"
             disabled={saving || !client.company_name || !client.ruc}
           >
-            {saving ? '💾 Guardando...' : '💾 GUARDAR COTIZACIÓN'}
+            {saving ? '💾 Guardando...' : (editQuoteId ? '💾 CREAR NUEVA COTIZACIÓN' : '💾 GUARDAR COTIZACIÓN')}
           </button>
           <button 
             type="button" 

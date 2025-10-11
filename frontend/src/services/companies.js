@@ -84,4 +84,28 @@ export const deleteCompany = (id) =>
     method: 'DELETE',
   });
 
-export default { listCompanies, getCompany, createCompany, updateCompany, deleteCompany };
+export const updateClientStatus = (id, status) =>
+  apiFetch(`/api/companies/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+
+export const updateClientManager = (id, managed_by) =>
+  apiFetch(`/api/companies/${id}/manager`, {
+    method: 'PATCH',
+    body: JSON.stringify({ managed_by }),
+  });
+
+export const getClientHistory = (id) =>
+  apiFetch(`/api/companies/${id}/history`);
+
+export default { 
+  listCompanies, 
+  getCompany, 
+  createCompany, 
+  updateCompany, 
+  deleteCompany,
+  updateClientStatus,
+  updateClientManager,
+  getClientHistory
+};

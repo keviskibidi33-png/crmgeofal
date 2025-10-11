@@ -51,6 +51,21 @@ app.get('/', (req, res) => {
   res.send('CRM Backend running');
 });
 
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    message: 'Backend funcionando correctamente'
+  });
+});
+
+// Health check route for HEAD requests
+app.head('/api/health', (req, res) => {
+  res.status(200).end();
+});
+
 // ===== RUTAS PRINCIPALES =====
 // Autenticación y usuarios
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -68,6 +83,8 @@ app.use('/api/laboratorio', require('./routes/laboratorioRoutes'));
 
 // Tickets y soporte
 app.use('/api/tickets', require('./routes/ticketRoutes'));
+app.use('/api/ticket-filters', require('./routes/ticketFilters'));
+app.use('/api/ticket-comments', require('./routes/ticketCommentRoutesSimple'));
 
 // Archivos y adjuntos
 app.use('/api/attachments', require('./routes/attachmentRoutes'));
@@ -80,6 +97,9 @@ app.use('/api/audit-quotes', require('./routes/auditQuoteRoutes'));
 
 // Sistema de aprobaciones y métricas
 app.use('/api/approvals', require('./routes/approvalRoutes'));
+
+// jsreport - Generación de PDFs
+app.use('/api/jsreport', require('./routes/jsreportRoutes'));
 app.use('/api/funnel', require('./routes/funnelRoutes'));
 
 // Sistema de notificaciones

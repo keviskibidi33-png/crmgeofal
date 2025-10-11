@@ -55,81 +55,89 @@ export default function VendedorComercialDashboard() {
       />
 
       {/* Métricas principales */}
-      <Row className="mb-4">
-        <Col lg={3} md={6} className="mb-3">
+      <Row className="mb-4 g-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Mis Cotizaciones"
             value={stats?.misCotizaciones || 0}
             icon={FiTarget}
             color="primary"
             subtitle={`${stats?.cotizacionesAprobadas || 0} aprobadas`}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Clientes"
             value={stats?.totalClientes || 0}
             icon={FiUsers}
             color="info"
             subtitle={`${stats?.clientesNuevosEsteMes || 0} nuevos este mes`}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Ingresos Generados"
             value={`$${(stats?.ingresosGenerados || 0).toLocaleString()}`}
             icon={FiDollarSign}
             color="success"
             subtitle={`${stats?.cotizacionesFacturadas || 0} facturadas`}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Tasa de Conversión"
             value={`${stats?.conversionRate || 0}%`}
             icon={FiTrendingUp}
             color="warning"
             subtitle="Cotizaciones aprobadas"
+            size="normal"
           />
         </Col>
       </Row>
 
       {/* Métricas de proyectos y mensuales */}
-      <Row className="mb-4">
-        <Col lg={3} md={6} className="mb-3">
+      <Row className="mb-4 g-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Proyectos Activos"
             value={stats?.proyectosActivos || 0}
             icon={FiBriefcase}
             color="primary"
             subtitle={`${stats?.proyectosCompletados || 0} completados`}
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Cotizaciones Este Mes"
             value={stats?.cotizacionesEsteMes || 0}
             icon={FiActivity}
             color="info"
             subtitle="Nuevas cotizaciones"
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Ingresos Este Mes"
             value={`$${(stats?.ingresosEsteMes || 0).toLocaleString()}`}
             icon={FiDollarSign}
             color="success"
             subtitle="Ingresos del mes actual"
+            size="normal"
           />
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={3} md={6}>
           <StatsCard
             title="Clientes Nuevos"
             value={stats?.clientesNuevosEsteMes || 0}
             icon={FiUsers}
             color="warning"
             subtitle="Este mes"
+            size="normal"
           />
         </Col>
       </Row>

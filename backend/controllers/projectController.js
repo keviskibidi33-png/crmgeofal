@@ -244,8 +244,12 @@ exports.update = async (req, res) => {
       contact_phone, 
       contact_email,
       queries,
+      queries_history,
       priority,
       marked,
+      status,
+      laboratorio_status,
+      ingenieria_status,
     } = req.body;
     
     const project = await Project.update(req.params.id, { 
@@ -262,8 +266,12 @@ exports.update = async (req, res) => {
       contact_phone, 
       contact_email,
       queries,
+      queries_history,
       priority,
       marked,
+      status,
+      laboratorio_status,
+      ingenieria_status,
     }, req.user);
     
     if (!project) return res.status(403).json({ error: 'No autorizado o proyecto no encontrado' });

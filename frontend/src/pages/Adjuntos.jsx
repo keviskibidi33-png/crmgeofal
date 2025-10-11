@@ -112,7 +112,7 @@ export default function Adjuntos() {
     if (showUploadModal || showEditModal) {
       refreshCategoriesAndSubcategories();
     }
-  }, [showUploadModal, showEditModal, refetchCategories, refetchSubcategories]);
+  }, [showUploadModal, showEditModal]);
 
   const handleMutationSuccess = (message) => {
     setToast({ message, type: 'success', show: true });

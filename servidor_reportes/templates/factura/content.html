@@ -1,0 +1,156 @@
+<html>
+<head>
+    <meta charset="utf8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #333;
+        }
+        .page {
+            padding: 2cm 1.5cm;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #005a9c;
+            margin-bottom: 20px;
+        }
+        .header-table .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #005a9c;
+        }
+        .header-table .company-info {
+            text-align: right;
+            font-size: 11px;
+        }
+        .invoice-title-box {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .invoice-title-box h2 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 11px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            padding: 10px;
+        }
+        .info-grid div {
+            line-height: 1.6;
+        }
+        .info-grid strong {
+            display: inline-block;
+            width: 120px;
+            color: #555;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .totals-section {
+            width: 35%;
+            margin-left: auto;
+            margin-top: 20px;
+        }
+        .totals-table {
+            width: 100%;
+        }
+        .totals-table td {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <table class="header-table">
+            <tr>
+                <td class="logo">Geofal</td>
+                <td class="company-info">
+                    Ingeniería y laboratorio de materiales<br/>
+                    Av. Marañón Nº 763, Los Olivos, Lima<br/>
+                    www.geofal.com.pe
+                </td>
+            </tr>
+        </table>
+        
+        <div class="invoice-title-box">
+            <h2>FACTURA N° {{numeroFactura}}</h2>
+        </div>
+        
+        <div class="info-grid">
+            <div class="client-info">
+                <strong>CLIENTE:</strong> {{cliente.nombre}}<br/>
+                <strong>RUC:</strong> {{cliente.ruc}}<br/>
+                <strong>CONTACTO:</strong> {{cliente.contacto}}<br/>
+                <strong>TELÉFONO:</strong> {{cliente.telefono}}<br/>
+                <strong>CORREO:</strong> {{cliente.correo}}
+            </div>
+            <div class="project-info">
+                <strong>PROYECTO:</strong> {{proyecto.nombre}}<br/>
+                <strong>UBICACIÓN:</strong> {{proyecto.ubicacion}}<br/>
+                <strong>ASESOR COMERCIAL:</strong> {{asesor.nombre}}<br/>
+                <strong>FECHA EMISIÓN:</strong> {{formatDate fechaEmision}}
+            </div>
+        </div>
+        
+        <p>Factura por los siguientes servicios realizados:</p>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Código</th>
+                    <th>Descripción Servicio</th>
+                    <th>Norma</th>
+                    <th class="text-center">Acreditación</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Costo Parcial (S/)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td class="text-center">{{this.codigo}}</td>
+                    <td>{{this.descripcion}}</td>
+                    <td>{{this.norma}}</td>
+                    <td class="text-center">{{this.acreditacion}}</td>
+                    <td class="text-center">{{this.cantidad}}</td>
+                    <td class="text-right">{{formatCurrency this.costoParcial}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        
+        <div class="totals-section">
+            <table class="totals-table">
+                <tr><td><strong>Costo Parcial:</strong></td><td class="text-right">S/ {{calculateTotals items "subtotal"}}</td></tr>
+                <tr><td><strong>IGV 18%:</strong></td><td class="text-right">S/ {{calculateTotals items "igv"}}</td></tr>
+                <tr><td><strong>Costo Total:</strong></td><td class="text-right">S/ {{calculateTotals items "total"}}</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

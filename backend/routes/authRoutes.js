@@ -19,8 +19,8 @@ router.post('/login', async (req, res) => {
     }
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Contraseña incorrecta' });
-    const token = jwt.sign({ id: user.id, role: user.role, name: user.name, email: user.email }, process.env.JWT_SECRET, { expiresIn: '8h' });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    const token = jwt.sign({ id: user.id, role: user.role, name: user.name, email: user.email, phone: user.phone }, process.env.JWT_SECRET, { expiresIn: '8h' });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role } });
   } catch (err) {
     res.status(500).json({ error: 'Error en login' });
   }
@@ -31,7 +31,7 @@ module.exports = router;
 router.get('/me', auth(), async (req, res) => {
   try {
     const userId = req.user.id;
-    const result = await pool.query('SELECT id, name, apellido, email, role, area FROM users WHERE id = $1', [userId]);
+    const result = await pool.query('SELECT id, name, apellido, email, phone, role, area FROM users WHERE id = $1', [userId]);
     const user = result.rows[0];
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
     res.json({ user });
@@ -44,7 +44,7 @@ router.get('/me', auth(), async (req, res) => {
 router.put('/me', auth(), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, apellido, email, area } = req.body;
+    const { name, apellido, email, phone, area } = req.body;
     
     // Validar que el email no esté en uso por otro usuario
     if (email) {
@@ -74,6 +74,11 @@ router.put('/me', auth(), async (req, res) => {
       params.push(email);
     }
     
+    if (phone !== undefined) {
+      fields.push(`phone = $${paramIndex++}`);
+      params.push(phone);
+    }
+    
     if (area !== undefined) {
       fields.push(`area = $${paramIndex++}`);
       params.push(area);
@@ -86,7 +91,7 @@ router.put('/me', auth(), async (req, res) => {
     // Agregar userId para la condición WHERE
     params.push(userId);
 
-    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING id, name, apellido, email, role, area`;
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING id, name, apellido, email, phone, role, area`;
 
     const result = await pool.query(query, params);
     const updatedUser = result.rows[0];

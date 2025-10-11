@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Container, Row, Col, Card, Badge, Button, Alert, Spinner, Modal } from 'react-bootstrap';
-import { FiBell, FiCheck, FiX, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiBell, FiCheck, FiX, FiEye, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from '../services/notifications';
 import { useAuth } from '../contexts/AuthContext';
 
 const Notificaciones = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -72,6 +74,23 @@ const Notificaciones = () => {
     }
   };
 
+  const handleGoToProject = (notification) => {
+    // Cerrar el modal primero
+    setShowModal(false);
+    
+    // Navegar al proyecto específico
+    if (notification.type === 'project_assignment' && notification.data) {
+      const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
+      if (data.project_id) {
+        navigate(`/proyectos?view=${data.project_id}`);
+      } else {
+        navigate('/proyectos');
+      }
+    } else {
+      navigate('/proyectos');
+    }
+  };
+
   const getNotificationIcon = (type) => {
     const icons = {
       payment_proof_uploaded: '💰',
@@ -82,6 +101,7 @@ const Notificaciones = () => {
       quote_rejected: '❌',
       project_created: '🏗️',
       project_updated: '🔄',
+      project_assignment: '🎯',
       ticket_created: '🎫',
       ticket_updated: '🔄',
       system_update: '🆕'
@@ -99,6 +119,7 @@ const Notificaciones = () => {
       quote_rejected: 'danger',
       project_created: 'primary',
       project_updated: 'info',
+      project_assignment: 'warning',
       ticket_created: 'warning',
       ticket_updated: 'info',
       system_update: 'secondary'
@@ -258,46 +279,93 @@ const Notificaciones = () => {
         </Col>
       </Row>
 
-      {/* Modal para ver detalles de la notificación */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
+      {/* Modal para ver detalles de la notificación - COMPACTO */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="md" centered>
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title className="fw-bold">
             {selectedNotification && getNotificationIcon(selectedNotification.type)} 
             {selectedNotification?.title}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-3">
           {selectedNotification && (
             <div>
-              <p><strong>Mensaje:</strong></p>
-              <p className="mb-3">{selectedNotification.message}</p>
+              <div className="alert alert-info mb-3">
+                <strong>📝 Mensaje:</strong>
+                <p className="mb-0 mt-2">{selectedNotification.message}</p>
+              </div>
               
-              {selectedNotification.data && (
-                <div>
-                  <p><strong>Datos adicionales:</strong></p>
-                  <pre className="bg-light p-3 rounded">
-                    {JSON.stringify(selectedNotification.data, null, 2)}
-                  </pre>
+              <div className="row g-2">
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Tipo</small>
+                    <div className="fw-bold">{selectedNotification.type}</div>
+                  </div>
                 </div>
-              )}
-              
-              <div className="row">
-                <div className="col-md-6">
-                  <p><strong>Tipo:</strong> {selectedNotification.type}</p>
-                  <p><strong>Prioridad:</strong> {selectedNotification.priority}</p>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Prioridad</small>
+                    <div className="fw-bold">
+                      <Badge bg={selectedNotification.priority === 'high' ? 'danger' : 'secondary'}>
+                        {selectedNotification.priority}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <p><strong>Fecha:</strong> {new Date(selectedNotification.created_at).toLocaleString('es-ES')}</p>
-                  <p><strong>Estado:</strong> {selectedNotification.read_at ? 'Leída' : 'No leída'}</p>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Fecha</small>
+                    <div className="fw-bold" style={{ fontSize: '12px' }}>
+                      {new Date(selectedNotification.created_at).toLocaleString('es-ES')}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="bg-light p-2 rounded">
+                    <small className="text-muted">Estado</small>
+                    <div className="fw-bold">
+                      <Badge bg={selectedNotification.read_at ? 'success' : 'warning'}>
+                        {selectedNotification.read_at ? 'Leída' : 'No leída'}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {selectedNotification.data && (
+                <div className="mt-3">
+                  <small className="text-muted">Datos adicionales:</small>
+                  <div className="bg-light p-2 rounded mt-1" style={{ fontSize: '11px', maxHeight: '100px', overflowY: 'auto' }}>
+                    <pre className="mb-0">{JSON.stringify(selectedNotification.data, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cerrar
-          </Button>
+        <Modal.Footer className="p-2">
+          <div className="d-flex gap-2 w-100">
+            {selectedNotification?.type === 'project_assignment' && (
+              <Button 
+                variant="primary" 
+                onClick={() => handleGoToProject(selectedNotification)} 
+                size="sm"
+                className="flex-grow-1"
+                style={{ backgroundColor: '#f84616', borderColor: '#f84616' }}
+              >
+                <FiExternalLink className="me-1" />
+                🎯 Ver Proyecto
+              </Button>
+            )}
+            <Button 
+              variant="primary" 
+              onClick={() => setShowModal(false)} 
+              size="sm"
+              className={selectedNotification?.type === 'project_assignment' ? '' : 'w-100'}
+            >
+              ✅ Entendido
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
     </Container>

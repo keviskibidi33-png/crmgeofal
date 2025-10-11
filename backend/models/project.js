@@ -193,8 +193,12 @@ const Project = {
     contact_phone, 
     contact_email,
     queries,
+    queries_history,
     priority,
     marked,
+    status,
+    laboratorio_status,
+    ingenieria_status,
   }, user) {
     console.log('🔍 Project.update - ID:', id);
     console.log('🔍 Project.update - User:', user);
@@ -233,10 +237,14 @@ const Project = {
           contact_phone = $11, 
           contact_email = $12,
           queries = $13,
-          priority = $14,
-          marked = $15,
+          queries_history = $14,
+          priority = $15,
+          marked = $16,
+          status = $17,
+          laboratorio_status = $18,
+          ingenieria_status = $19,
           updated_at = NOW()
-        WHERE id = $16 RETURNING *`,
+        WHERE id = $20 RETURNING *`,
         [
           name, 
           location, 
@@ -251,8 +259,12 @@ const Project = {
           contact_phone, 
           contact_email,
           queries,
+          queries_history ? JSON.stringify(queries_history) : null,
           priority,
           marked,
+          status,
+          laboratorio_status,
+          ingenieria_status,
           id
         ]
       );

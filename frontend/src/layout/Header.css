@@ -1,31 +1,230 @@
-.header {
+/* Header moderno con diseño naranja */
+.main-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  backdrop-filter: blur(10px);
+}
+
+/* Logo mejorado */
+.navbar-brand {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: #1a2233;
-  color: #fff;
-  padding: 0.5rem 2rem;
-  height: 60px;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #ff6b35 !important;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
-.header__left .logo {
-  font-weight: bold;
-  font-size: 1.3rem;
-  letter-spacing: 1px;
+
+.navbar-brand:hover {
+  color: #e55a2b !important;
+  transform: scale(1.02);
 }
-.header__right .user-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+
+.navbar-brand img {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(255, 107, 53, 0.2));
 }
-.logout-btn {
-  background: #e74c3c;
-  color: #fff;
+
+.navbar-brand:hover img {
+  transform: scale(1.05);
+}
+
+/* Botones del navbar */
+.navbar .btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  background: #ffffff;
+  color: #495057;
+}
+
+.navbar .btn:hover {
+  background: #ff6b35;
+  color: #ffffff;
+  border-color: #ff6b35;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Dropdown mejorado */
+.navbar .dropdown-toggle {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.navbar .dropdown-toggle:hover {
+  background: #ff6b35;
+  color: #ffffff;
+  border-color: #ff6b35;
+}
+
+.navbar .dropdown-menu {
   border: none;
-  border-radius: 4px;
-  padding: 0.3rem 0.8rem;
-  cursor: pointer;
-  font-size: 0.95rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
 }
-.logout-btn:hover {
-  background: #c0392b;
+
+.navbar .dropdown-item {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 0 0.5rem;
+}
+
+.navbar .dropdown-item:hover {
+  background: #ff6b35;
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+/* Badges mejorados */
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Notificaciones mejoradas */
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b35;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Indicador de conexión */
+.connection-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #ff6b35;
+}
+
+.connection-indicator.connected {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.connection-indicator.disconnected {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-header {
+    padding: 0.25rem 0;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  .navbar-brand img {
+    height: 60px !important;
+  }
+  
+  .navbar .btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Animaciones suaves */
+.navbar-nav .nav-item {
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-item:hover {
+  transform: translateY(-1px);
+}
+
+/* Efectos de hover mejorados */
+.navbar .dropdown-toggle:focus {
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.25);
+  border-color: #ff6b35;
+}
+
+/* Mejoras en el perfil de usuario */
+.user-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.user-profile-info:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff6b35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin: 0;
 }

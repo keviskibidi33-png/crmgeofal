@@ -1,0 +1,19 @@
+{
+  "httpPort": 5488,
+  "store": {
+    "provider": "fs"
+  },
+  "discover": true,
+  "logger": {
+    "console": {
+      "transport": "console",
+      "level": "debug"
+    }
+  },
+  "templatingEngines": {
+    "strategy": "in-process"
+  },
+  "extensions": {
+    "studio": {}
+  }
+}

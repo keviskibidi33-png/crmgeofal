@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Button, Alert, Badge } from 'react-bootstrap';
 import { FiPlus, FiTrash2, FiDollarSign, FiFileText, FiCalculator } from 'react-icons/fi';
-import SubserviceAutocomplete from './SubserviceAutocomplete';
+import SubserviceAutocompleteFinal from './SubserviceAutocompleteFinal';
 
 const QuoteItemForm = ({ 
   items = [], 

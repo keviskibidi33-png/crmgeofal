@@ -98,7 +98,21 @@ const Header = ({ onToggleSidebar }) => {
     }
     
     // Navegar según el tipo de notificación
-    if (notification.data) {
+    if (notification.type === 'project_assignment') {
+      // Para notificaciones de asignación de proyectos
+      if (notification.data) {
+        const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
+        if (data.project_id) {
+          // Navegar al proyecto específico
+          navigate(`/proyectos?view=${data.project_id}`);
+        } else {
+          // Si no hay ID específico, ir a la lista de proyectos
+          navigate('/proyectos');
+        }
+      } else {
+        navigate('/proyectos');
+      }
+    } else if (notification.data) {
       const data = typeof notification.data === 'string' ? JSON.parse(notification.data) : notification.data;
       if (data.projectId) navigate(`/proyectos`);
       if (data.quoteId) navigate(`/cotizaciones`);
@@ -233,73 +247,79 @@ const Header = ({ onToggleSidebar }) => {
                   </Badge>
                 )}
               </Dropdown.Toggle>
-              <Dropdown.Menu align="end" className="shadow" style={{ minWidth: '320px' }}>
-                <Dropdown.Header className="d-flex justify-content-between align-items-center">
-                  <span>Notificaciones</span>
+              <Dropdown.Menu align="end" className="shadow" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                <Dropdown.Header className="d-flex justify-content-between align-items-center bg-primary text-white">
+                  <span className="fw-bold">🔔 Notificaciones</span>
                   {unreadCount > 0 && (
                     <Button
-                      variant="link"
+                      variant="light"
                       size="sm"
-                      className="p-0 text-primary"
+                      className="p-1"
                       onClick={handleMarkAllAsRead}
                       disabled={markAllAsReadMutation.isLoading}
+                      title="Marcar todas como leídas"
                     >
-                      <FiCheck size={14} />
+                      <FiCheck size={12} />
                     </Button>
                   )}
                 </Dropdown.Header>
                 
                 {notificationsLoading ? (
-                  <Dropdown.Item className="text-center">
+                  <Dropdown.Item className="text-center py-3">
                     <div className="spinner-border spinner-border-sm me-2" role="status">
                       <span className="visually-hidden">Cargando...</span>
                     </div>
-                    Cargando notificaciones...
+                    Cargando...
                   </Dropdown.Item>
                 ) : notifications.length === 0 ? (
-                  <Dropdown.Item className="text-center text-muted">
+                  <Dropdown.Item className="text-center text-muted py-3">
                     No hay notificaciones
                   </Dropdown.Item>
                 ) : (
                   <>
-                    {notifications.slice(0, 5).map((notification) => (
+                    {notifications.slice(0, 4).map((notification) => (
                       <Dropdown.Item
                         key={notification.id}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`${!notification.read_at ? 'bg-light' : ''}`}
+                        className={`py-2 ${!notification.read_at ? 'bg-warning bg-opacity-10 border-start border-warning border-3' : ''}`}
                         style={{ cursor: 'pointer' }}
                       >
-                  <div className="d-flex align-items-start">
-                    <div className="me-2">
-                      <div className="bg-primary bg-opacity-10 rounded-circle p-1">
-                              <span style={{ fontSize: '12px' }}>
-                                {getNotificationIcon(notification.type)}
-                              </span>
-                      </div>
-                    </div>
+                        <div className="d-flex align-items-center">
+                          <div className="me-2">
+                            <span style={{ fontSize: '16px' }}>
+                              {getNotificationIcon(notification.type)}
+                            </span>
+                          </div>
                           <div className="flex-grow-1">
-                            <div className={`fw-medium ${!notification.read_at ? 'text-dark' : 'text-muted'}`}>
+                            <div className={`fw-bold ${!notification.read_at ? 'text-dark' : 'text-muted'}`} style={{ fontSize: '13px' }}>
                               {notification.title}
-                    </div>
-                            <div className="text-muted small">
-                              {notification.message}
-                  </div>
-                            <small className="text-muted">
+                            </div>
+                            <div className="text-muted" style={{ fontSize: '11px', lineHeight: '1.2' }}>
+                              {notification.message.length > 50 ? 
+                                notification.message.substring(0, 50) + '...' : 
+                                notification.message
+                              }
+                            </div>
+                            <small className="text-muted" style={{ fontSize: '10px' }}>
                               {formatNotificationTime(notification.created_at)}
                             </small>
-                      </div>
+                          </div>
                           {!notification.read_at && (
                             <div className="ms-2">
-                              <div className="bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></div>
-                    </div>
+                              <div className="bg-danger rounded-circle" style={{ width: '6px', height: '6px' }}></div>
+                            </div>
                           )}
-                  </div>
-                </Dropdown.Item>
+                        </div>
+                      </Dropdown.Item>
                     ))}
-                <Dropdown.Divider />
-                    <Dropdown.Item className="text-center text-primary" onClick={() => navigate('/notificaciones')}>
-                  Ver todas las notificaciones
-                </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item 
+                      className="text-center text-primary fw-bold py-2" 
+                      onClick={() => navigate('/notificaciones')}
+                      style={{ backgroundColor: '#f8f9fa' }}
+                    >
+                      📋 Ver todas las notificaciones
+                    </Dropdown.Item>
                   </>
                 )}
               </Dropdown.Menu>

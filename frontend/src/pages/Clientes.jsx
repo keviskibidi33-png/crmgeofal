@@ -2,15 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding, FiFolderPlus } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding, FiFolderPlus, FiClock, FiUserCheck } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import ClientFormRedesigned from '../components/ClientFormRedesigned';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
+import PermissionDeniedModal from '../components/common/PermissionDeniedModal';
+import ClientStatusDropdown from '../components/ClientStatusDropdown';
+import ClientHistoryModal from '../components/ClientHistoryModal';
 import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats, getCompanyFilterOptions } from '../services/companies';
-import { getCurrentUser, canCreateClient, logUserInfo } from '../utils/authHelper';
+import { getCurrentUser, canCreateClient, canEditClient, canDeleteClient, canViewClientHistory, canCreateProject, logUserInfo } from '../utils/authHelper';
+import './Clientes.css';
 
 const emptyForm = {
   id: null,
@@ -30,10 +34,18 @@ export default function Clientes() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedClientForHistory, setSelectedClientForHistory] = useState(null);
+  const [showPermissionDeniedModal, setShowPermissionDeniedModal] = useState(false);
+  const [permissionDeniedInfo, setPermissionDeniedInfo] = useState({});
   
   // Información del usuario actual
   const currentUser = getCurrentUser();
   const userCanCreateClient = canCreateClient();
+  const userCanEditClient = canEditClient();
+  const userCanDeleteClient = canDeleteClient();
+  const userCanViewClientHistory = canViewClientHistory();
+  const userCanCreateProject = canCreateProject();
   
   // Log de información de usuario al cargar el componente
   React.useEffect(() => {
@@ -196,16 +208,51 @@ export default function Clientes() {
   });
 
   const handleCreate = () => {
+    if (!userCanCreateClient) {
+      setPermissionDeniedInfo({
+        action: "crear clientes",
+        requiredRole: "administrador, jefe comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
     setEditingClient(emptyForm);
     setShowModal(true);
   };
 
   const handleEdit = (client) => {
+    if (!userCanEditClient) {
+      setPermissionDeniedInfo({
+        action: "editar clientes",
+        requiredRole: "administrador, jefe comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
     setEditingClient(client);
     setShowModal(true);
   };
 
   const handleDelete = (client) => {
+    console.log('🔍 handleDelete - Verificando permisos:', {
+      userCanDeleteClient,
+      currentUserRole: currentUser?.role,
+      currentUser: currentUser
+    });
+    
+    if (!userCanDeleteClient) {
+      console.log('🚫 handleDelete - Permisos insuficientes, mostrando modal');
+      setPermissionDeniedInfo({
+        action: "eliminar clientes",
+        requiredRole: "administrador",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
+    console.log('✅ handleDelete - Permisos OK, procediendo con eliminación');
     setDeletingClient(client);
   };
 
@@ -220,18 +267,52 @@ export default function Clientes() {
   };
 
   const handleCreateProject = (client) => {
-    // Navegar al módulo de proyectos con el cliente pre-seleccionado
-    navigate('/proyectos', { 
+    if (!userCanCreateProject) {
+      setPermissionDeniedInfo({
+        action: "crear cotizaciones",
+        requiredRole: "administrador, jefe comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
+    // Navegar a cotización inteligente con el cliente pre-seleccionado
+    navigate('/cotizaciones/inteligente', { 
       state: { 
         selectedClient: {
           id: client.id,
           name: client.name,
           type: client.type,
           sector: client.sector,
-          city: client.city
+          city: client.city,
+          ruc: client.ruc,
+          dni: client.dni,
+          email: client.email,
+          phone: client.phone,
+          contact_name: client.contact_name,
+          address: client.address
         }
       } 
     });
+  };
+
+  const handleShowHistory = (client) => {
+    if (!userCanViewClientHistory) {
+      setPermissionDeniedInfo({
+        action: "ver historial de clientes",
+        requiredRole: "administrador, jefe comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
+    setSelectedClientForHistory(client);
+    setShowHistoryModal(true);
+  };
+
+  const handleStatusChange = (clientId, newStatus) => {
+    // La actualización se maneja automáticamente por react-query
+    console.log(`Estado del cliente ${clientId} cambiado a: ${newStatus}`);
   };
 
   const handleSubmit = async (formData) => {
@@ -263,21 +344,22 @@ export default function Clientes() {
     {
       header: 'ID',
       accessor: 'id',
-      width: '80px'
+      width: '50px'
     },
     {
       header: 'Cliente',
       accessor: 'name',
+      width: '180px',
       render: (value, row) => (
         <div>
-          <div className="fw-medium">{row.name}</div>
-          <div className="d-flex align-items-center gap-2 mt-1">
+          <div className="fw-medium" style={{fontSize: '0.8rem'}}>{row.name}</div>
+          <div className="d-flex align-items-center gap-1 mt-1">
             {getTypeBadge(row.type)}
             {row.ruc && (
-              <small className="text-muted">RUC: {row.ruc}</small>
+              <small className="text-muted" style={{fontSize: '0.7rem'}}>RUC: {row.ruc}</small>
             )}
             {row.dni && (
-              <small className="text-muted">DNI: {row.dni}</small>
+              <small className="text-muted" style={{fontSize: '0.7rem'}}>DNI: {row.dni}</small>
             )}
           </div>
         </div>
@@ -286,21 +368,22 @@ export default function Clientes() {
     {
       header: 'Contacto',
       accessor: 'contact',
+      width: '150px',
       render: (value, row) => (
         <div>
           {row.contact_name && (
-            <div className="fw-medium">{row.contact_name}</div>
+            <div className="fw-medium" style={{fontSize: '0.8rem'}}>{row.contact_name}</div>
           )}
           {row.email && (
             <div className="d-flex align-items-center mt-1">
-              <FiMail size={12} className="me-1 text-muted" />
-              <small className="text-muted">{row.email}</small>
+              <FiMail size={10} className="me-1 text-muted" />
+              <small className="text-muted" style={{fontSize: '0.7rem'}}>{row.email}</small>
             </div>
           )}
           {row.phone && (
             <div className="d-flex align-items-center mt-1">
-              <FiPhone size={12} className="me-1 text-muted" />
-              <small className="text-muted">{row.phone}</small>
+              <FiPhone size={10} className="me-1 text-muted" />
+              <small className="text-muted" style={{fontSize: '0.7rem'}}>{row.phone}</small>
             </div>
           )}
         </div>
@@ -309,6 +392,7 @@ export default function Clientes() {
     {
       header: 'Ciudad',
       accessor: 'city',
+      width: '80px',
       render: (value) => {
         const city = value || 'No especificada';
         let cityColor = 'secondary';
@@ -344,7 +428,7 @@ export default function Clientes() {
         }
         
         return (
-          <Badge bg={cityColor} className="px-2 py-1">
+          <Badge bg={cityColor} className="px-1 py-0" style={{fontSize: '0.65rem'}}>
             {city}
           </Badge>
         );
@@ -353,6 +437,7 @@ export default function Clientes() {
     {
       header: 'Sector',
       accessor: 'sector',
+      width: '80px',
       render: (value) => {
         const sector = value || 'General';
         let sectorColor = 'secondary';
@@ -388,15 +473,50 @@ export default function Clientes() {
         }
         
         return (
-          <Badge bg={sectorColor} className="px-2 py-1">
+          <Badge bg={sectorColor} className="px-1 py-0" style={{fontSize: '0.65rem'}}>
             {sector}
           </Badge>
         );
       }
     },
     {
+      header: 'Estado',
+      accessor: 'status',
+      width: '120px',
+      render: (value, row) => (
+        <ClientStatusDropdown
+          clientId={row.id}
+          currentStatus={row.status || 'prospeccion'}
+          onStatusChange={(newStatus) => handleStatusChange(row.id, newStatus)}
+          size="sm"
+          showLabel={true}
+        />
+      )
+    },
+    {
+      header: 'Gestor',
+      accessor: 'managed_by',
+      width: '100px',
+      render: (value, row) => (
+        <div className="d-flex align-items-center">
+          {row.managed_by_name ? (
+            <>
+              <FiUserCheck size={12} className="me-1 text-success" />
+              <div>
+                <div className="fw-medium" style={{fontSize: '0.8rem'}}>{row.managed_by_name}</div>
+                <small className="text-muted" style={{fontSize: '0.7rem'}}>{row.managed_by_role}</small>
+              </div>
+            </>
+          ) : (
+            <span className="text-muted" style={{fontSize: '0.8rem'}}>Sin asignar</span>
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Dirección',
       accessor: 'address',
+      width: '120px',
       render: (value) => (
         value ? (
           <div className="d-flex align-items-center">
@@ -407,7 +527,7 @@ export default function Clientes() {
           <small className="text-muted">Sin dirección</small>
         )
       )
-    },
+    }, 
     {
       header: 'Fecha Registro',
       accessor: 'created_at',
@@ -418,30 +538,64 @@ export default function Clientes() {
       accessor: 'actions',
       render: (value, row) => (
         <div className="d-flex gap-1">
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => handleEdit(row)}
-            title="Editar cliente"
-          >
-            <FiEdit size={14} />
-          </Button>
-          <Button
-            variant="outline-success"
-            size="sm"
-            onClick={() => handleCreateProject(row)}
-            title="Crear proyecto para este cliente"
-          >
-            <FiFolderPlus size={14} />
-          </Button>
-          <Button
-            variant="outline-danger"
-            size="sm"
-            onClick={() => handleDelete(row)}
-            title="Eliminar cliente"
-          >
-            <FiTrash2 size={14} />
-          </Button>
+          {userCanEditClient && (
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={() => handleEdit(row)}
+              title="Editar cliente"
+            >
+              <FiEdit size={14} />
+            </Button>
+          )}
+          {userCanViewClientHistory && (
+            <Button
+              variant="outline-info"
+              size="sm"
+              onClick={() => handleShowHistory(row)}
+              title="Ver historial de cotizaciones y proyectos"
+            >
+              <FiClock size={14} />
+            </Button>
+          )}
+          {userCanCreateProject && (
+            <Button
+              variant="outline-success"
+              size="sm"
+              onClick={() => handleCreateProject(row)}
+              title="Crear cotización para este cliente"
+            >
+              <FiFolderPlus size={14} />
+            </Button>
+          )}
+          {userCanDeleteClient && (
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={() => handleDelete(row)}
+              title="Eliminar cliente"
+            >
+              <FiTrash2 size={14} />
+            </Button>
+          )}
+          {!userCanDeleteClient && (
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => {
+                console.log('🚫 Botón eliminar clickeado sin permisos');
+                setPermissionDeniedInfo({
+                  action: "eliminar clientes",
+                  requiredRole: "administrador",
+                  currentRole: currentUser?.role || "no autenticado"
+                });
+                setShowPermissionDeniedModal(true);
+              }}
+              title="No tienes permisos para eliminar clientes"
+            >
+              <FiTrash2 size={14} />
+            </Button>
+          )}
         </div>
       )
     }
@@ -592,108 +746,118 @@ export default function Clientes() {
   }, [statsData, data]);
 
   return (
-    <Container fluid className="py-4">
-      <div className="fade-in">
-        <PageHeader
-          title="Gestión de Clientes"
-          subtitle="Crear, editar y gestionar clientes del sistema"
-          icon={FiUsers}
-          actions={
+    <div className="clientes-page">
+      <Container fluid className="h-100 d-flex flex-column p-0">
+        {/* Header compacto */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h4 className="mb-0 fw-bold">Gestión de Clientes</h4>
+            <small className="text-muted">Crear, editar y gestionar clientes del sistema</small>
+          </div>
             <Button 
               variant="primary" 
+            size="sm"
               onClick={handleCreate}
               disabled={!userCanCreateClient}
               title={!userCanCreateClient ? `No tienes permisos para crear clientes. Rol actual: ${currentUser?.role || 'No autenticado'}` : 'Crear nuevo cliente'}
             >
-              <FiPlus className="me-2" />
+            <FiPlus className="me-1" />
               Nuevo Cliente
             </Button>
-          }
-        />
+        </div>
 
         {/* Información de depuración */}
         {!userCanCreateClient && (
-          <div className="alert alert-warning mb-4" role="alert">
-            <strong>⚠️ Permisos insuficientes:</strong> Tu rol actual ({currentUser?.role || 'No autenticado'}) no tiene permisos para crear clientes. 
-            Solo los roles <code>admin</code>, <code>jefa_comercial</code> y <code>vendedor_comercial</code> pueden crear clientes.
+          <div className="alert alert-warning py-1 mb-1" role="alert">
+            <small><strong>⚠️ Permisos insuficientes:</strong> Tu rol actual ({currentUser?.role || 'No autenticado'}) no tiene permisos para crear clientes.</small>
           </div>
         )}
 
-        {/* Estadísticas */}
-        <Row className="g-4 mb-4">
+        {/* Estadísticas ultra compactas */}
+        <Row className="g-0 mb-3">
           <Col md={6} lg={3}>
-            <StatsCard
-              title="Total Clientes"
-              value={stats.total}
-              icon={FiUsers}
-              color="primary"
-              subtitle="Clientes registrados"
-              loading={statsLoading}
-            />
+            <div className="bg-primary bg-opacity-10 rounded p-2 text-center">
+              <div className="d-flex align-items-center justify-content-center">
+                <FiUsers className="text-primary me-2" size={16} />
+                <div>
+                  <div className="fw-bold text-primary">{statsLoading ? '...' : stats.total}</div>
+                  <small className="text-muted">Total</small>
+                </div>
+              </div>
+            </div>
           </Col>
           <Col md={6} lg={3}>
-            <StatsCard
-              title="Empresas"
-              value={stats.empresas}
-              icon={FiBuilding}
-              color="success"
-              subtitle="Clientes corporativos"
-              loading={statsLoading}
-            />
+            <div className="bg-success bg-opacity-10 rounded p-2 text-center">
+              <div className="d-flex align-items-center justify-content-center">
+                <FiBuilding className="text-success me-2" size={16} />
+                <div>
+                  <div className="fw-bold text-success">{statsLoading ? '...' : stats.empresas}</div>
+                  <small className="text-muted">Empresas</small>
+                </div>
+              </div>
+            </div>
           </Col>
           <Col md={6} lg={3}>
-            <StatsCard
-              title="Personas"
-              value={stats.personas}
-              icon={FiUser}
-              color="info"
-              subtitle="Clientes individuales"
-              loading={statsLoading}
-            />
+            <div className="bg-info bg-opacity-10 rounded p-2 text-center">
+              <div className="d-flex align-items-center justify-content-center">
+                <FiUser className="text-info me-2" size={16} />
+                <div>
+                  <div className="fw-bold text-info">{statsLoading ? '...' : stats.personas}</div>
+                  <small className="text-muted">Personas</small>
+                </div>
+              </div>
+            </div>
           </Col>
           <Col md={6} lg={3}>
-            <StatsCard
-              title="Con Contacto"
-              value={stats.conEmail}
-              icon={FiMail}
-              color="warning"
-              subtitle="Con email registrado"
-              loading={statsLoading}
-            />
+            <div className="bg-warning bg-opacity-10 rounded p-2 text-center">
+              <div className="d-flex align-items-center justify-content-center">
+                <FiMail className="text-warning me-2" size={16} />
+                <div>
+                  <div className="fw-bold text-warning">{statsLoading ? '...' : stats.conEmail}</div>
+                  <small className="text-muted">Con Email</small>
+                </div>
+              </div>
+            </div>
           </Col>
         </Row>
 
         {/* Tabla de clientes */}
-        <Card className="shadow-sm border-0">
-          <Card.Header className="bg-white border-bottom">
+        <Card className="shadow-sm border-0 flex-grow-1 d-flex flex-column">
+          <Card.Header className="bg-white border-bottom flex-shrink-0 py-2">
             <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">
-                <FiUsers className="me-2 text-primary" />
+              <h6 className="mb-0">
+                <FiUsers className="me-1 text-primary" size={16} />
                 Lista de Clientes
-              </h5>
-              <Badge bg="light" text="dark" className="px-3 py-2">
+              </h6>
+              <Badge bg="light" text="dark" className="px-2 py-1">
                 {stats.total} clientes
               </Badge>
             </div>
           </Card.Header>
-          <Card.Body className="p-0">
-            <DataTable
-              data={data?.data || []}
-              columns={columns}
-              loading={isLoading || isSearching}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              emptyMessage="No hay clientes registrados"
-              // Props para paginación del backend
-              totalItems={data?.pagination?.total || 0}
-              itemsPerPage={data?.pagination?.limit || 20}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              onSearch={handleSearch}
-              onFilter={handleFilter}
-              // Filtros específicos para clientes
-              filterOptions={clientFilterOptions}
-            />
+          <Card.Body className="p-0 flex-grow-1 d-flex flex-column">
+            <div className="client-table flex-grow-1 d-flex flex-column">
+              <DataTable
+                data={data?.data || []}
+                columns={columns}
+                loading={isLoading || isSearching}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                emptyMessage="No hay clientes registrados"
+                // Props para paginación del backend
+                totalItems={data?.pagination?.total || 0}
+                itemsPerPage={data?.pagination?.limit || 20}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+                onSearch={handleSearch}
+                onFilter={handleFilter}
+                // Filtros específicos para clientes
+                filterOptions={clientFilterOptions}
+                // Deshabilitar ordenamiento automático para mantener posición
+                sortable={false}
+                // Usar flexbox para ajustar altura
+                useFlexbox={true}
+              />
+            </div>
           </Card.Body>
         </Card>
 
@@ -719,7 +883,24 @@ export default function Clientes() {
         alertMessage="Esta acción eliminará permanentemente el cliente y todos sus datos asociados (proyectos, cotizaciones, etc.)."
         alertVariant="danger"
       />
+
+      {/* Modal de historial del cliente */}
+      <ClientHistoryModal
+        show={showHistoryModal}
+        onHide={() => setShowHistoryModal(false)}
+        clientId={selectedClientForHistory?.id}
+        clientName={selectedClientForHistory?.name}
+      />
+
+      {/* Modal de permisos denegados */}
+      <PermissionDeniedModal
+        show={showPermissionDeniedModal}
+        onHide={() => setShowPermissionDeniedModal(false)}
+        action={permissionDeniedInfo.action}
+        requiredRole={permissionDeniedInfo.requiredRole}
+        currentRole={permissionDeniedInfo.currentRole}
+      />
+      </Container>
       </div>
-    </Container>
   );
 };

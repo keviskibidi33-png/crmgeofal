@@ -1,15 +1,19 @@
 .main-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 .main-content {
   display: flex;
   flex: 1;
   background: #f6f8fa;
+  overflow: hidden;
 }
 .content-area {
   flex: 1;
-  padding: 2rem;
+  padding: 0.5rem;
   min-width: 0;
+  height: calc(100vh - 70px); /* Restar altura del header */
+  overflow: hidden;
 }

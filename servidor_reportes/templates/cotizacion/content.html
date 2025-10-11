@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Cotización {{numeroCotizacion}}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 10px; 
+            color: #333; 
+            margin: 0; 
+            padding: 0;
+            line-height: 1.4;
+        }
+        .page { 
+            padding: 2cm 1.5cm; 
+            max-width: 21cm;
+            margin: 0 auto;
+        }
+        .header-table { 
+            width: 100%; 
+            border-bottom: 2px solid #FF6B35; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px;
+        }
+        .header-table .logo { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #FF6B35; 
+            vertical-align: middle; 
+        }
+        .header-table .company-info { 
+            text-align: right; 
+            font-size: 11px; 
+            vertical-align: middle; 
+            line-height: 1.3;
+        }
+        .quote-title-box { 
+            border: 1px solid #FF6B35; 
+            padding: 12px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            background-color: #f9f9f9;
+        }
+        .quote-title-box h2 { 
+            margin: 0; 
+            font-size: 18px; 
+            color: #FF6B35;
+            font-weight: bold;
+        }
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            font-size: 11px; 
+            margin-bottom: 20px; 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            background-color: #fafafa;
+        }
+        .info-grid div { 
+            line-height: 1.6; 
+        }
+        .info-grid strong { 
+            display: inline-block; 
+            width: 130px; 
+            color: #555; 
+            font-weight: bold;
+        }
+        .items-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            font-size: 10px;
+        }
+        .items-table th, .items-table td { 
+            border: 1px solid #ccc; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        .items-table th { 
+            background-color: #FF6B35; 
+            color: white; 
+            font-weight: bold; 
+            text-align: center;
+        }
+        .text-center { 
+            text-align: center; 
+        }
+        .text-right { 
+            text-align: right; 
+        }
+        .totals-section { 
+            width: 40%; 
+            margin-left: auto; 
+            margin-top: 20px; 
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .totals-table { 
+            width: 100%; 
+        }
+        .totals-table td { 
+            padding: 8px; 
+            border-bottom: 1px solid #eee;
+        }
+        .totals-table tr:last-child td {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 12px;
+            background-color: #FF6B35;
+            color: white;
+        }
+        .intro-text {
+            font-size: 11px;
+            margin: 15px 0;
+            text-align: justify;
+            line-height: 1.5;
+        }
+        .footer-note {
+            font-size: 9px;
+            margin-top: 20px;
+            color: #666;
+            text-align: left;
+        }
+        .accreditation-note {
+            font-size: 9px;
+            margin-top: 10px;
+            color: #666;
+            font-style: italic;
+        }
+        .reference-section {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-left: 3px solid #FF6B35;
+        }
+        .reference-section strong {
+            color: #FF6B35;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Encabezado con logo y datos de la empresa -->
+        <table class="header-table">
+            <tr>
+                <td class="logo">GEOFAL</td>
+                <td class="company-info">
+                    <strong>Ingeniería y Laboratorio de Materiales</strong><br/>
+                    Av. Marañón N° 763, Los Olivos, Lima<br/>
+                    Tel: (01) 754-3070 | Email: laboratorio@geofal.com.pe<br/>
+                    www.geofal.com.pe
+                </td>
+            </tr>
+        </table>
+
+        <!-- Título de la cotización -->
+        <div class="quote-title-box">
+            <h2>COTIZACIÓN N° {{numeroCotizacion}}</h2>
+        </div>
+
+        <!-- Información del cliente y proyecto -->
+        <div class="info-grid">
+            <div class="client-info">
+                <strong>CLIENTE:</strong> {{cliente.nombre}}<br/>
+                <strong>RUC:</strong> {{cliente.ruc}}<br/>
+                <strong>CONTACTO:</strong> {{cliente.contacto}}<br/>
+                <strong>TELÉFONO:</strong> {{cliente.telefono}}<br/>
+                <strong>CORREO:</strong> {{cliente.correo}}
+            </div>
+            <div class="project-info">
+                <strong>PROYECTO:</strong> {{proyecto.nombre}}<br/>
+                <strong>UBICACIÓN:</strong> {{proyecto.ubicacion}}<br/>
+                <strong>ASESOR COMERCIAL:</strong> {{asesor.nombre}}<br/>
+                <strong>FECHA EMISIÓN:</strong> {{formatDate fechaEmision}}
+            </div>
+        </div>
+
+        <!-- Referencia si existe -->
+        {{#if referencia}}
+        <div class="reference-section">
+            <strong>REFERENCIA:</strong> {{referencia}}
+        </div>
+        {{/if}}
+
+        <!-- Texto introductorio -->
+        <div class="intro-text">
+            Es grato dirigirnos a Ud. a fin de alcanzarle, de acuerdo a su requerimiento, nuestra cotización por los servicios solicitados de los siguientes ensayos de laboratorio:
+        </div>
+
+        <!-- Tabla de ítems -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Código</th>
+                    <th>Descripción del Ensayo</th>
+                    <th>Norma</th>
+                    <th class="text-center">Acreditación</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Costo Parcial (S/)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td class="text-center">{{this.codigo}}</td>
+                    <td>{{this.descripcion}}</td>
+                    <td>{{this.norma}}</td>
+                    <td class="text-center">{{this.acreditacion}}</td>
+                    <td class="text-center">{{this.cantidad}}</td>
+                    <td class="text-right">{{formatCurrency this.costoParcial}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <!-- Nota de acreditación -->
+        <div class="accreditation-note">
+            (*) Ensayo dentro del alcance de acreditación INACAL.
+        </div>
+
+        <!-- Sección de totales -->
+        <div class="totals-section">
+            <table class="totals-table">
+                <tr>
+                    <td><strong>Costo Parcial:</strong></td>
+                    <td class="text-right">S/ {{calculateTotals items "subtotal"}}</td>
+                </tr>
+                <tr>
+                    <td><strong>IGV 18%:</strong></td>
+                    <td class="text-right">S/ {{calculateTotals items "igv"}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Costo Total:</strong></td>
+                    <td class="text-right">S/ {{calculateTotals items "total"}}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Nota del pie -->
+        <div class="footer-note">
+            <p><strong>Condiciones de pago:</strong> 30 días después de la emisión de la factura.</p>
+            <p><strong>Validez:</strong> Esta cotización tiene una validez de 30 días calendario.</p>
+            <p><strong>Entrega:</strong> Los resultados se entregarán en un plazo máximo de 15 días hábiles después de la recepción de las muestras.</p>
+        </div>
+    </div>
+</body>
+</html>

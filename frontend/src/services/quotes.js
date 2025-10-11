@@ -25,6 +25,12 @@ export const deleteQuote = (id) =>
     method: 'DELETE',
   });
 
+export const updateQuoteStatus = (id, status) =>
+  apiFetch(`/api/quotes/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+
 // Items de la cotización se manejan directamente en el frontend
 // No se envían al backend por separado
 
@@ -34,4 +40,5 @@ export default {
   createQuote,
   updateQuote,
   deleteQuote,
+  updateQuoteStatus,
 };
