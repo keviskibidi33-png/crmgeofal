@@ -1,2 +1,0 @@
-import{b as o}from"./index-CJDD9_Aw.js";const i=(t={})=>{const e=new URLSearchParams(t).toString(),s=e?`/api/quotes?${e}`:"/api/quotes";return o(s)},u=t=>o(`/api/quotes/${t}`),n=t=>o("/api/quotes",{method:"POST",body:JSON.stringify(t)}),c=(t,e)=>o(`/api/quotes/${t}`,{method:"PUT",body:JSON.stringify(e)}),p=t=>o(`/api/quotes/${t}`,{method:"DELETE"});export{n as c,p as d,u as g,i as l,c as u};
-//# sourceMappingURL=quotes-BPXzql52.js.map

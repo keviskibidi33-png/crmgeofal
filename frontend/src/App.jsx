@@ -64,8 +64,6 @@ const SoporteDashboard = lazy(() => import('./pages/dashboards/SoporteDashboard'
 const GerenciaDashboard = lazy(() => import('./pages/dashboards/GerenciaDashboard'));
 
 // Nuevos módulos implementados
-const PlantillasCliente = lazy(() => import('./pages/PlantillasCliente'));
-const SeguimientoEnvios = lazy(() => import('./pages/SeguimientoEnvios'));
 const ProyectosLaboratorio = lazy(() => import('./pages/ProyectosLaboratorio'));
 const FacturacionProyectos = lazy(() => import('./pages/FacturacionProyectos'));
 
@@ -138,8 +136,6 @@ function App() {
                          <Route path="/mis-cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><MisCotizaciones /></RequireRole></ErrorBoundary>} />
                          
                          {/* Nuevos módulos implementados */}
-                         <Route path="/plantillas-cliente" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><PlantillasCliente /></RequireRole></ErrorBoundary>} />
-                         <Route path="/seguimiento-envios" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><SeguimientoEnvios /></RequireRole></ErrorBoundary>} />
                          <Route path="/proyectos-laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><ProyectosLaboratorio /></RequireRole></ErrorBoundary>} />
                          <Route path="/facturacion-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","facturacion"]}><FacturacionProyectos /></RequireRole></ErrorBoundary>} />
                          

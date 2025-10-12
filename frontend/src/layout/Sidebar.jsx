@@ -55,12 +55,10 @@ const sectionsByRole = {
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
         { path: '/cotizacion-inteligente-mejorada', label: 'Cotización Inteligente Mejorada', icon: FiZap },
         { path: '/cotizacion-inteligente-simplificada', label: 'Cotización Inteligente Simplificada', icon: FiZap },
-        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
         { path: '/aprobaciones', label: 'Aprobaciones', icon: FiCheck },
         { path: '/comprobantes-pago', label: 'Comprobantes de Pago', icon: FiFileText },
         { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
         { path: '/facturacion-dashboard', label: 'Dashboard Facturación', icon: FiTrendingUp },
-        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/adjuntos', label: 'Adjuntos', icon: FiPaperclip },
         { path: '/detalle-cotizacion', label: 'Detalle Cotización', icon: FiFileText },
         {
@@ -111,11 +109,9 @@ const sectionsByRole = {
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
-        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
         { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
-        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
       ]
@@ -134,10 +130,8 @@ const sectionsByRole = {
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
-        { path: '/plantillas-cliente', label: 'Plantillas por Cliente', icon: FiCopy },
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
-        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/tickets-vendedor', label: 'Mis Tickets', icon: FiMessageSquare },
       ]
     },
@@ -167,7 +161,6 @@ const sectionsByRole = {
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/proyectos-laboratorio', label: 'Proyectos de Laboratorio', icon: FiActivity },
-        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         // Módulos eliminados: Variantes e Items de Cotización
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
@@ -182,7 +175,6 @@ const sectionsByRole = {
         { path: '/dashboard', label: 'Dashboard', icon: FiHome },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/proyectos-laboratorio', label: 'Proyectos de Laboratorio', icon: FiActivity },
-        { path: '/seguimiento-envios', label: 'Seguimiento de Envíos', icon: FiSend },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
       ]
     },

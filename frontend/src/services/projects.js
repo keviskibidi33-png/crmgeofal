@@ -33,6 +33,24 @@ export const createProject = (payload) =>
 
 export const getProject = (id) => apiFetch(`/api/projects/${id}`);
 
+export const searchProjectsByName = (name, company_id = null) => {
+  const sp = new URLSearchParams();
+  sp.set('name', name);
+  if (company_id) sp.set('company_id', company_id);
+  
+  const path = `/api/projects/search-by-name?${sp.toString()}`;
+  
+  console.log('🔍 searchProjectsByName - Llamando a:', path);
+  
+  return apiFetch(path).then(data => {
+    console.log('✅ searchProjectsByName - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ searchProjectsByName - Error:', error);
+    throw error;
+  });
+};
+
 export const updateProject = (id, payload) => {
   console.log('🔍 updateProject - ID:', id);
   console.log('🔍 updateProject - Payload:', payload);

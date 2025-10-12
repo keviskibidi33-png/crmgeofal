@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
-import { createQuote, getQuote } from '../services/quotes';
-import { getExistingServices, listProjects, createProject } from '../services/projects';
+import { createQuote, getQuote, updateQuote } from '../services/quotes';
+import { getExistingServices, listProjects, createProject, searchProjectsByName } from '../services/projects';
 import { getOrCreateCompany, listCompanies } from '../services/companies';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
 import SubserviceAutocompleteFinal from '../components/SubserviceAutocompleteFinal';
 import SuccessModal from '../components/SuccessModal';
+import ProjectSelectionModal from '../components/ProjectSelectionModal';
 import './CotizacionInteligente.css';
 import '../styles/autocomplete.css';
 
@@ -98,6 +99,13 @@ export default function CotizacionInteligente() {
   // Estado para el modal de éxito
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successData, setSuccessData] = useState(null);
+  
+  // Estados para el modal de selección de proyecto
+  const [showProjectSelectionModal, setShowProjectSelectionModal] = useState(false);
+  const [pendingProjectName, setPendingProjectName] = useState('');
+  const [pendingCompanyId, setPendingCompanyId] = useState(null);
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
   
   // Etiquetas predefinidas para referencia
   const referenceTypes = [
@@ -523,6 +531,15 @@ export default function CotizacionInteligente() {
     }
   }, [location.state?.selectedClient, clients]);
 
+  // Cleanup timeout al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -621,14 +638,29 @@ export default function CotizacionInteligente() {
         })
       };
       
-      const saved = await createQuote(payload);
+      let saved;
+      let successMessage;
+      
+      if (editQuoteId) {
+        // Actualizar cotización existente
+        saved = await updateQuote(editQuoteId, payload);
+        successMessage = 'Cotización actualizada exitosamente';
+        console.log('✅ Cotización actualizada:', saved);
+      } else {
+        // Crear nueva cotización
+        saved = await createQuote(payload);
+        successMessage = 'Cotización creada exitosamente';
+        console.log('✅ Nueva cotización creada:', saved);
+      }
       
       // Mostrar modal de éxito con los datos
       setSuccessData({
         code: quoteCode,
         category: quote.category_main === 'laboratorio' ? '🧪 Laboratorio' : '⚙️ Ingeniería',
         itemsCount: items.length,
-        total: total.toLocaleString()
+        total: total.toLocaleString(),
+        isEdit: !!editQuoteId,
+        message: successMessage
       });
       setShowSuccessModal(true);
       setLastSavedId(saved.id);
@@ -739,6 +771,120 @@ export default function CotizacionInteligente() {
       console.error('Error al exportar borrador:', e);
       alert(`No se pudo exportar borrador: ${e.message}`);
     }
+  };
+
+  // Función para detectar proyectos existentes cuando el usuario termina de escribir
+  const handleProjectNameChange = (value) => {
+    setClient({...client, project_name: value});
+    
+    // Detectar automáticamente si hay proyectos duplicados
+    if (value && value.trim().length >= 3) {
+      const companyId = selection.company?.id || selectedClient?.id;
+      if (companyId) {
+        // Verificar si hay proyectos existentes con este nombre
+        checkForDuplicateProjects(value.trim(), companyId);
+      }
+    }
+  };
+
+  // Función para verificar proyectos duplicados automáticamente
+  const checkForDuplicateProjects = async (projectName, companyId) => {
+    try {
+      const projects = await searchProjectsByName(projectName, companyId);
+      if (projects && projects.length > 0) {
+        // Mostrar advertencia visual
+        setDuplicateWarning({
+          count: projects.length,
+          suggestedName: `${projectName} (${projects.length + 1})`
+        });
+      } else {
+        setDuplicateWarning(null);
+      }
+    } catch (error) {
+      console.error('Error verificando proyectos duplicados:', error);
+      setDuplicateWarning(null);
+    }
+  };
+
+  // Función para verificar proyectos existentes manualmente
+  const checkExistingProjects = async () => {
+    const projectName = client.project_name?.trim();
+    
+    if (!projectName || projectName.length < 3) {
+      alert('Por favor ingresa al menos 3 caracteres en el nombre del proyecto');
+      return;
+    }
+    
+    // Buscar la empresa seleccionada en diferentes lugares
+    let companyId = selection.company?.id;
+    
+    // Si no está en selection, buscar en selectedClient
+    if (!companyId && selectedClient) {
+      companyId = selectedClient.id;
+    }
+    
+    // Si aún no hay companyId, mostrar error más específico
+    if (!companyId) {
+      alert('Por favor selecciona una empresa primero usando el buscador de clientes');
+      return;
+    }
+    
+    console.log('🔍 Verificando proyectos existentes para:', projectName, 'empresa:', companyId);
+    console.log('🔍 selectedClient:', selectedClient);
+    console.log('🔍 selection.company:', selection.company);
+    
+    setPendingProjectName(projectName);
+    setPendingCompanyId(companyId);
+    setShowProjectSelectionModal(true);
+  };
+
+  // Función para continuar con un proyecto existente
+  const handleSelectExistingProject = (project) => {
+    console.log('🔄 Seleccionando proyecto existente:', project);
+    
+    setSelection(prev => ({
+      ...prev,
+      project: project,
+      project_id: project.id
+    }));
+    
+    // Actualizar los datos del cliente con la información del proyecto
+    setClient(prev => ({
+      ...prev,
+      project_name: project.name,
+      project_location: project.location || prev.project_location
+    }));
+    
+    // Limpiar la advertencia de duplicados
+    setDuplicateWarning(null);
+    
+    console.log('✅ Proyecto existente seleccionado y estado actualizado:', project);
+  };
+
+  // Función para crear un nuevo proyecto
+  const handleCreateNewProject = (differentiatedName = null) => {
+    console.log('🔄 Creando nuevo proyecto:', differentiatedName);
+    
+    // Limpiar la selección de proyecto para que se cree uno nuevo
+    setSelection(prev => ({
+      ...prev,
+      project: null,
+      project_id: null
+    }));
+    
+    // Si se proporciona un nombre diferenciado, actualizarlo en el campo
+    if (differentiatedName) {
+      setClient(prev => ({
+        ...prev,
+        project_name: differentiatedName
+      }));
+      console.log('✅ Se creará un nuevo proyecto con nombre diferenciado:', differentiatedName);
+    } else {
+      console.log('✅ Se creará un nuevo proyecto con nombre original');
+    }
+    
+    // Limpiar la advertencia de duplicados
+    setDuplicateWarning(null);
   };
 
   return (
@@ -907,14 +1053,83 @@ export default function CotizacionInteligente() {
           <div className="section-content">
             <div className="row g-3">
               <div className="col-md-6">
-                <label className="form-label">Nombre del Proyecto</label>
-                <input 
-                  className="form-control" 
-                  value={client.project_name} 
-                  onChange={e => setClient({...client, project_name: e.target.value})} 
-                  required 
-                  placeholder="Nombre del proyecto"
-                />
+                <label className="form-label">
+                  Nombre del Proyecto
+                  {selection.project && (
+                    <span className="badge bg-success ms-2">
+                      ✅ Proyecto existente seleccionado
+                    </span>
+                  )}
+                </label>
+                <div className="input-group">
+                  <input 
+                    className={`form-control ${duplicateWarning ? 'is-warning' : selection.project ? 'is-success' : ''}`}
+                    value={client.project_name} 
+                    onChange={e => handleProjectNameChange(e.target.value)} 
+                    required 
+                    placeholder="Nombre del proyecto"
+                  />
+                  <button 
+                    type="button" 
+                    className="btn btn-outline-info"
+                    onClick={checkExistingProjects}
+                    title="Verificar si ya existen proyectos con este nombre"
+                  >
+                    🔍 Verificar
+                  </button>
+                </div>
+                {duplicateWarning && (
+                  <div className="alert alert-warning mt-2 mb-0">
+                    <strong>⚠️ Advertencia:</strong> Se encontraron {duplicateWarning.count} proyecto(s) con este nombre.
+                    <br />
+                    <small>
+                      Sugerencia: <code>{duplicateWarning.suggestedName}</code>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-outline-warning ms-2"
+                        onClick={() => {
+                          setClient(prev => ({
+                            ...prev,
+                            project_name: duplicateWarning.suggestedName
+                          }));
+                          setDuplicateWarning(null);
+                        }}
+                      >
+                        Usar sugerencia
+                      </button>
+                    </small>
+                  </div>
+                )}
+                {selection.project && (
+                  <div className="alert alert-success mt-2 mb-0">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div>
+                        <strong>✅ Proyecto existente seleccionado:</strong> {selection.project.name}
+                        <br />
+                        <small>
+                          Ubicación: {selection.project.location || 'No especificada'} | 
+                          Vendedor: {selection.project.vendedor_name || 'No asignado'} |
+                          Cotizaciones: {selection.project.quotes_count || 0}
+                        </small>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => {
+                          setSelection(prev => ({
+                            ...prev,
+                            project: null,
+                            project_id: null
+                          }));
+                          console.log('🔄 Proyecto existente deseleccionado');
+                        }}
+                        title="Deseleccionar proyecto existente"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="col-md-6">
                 <label className="form-label">Ubicación</label>
@@ -1212,7 +1427,7 @@ export default function CotizacionInteligente() {
             className="btn btn-success btn-lg"
             disabled={saving || !client.company_name || !client.ruc}
           >
-            {saving ? '💾 Guardando...' : (editQuoteId ? '💾 CREAR NUEVA COTIZACIÓN' : '💾 GUARDAR COTIZACIÓN')}
+            {saving ? (editQuoteId ? '🔄 Actualizando...' : '💾 Guardando...') : (editQuoteId ? '🔄 GUARDAR CAMBIOS' : '💾 CREAR COTIZACIÓN')}
           </button>
           <button 
             type="button" 
@@ -1229,26 +1444,18 @@ export default function CotizacionInteligente() {
       <SuccessModal
         show={showSuccessModal}
         onHide={() => setShowSuccessModal(false)}
-        title="¡Cotización Creada Exitosamente!"
-        message={
-          successData ? (
-            <div className="quote-success-details">
-              <div className="success-item">
-                <strong>📋 Código:</strong> {successData.code}
-              </div>
-              <div className="success-item">
-                <strong>🏷️ Categoría:</strong> {successData.category}
-              </div>
-              <div className="success-item">
-                <strong>📊 Ítems guardados:</strong> {successData.itemsCount} ítems
-              </div>
-              <div className="success-item total-highlight">
-                <strong>💰 Total:</strong> <span className="total-amount">S/ {successData.total}</span>
-              </div>
-            </div>
-          ) : ''
-        }
+        data={successData}
         buttonText="Aceptar"
+      />
+
+      {/* Modal de selección de proyecto */}
+      <ProjectSelectionModal
+        show={showProjectSelectionModal}
+        onHide={() => setShowProjectSelectionModal(false)}
+        projectName={pendingProjectName}
+        companyId={pendingCompanyId}
+        onSelectExisting={handleSelectExistingProject}
+        onCreateNew={handleCreateNewProject}
       />
     </ModuloBase>
   );
