@@ -6,6 +6,7 @@ import { getExistingServices, listProjects, createProject } from '../services/pr
 import { getOrCreateCompany, listCompanies } from '../services/companies';
 import CompanyProjectPicker from '../components/CompanyProjectPicker';
 import SubserviceAutocompleteFinal from '../components/SubserviceAutocompleteFinal';
+import SuccessModal from '../components/SuccessModal';
 import './CotizacionInteligente.css';
 import '../styles/autocomplete.css';
 
@@ -93,6 +94,10 @@ export default function CotizacionInteligente() {
   const [clientSearch, setClientSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  
+  // Estado para el modal de éxito
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState(null);
   
   // Etiquetas predefinidas para referencia
   const referenceTypes = [
@@ -617,7 +622,15 @@ export default function CotizacionInteligente() {
       };
       
       const saved = await createQuote(payload);
-      alert(`✅ Cotización creada exitosamente\n📋 Código: ${quoteCode}\n🏷️ Categoría: ${quote.category_main === 'laboratorio' ? '🧪 Laboratorio' : '⚙️ Ingeniería'}\n📊 Ítems guardados: ${items.length} ítems\n💰 Total: S/ ${quote.total?.toLocaleString() || '0.00'}`);
+      
+      // Mostrar modal de éxito con los datos
+      setSuccessData({
+        code: quoteCode,
+        category: quote.category_main === 'laboratorio' ? '🧪 Laboratorio' : '⚙️ Ingeniería',
+        itemsCount: items.length,
+        total: total.toLocaleString()
+      });
+      setShowSuccessModal(true);
       setLastSavedId(saved.id);
     } catch (e) {
       console.error('Error:', e);
@@ -709,7 +722,14 @@ export default function CotizacionInteligente() {
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = `cotizacion-borrador-${id}.pdf`;
+      // Generar nombre en formato COT-DDMMYY-YY
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const fileName = `COT-${day}${month}${year}-${year}.pdf`;
+      
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1196,21 +1216,40 @@ export default function CotizacionInteligente() {
           </button>
           <button 
             type="button" 
-            className="btn btn-outline-primary btn-lg"
-            onClick={() => window.print()}
-          >
-            👁️ Vista Previa
-          </button>
-          <button 
-            type="button" 
             className="btn btn-outline-warning btn-lg"
             onClick={exportDraft}
             disabled={!lastSavedId}
           >
-            📄 PDF Borrador
+            📄 Generar cotización
           </button>
         </div>
       </form>
+      
+      {/* Modal de éxito */}
+      <SuccessModal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+        title="¡Cotización Creada Exitosamente!"
+        message={
+          successData ? (
+            <div className="quote-success-details">
+              <div className="success-item">
+                <strong>📋 Código:</strong> {successData.code}
+              </div>
+              <div className="success-item">
+                <strong>🏷️ Categoría:</strong> {successData.category}
+              </div>
+              <div className="success-item">
+                <strong>📊 Ítems guardados:</strong> {successData.itemsCount} ítems
+              </div>
+              <div className="success-item total-highlight">
+                <strong>💰 Total:</strong> <span className="total-amount">S/ {successData.total}</span>
+              </div>
+            </div>
+          ) : ''
+        }
+        buttonText="Aceptar"
+      />
     </ModuloBase>
   );
 }

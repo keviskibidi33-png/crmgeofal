@@ -63,13 +63,8 @@ const listCompanies = async (req, res) => {
         c.city,
         c.sector,
         c.address,
-        c.status,
-        c.managed_by,
-        c.created_at,
-        u.name as managed_by_name,
-        u.role as managed_by_role
+        c.created_at
       FROM companies c
-      LEFT JOIN users u ON c.managed_by = u.id
       ${whereClause}
       ORDER BY c.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -335,12 +330,12 @@ const updateClientStatus = async (req, res) => {
       });
     }
 
-    // Actualizar el estado
-    const updatedClient = await Company.updateStatus(id, status);
-
-    if (!updatedClient) {
-      return res.status(404).json({ error: 'Cliente no encontrado' });
-    }
+    // La columna status no existe en la tabla companies
+    // Este endpoint está deshabilitado hasta que se agregue la columna
+    return res.status(501).json({ 
+      error: 'Funcionalidad no implementada',
+      message: 'La columna status no existe en la tabla companies. Se requiere una migración de base de datos.'
+    });
 
     // Registrar en auditoría
     await Audit.log({

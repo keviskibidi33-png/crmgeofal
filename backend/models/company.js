@@ -52,7 +52,7 @@ const Company = {
     params.push(limit, offset);
     
         const data = await pool.query(
-          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by, created_at FROM companies ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, created_at FROM companies ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
           params
         );
     
@@ -77,41 +77,22 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE dni = $1', [dni]);
     return res.rows[0];
   },
-  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector, status = CLIENT_STATUS.PROSPECCION, managed_by = null }) {
+  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
     const res = await pool.query(
-      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by]
+      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector]
     );
     return res.rows[0];
   },
-  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
     const res = await pool.query(
-      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10, status = $11, managed_by = $12 WHERE id = $13 RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, managed_by, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10 WHERE id = $11 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, id]
     );
     return res.rows[0];
   },
-  async updateStatus(id, status) {
-    // Validar que el estado sea válido
-    const validStatuses = Object.values(CLIENT_STATUS);
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Estado inválido: ${status}. Estados válidos: ${validStatuses.join(', ')}`);
-    }
-
-    const res = await pool.query(
-      'UPDATE companies SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-      [status, id]
-    );
-    return res.rows[0];
-  },
-  async updateManager(id, managed_by) {
-    const res = await pool.query(
-      'UPDATE companies SET managed_by = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-      [managed_by, id]
-    );
-    return res.rows[0];
-  },
+  // Métodos de status y manager removidos ya que las columnas no existen en la tabla
   // Obtener todos los estados disponibles
   getAvailableStatuses() {
     return Object.values(CLIENT_STATUS);
@@ -154,17 +135,8 @@ const Company = {
         ORDER BY p.created_at DESC
       `, [clientId]);
       
-      // Obtener información del gestor actual
-      const managerResult = await pool.query(`
-        SELECT 
-          u.id,
-          u.name,
-          u.role,
-          u.email
-        FROM users u
-        INNER JOIN companies c ON c.managed_by = u.id
-        WHERE c.id = $1
-      `, [clientId]);
+      // Obtener información del gestor actual (removido ya que la columna managed_by no existe)
+      const managerResult = { rows: [] };
       
       const history = {
         quotes: quotesResult.rows,

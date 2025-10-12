@@ -293,3 +293,50 @@
   border-color: #f84616 !important;
   box-shadow: 0 0 0 0.2rem rgba(248, 70, 22, 0.25) !important;
 }
+
+/* Estilos para el modal de éxito de cotización */
+.quote-success-details {
+  text-align: left;
+  margin: 20px 0;
+}
+
+.success-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 16px;
+}
+
+.success-item:last-child {
+  border-bottom: none;
+}
+
+.success-item strong {
+  min-width: 140px;
+  color: #495057;
+  margin-right: 10px;
+}
+
+.total-highlight {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 8px;
+  padding: 15px !important;
+  margin-top: 10px;
+  border: 3px solid #28a745 !important;
+  font-weight: bold;
+  font-size: 18px !important;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.total-highlight strong {
+  color: #155724 !important;
+  font-size: 18px !important;
+}
+
+.total-highlight .total-amount {
+  color: #155724 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}

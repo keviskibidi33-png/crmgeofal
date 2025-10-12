@@ -71,7 +71,6 @@ const Quote = {
   },
   async create({ 
     project_id, variant_id, created_by, client_contact, client_email, client_phone, 
-    client_company, client_ruc, project_name, project_location, request_date,
     issue_date, subtotal = 0, igv = 0, total, status, reference = null, 
     reference_type = null, meta = null, category_main, quote_code 
   }) {
@@ -81,7 +80,6 @@ const Quote = {
     
     const values = [
       project_id, variant_id, created_by, client_contact, client_email, client_phone,
-      client_company, client_ruc, project_name, project_location, request_date,
       issue_date, subtotal, igv, total, status, reference, referenceTypeJson, 
       metaJson, category_main, quote_code
     ];
@@ -89,31 +87,27 @@ const Quote = {
     const res = await pool.query(
       `INSERT INTO quotes (
         project_id, variant_id, created_by, client_contact, client_email, client_phone,
-        client_company, client_ruc, project_name, project_location, request_date,
         issue_date, subtotal, igv, total, status, reference, reference_type, meta,
         category_main, quote_code
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
       values
     );
     return res.rows[0];
   },
   async update(id, { 
-    client_contact, client_email, client_phone, client_company, client_ruc, 
-    project_name, project_location, request_date, issue_date, subtotal = 0, 
+    client_contact, client_email, client_phone, issue_date, subtotal = 0, 
     igv = 0, total, status, reference = null, reference_type = null, 
     meta = null, category_main, quote_code 
   }) {
     const res = await pool.query(
       `UPDATE quotes SET 
-        client_contact=$1, client_email=$2, client_phone=$3, client_company=$4, 
-        client_ruc=$5, project_name=$6, project_location=$7, request_date=$8,
-        issue_date=$9, subtotal=$10, igv=$11, total=$12, status=$13, 
-        reference=$14, reference_type=$15, meta=$16, category_main=$17, 
-        quote_code=$18, updated_at=NOW() 
-      WHERE id=$19 RETURNING *`,
+        client_contact=$1, client_email=$2, client_phone=$3, 
+        issue_date=$4, subtotal=$5, igv=$6, total=$7, status=$8, 
+        reference=$9, reference_type=$10, meta=$11, category_main=$12, 
+        quote_code=$13, updated_at=NOW() 
+      WHERE id=$14 RETURNING *`,
       [
-        client_contact, client_email, client_phone, client_company, client_ruc,
-        project_name, project_location, request_date, issue_date, subtotal, 
+        client_contact, client_email, client_phone, issue_date, subtotal, 
         igv, total, status, reference, reference_type, meta, category_main, 
         quote_code, id
       ]
