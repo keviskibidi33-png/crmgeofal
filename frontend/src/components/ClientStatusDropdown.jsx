@@ -101,6 +101,8 @@ const ClientStatusDropdown = ({
   const handleStatusChange = async (newStatus) => {
     if (newStatus === currentStatus) return;
     
+    console.log(`🔄 ClientStatusDropdown - Iniciando cambio de estado del cliente ${clientId} de '${currentStatus}' a '${newStatus}'`);
+    
     // Actualización optimista inmediata - cambiar el estado visual al instante
     onStatusChange?.(newStatus);
     setShow(false);
@@ -110,14 +112,20 @@ const ClientStatusDropdown = ({
     setError('');
     
     try {
-      await updateClientStatus(clientId, newStatus);
+      console.log(`🔄 ClientStatusDropdown - Llamando a updateClientStatus...`);
+      const result = await updateClientStatus(clientId, newStatus);
+      console.log(`✅ ClientStatusDropdown - Estado actualizado exitosamente:`, result);
+      
       // Invalidar queries para sincronizar con el servidor
-      queryClient.invalidateQueries('clients');
+      queryClient.invalidateQueries(['clients']);
+      queryClient.invalidateQueries('companiesList');
       queryClient.invalidateQueries('clientStats');
+      queryClient.invalidateQueries('companyStats');
     } catch (err) {
+      console.error(`❌ ClientStatusDropdown - Error al actualizar estado:`, err);
       setError(err.message || 'Error al actualizar estado');
-      console.error('Error updating client status:', err);
       // Revertir el cambio si falla la API
+      console.log(`🔄 ClientStatusDropdown - Revirtiendo estado a '${currentStatus}'`);
       onStatusChange?.(currentStatus);
     } finally {
       setLoading(false);

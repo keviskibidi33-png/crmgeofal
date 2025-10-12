@@ -9,7 +9,16 @@ function getAuthHeader() {
 }
 
 export async function apiFetch(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...getAuthHeader(), ...(opts.headers || {}) };
+  // Headers por defecto con anti-cache para evitar HTTP 304
+  const headers = { 
+    'Content-Type': 'application/json', 
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    ...getAuthHeader(), 
+    ...(opts.headers || {}) 
+  };
+  
   // Si el body es FormData, eliminamos Content-Type para que el navegador establezca los límites correctamente
   if (opts && opts.body instanceof FormData) {
     delete headers['Content-Type'];

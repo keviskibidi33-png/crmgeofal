@@ -63,6 +63,7 @@ const listCompanies = async (req, res) => {
         c.city,
         c.sector,
         c.address,
+        c.status,
         c.created_at
       FROM companies c
       ${whereClause}
@@ -321,20 +322,63 @@ const updateClientStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    console.log(`🔄 updateClientStatus - Cliente ID: ${id}`);
+    console.log(`🔄 updateClientStatus - Nuevo estado: ${status}`);
+    console.log(`🔄 updateClientStatus - Usuario: ${req.user?.name} (ID: ${req.user?.id})`);
+
     // Validar que el estado sea válido
     const validStatuses = Company.getAvailableStatuses();
+    console.log(`🔄 updateClientStatus - Estados válidos:`, validStatuses);
+    
     if (!validStatuses.includes(status)) {
+      console.log(`❌ updateClientStatus - Estado inválido: ${status}`);
       return res.status(400).json({
         error: 'Estado inválido',
         validStatuses: validStatuses
       });
     }
 
-    // La columna status no existe en la tabla companies
-    // Este endpoint está deshabilitado hasta que se agregue la columna
-    return res.status(501).json({ 
-      error: 'Funcionalidad no implementada',
-      message: 'La columna status no existe en la tabla companies. Se requiere una migración de base de datos.'
+    console.log(`✅ updateClientStatus - Estado válido, actualizando en BD...`);
+
+    // Actualizar el estado en la base de datos
+    const pool = require('../config/db');
+    console.log(`🔄 updateClientStatus - Ejecutando SQL: UPDATE companies SET status = '${status}', updated_at = NOW() WHERE id = ${id}`);
+    
+    const result = await pool.query(
+      'UPDATE companies SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+
+    console.log(`🔄 updateClientStatus - Filas afectadas: ${result.rows.length}`);
+
+    if (result.rows.length === 0) {
+      console.log(`❌ updateClientStatus - Cliente no encontrado con ID: ${id}`);
+      return res.status(404).json({ error: 'Cliente no encontrado' });
+    }
+
+    // VERIFICACIÓN INMEDIATA: Comprobar que el cambio se guardó
+    console.log(`🔍 updateClientStatus - Verificando cambio inmediatamente...`);
+    const verifyResult = await pool.query(
+      'SELECT id, name, status FROM companies WHERE id = $1',
+      [id]
+    );
+    
+    if (verifyResult.rows.length > 0) {
+      const currentStatus = verifyResult.rows[0].status;
+      console.log(`🔍 updateClientStatus - Estado actual en BD inmediatamente después del UPDATE: ${currentStatus}`);
+      if (currentStatus !== status) {
+        console.log(`❌ updateClientStatus - ¡PROBLEMA! El estado en BD (${currentStatus}) no coincide con el esperado (${status})`);
+      } else {
+        console.log(`✅ updateClientStatus - Verificación exitosa: el estado se guardó correctamente`);
+      }
+    }
+
+    const updatedClient = result.rows[0];
+    console.log(`✅ updateClientStatus - Cliente actualizado:`, {
+      id: updatedClient.id,
+      name: updatedClient.name,
+      old_status: req.body.old_status || 'unknown',
+      new_status: updatedClient.status
     });
 
     // Registrar en auditoría
@@ -350,13 +394,15 @@ const updateClientStatus = async (req, res) => {
       })
     });
 
+    console.log(`✅ updateClientStatus - Respuesta enviada exitosamente`);
+
     res.json({
       message: 'Estado actualizado correctamente',
       client: updatedClient
     });
 
   } catch (err) {
-    console.error('Error updating client status:', err);
+    console.error('❌ updateClientStatus - Error:', err);
     res.status(500).json({ error: 'Error al actualizar estado del cliente' });
   }
 };

@@ -8,6 +8,10 @@ export const listCompanies = (params = {}) => {
   if (params.type) sp.set('type', params.type);
   if (params.city) sp.set('city', params.city);
   if (params.sector) sp.set('sector', params.sector);
+  
+  // Agregar timestamp para evitar cache del navegador
+  sp.set('_t', Date.now().toString());
+  
   const qs = sp.toString();
   const path = qs ? `/api/companies?${qs}` : '/api/companies';
   
@@ -84,11 +88,22 @@ export const deleteCompany = (id) =>
     method: 'DELETE',
   });
 
-export const updateClientStatus = (id, status) =>
-  apiFetch(`/api/companies/${id}/status`, {
+export const updateClientStatus = (id, status) => {
+  console.log(`🔄 updateClientStatus - Llamando a: /api/companies/${id}/status`);
+  console.log(`🔄 updateClientStatus - Estado: ${status}`);
+  console.log(`🔄 updateClientStatus - Token:`, localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  
+  return apiFetch(`/api/companies/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+  }).then(data => {
+    console.log('✅ updateClientStatus - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ updateClientStatus - Error:', error);
+    throw error;
   });
+};
 
 export const updateClientManager = (id, managed_by) =>
   apiFetch(`/api/companies/${id}/manager`, {
