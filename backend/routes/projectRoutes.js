@@ -7,6 +7,7 @@ const auth = require('../middlewares/auth');
 router.get('/', auth(), projectController.getAll);
 router.get('/stats', auth(), projectController.getStats);
 router.get('/services', auth(), projectController.getExistingServices);
+router.get('/search-by-name', auth(), projectController.searchByName);
 router.get('/for-invoicing', auth(['facturacion', 'admin']), projectController.getProjectsForInvoicing);
 router.get('/:id', auth(), projectController.getById);
 router.post('/', auth(['jefa_comercial','vendedor_comercial','admin']), projectController.create);

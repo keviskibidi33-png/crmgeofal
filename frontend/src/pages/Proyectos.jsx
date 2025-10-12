@@ -446,9 +446,30 @@ export default function Proyectos() {
         console.log('✅ updateMutation - Success:', updatedProject);
         // Actualizar el proyecto seleccionado con los nuevos datos
         setSelectedProject(updatedProject);
-        setEditingData(updatedProject);
+        
+        // Procesar editingData para asegurar que queries_history sea un array
+        const processedEditingData = {
+          ...updatedProject,
+          queries_history: (() => {
+            try {
+              if (updatedProject.queries_history && Array.isArray(updatedProject.queries_history)) {
+                return updatedProject.queries_history;
+              }
+              if (updatedProject.queries_history && typeof updatedProject.queries_history === 'string') {
+                const parsed = JSON.parse(updatedProject.queries_history);
+                return Array.isArray(parsed) ? parsed : [];
+              }
+              return [];
+            } catch (e) {
+              console.warn('❌ Error procesando queries_history en updateMutation:', e);
+              return [];
+            }
+          })()
+        };
+        
+        setEditingData(processedEditingData);
         showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-        queryClient.invalidateQueries('projects');
+        queryClient.invalidateQueries(['projects']);
       },
       onError: (error) => {
         console.error('❌ updateMutation - Error:', error);
@@ -467,7 +488,28 @@ export default function Proyectos() {
     {
       onSuccess: (updatedProject) => {
         setSelectedProject(updatedProject);
-        setEditingData(updatedProject);
+        
+        // Procesar editingData para asegurar que queries_history sea un array
+        const processedEditingData = {
+          ...updatedProject,
+          queries_history: (() => {
+            try {
+              if (updatedProject.queries_history && Array.isArray(updatedProject.queries_history)) {
+                return updatedProject.queries_history;
+              }
+              if (updatedProject.queries_history && typeof updatedProject.queries_history === 'string') {
+                const parsed = JSON.parse(updatedProject.queries_history);
+                return Array.isArray(parsed) ? parsed : [];
+              }
+              return [];
+            } catch (e) {
+              console.warn('❌ Error procesando queries_history en updateStatusMutation:', e);
+              return [];
+            }
+          })()
+        };
+        
+        setEditingData(processedEditingData);
         handleMutationSuccess('Estado del proyecto actualizado exitosamente');
       },
       onError: (error) => console.error('Error updating project status:', error)
@@ -480,7 +522,28 @@ export default function Proyectos() {
     {
       onSuccess: (updatedProject) => {
         setSelectedProject(updatedProject);
-        setEditingData(updatedProject);
+        
+        // Procesar editingData para asegurar que queries_history sea un array
+        const processedEditingData = {
+          ...updatedProject,
+          queries_history: (() => {
+            try {
+              if (updatedProject.queries_history && Array.isArray(updatedProject.queries_history)) {
+                return updatedProject.queries_history;
+              }
+              if (updatedProject.queries_history && typeof updatedProject.queries_history === 'string') {
+                const parsed = JSON.parse(updatedProject.queries_history);
+                return Array.isArray(parsed) ? parsed : [];
+              }
+              return [];
+            } catch (e) {
+              console.warn('❌ Error procesando queries_history en updateQueriesMutation:', e);
+              return [];
+            }
+          })()
+        };
+        
+        setEditingData(processedEditingData);
         handleMutationSuccess('Consultas del proyecto actualizadas exitosamente');
       },
       onError: (error) => console.error('Error updating project queries:', error)
@@ -492,7 +555,28 @@ export default function Proyectos() {
     {
       onSuccess: (updatedProject) => {
         setSelectedProject(updatedProject);
-        setEditingData(updatedProject);
+        
+        // Procesar editingData para asegurar que queries_history sea un array
+        const processedEditingData = {
+          ...updatedProject,
+          queries_history: (() => {
+            try {
+              if (updatedProject.queries_history && Array.isArray(updatedProject.queries_history)) {
+                return updatedProject.queries_history;
+              }
+              if (updatedProject.queries_history && typeof updatedProject.queries_history === 'string') {
+                const parsed = JSON.parse(updatedProject.queries_history);
+                return Array.isArray(parsed) ? parsed : [];
+              }
+              return [];
+            } catch (e) {
+              console.warn('❌ Error procesando queries_history en updateMarkMutation:', e);
+              return [];
+            }
+          })()
+        };
+        
+        setEditingData(processedEditingData);
         handleMutationSuccess('Proyecto marcado/desmarcado exitosamente');
       },
       onError: (error) => console.error('Error updating project mark:', error)
@@ -1238,7 +1322,10 @@ export default function Proyectos() {
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
         title={`📋 Gestionar Proyecto - ${selectedProject?.name || ''}`}
-        data={editingData}
+        data={{
+          ...editingData,
+          queries_history: Array.isArray(editingData?.queries_history) ? editingData.queries_history : []
+        }}
         size="xl"
         fields={[
           {
@@ -1697,7 +1784,7 @@ export default function Proyectos() {
                       
                       {/* Área de comentarios existentes */}
                       <div className="mb-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                        {editingData.queries_history && editingData.queries_history.length > 0 ? (
+                        {editingData.queries_history && Array.isArray(editingData.queries_history) && editingData.queries_history.length > 0 ? (
                           editingData.queries_history.map((comment, index) => {
                             // Color consistente por usuario
                             const getUserColor = (userName) => {
@@ -1888,54 +1975,36 @@ export default function Proyectos() {
                       </Button>
                     )}
                   </div>
-                  <div className="d-flex gap-3">
-                    <Button 
-                      variant="secondary" 
-                          onClick={() => setShowViewModal(false)}
-                      className="px-4"
-                        >
-                      <FiX className="me-2" />
-                          Cancelar
-                        </Button>
-                        <Button 
-                          variant="primary" 
-                          size="lg"
-                          onClick={() => {
-                            const projectId = selectedProject?.id;
-                            
-                            if (!projectId) {
-                              showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
-                              return;
-                            }
-                            
-                            updateMutation.mutate({ 
-                              id: projectId, 
-                              data: editingData
-                            }, {
-                              onSuccess: (data) => {
-                                showNotification('✅ Proyecto actualizado exitosamente!', 'success');
-                                setShowViewModal(false);
-                              },
-                              onError: (error) => {
-                                console.error('❌ Error al actualizar:', error);
-                                showNotification('❌ Error al actualizar proyecto', 'danger');
-                              }
-                            });
-                          }}
-                          disabled={updateMutation.isLoading}
-                          className="px-4"
-                        >
-                          <FiSave className="me-2" />
-                          {updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
-                        </Button>
-                      </div>
                     </div>
                   </div>
             )
           }
         ]}
-        onSubmit={() => setShowViewModal(false)}
-        submitText="Cerrar"
+        onSubmit={() => {
+          const projectId = selectedProject?.id;
+          
+          if (!projectId) {
+            showNotification('❌ Error: No se encontró el ID del proyecto', 'danger');
+            return;
+          }
+          
+          updateMutation.mutate({ 
+            id: projectId, 
+            data: editingData
+          }, {
+            onSuccess: (data) => {
+              showNotification('✅ Proyecto actualizado exitosamente!', 'success');
+              setShowViewModal(false);
+            },
+            onError: (error) => {
+              console.error('❌ Error al actualizar:', error);
+              showNotification('❌ Error al actualizar proyecto', 'danger');
+              // No cerrar el modal en caso de error para que el usuario pueda intentar de nuevo
+            }
+          });
+        }}
+        submitText={updateMutation.isLoading ? 'Guardando...' : 'Guardar Cambios'}
+        cancelText="Cancelar"
       />
 
       {/* Modal de Ver Proyecto (Solo Lectura) */}
@@ -1943,7 +2012,10 @@ export default function Proyectos() {
         show={showViewOnlyModal}
         onHide={() => setShowViewOnlyModal(false)}
         title={`👁️ Ver Proyecto - ${selectedProject?.name || ''}`}
-        data={selectedProject}
+        data={{
+          ...selectedProject,
+          queries_history: Array.isArray(selectedProject?.queries_history) ? selectedProject.queries_history : []
+        }}
         size="lg"
         fields={[
           {

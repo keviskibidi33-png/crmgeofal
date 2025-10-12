@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Alert, Spinner } from 'react-bootstrap';
-import { FiTarget, FiUsers, FiDollarSign, FiTrendingUp, FiActivity, FiBriefcase } from 'react-icons/fi';
+import { Container, Row, Col, Card, Alert, Spinner, Button, Badge } from 'react-bootstrap';
+import { FiTarget, FiUsers, FiDollarSign, FiTrendingUp, FiActivity, FiBriefcase, FiPlus, FiEye, FiRefreshCw } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import StatsCard from '../../components/common/StatsCard';
 import apiFetch from '../../services/api';
@@ -9,22 +10,90 @@ export default function VendedorComercialDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showRefreshLoader = false) => {
     try {
-      setLoading(true);
+      if (showRefreshLoader) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
+      setSuccessMessage(null);
+      
       const data = await apiFetch('/api/role-dashboard/vendedor-comercial');
+      
+      // Validar que los datos recibidos sean válidos
+      if (!data) {
+        throw new Error('No se recibieron datos del servidor');
+      }
+      
       setStats(data);
+      setLastUpdate(new Date());
+      
+      if (showRefreshLoader) {
+        setSuccessMessage('Datos actualizados correctamente');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
-      setError('Error al cargar los datos del dashboard');
+      const errorMessage = err.message || 'Error al cargar los datos del dashboard. Por favor, inténtalo de nuevo.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchDashboardData(true);
+  };
+
+  const handleAction = async (action, actionName) => {
+    try {
+      setActionLoading(action);
+      setError(null);
+      setSuccessMessage(null);
+      
+      // Simular delay para mostrar feedback visual
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      switch (action) {
+        case 'nueva-cotizacion':
+          navigate('/cotizacion-inteligente');
+          break;
+        case 'ver-clientes':
+          navigate('/clientes');
+          break;
+        case 'ver-proyectos':
+          navigate('/proyectos');
+          break;
+        case 'enviar-comprobante':
+          navigate('/comprobantes-pago');
+          break;
+        default:
+          throw new Error(`Acción ${action} no implementada`);
+      }
+      
+      // Mostrar mensaje de éxito
+      setSuccessMessage(`${actionName} ejecutado correctamente`);
+      setTimeout(() => setSuccessMessage(null), 2000);
+      
+    } catch (err) {
+      console.error(`Error en acción ${action}:`, err);
+      const errorMessage = err.message || `Error al ejecutar ${actionName}. Por favor, inténtalo de nuevo.`;
+      setError(errorMessage);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -52,9 +121,133 @@ export default function VendedorComercialDashboard() {
         title="Mi Dashboard Comercial"
         subtitle="Métricas personales y rendimiento"
         icon={FiTarget}
-      />
+      >
+        <div className="d-flex align-items-center">
+          {lastUpdate && (
+            <small className="text-muted me-3">
+              Última actualización: {lastUpdate.toLocaleTimeString('es-PE')}
+            </small>
+          )}
+          <Button 
+            variant="outline-primary" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Actualizando...
+              </>
+            ) : (
+              <>
+                <FiRefreshCw className="me-2" />
+                Actualizar
+              </>
+            )}
+          </Button>
+        </div>
+      </PageHeader>
+
+      {/* Notificaciones */}
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError(null)} className="mb-4">
+          <Alert.Heading>⚠️ Error</Alert.Heading>
+          {error}
+        </Alert>
+      )}
+      
+      {successMessage && (
+        <Alert variant="success" dismissible onClose={() => setSuccessMessage(null)} className="mb-4">
+          <Alert.Heading>✅ Éxito</Alert.Heading>
+          {successMessage}
+        </Alert>
+      )}
+
+      {/* Acciones rápidas */}
+      <Row className="mb-4">
+        <Col>
+          <Card className="shadow-sm">
+            <Card.Header>
+              <h5 className="mb-0">⚡ Acciones Rápidas</h5>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={3}>
+                  <Button
+                    variant="primary"
+                    className="w-100 d-flex align-items-center justify-content-center"
+                    onClick={() => handleAction('nueva-cotizacion', 'Nueva Cotización')}
+                    disabled={actionLoading === 'nueva-cotizacion'}
+                  >
+                    {actionLoading === 'nueva-cotizacion' ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <FiPlus className="me-2" />
+                    )}
+                    Nueva Cotización
+                  </Button>
+                </Col>
+                <Col md={3}>
+                  <Button
+                    variant="info"
+                    className="w-100 d-flex align-items-center justify-content-center"
+                    onClick={() => handleAction('ver-clientes', 'Ver Clientes')}
+                    disabled={actionLoading === 'ver-clientes'}
+                  >
+                    {actionLoading === 'ver-clientes' ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <FiUsers className="me-2" />
+                    )}
+                    Ver Clientes
+                  </Button>
+                </Col>
+                <Col md={3}>
+                  <Button
+                    variant="success"
+                    className="w-100 d-flex align-items-center justify-content-center"
+                    onClick={() => handleAction('ver-proyectos', 'Ver Proyectos')}
+                    disabled={actionLoading === 'ver-proyectos'}
+                  >
+                    {actionLoading === 'ver-proyectos' ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <FiBriefcase className="me-2" />
+                    )}
+                    Ver Proyectos
+                  </Button>
+                </Col>
+                <Col md={3}>
+                  <Button
+                    variant="warning"
+                    className="w-100 d-flex align-items-center justify-content-center"
+                    onClick={() => handleAction('enviar-comprobante', 'Enviar Comprobante')}
+                    disabled={actionLoading === 'enviar-comprobante'}
+                  >
+                    {actionLoading === 'enviar-comprobante' ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <FiDollarSign className="me-2" />
+                    )}
+                    Enviar Comprobante
+                  </Button>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
       {/* Métricas principales */}
+      <Row className="mb-4 g-3">
+        <Col>
+          <h4 className="text-primary mb-3">
+            <FiTarget className="me-2" />
+            Resumen de tu actividad comercial
+          </h4>
+        </Col>
+      </Row>
       <Row className="mb-4 g-3">
         <Col lg={3} md={6}>
           <StatsCard
@@ -100,6 +293,14 @@ export default function VendedorComercialDashboard() {
 
       {/* Métricas de proyectos y mensuales */}
       <Row className="mb-4 g-3">
+        <Col>
+          <h4 className="text-info mb-3">
+            <FiActivity className="me-2" />
+            Métricas mensuales y proyectos
+          </h4>
+        </Col>
+      </Row>
+      <Row className="mb-4 g-3">
         <Col lg={3} md={6}>
           <StatsCard
             title="Proyectos Activos"
@@ -144,16 +345,25 @@ export default function VendedorComercialDashboard() {
 
       {/* Cotizaciones recientes */}
       <Row className="mb-4">
+        <Col>
+          <h4 className="text-success mb-3">
+            <FiTarget className="me-2" />
+            Actividad reciente
+          </h4>
+        </Col>
+      </Row>
+      <Row className="mb-4">
         <Col lg={6}>
           <Card className="shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Mis Cotizaciones Recientes</h5>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">📋 Mis Cotizaciones Recientes</h5>
+              <Badge bg="primary">{stats?.cotizacionesRecientes?.length || 0}</Badge>
             </Card.Header>
             <Card.Body>
               {stats?.cotizacionesRecientes?.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-sm">
-                    <thead>
+                  <table className="table table-sm table-hover">
+                    <thead className="table-light">
                       <tr>
                         <th>Código</th>
                         <th>Cliente</th>
@@ -165,26 +375,49 @@ export default function VendedorComercialDashboard() {
                     <tbody>
                       {stats.cotizacionesRecientes.map((cotizacion, index) => (
                         <tr key={index}>
-                          <td>{cotizacion.quote_number}</td>
-                          <td>{cotizacion.client_contact}</td>
-                          <td>${cotizacion.total_amount?.toLocaleString() || 0}</td>
                           <td>
-                            <span className={`badge ${
-                              cotizacion.status === 'aprobada' ? 'bg-success' :
-                              cotizacion.status === 'facturada' ? 'bg-primary' :
-                              cotizacion.status === 'pendiente' ? 'bg-warning' : 'bg-secondary'
-                            }`}>
-                              {cotizacion.status}
+                            <code className="text-primary">{cotizacion.quote_number}</code>
+                          </td>
+                          <td>
+                            <div className="fw-medium">{cotizacion.client_contact}</div>
+                          </td>
+                          <td>
+                            <span className="fw-bold text-success">
+                              S/ {cotizacion.total_amount?.toLocaleString('es-PE', { 
+                                minimumFractionDigits: 2, 
+                                maximumFractionDigits: 2 
+                              }) || '0.00'}
                             </span>
                           </td>
-                          <td>{new Date(cotizacion.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <Badge 
+                              bg={
+                                cotizacion.status === 'aprobada' ? 'success' :
+                                cotizacion.status === 'facturada' ? 'primary' :
+                                cotizacion.status === 'pendiente' ? 'warning' : 
+                                cotizacion.status === 'borrador' ? 'secondary' : 'info'
+                              }
+                              className="text-capitalize"
+                            >
+                              {cotizacion.status || 'nueva'}
+                            </Badge>
+                          </td>
+                          <td>
+                            <small className="text-muted">
+                              {new Date(cotizacion.created_at).toLocaleDateString('es-PE')}
+                            </small>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <p className="text-muted">No hay cotizaciones recientes</p>
+                <div className="text-center py-4">
+                  <FiTarget size={48} className="text-muted mb-3" />
+                  <p className="text-muted mb-0">No tienes cotizaciones recientes</p>
+                  <small className="text-muted">Crea tu primera cotización usando el botón "Nueva Cotización"</small>
+                </div>
               )}
             </Card.Body>
           </Card>
@@ -193,14 +426,15 @@ export default function VendedorComercialDashboard() {
         {/* Clientes recientes */}
         <Col lg={6}>
           <Card className="shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Mis Clientes Recientes</h5>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">👥 Mis Clientes Recientes</h5>
+              <Badge bg="info">{stats?.clientesRecientes?.length || 0}</Badge>
             </Card.Header>
             <Card.Body>
               {stats?.clientesRecientes?.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-sm">
-                    <thead>
+                  <table className="table table-sm table-hover">
+                    <thead className="table-light">
                       <tr>
                         <th>Empresa</th>
                         <th>RUC</th>
@@ -210,16 +444,28 @@ export default function VendedorComercialDashboard() {
                     <tbody>
                       {stats.clientesRecientes.map((cliente, index) => (
                         <tr key={index}>
-                          <td>{cliente.name}</td>
-                          <td>{cliente.ruc}</td>
-                          <td>{new Date(cliente.ultima_cotizacion).toLocaleDateString()}</td>
+                          <td>
+                            <div className="fw-medium">{cliente.name}</div>
+                          </td>
+                          <td>
+                            <code className="text-muted">{cliente.ruc}</code>
+                          </td>
+                          <td>
+                            <small className="text-muted">
+                              {new Date(cliente.ultima_cotizacion).toLocaleDateString('es-PE')}
+                            </small>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <p className="text-muted">No hay clientes recientes</p>
+                <div className="text-center py-4">
+                  <FiUsers size={48} className="text-muted mb-3" />
+                  <p className="text-muted mb-0">No tienes clientes recientes</p>
+                  <small className="text-muted">Los clientes aparecerán aquí cuando crees cotizaciones</small>
+                </div>
               )}
             </Card.Body>
           </Card>
@@ -230,14 +476,15 @@ export default function VendedorComercialDashboard() {
       <Row>
         <Col>
           <Card className="shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Mis Proyectos Recientes</h5>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">📁 Mis Proyectos Recientes</h5>
+              <Badge bg="success">{stats?.proyectosRecientes?.length || 0}</Badge>
             </Card.Header>
             <Card.Body>
               {stats?.proyectosRecientes?.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-sm">
-                    <thead>
+                  <table className="table table-sm table-hover">
+                    <thead className="table-light">
                       <tr>
                         <th>Proyecto</th>
                         <th>Empresa</th>
@@ -248,25 +495,41 @@ export default function VendedorComercialDashboard() {
                     <tbody>
                       {stats.proyectosRecientes.map((proyecto, index) => (
                         <tr key={index}>
-                          <td>{proyecto.name}</td>
-                          <td>{proyecto.company_name}</td>
                           <td>
-                            <span className={`badge ${
-                              proyecto.status === 'activo' ? 'bg-success' :
-                              proyecto.status === 'completado' ? 'bg-primary' :
-                              proyecto.status === 'pendiente' ? 'bg-warning' : 'bg-secondary'
-                            }`}>
-                              {proyecto.status}
-                            </span>
+                            <div className="fw-medium">{proyecto.name}</div>
                           </td>
-                          <td>{new Date(proyecto.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <div className="text-muted">{proyecto.company_name}</div>
+                          </td>
+                          <td>
+                            <Badge 
+                              bg={
+                                proyecto.status === 'activo' ? 'success' :
+                                proyecto.status === 'completado' ? 'primary' :
+                                proyecto.status === 'pendiente' ? 'warning' : 
+                                proyecto.status === 'en_progreso' ? 'info' : 'secondary'
+                              }
+                              className="text-capitalize"
+                            >
+                              {proyecto.status}
+                            </Badge>
+                          </td>
+                          <td>
+                            <small className="text-muted">
+                              {new Date(proyecto.created_at).toLocaleDateString('es-PE')}
+                            </small>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <p className="text-muted">No hay proyectos recientes</p>
+                <div className="text-center py-4">
+                  <FiBriefcase size={48} className="text-muted mb-3" />
+                  <p className="text-muted mb-0">No tienes proyectos recientes</p>
+                  <small className="text-muted">Los proyectos aparecerán aquí cuando crees cotizaciones</small>
+                </div>
               )}
             </Card.Body>
           </Card>

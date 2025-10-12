@@ -352,6 +352,178 @@ exports.getSoporteDashboard = async (req, res) => {
   }
 };
 
+// Dashboard para Vendedor Comercial - Métricas personales del vendedor
+exports.getVendedorComercialDashboard = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const userName = req.user?.name;
+    console.log('📊 Vendedor Comercial Dashboard - Usuario:', userId, userName);
+
+    // Obtener métricas personales del vendedor
+    const vendedorMetricsQuery = `
+      SELECT 
+        COUNT(DISTINCT q.id) as mis_cotizaciones,
+        COUNT(CASE WHEN q.status = 'aprobada' THEN 1 END) as cotizaciones_aprobadas,
+        COUNT(CASE WHEN q.status = 'pendiente' THEN 1 END) as cotizaciones_pendientes,
+        COUNT(CASE WHEN q.status = 'borrador' THEN 1 END) as cotizaciones_borrador,
+        COUNT(CASE WHEN q.status = 'facturada' THEN 1 END) as cotizaciones_facturadas,
+        COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') THEN q.total_amount ELSE 0 END), 0) as ingresos_generados,
+        COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') AND q.created_at >= DATE_TRUNC('month', CURRENT_DATE) THEN q.total_amount ELSE 0 END), 0) as ingresos_este_mes,
+        COUNT(CASE WHEN q.created_at >= DATE_TRUNC('month', CURRENT_DATE) THEN 1 END) as cotizaciones_este_mes
+      FROM quotes q
+      WHERE q.created_by = $1
+    `;
+
+    const vendedorResult = await pool.query(vendedorMetricsQuery, [userId]);
+    const vendedorMetrics = vendedorResult.rows[0] || {};
+
+    // Obtener clientes del vendedor
+    const clientesQuery = `
+      SELECT 
+        COUNT(DISTINCT c.id) as total_clientes,
+        COUNT(DISTINCT CASE WHEN p.created_at >= DATE_TRUNC('month', CURRENT_DATE) THEN c.id END) as clientes_nuevos_este_mes
+      FROM companies c
+      JOIN projects p ON c.id = p.company_id
+      JOIN quotes q ON p.id = q.project_id
+      WHERE q.created_by = $1
+    `;
+
+    const clientesResult = await pool.query(clientesQuery, [userId]);
+    const clientesMetrics = clientesResult.rows[0] || {};
+
+    // Obtener proyectos del vendedor
+    const proyectosQuery = `
+      SELECT 
+        COUNT(DISTINCT p.id) as proyectos_activos,
+        COUNT(CASE WHEN p.status = 'completado' THEN 1 END) as proyectos_completados
+      FROM projects p
+      JOIN quotes q ON p.id = q.project_id
+      WHERE q.created_by = $1
+    `;
+
+    const proyectosResult = await pool.query(proyectosQuery, [userId]);
+    const proyectosMetrics = proyectosResult.rows[0] || {};
+
+    // Obtener cotizaciones recientes del vendedor
+    const cotizacionesRecientesQuery = `
+      SELECT 
+        q.id,
+        q.quote_number,
+        c.name as client_contact,
+        COALESCE(q.total_amount, 0) as total_amount,
+        q.status,
+        q.created_at
+      FROM quotes q
+      JOIN projects p ON q.project_id = p.id
+      JOIN companies c ON p.company_id = c.id
+      WHERE q.created_by = $1
+      ORDER BY q.created_at DESC
+      LIMIT 5
+    `;
+
+    const cotizacionesRecientesResult = await pool.query(cotizacionesRecientesQuery, [userId]);
+
+    // Obtener clientes recientes del vendedor
+    const clientesRecientesQuery = `
+      SELECT 
+        c.name,
+        c.ruc,
+        MAX(q.created_at) as ultima_cotizacion
+      FROM companies c
+      JOIN projects p ON c.id = p.company_id
+      JOIN quotes q ON p.id = q.project_id
+      WHERE q.created_by = $1
+      GROUP BY c.id, c.name, c.ruc
+      ORDER BY ultima_cotizacion DESC
+      LIMIT 5
+    `;
+
+    const clientesRecientesResult = await pool.query(clientesRecientesQuery, [userId]);
+
+    // Obtener proyectos recientes del vendedor
+    const proyectosRecientesQuery = `
+      SELECT 
+        p.name,
+        c.name as company_name,
+        p.status,
+        p.created_at
+      FROM projects p
+      JOIN companies c ON p.company_id = c.id
+      JOIN quotes q ON p.id = q.project_id
+      WHERE q.created_by = $1
+      GROUP BY p.id, p.name, c.name, p.status, p.created_at
+      ORDER BY p.created_at DESC
+      LIMIT 5
+    `;
+
+    const proyectosRecientesResult = await pool.query(proyectosRecientesQuery, [userId]);
+
+    // Calcular tasa de conversión
+    const totalCotizaciones = parseInt(vendedorMetrics.mis_cotizaciones) || 0;
+    const cotizacionesAprobadas = parseInt(vendedorMetrics.cotizaciones_aprobadas) || 0;
+    const conversionRate = totalCotizaciones > 0 ? Math.round((cotizacionesAprobadas / totalCotizaciones) * 100) : 0;
+
+    const response = {
+      // Métricas principales
+      misCotizaciones: totalCotizaciones,
+      cotizacionesAprobadas: cotizacionesAprobadas,
+      cotizacionesPendientes: parseInt(vendedorMetrics.cotizaciones_pendientes) || 0,
+      cotizacionesBorrador: parseInt(vendedorMetrics.cotizaciones_borrador) || 0,
+      cotizacionesFacturadas: parseInt(vendedorMetrics.cotizaciones_facturadas) || 0,
+      ingresosGenerados: parseFloat(vendedorMetrics.ingresos_generados) || 0,
+      conversionRate: conversionRate,
+      
+      // Métricas de clientes
+      totalClientes: parseInt(clientesMetrics.total_clientes) || 0,
+      clientesNuevosEsteMes: parseInt(clientesMetrics.clientes_nuevos_este_mes) || 0,
+      
+      // Métricas de proyectos
+      proyectosActivos: parseInt(proyectosMetrics.proyectos_activos) || 0,
+      proyectosCompletados: parseInt(proyectosMetrics.proyectos_completados) || 0,
+      
+      // Métricas mensuales
+      cotizacionesEsteMes: parseInt(vendedorMetrics.cotizaciones_este_mes) || 0,
+      ingresosEsteMes: parseFloat(vendedorMetrics.ingresos_este_mes) || 0,
+      
+      // Datos recientes
+      cotizacionesRecientes: cotizacionesRecientesResult.rows.map(cotizacion => ({
+        quote_number: cotizacion.quote_number || `COT-${cotizacion.id}`,
+        client_contact: cotizacion.client_contact || 'Cliente no especificado',
+        total_amount: parseFloat(cotizacion.total_amount) || 0,
+        status: cotizacion.status || 'nueva',
+        created_at: cotizacion.created_at
+      })),
+      
+      clientesRecientes: clientesRecientesResult.rows.map(cliente => ({
+        name: cliente.name || 'Cliente no especificado',
+        ruc: cliente.ruc || 'Sin RUC',
+        ultima_cotizacion: cliente.ultima_cotizacion
+      })),
+      
+      proyectosRecientes: proyectosRecientesResult.rows.map(proyecto => ({
+        name: proyecto.name || 'Proyecto sin nombre',
+        company_name: proyecto.company_name || 'Empresa no especificada',
+        status: proyecto.status || 'activo',
+        created_at: proyecto.created_at
+      }))
+    };
+
+    console.log('📊 Datos del vendedor comercial:', {
+      userId,
+      userName,
+      totalCotizaciones,
+      cotizacionesAprobadas,
+      conversionRate,
+      ingresosGenerados: response.ingresosGenerados
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error en dashboard Vendedor Comercial:', error);
+    res.status(500).json({ error: 'Error al obtener métricas del vendedor comercial' });
+  }
+};
+
 // Dashboard para Gerencia - KPIs ejecutivos
 exports.getGerenciaDashboard = async (req, res) => {
   try {

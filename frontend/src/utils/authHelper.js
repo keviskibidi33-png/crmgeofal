@@ -19,14 +19,8 @@ export const getCurrentUser = () => {
 
 export const hasRole = (requiredRoles) => {
   const user = getCurrentUser();
-  console.log('🔐 hasRole - Verificando rol:', {
-    user,
-    requiredRoles,
-    userRole: user?.role
-  });
   
   if (!user) {
-    console.log('❌ hasRole - No hay usuario autenticado');
     return false;
   }
   
@@ -35,12 +29,6 @@ export const hasRole = (requiredRoles) => {
   }
   
   const hasPermission = requiredRoles.includes(user.role);
-  console.log('🔐 hasRole - Resultado:', {
-    hasPermission,
-    userRole: user.role,
-    requiredRoles,
-    includes: requiredRoles.includes(user.role)
-  });
   
   return hasPermission;
 };
@@ -54,13 +42,7 @@ export const canEditClient = () => {
 };
 
 export const canDeleteClient = () => {
-  const result = hasRole(['admin']);
-  console.log('🔐 canDeleteClient - Verificando permisos:', {
-    result,
-    currentUser: getCurrentUser(),
-    requiredRoles: ['admin']
-  });
-  return result;
+  return hasRole(['admin']);
 };
 
 export const canViewClientHistory = () => {

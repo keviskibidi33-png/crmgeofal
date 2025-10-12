@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Button, Badge, Row, Col, Card, Container, Alert } from 'react-bootstrap';
+import { Button, Badge, Row, Col, Card, Container, Alert, Form } from 'react-bootstrap';
 import { 
   FiPlus, FiEdit, FiTrash2, FiFileText, FiDollarSign, 
   FiCalendar, FiUser, FiHome, FiCopy, FiDownload,
@@ -32,10 +32,17 @@ export default function ListaCotizaciones() {
   const { data: companiesData } = useQuery('companiesList', () => listCompanies({ page: 1, limit: 200 }), { staleTime: Infinity });
   const { data: projectsData } = useQuery('projectsList', () => listProjects({ page: 1, limit: 500 }), { staleTime: Infinity });
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
   const { data, isLoading, error } = useQuery(
-    ['quotes'],
+    ['quotes', currentPage, itemsPerPage],
     async () => {
-      const result = await listQuotes();
+      const result = await listQuotes({ 
+        page: currentPage, 
+        limit: itemsPerPage 
+      });
       // Enriquecer cotizaciones con datos del meta
       if (result?.data) {
         result.data = result.data.map(quote => {
@@ -588,6 +595,134 @@ export default function ListaCotizaciones() {
           </div>
         </Card.Body>
       </Card>
+
+      {/* Paginación */}
+      {data?.total > itemsPerPage && (
+        <Card className="mt-3">
+          <Card.Body className="py-3">
+            <Row className="align-items-center">
+              <Col>
+                <small className="text-muted">
+                  Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, data.total)} de {data.total} cotizaciones
+                </small>
+              </Col>
+              <Col xs="auto">
+                <div className="d-flex align-items-center gap-2">
+                  {/* Selector de elementos por página */}
+                  <Form.Select
+                    size="sm"
+                    style={{ width: '80px' }}
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(parseInt(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </Form.Select>
+                  
+                  {/* Botón Primera página */}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                    title="Primera página"
+                  >
+                    ««
+                  </Button>
+                  
+                  {/* Botón Anterior */}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    title="Página anterior"
+                  >
+                    «
+                  </Button>
+                  
+                  {/* Páginas dinámicas */}
+                  {(() => {
+                    const totalPages = Math.ceil(data.total / itemsPerPage);
+                    const pages = [];
+                    const startPage = Math.max(1, currentPage - 1);
+                    const endPage = Math.min(totalPages, startPage + 2);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={currentPage === i ? "primary" : "outline-secondary"}
+                          size="sm"
+                          onClick={() => setCurrentPage(i)}
+                          className="px-3"
+                        >
+                          {i}
+                        </Button>
+                      );
+                    }
+                    return pages;
+                  })()}
+                  
+                  {/* Botón Siguiente */}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    disabled={currentPage >= Math.ceil(data.total / itemsPerPage)}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    title="Página siguiente"
+                  >
+                    »
+                  </Button>
+                  
+                  {/* Botón Última página */}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    disabled={currentPage >= Math.ceil(data.total / itemsPerPage)}
+                    onClick={() => setCurrentPage(Math.ceil(data.total / itemsPerPage))}
+                    title="Última página"
+                  >
+                    »»
+                  </Button>
+                  
+                  {/* Input para ir a página específica */}
+                  <div className="d-flex align-items-center gap-1 ms-3">
+                    <span className="text-muted small">Ir a:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max={Math.ceil(data.total / itemsPerPage)}
+                      className="form-control form-control-sm"
+                      style={{ width: '60px' }}
+                      placeholder="..."
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const page = parseInt(e.target.value);
+                          const totalPages = Math.ceil(data.total / itemsPerPage);
+                          if (page >= 1 && page <= totalPages) {
+                            setCurrentPage(page);
+                            e.target.value = '';
+                          } else {
+                            setCurrentPage(totalPages);
+                            e.target.value = '';
+                          }
+                        }
+                      }}
+                      title={`Ingresa un número del 1 al ${Math.ceil(data.total / itemsPerPage)}`}
+                    />
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
+      )}
 
       {/* Modales de confirmación */}
       <ConfirmModal

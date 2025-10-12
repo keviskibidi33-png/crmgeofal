@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dropdown, Button, Spinner, Alert } from 'react-bootstrap';
 import { FiChevronDown, FiCheck, FiClock, FiSend, FiMessageSquare, FiTrendingUp, FiCheckCircle, FiX } from 'react-icons/fi';
+import { useQueryClient } from 'react-query';
 import { updateQuoteStatus } from '../services/quotes';
 
 // Estados de cotizaciones con iconos y colores
@@ -59,6 +60,7 @@ const QuoteStatusDropdown = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const queryClient = useQueryClient();
 
   const handleStatusChange = async (newStatus) => {
     if (newStatus === currentStatus) return;
@@ -69,6 +71,9 @@ const QuoteStatusDropdown = ({
     try {
       await updateQuoteStatus(quoteId, newStatus);
       onStatusChange?.(newStatus);
+      // Invalidar queries para sincronizar con el servidor
+      queryClient.invalidateQueries(['quotes']);
+      queryClient.invalidateQueries('quotesList');
     } catch (err) {
       setError(err.message || 'Error al actualizar estado');
       console.error('Error updating quote status:', err);

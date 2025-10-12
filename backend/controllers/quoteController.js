@@ -188,8 +188,8 @@ exports.create = async (req, res) => {
         } catch (itemError) {
           console.error(`❌ Error insertando ítem:`, itemError.message);
         }
-      }
-      console.log('🎉 Todos los ítems insertados en quote_items');
+    }
+    console.log('🎉 Todos los ítems insertados en quote_items');
     }
     
     
@@ -347,6 +347,7 @@ exports.updateStatus = async (req, res) => {
     if (!updatedQuote) {
       return res.status(404).json({ error: 'Cotización no encontrada' });
     }
+    
     
     // Registrar en auditoría
     await AuditQuote.create({

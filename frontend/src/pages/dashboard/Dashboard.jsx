@@ -27,7 +27,7 @@ const Dashboard = () => {
     if (user?.role) {
       switch (user.role) {
         case 'vendedor_comercial':
-          navigate('/dashboard-asesor', { replace: true });
+          navigate('/dashboards/vendedor-comercial', { replace: true });
           break;
         case 'jefa_comercial':
           navigate('/dashboards/jefa-comercial', { replace: true });

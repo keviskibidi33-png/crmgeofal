@@ -22,7 +22,7 @@ router.get('/stats', dashboardController.getDashboardStats);
 router.get('/jefa-comercial', dashboardController.getSalesDashboard);
 
 // Dashboard para Vendedor Comercial
-router.get('/vendedor-comercial', dashboardController.getSalesDashboard);
+router.get('/vendedor-comercial', roleDashboardController.getVendedorComercialDashboard);
 
 // Dashboard para Laboratorio (Jefe y Usuario)
 router.get('/laboratorio', dashboardController.getLabDashboard);

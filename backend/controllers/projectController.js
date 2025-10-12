@@ -46,6 +46,23 @@ exports.getById = async (req, res) => {
   }
 };
 
+// Buscar proyectos existentes por nombre
+exports.searchByName = async (req, res) => {
+  try {
+    const { name, company_id } = req.query;
+    
+    if (!name || name.trim().length < 2) {
+      return res.json([]);
+    }
+    
+    const projects = await Project.searchByName(name.trim(), company_id);
+    res.json(projects);
+  } catch (err) {
+    console.error('Error searching projects by name:', err);
+    res.status(500).json({ error: 'Error al buscar proyectos' });
+  }
+};
+
 const Audit = require('../models/audit');
 
 exports.updateStatus = async (req, res) => {
@@ -230,6 +247,12 @@ exports.create = async (req, res) => {
 };
 exports.update = async (req, res) => {
   try {
+    console.log('🔧 ProjectController.update - Iniciando actualización...');
+    console.log('🔧 ProjectController.update - Project ID:', req.params.id);
+    console.log('🔧 ProjectController.update - User:', req.user);
+    console.log('🔧 ProjectController.update - Body:', req.body);
+    
+    // Validar y sanear los datos de entrada
     const { 
       name, 
       location, 
@@ -252,29 +275,49 @@ exports.update = async (req, res) => {
       ingenieria_status,
     } = req.body;
     
-    const project = await Project.update(req.params.id, { 
-      name, 
-      location, 
-      vendedor_id, 
-      laboratorio_id, 
-      requiere_laboratorio, 
-      requiere_ingenieria, 
-      requiere_consultoria,
-      requiere_capacitacion,
-      requiere_auditoria,
-      contact_name, 
-      contact_phone, 
-      contact_email,
-      queries,
-      queries_history,
-      priority,
-      marked,
-      status,
-      laboratorio_status,
-      ingenieria_status,
-    }, req.user);
+    // Validar que campos críticos no sean undefined
+    if (name === undefined || location === undefined) {
+      console.log('❌ ProjectController.update - Campos obligatorios faltantes');
+      return res.status(400).json({ error: 'Nombre y ubicación son obligatorios' });
+    }
     
-    if (!project) return res.status(403).json({ error: 'No autorizado o proyecto no encontrado' });
+    // Sanear valores booleanos
+    const sanitizedData = {
+      name: name || '',
+      location: location || '',
+      vendedor_id: vendedor_id || null,
+      laboratorio_id: laboratorio_id || null,
+      requiere_laboratorio: Boolean(requiere_laboratorio),
+      requiere_ingenieria: Boolean(requiere_ingenieria),
+      requiere_consultoria: Boolean(requiere_consultoria),
+      requiere_capacitacion: Boolean(requiere_capacitacion),
+      requiere_auditoria: Boolean(requiere_auditoria),
+      contact_name: contact_name || null,
+      contact_phone: contact_phone || null,
+      contact_email: contact_email || null,
+      queries: queries || null,
+      queries_history: queries_history || null,
+      priority: priority || 'normal',
+      marked: Boolean(marked),
+      status: status || 'pendiente',
+      laboratorio_status: laboratorio_status || 'no_requerido',
+      ingenieria_status: ingenieria_status || 'no_requerido'
+    };
+    
+    console.log('🔧 ProjectController.update - Datos saneados:', sanitizedData);
+    
+    
+    console.log('🔧 ProjectController.update - Llamando a Project.update...');
+    const project = await Project.update(req.params.id, sanitizedData, req.user);
+    
+    console.log('🔧 ProjectController.update - Resultado de Project.update:', project);
+    
+    if (!project) {
+      console.log('❌ ProjectController.update - Proyecto no encontrado o no autorizado');
+      return res.status(403).json({ error: 'No autorizado o proyecto no encontrado' });
+    }
+    
+    console.log('✅ ProjectController.update - Proyecto actualizado exitosamente:', project);
     
     // Auditoría
     await Audit.log({
@@ -283,20 +326,25 @@ exports.update = async (req, res) => {
       entity: 'project',
       entity_id: req.params.id,
       details: JSON.stringify({ 
-        name, 
-        location, 
-        contact_name, 
-        contact_phone, 
-        contact_email,
-        queries,
-        priority,
-        marked
+        name: sanitizedData.name, 
+        location: sanitizedData.location, 
+        contact_name: sanitizedData.contact_name, 
+        contact_phone: sanitizedData.contact_phone, 
+        contact_email: sanitizedData.contact_email,
+        queries: sanitizedData.queries,
+        priority: sanitizedData.priority,
+        marked: sanitizedData.marked,
+        status: sanitizedData.status
       })
     });
     
     res.json(project);
   } catch (err) {
-    console.error('Error updating project:', err);
+    console.error('❌ ProjectController.update - Error completo:', err);
+    console.error('❌ ProjectController.update - Error message:', err.message);
+    console.error('❌ ProjectController.update - Error stack:', err.stack);
+    console.error('❌ ProjectController.update - Error name:', err.name);
+    console.error('❌ ProjectController.update - Error code:', err.code);
     res.status(500).json({ error: 'Error al actualizar proyecto' });
   }
 };

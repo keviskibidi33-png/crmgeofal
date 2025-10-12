@@ -115,8 +115,6 @@ app.use('/api/quote-approval', require('./routes/quoteApprovalRoutes'));
 app.use('/api/asesor', require('./routes/asesorRoutes'));
 
 // Nuevos módulos implementados
-app.use('/api/templates', require('./routes/templateRoutes'));
-app.use('/api/shipments', require('./routes/shipmentRoutes'));
 app.use('/api/projects/laboratory', require('./routes/laboratoryProjectRoutes'));
 app.use('/api/invoicing', require('./routes/invoicingRoutes'));
 

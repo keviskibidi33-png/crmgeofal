@@ -16,7 +16,7 @@ const Project = {
       where.push(`p.laboratorio_id = $${paramIndex}`);
       params.push(user.id);
       paramIndex++;
-    } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin' && user.role !== 'vendedor_comercial') {
+    } else if (user.role !== 'jefa_comercial' && user.role !== 'jefe_laboratorio' && user.role !== 'admin' && user.role !== 'vendedor_comercial' && user.role !== 'vendedor') {
       return { rows: [], total: 0 };
     }
 
@@ -131,6 +131,48 @@ const Project = {
     }
     return null;
   },
+
+  async searchByName(name, company_id = null) {
+    let query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.location,
+        p.status,
+        p.created_at,
+        c.name as company_name,
+        c.ruc as company_ruc,
+        v.name as vendedor_name,
+        COUNT(q.id) as quotes_count
+      FROM projects p
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users v ON p.vendedor_id = v.id
+      LEFT JOIN quotes q ON p.id = q.project_id
+      WHERE LOWER(p.name) = LOWER($1)
+    `;
+    
+    let params = [name.trim()];
+    
+    if (company_id) {
+      query += ` AND p.company_id = $2`;
+      params.push(company_id);
+    }
+    
+    query += `
+      GROUP BY p.id, p.name, p.location, p.status, p.created_at, c.name, c.ruc, v.name
+      ORDER BY p.created_at DESC
+      LIMIT 10
+    `;
+    
+    console.log('🔍 Project.searchByName - Query:', query);
+    console.log('🔍 Project.searchByName - Params:', params);
+    
+    const result = await pool.query(query, params);
+    console.log('🔍 Project.searchByName - Resultados:', result.rows.length);
+    
+    return result.rows;
+  },
+
   async create({ company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio = false, requiere_ingenieria = false, requiere_consultoria = false, requiere_capacitacion = false, requiere_auditoria = false, contact_name, contact_phone, contact_email, queries, marked = false, priority = 'normal' }) {
     const res = await pool.query(
       'INSERT INTO projects (company_id, name, location, vendedor_id, laboratorio_id, requiere_laboratorio, requiere_ingenieria, requiere_consultoria, requiere_capacitacion, requiere_auditoria, contact_name, contact_phone, contact_email, queries, marked, priority, laboratorio_status, ingenieria_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *',
@@ -219,56 +261,114 @@ const Project = {
     if (
       user.role === 'jefa_comercial' ||
       user.role === 'admin' ||
-      (user.role === 'vendedor_comercial' && project.vendedor_id === user.id)
+      (user.role === 'vendedor_comercial' && project.vendedor_id === user.id) ||
+      (user.role === 'vendedor' && project.vendedor_id === user.id)
     ) {
       console.log('✅ Project.update - Usuario autorizado para editar');
-      const updated = await pool.query(
-        `UPDATE projects SET 
-          name = $1, 
-          location = $2, 
-          vendedor_id = $3, 
-          laboratorio_id = $4, 
-          requiere_laboratorio = $5, 
-          requiere_ingenieria = $6, 
-          requiere_consultoria = $7,
-          requiere_capacitacion = $8,
-          requiere_auditoria = $9,
-          contact_name = $10, 
-          contact_phone = $11, 
-          contact_email = $12,
-          queries = $13,
-          queries_history = $14,
-          priority = $15,
-          marked = $16,
-          status = $17,
-          laboratorio_status = $18,
-          ingenieria_status = $19,
-          updated_at = NOW()
-        WHERE id = $20 RETURNING *`,
-        [
-          name, 
-          location, 
-          vendedor_id, 
-          laboratorio_id, 
-          requiere_laboratorio, 
-          requiere_ingenieria, 
-          requiere_consultoria,
-          requiere_capacitacion,
-          requiere_auditoria,
-          contact_name, 
-          contact_phone, 
-          contact_email,
-          queries,
-          queries_history ? JSON.stringify(queries_history) : null,
-          priority,
-          marked,
-          status,
-          laboratorio_status,
-          ingenieria_status,
-          id
-        ]
-      );
-      return updated.rows[0];
+      
+      console.log('🔧 Project.update - Parámetros de la consulta SQL:');
+      console.log('  $1 (name):', name);
+      console.log('  $2 (location):', location);
+      console.log('  $3 (vendedor_id):', vendedor_id);
+      console.log('  $4 (laboratorio_id):', laboratorio_id);
+      console.log('  $5 (requiere_laboratorio):', requiere_laboratorio);
+      console.log('  $6 (requiere_ingenieria):', requiere_ingenieria);
+      console.log('  $7 (requiere_consultoria):', requiere_consultoria);
+      console.log('  $8 (requiere_capacitacion):', requiere_capacitacion);
+      console.log('  $9 (requiere_auditoria):', requiere_auditoria);
+      console.log('  $10 (contact_name):', contact_name);
+      console.log('  $11 (contact_phone):', contact_phone);
+      console.log('  $12 (contact_email):', contact_email);
+      console.log('  $13 (queries):', queries);
+      
+      // Manejar queries_history de forma segura
+      let queriesHistoryValue = null;
+      if (queries_history) {
+        try {
+          if (typeof queries_history === 'string') {
+            // Si ya es un string, verificar que sea JSON válido
+            JSON.parse(queries_history);
+            queriesHistoryValue = queries_history;
+          } else if (Array.isArray(queries_history) || typeof queries_history === 'object') {
+            // Si es un array u objeto, convertir a JSON
+            queriesHistoryValue = JSON.stringify(queries_history);
+          }
+          console.log('  $14 (queries_history):', queriesHistoryValue);
+        } catch (jsonError) {
+          console.warn('⚠️ Project.update - queries_history no es JSON válido, usando null:', jsonError.message);
+          queriesHistoryValue = null;
+        }
+      } else {
+        console.log('  $14 (queries_history): null (no proporcionado)');
+      }
+      
+      console.log('  $15 (priority):', priority);
+      console.log('  $16 (marked):', marked);
+      console.log('  $17 (status):', status);
+      console.log('  $18 (laboratorio_status):', laboratorio_status);
+      console.log('  $19 (ingenieria_status):', ingenieria_status);
+      console.log('  $20 (id):', id);
+      
+      try {
+        const updated = await pool.query(
+          `UPDATE projects SET 
+            name = $1, 
+            location = $2, 
+            vendedor_id = $3, 
+            laboratorio_id = $4, 
+            requiere_laboratorio = $5, 
+            requiere_ingenieria = $6, 
+            requiere_consultoria = $7,
+            requiere_capacitacion = $8,
+            requiere_auditoria = $9,
+            contact_name = $10, 
+            contact_phone = $11, 
+            contact_email = $12,
+            queries = $13,
+            queries_history = $14,
+            priority = $15,
+            marked = $16,
+            status = $17,
+            laboratorio_status = $18,
+            ingenieria_status = $19,
+            updated_at = NOW()
+          WHERE id = $20 RETURNING *`,
+          [
+            name, 
+            location, 
+            vendedor_id, 
+            laboratorio_id, 
+            requiere_laboratorio, 
+            requiere_ingenieria, 
+            requiere_consultoria,
+            requiere_capacitacion,
+            requiere_auditoria,
+            contact_name, 
+            contact_phone, 
+            contact_email,
+            queries,
+            queriesHistoryValue,
+            priority,
+            marked,
+            status,
+            laboratorio_status,
+            ingenieria_status,
+            id
+          ]
+        );
+        console.log('✅ Project.update - SQL ejecutado exitosamente:', updated.rows[0]);
+        return updated.rows[0];
+      } catch (sqlError) {
+        console.error('❌ Project.update - Error SQL detallado:', {
+          message: sqlError.message,
+          code: sqlError.code,
+          detail: sqlError.detail,
+          hint: sqlError.hint,
+          position: sqlError.position,
+          stack: sqlError.stack
+        });
+        throw sqlError;
+      }
     }
     console.log('❌ Project.update - Usuario NO autorizado para editar');
     return null;
