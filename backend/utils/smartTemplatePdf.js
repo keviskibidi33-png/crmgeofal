@@ -903,7 +903,6 @@ async function generateQuotePDF(quoteData) {
       total: quoteData.total
     });
 
-    // Procesar los datos para el template
     const processedData = {
       quote: {
         id: quoteData.id,

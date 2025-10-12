@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { Container, Row, Col, Card, Button, Badge, Form, Spinner, Alert } from 'react-bootstrap';
-import { FiCheck, FiX, FiEdit, FiEye, FiFileText, FiRefreshCw } from 'react-icons/fi';
-import { approveQuote, revertQuoteToDraft, getMyQuotes } from '../services/quoteApproval';
+import { FiX, FiEye, FiFileText } from 'react-icons/fi';
+import { getMyQuotes } from '../services/quoteApproval';
 import { useAuth } from '../contexts/AuthContext';
 
 const MisCotizaciones = () => {
@@ -28,39 +28,7 @@ const MisCotizaciones = () => {
     }
   );
 
-  // Mutations
-  const approveMutation = useMutation(approveQuote, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myQuotes']);
-      alert('Cotización aprobada exitosamente');
-    },
-    onError: (error) => {
-      alert(`Error aprobando cotización: ${error.message}`);
-    }
-  });
-
-  const revertMutation = useMutation(revertQuoteToDraft, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myQuotes']);
-      alert('Cotización revertida a borrador exitosamente');
-    },
-    onError: (error) => {
-      alert(`Error revirtiendo cotización: ${error.message}`);
-    }
-  });
-
   // Handlers
-  const handleApprove = (quoteId) => {
-    if (window.confirm('¿Estás seguro de que quieres aprobar esta cotización?')) {
-      approveMutation.mutate(quoteId);
-    }
-  };
-
-  const handleRevert = (quoteId) => {
-    if (window.confirm('¿Estás seguro de que quieres revertir esta cotización a borrador?')) {
-      revertMutation.mutate(quoteId);
-    }
-  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -92,40 +60,11 @@ const MisCotizaciones = () => {
   const getStatusActions = (quote) => {
     const actions = [];
     
-    if (quote.status === 'borrador') {
-      actions.push(
-        <Button
-          key="approve"
-          variant="success"
-          size="sm"
-          onClick={() => handleApprove(quote.id)}
-          disabled={approveMutation.isLoading}
-        >
-          <FiCheck className="me-1" />
-          Aprobar
-        </Button>
-      );
-    }
-    
-    if (quote.status === 'aprobada') {
-      actions.push(
-        <Button
-          key="revert"
-          variant="warning"
-          size="sm"
-          onClick={() => handleRevert(quote.id)}
-          disabled={revertMutation.isLoading}
-        >
-          <FiRefreshCw className="me-1" />
-          Revertir
-        </Button>
-      );
-    }
-    
+    // Botón "Ver más" para ver detalles completos
     actions.push(
       <Button
-        key="view"
-        variant="outline-primary"
+        key="view-more"
+        variant="primary"
         size="sm"
         onClick={() => {
           setSelectedQuote(quote);
@@ -133,9 +72,10 @@ const MisCotizaciones = () => {
         }}
       >
         <FiEye className="me-1" />
-        Ver
+        Ver más
       </Button>
     );
+    
     
     return actions;
   };
@@ -189,8 +129,7 @@ const MisCotizaciones = () => {
         </Col>
         <Col md={4}>
           <Button variant="outline-secondary" onClick={() => refetch()}>
-            <FiRefreshCw className="me-1" />
-            Actualizar
+            🔄 Actualizar
           </Button>
         </Col>
       </Row>
@@ -228,8 +167,19 @@ const MisCotizaciones = () => {
                     <strong>Proyecto:</strong> {quote.project_name || 'N/A'}
                   </div>
                   <div className="mb-2">
-                    <strong>Total:</strong> S/ {quote.total?.toFixed(2) || '0.00'}
+                    <strong>Total:</strong> S/ {parseFloat(quote.total || 0).toFixed(2)}
                   </div>
+                  <div className="mb-2">
+                    <strong>Autor:</strong> {quote.created_by_name || 'N/A'} 
+                    {quote.created_by_role && (
+                      <Badge bg="info" className="ms-2">{quote.created_by_role}</Badge>
+                    )}
+                  </div>
+                  {quote.meta?.file_name && (
+                    <div className="mb-2">
+                      <strong>Archivo:</strong> {quote.meta.file_name}
+                    </div>
+                  )}
                   <div className="mb-3">
                     <strong>Fecha:</strong> {new Date(quote.created_at).toLocaleDateString()}
                   </div>
@@ -312,7 +262,26 @@ const MisCotizaciones = () => {
                     <strong>Proyecto:</strong> {selectedQuote.project_name || 'N/A'}
                   </Col>
                   <Col md={6}>
-                    <strong>Total:</strong> S/ {selectedQuote.total?.toFixed(2) || '0.00'}
+                    <strong>Total:</strong> S/ {parseFloat(selectedQuote.total || 0).toFixed(2)}
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <strong>Autor:</strong> {selectedQuote.created_by_name || 'N/A'}
+                    {selectedQuote.created_by_role && (
+                      <Badge bg="info" className="ms-2">{selectedQuote.created_by_role}</Badge>
+                    )}
+                  </Col>
+                  <Col md={6}>
+                    <strong>Contacto:</strong> {selectedQuote.client_contact || 'N/A'}
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <strong>Email:</strong> {selectedQuote.client_email || 'N/A'}
+                  </Col>
+                  <Col md={6}>
+                    <strong>Teléfono:</strong> {selectedQuote.client_phone || 'N/A'}
                   </Col>
                 </Row>
                 <hr />

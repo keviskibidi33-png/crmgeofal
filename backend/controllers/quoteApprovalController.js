@@ -217,10 +217,13 @@ exports.getMyQuotes = async (req, res) => {
         q.*,
         p.name as project_name,
         c.name as company_name,
-        c.ruc as company_ruc
+        c.ruc as company_ruc,
+        u.name as created_by_name,
+        u.role as created_by_role
       FROM quotes q
       LEFT JOIN projects p ON q.project_id = p.id
       LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users u ON q.created_by = u.id
       ${whereClause}
       ORDER BY q.created_at DESC
       LIMIT ${limitParam} OFFSET ${offsetParam}
@@ -232,6 +235,9 @@ exports.getMyQuotes = async (req, res) => {
     const countQuery = `
       SELECT COUNT(*) as total
       FROM quotes q
+      LEFT JOIN projects p ON q.project_id = p.id
+      LEFT JOIN companies c ON p.company_id = c.id
+      LEFT JOIN users u ON q.created_by = u.id
       ${whereClause}
     `;
     const countResult = await pool.query(countQuery, params.slice(0, -2));

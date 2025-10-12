@@ -192,6 +192,7 @@ exports.create = async (req, res) => {
       console.log('🎉 Todos los ítems insertados en quote_items');
     }
     
+    
     await AuditQuote.log({
       user_id: req.user?.id || null,
       action: 'crear',
