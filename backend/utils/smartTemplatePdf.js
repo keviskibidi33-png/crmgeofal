@@ -53,8 +53,24 @@ function processBundleData(bundle) {
     (item.norm && item.norm.length > 100)
   ).length;
   
-  // Caso especial: 2 cotizaciones grandes y 1 pequeña (3 items total con 2 de texto largo)
+  // Detectar items medianos (50-100 caracteres)
+  const mediumTextItems = items.filter(item => {
+    const descLength = item.description ? item.description.length : 0;
+    const normLength = item.norm ? item.norm.length : 0;
+    const maxLength = Math.max(descLength, normLength);
+    return maxLength >= 50 && maxLength <= 100;
+  }).length;
+  
+  // Casos especiales para mover PLAZO ESTIMADO a segunda página:
+  // 1. 2 items grandes + 1 pequeña (3 total, 2 largos)
+  // 2. 2 items grandes + 2 medianos (4 total, 2 largos)
+  // 3. Más de 2 items grandes + 3+ normales (5+ total, 3+ largos)
   const hasTwoLargeOneSmall = itemCount === 3 && longTextItems === 2;
+  const hasTwoLargeTwoMedium = itemCount === 4 && longTextItems === 2 && mediumTextItems === 2;
+  const hasManyLargeItems = longTextItems >= 3 && itemCount >= 5;
+  
+  // Condición general: si hay muchos items grandes, mover PLAZO ESTIMADO
+  const shouldMovePlazoToSecondPage = hasTwoLargeOneSmall || hasTwoLargeTwoMedium || hasManyLargeItems;
   
   const hasFewItems = itemCount <= 7;  // POCOS ITEMS: tabla compacta, todo en primera página
   const hasManyItems = itemCount >= 8 && itemCount <= 10; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
@@ -107,8 +123,8 @@ function processBundleData(bundle) {
   // Layout adaptativo inteligente según cantidad de items
   let condicionesPrimeraPagina;
   
-  if (hasTwoLargeOneSmall) {
-    // Caso especial: 2 cotizaciones grandes y 1 pequeña - solo variante en primera página
+  if (shouldMovePlazoToSecondPage) {
+    // Casos especiales con items grandes: solo variante en primera página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
       <div class="conditions-content">
@@ -169,8 +185,8 @@ function processBundleData(bundle) {
   // Segunda página adaptativa
   let condicionesSegundaPagina;
   
-  if (hasTwoLargeOneSmall) {
-    // Caso especial: 2 cotizaciones grandes y 1 pequeña - PLAZO ESTIMADO a segunda página
+  if (shouldMovePlazoToSecondPage) {
+    // Casos especiales con items grandes: PLAZO ESTIMADO a segunda página
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
@@ -345,6 +361,9 @@ function processBundleData(bundle) {
     hasExtremeItems: hasExtremeItems,
     hasReducedFont: hasReducedFont,
     hasTwoLargeOneSmall: hasTwoLargeOneSmall,
+    hasTwoLargeTwoMedium: hasTwoLargeTwoMedium,
+    hasManyLargeItems: hasManyLargeItems,
+    shouldMovePlazoToSecondPage: shouldMovePlazoToSecondPage,
     itemCount: itemCount,
     __dirname: __dirname
   };
