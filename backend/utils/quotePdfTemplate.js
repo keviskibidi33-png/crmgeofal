@@ -6,6 +6,25 @@ function drawTable(doc, { x, y, widths, rows, header = [], maxRowHeight = 25 }) 
   let cursorY = y;
   const baseRowHeight = Math.min(maxRowHeight, 25); // Usar altura máxima calculada
 
+  // Función para calcular el tamaño de fuente óptimo basado en la longitud del texto
+  const calculateOptimalFontSize = (text, availableWidth, availableHeight, baseFontSize = 9) => {
+    if (!text || String(text).length === 0) return baseFontSize;
+    
+    const textLength = String(text).length;
+    const avgCharWidth = baseFontSize * 0.6; // Aproximación del ancho promedio de un carácter
+    const estimatedWidth = textLength * avgCharWidth;
+    
+    // Si el texto es muy largo, reducir el tamaño de fuente
+    if (estimatedWidth > availableWidth * 1.2) {
+      // Reducir progresivamente el tamaño de fuente
+      if (textLength > 100) return Math.max(6, baseFontSize - 3); // Texto muy largo
+      if (textLength > 60) return Math.max(7, baseFontSize - 2);  // Texto largo
+      if (textLength > 40) return Math.max(8, baseFontSize - 1);  // Texto medio-largo
+    }
+    
+    return baseFontSize;
+  };
+
   const drawRow = (cells, isHeader = false, isSection = false) => {
     let cx = startX;
     
@@ -24,12 +43,17 @@ function drawTable(doc, { x, y, widths, rows, header = [], maxRowHeight = 25 }) 
       doc.rect(cx, cursorY, widths[i], h).stroke();
       
       if (cell && String(cell).length > 0) {
-      doc.font(isSection ? 'Helvetica-Bold' : isHeader ? 'Helvetica-Bold' : 'Helvetica')
-        .fontSize(9)
-        .fillColor('#000')
+        // Calcular tamaño de fuente óptimo para esta celda
+        const availableWidth = widths[i] - 8;
+        const availableHeight = h - 12;
+        const optimalFontSize = calculateOptimalFontSize(cell, availableWidth, availableHeight, 9);
+        
+        doc.font(isSection ? 'Helvetica-Bold' : isHeader ? 'Helvetica-Bold' : 'Helvetica')
+          .fontSize(optimalFontSize)
+          .fillColor('#000')
           .text(String(cell), cx + 4, cursorY + 8, { 
-            width: widths[i] - 8, 
-            height: h - 12,
+            width: availableWidth, 
+            height: availableHeight,
             align: i === cells.length - 1 ? 'right' : 'left' 
           });
       }

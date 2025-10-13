@@ -275,15 +275,30 @@ function processBundleData(bundle) {
       cliente_correo: bundle.quote?.meta?.customer?.contact_email || 'ingenieria@geofal.com.pe',
       proyecto_nombre: bundle.project?.name || 'AP5119_B_U_GF_MP_30 CULTA',
       proyecto_ubicacion: bundle.project?.location || '',
-    items: items.map(item => ({
-          codigo: item.code || '',
-          descripcion: item.description || '',
-          norma: item.norm || '',
-          acreditacion: item.acreditacion || null, // SI/NO - por ahora null hasta tener datos en BD
-      costo_unitario: parseFloat(item.unit_price || 0).toFixed(2),
-      cantidad: parseInt(item.quantity || 1),
-      costo_parcial: (parseFloat(item.unit_price || 0) * parseInt(item.quantity || 1)).toFixed(2)
-    })),
+    items: items.map(item => {
+      // Función para determinar la clase CSS basada en la longitud del texto
+      const getTextLengthClass = (text) => {
+        if (!text) return '';
+        const length = String(text).length;
+        if (length > 100) return 'extreme-long-text-cell';
+        if (length > 60) return 'very-long-text-cell';
+        if (length > 40) return 'long-text-cell';
+        return '';
+      };
+
+      return {
+        codigo: item.code || '',
+        descripcion: item.description || '',
+        norma: item.norm || '',
+        acreditacion: item.acreditacion || null, // SI/NO - por ahora null hasta tener datos en BD
+        costo_unitario: parseFloat(item.unit_price || 0).toFixed(2),
+        cantidad: parseInt(item.quantity || 1),
+        costo_parcial: (parseFloat(item.unit_price || 0) * parseInt(item.quantity || 1)).toFixed(2),
+        // Clases CSS para adaptación de texto largo
+        descripcion_class: getTextLengthClass(item.description),
+        norma_class: getTextLengthClass(item.norm)
+      };
+    }),
       subtotal: subtotal.toFixed(2),
       igv: igv.toFixed(2),
       total: total.toFixed(2),
@@ -535,7 +550,29 @@ table {
 .many-items .total-row td {
   padding: 1px 1px;
   font-size: 8px;
-        }
+}
+
+/* ===== ADAPTACIÓN AUTOMÁTICA PARA TEXTO LARGO ===== */
+.long-text-cell {
+  font-size: 7px !important;
+  line-height: 1.1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.very-long-text-cell {
+  font-size: 6px !important;
+  line-height: 1.0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.extreme-long-text-cell {
+  font-size: 5px !important;
+  line-height: 0.9;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
 th, td {
             border: 1px solid #000;
   padding: 1px 2px;
@@ -736,8 +773,8 @@ a {
                     {{#each items}}
                     <tr>
                         <td>{{codigo}}</td>
-                        <td>{{descripcion}}</td>
-                        <td>{{norma}}</td>
+                        <td class="{{descripcion_class}}">{{descripcion}}</td>
+                        <td class="{{norma_class}}">{{norma}}</td>
             <td style="text-align:center">{{#if acreditacion}}{{acreditacion}}{{else}}-{{/if}}</td>
             <td style="text-align:center">{{costo_unitario}}</td>
             <td style="text-align:center">{{cantidad}}</td>
