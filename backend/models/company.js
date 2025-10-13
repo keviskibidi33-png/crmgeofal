@@ -89,10 +89,10 @@ const Company = {
     );
     return res.rows[0];
   },
-  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by, status }) {
     const res = await pool.query(
-      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10, priority = $11, actividad = $12, servicios = $13, managed_by = $14 WHERE id = $15 RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10, priority = $11, actividad = $12, servicios = $13, managed_by = $14, status = $15 WHERE id = $16 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by, status, id]
     );
     return res.rows[0];
   },
