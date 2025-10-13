@@ -4,11 +4,11 @@ const Audit = require('../models/audit');
 // Listar empresas con paginación y filtros
 const listCompanies = async (req, res) => {
   try {
+    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '', priority = '', status = '', includeTotals = false } = req.query;
+    
     console.log('🔍 listCompanies - Llamando a:', req.url);
     console.log('🔍 listCompanies - Token:', req.headers.authorization ? 'Presente' : 'Ausente');
     console.log('🔍 listCompanies - Filtros:', { search, type, city, sector, priority, status, includeTotals });
-    
-    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '', priority = '', status = '', includeTotals = false } = req.query;
     
     // Consultar datos reales de la base de datos
     const pool = require('../config/db');
