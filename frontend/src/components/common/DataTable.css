@@ -74,7 +74,10 @@
   min-width: 300px !important;
   z-index: 9999 !important;
   position: fixed !important;
-  transform: translateY(0) !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: translateY(-100%) !important;
+  margin-bottom: 5px !important;
   scrollbar-width: thin !important;
   scrollbar-color: #c1c1c1 #f1f1f1 !important;
 }

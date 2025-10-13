@@ -75,6 +75,9 @@
   max-height: 300px !important;
   overflow-y: auto !important;
   z-index: 9999 !important;
+  position: fixed !important;
+  transform: translateY(-100%) !important;
+  margin-bottom: 5px !important;
 }
 
 /* Responsive adjustments */
