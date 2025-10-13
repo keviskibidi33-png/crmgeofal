@@ -128,6 +128,25 @@ class SocketService {
     }
   }
 
+  // Enviar notificación de nuevo comentario de cliente
+  sendClientComment(companyId, comment) {
+    if (this.io) {
+      this.io.emit('new_client_comment', {
+        company_id: companyId,
+        comment: comment
+      });
+      console.log(`Nuevo comentario de cliente enviado para company ${companyId}`);
+    }
+  }
+
+  // Enviar notificación de comentario de cliente a roles específicos
+  sendClientCommentToRoles(roles, notification) {
+    if (this.io) {
+      this.io.emit('client_comment_notification', notification);
+      console.log(`Notificación de comentario enviada a roles:`, roles);
+    }
+  }
+
   // Verificar si un usuario está conectado
   isUserConnected(userId) {
     return this.connectedUsers.has(userId);

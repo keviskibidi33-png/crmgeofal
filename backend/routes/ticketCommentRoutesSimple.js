@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ticketCommentController = require('../controllers/ticketCommentControllerSimple');
+const ticketCommentController = require('../controllers/ticketCommentController');
 const authenticateToken = require('../middlewares/auth');
 
 // Crear comentario - VERSIÓN SIMPLIFICADA

@@ -417,3 +417,16 @@
 .client-form-select[data-type="persona"] {
   border-left: 4px solid #28a745;
 }
+
+/* Estilos para textareas */
+.client-form-input[type="textarea"],
+.client-form-input[rows] {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.client-form-input[rows="3"] {
+  min-height: 100px;
+}

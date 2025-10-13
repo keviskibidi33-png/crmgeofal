@@ -16,6 +16,8 @@ const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 // Gestión principal
 const Usuarios = lazy(() => import('./pages/Usuarios'));
 const Clientes = lazy(() => import('./pages/Clientes'));
+const ClientImport = lazy(() => import('./pages/ClientImport'));
+const CommercialManager = lazy(() => import('./pages/CommercialManager'));
 const Proyectos = lazy(() => import('./pages/Proyectos'));
 const HistorialProyectos = lazy(() => import('./pages/HistorialProyectos'));
 
@@ -103,6 +105,8 @@ function App() {
                   <Route path="/ajustes" element={<ErrorBoundary><Ajustes /></ErrorBoundary>} />
                   <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
                   <Route path="/clientes" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Clientes /></RequireRole></ErrorBoundary>} />
+                  <Route path="/clientes/importar" element={<ErrorBoundary><RequireRole roles={["admin"]}><ClientImport /></RequireRole></ErrorBoundary>} />
+                  <Route path="/comercial/panel" element={<ErrorBoundary><RequireRole roles={["admin","comercial"]}><CommercialManager /></RequireRole></ErrorBoundary>} />
                   <Route path="/proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Proyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/lista" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><ListaCotizaciones /></RequireRole></ErrorBoundary>} />

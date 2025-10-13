@@ -39,6 +39,8 @@ const sectionsByRole = {
       items: [
         { path: '/usuarios', label: 'Usuarios', icon: FiUsers },
         { path: '/clientes', label: 'Clientes', icon: FiUser },
+        { path: '/clientes/importar', label: 'Importar Clientes', icon: FiUpload },
+        { path: '/comercial/panel', label: 'Panel Comercial', icon: FiTrendingUp },
         {
           label: 'Proyectos',
           icon: FiHome,
@@ -106,6 +108,7 @@ const sectionsByRole = {
       title: 'Gestión',
       items: [
         { path: '/clientes', label: 'Clientes', icon: FiUser },
+        { path: '/comercial/panel', label: 'Panel Comercial', icon: FiTrendingUp },
         { path: '/proyectos', label: 'Proyectos', icon: FiHome },
         { path: '/cotizaciones', label: 'Cotizaciones', icon: FiFileText },
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },

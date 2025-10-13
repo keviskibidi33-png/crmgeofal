@@ -1,130 +1,239 @@
-// controllers/exportController.js
-const { exportToExcel, exportToPDF } = require('../utils/exporter');
+const Company = require('../models/company');
 const pool = require('../config/db');
-const path = require('path');
-const fs = require('fs');
-const ExportHistory = require('../models/exportHistory');
 
-// Helper para obtener datos de ejemplo (puedes adaptar a cualquier consulta)
-async function getReportData(type) {
-  if (type === 'leads') {
-    const res = await pool.query('SELECT * FROM leads ORDER BY id DESC LIMIT 100');
-    return res.rows;
+class ExportController {
+  
+  /**
+   * Exportar clientes a CSV
+   */
+  async exportClientsCSV(req, res) {
+    try {
+      console.log('📊 Exportando clientes a CSV...');
+      
+      const { filters = {} } = req.body;
+      const { search, status, sector, sortBy = 'created_at', sortOrder = 'desc' } = filters;
+      
+      // Construir query con filtros
+      let query = `
+        SELECT 
+          c.id,
+          c.name as "Cliente",
+          c.ruc as "RUC",
+          c.contact_name as "Contacto",
+          c.email as "Email",
+          c.phone as "Teléfono",
+          c.address as "Dirección",
+          c.city as "Ciudad",
+          c.sector as "Sector",
+          c.status as "Estado",
+          c.created_at as "Fecha Creación",
+          c.updated_at as "Última Actualización"
+        FROM companies c
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      let paramCount = 0;
+      
+      if (search) {
+        paramCount++;
+        query += ` AND (c.name ILIKE $${paramCount} OR c.contact_name ILIKE $${paramCount} OR c.email ILIKE $${paramCount})`;
+        params.push(`%${search}%`);
+      }
+      
+      if (status) {
+        paramCount++;
+        query += ` AND c.status = $${paramCount}`;
+        params.push(status);
+      }
+      
+      if (sector) {
+        paramCount++;
+        query += ` AND c.sector ILIKE $${paramCount}`;
+        params.push(`%${sector}%`);
+      }
+      
+      query += ` ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`;
+      
+      const result = await pool.query(query, params);
+      const clients = result.rows;
+      
+      // Convertir a CSV
+      const csvHeaders = Object.keys(clients[0] || {}).join(',');
+      const csvRows = clients.map(client => 
+        Object.values(client).map(value => 
+          typeof value === 'string' && value.includes(',') ? `"${value}"` : value
+        ).join(',')
+      );
+      
+      const csvContent = [csvHeaders, ...csvRows].join('\n');
+      
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="clientes_${new Date().toISOString().split('T')[0]}.csv"`);
+      
+      // Agregar BOM para UTF-8
+      res.write('\uFEFF');
+      res.end(csvContent);
+      
+      console.log(`✅ CSV exportado: ${clients.length} clientes`);
+      
+    } catch (error) {
+      console.error('❌ Error exportando CSV:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar datos',
+        error: error.message
+      });
+    }
   }
-  if (type === 'projects') {
-    const res = await pool.query('SELECT * FROM projects ORDER BY id DESC LIMIT 100');
-    return res.rows;
+
+  /**
+   * Exportar clientes a JSON
+   */
+  async exportClientsJSON(req, res) {
+    try {
+      console.log('📊 Exportando clientes a JSON...');
+      
+      const { filters = {} } = req.body;
+      const { search, status, sector, sortBy = 'created_at', sortOrder = 'desc' } = filters;
+      
+      // Construir query con filtros
+      let query = `
+        SELECT 
+          c.id,
+          c.name,
+          c.ruc,
+          c.contact_name,
+          c.email,
+          c.phone,
+          c.address,
+          c.city,
+          c.sector,
+          c.status,
+          c.created_at,
+          c.updated_at
+        FROM companies c
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      let paramCount = 0;
+      
+      if (search) {
+        paramCount++;
+        query += ` AND (c.name ILIKE $${paramCount} OR c.contact_name ILIKE $${paramCount} OR c.email ILIKE $${paramCount})`;
+        params.push(`%${search}%`);
+      }
+      
+      if (status) {
+        paramCount++;
+        query += ` AND c.status = $${paramCount}`;
+        params.push(status);
+      }
+      
+      if (sector) {
+        paramCount++;
+        query += ` AND c.sector ILIKE $${paramCount}`;
+        params.push(`%${sector}%`);
+      }
+      
+      query += ` ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`;
+      
+      const result = await pool.query(query, params);
+      const clients = result.rows;
+      
+      // Agregar metadatos
+      const exportData = {
+        metadata: {
+          exportDate: new Date().toISOString(),
+          totalRecords: clients.length,
+          filters: filters,
+          exportedBy: req.user.name,
+          exportedByRole: req.user.role
+        },
+        data: clients
+      };
+      
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="clientes_${new Date().toISOString().split('T')[0]}.json"`);
+      
+      res.json(exportData);
+      
+      console.log(`✅ JSON exportado: ${clients.length} clientes`);
+      
+    } catch (error) {
+      console.error('❌ Error exportando JSON:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar datos',
+        error: error.message
+      });
+    }
   }
-  // Agrega más tipos según tus reportes
-  return [];
+
+  /**
+   * Obtener estadísticas para exportación
+   */
+  async getExportStats(req, res) {
+    try {
+      console.log('📊 Obteniendo estadísticas para exportación...');
+      
+      const { filters = {} } = req.body;
+      const { search, status, sector } = filters;
+      
+      let query = `
+        SELECT 
+          COUNT(*) as total,
+          COUNT(CASE WHEN status = 'prospeccion' THEN 1 END) as prospeccion,
+          COUNT(CASE WHEN status = 'interesado' THEN 1 END) as interesado,
+          COUNT(CASE WHEN status = 'cotizacion_enviada' THEN 1 END) as cotizacion_enviada,
+          COUNT(CASE WHEN status = 'negociacion' THEN 1 END) as negociacion,
+          COUNT(CASE WHEN status = 'ganado' THEN 1 END) as ganado,
+          COUNT(CASE WHEN status = 'perdido' THEN 1 END) as perdido
+        FROM companies c
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      let paramCount = 0;
+      
+      if (search) {
+        paramCount++;
+        query += ` AND (c.name ILIKE $${paramCount} OR c.contact_name ILIKE $${paramCount} OR c.email ILIKE $${paramCount})`;
+        params.push(`%${search}%`);
+      }
+      
+      if (status) {
+        paramCount++;
+        query += ` AND c.status = $${paramCount}`;
+        params.push(status);
+      }
+      
+      if (sector) {
+        paramCount++;
+        query += ` AND c.sector ILIKE $${paramCount}`;
+        params.push(`%${sector}%`);
+      }
+      
+      const result = await pool.query(query, params);
+      const stats = result.rows[0];
+      
+      res.json({
+        success: true,
+        data: stats
+      });
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener estadísticas',
+        error: error.message
+      });
+    }
+  }
 }
 
-exports.exportExcel = async (req, res) => {
-  try {
-    const { type = 'leads', client_id, project_id, commercial_id, laboratory_id } = req.query;
-    const data = await getReportData(type);
-    if (!data.length) return res.status(404).json({ error: 'No hay datos para exportar' });
-    const columns = Object.keys(data[0]).map(key => ({ header: key, key }));
-    const filePath = path.join(__dirname, '../tmp', `reporte_${type}_${Date.now()}.xlsx`);
-    await exportToExcel(data, columns, filePath);
-    // Log history con información adicional
-    try { 
-      await ExportHistory.log({ 
-        user_id: req.user?.id || null, 
-        type: 'xlsx', 
-        resource: type,
-        client_id: client_id || null,
-        project_id: project_id || null,
-        commercial_id: commercial_id || null,
-        laboratory_id: laboratory_id || null,
-        status: 'nuevo'
-      }); 
-    } catch (e) {
-      console.error('Error logging export history:', e);
-    }
-    res.download(filePath, err => {
-      fs.unlink(filePath, () => {});
-      if (err) res.status(500).json({ error: 'Error al descargar archivo' });
-    });
-  } catch (err) {
-    console.error('Error exporting to Excel:', err);
-    res.status(500).json({ error: 'Error al exportar a Excel' });
-  }
-};
-
-exports.exportPDF = async (req, res) => {
-  try {
-    const { type = 'leads', client_id, project_id, commercial_id, laboratory_id } = req.query;
-    const data = await getReportData(type);
-    if (!data.length) return res.status(404).json({ error: 'No hay datos para exportar' });
-    const filePath = path.join(__dirname, '../tmp', `reporte_${type}_${Date.now()}.pdf`);
-    await exportToPDF(data, filePath);
-    // Log history con información adicional
-    try { 
-      await ExportHistory.log({ 
-        user_id: req.user?.id || null, 
-        type: 'pdf', 
-        resource: type,
-        client_id: client_id || null,
-        project_id: project_id || null,
-        commercial_id: commercial_id || null,
-        laboratory_id: laboratory_id || null,
-        status: 'nuevo'
-      }); 
-    } catch (e) {
-      console.error('Error logging export history:', e);
-    }
-    res.download(filePath, err => {
-      fs.unlink(filePath, () => {});
-      if (err) res.status(500).json({ error: 'Error al descargar archivo' });
-    });
-  } catch (err) {
-    console.error('Error exporting to PDF:', err);
-    res.status(500).json({ error: 'Error al exportar a PDF' });
-  }
-};
-
-exports.history = async (req, res) => {
-  try {
-    const { page, limit, q, type, range } = req.query;
-    const { rows, total } = await ExportHistory.getAll({ page: Number(page)||1, limit: Number(limit)||20, q, type, range });
-    res.json({ data: rows, total });
-  } catch (err) {
-    console.error('Error getting export history:', err);
-    res.status(500).json({ error: 'Error al obtener historial de exportaciones' });
-  }
-};
-
-exports.updateStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-    await ExportHistory.updateStatus(id, status);
-    res.json({ message: 'Estado actualizado correctamente' });
-  } catch (err) {
-    console.error('Error updating export status:', err);
-    res.status(500).json({ error: 'Error al actualizar estado' });
-  }
-};
-
-exports.getByClient = async (req, res) => {
-  try {
-    const { client_id } = req.params;
-    const exports = await ExportHistory.getByClient(client_id);
-    res.json({ data: exports });
-  } catch (err) {
-    console.error('Error getting exports by client:', err);
-    res.status(500).json({ error: 'Error al obtener exportaciones del cliente' });
-  }
-};
-
-exports.getByProject = async (req, res) => {
-  try {
-    const { project_id } = req.params;
-    const exports = await ExportHistory.getByProject(project_id);
-    res.json({ data: exports });
-  } catch (err) {
-    console.error('Error getting exports by project:', err);
-    res.status(500).json({ error: 'Error al obtener exportaciones del proyecto' });
-  }
-};
+module.exports = new ExportController();

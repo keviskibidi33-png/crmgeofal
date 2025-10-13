@@ -2,6 +2,8 @@ import React from 'react';
 import { Modal, Tab, Tabs, Table, Badge, Row, Col, Card } from 'react-bootstrap';
 import { useQuery } from 'react-query';
 import { getClientHistory } from '../services/companies';
+import ClientChat from './ClientChat';
+import ClientCostTab from './ClientCostTab';
 import { 
   FiFileText, FiHome, FiUser, FiCalendar, 
   FiDollarSign, FiTrendingUp, FiCheckCircle, FiX,
@@ -251,6 +253,26 @@ const ClientHistoryModal = ({ show, onHide, clientId, clientName }) => {
                 <p className="text-muted">No hay proyectos registrados para este cliente</p>
               </div>
             )}
+          </Tab>
+
+          {/* Tab de Comentarios */}
+          <Tab eventKey="comments" title={
+            <span>
+              <FiMessageSquare className="me-1" />
+              Comentarios
+            </span>
+          }>
+            <ClientChat companyId={clientId} />
+          </Tab>
+
+          {/* Tab de Costos */}
+          <Tab eventKey="costs" title={
+            <span>
+              <FiDollarSign className="me-1" />
+              Costos
+            </span>
+          }>
+            <ClientCostTab clientId={clientId} />
           </Tab>
         </Tabs>
       </Modal.Body>

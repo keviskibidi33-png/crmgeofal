@@ -1,0 +1,7 @@
+tunnel: crmgeofal-frontend
+credentials-file: C:\Users\Lenovo\.cloudflared\crmgeofal-frontend.json
+
+ingress:
+  - hostname: crmgeofal-frontend.trycloudflare.com
+    service: http://localhost:3000
+  - service: http_status:404

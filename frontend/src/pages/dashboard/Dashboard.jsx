@@ -16,7 +16,6 @@ import { listTickets } from '../../services/tickets';
 import { getDashboardStats } from '../../services/dashboard';
 import { useActivities } from '../../hooks/useActivities';
 import { useAuth } from '../../contexts/AuthContext';
-import { debugAuth, testBackendConnection, checkAuthStatus } from '../../utils/debugAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -53,21 +52,6 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  // Depuración de autenticación
-  useEffect(() => {
-    console.log('🔍 Dashboard: Verificando autenticación...');
-    debugAuth();
-    checkAuthStatus();
-    
-    // Probar conexión con backend
-    testBackendConnection().then(data => {
-      if (data) {
-        console.log('✅ Dashboard: Conexión con backend exitosa');
-      } else {
-        console.log('❌ Dashboard: Error en conexión con backend');
-      }
-    });
-  }, []);
   
   // Obtener estadísticas del dashboard
   const { data: dashboardStats, isLoading: statsLoading, error: statsError } = useQuery(

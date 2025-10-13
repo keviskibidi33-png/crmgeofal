@@ -73,6 +73,9 @@ app.use('/api/users', require('./routes/userRoutes'));
 
 // Gestión de datos principales
 app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/client-import', require('./routes/clientImport'));
+app.use('/api/client-comments', require('./routes/clientCommentRoutes'));
+app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/quotes', require('./routes/quoteRoutes'));
 
