@@ -31,6 +31,7 @@ const Project = {
 
     // Filtro por estado
     if (status) {
+      console.log('🔍 getAllByUser - Aplicando filtro de estado:', status);
       where.push(`p.status = $${paramIndex}`);
       params.push(status);
       paramIndex++;
@@ -38,6 +39,7 @@ const Project = {
 
     // Filtro por empresa
     if (company_id) {
+      console.log('🔍 getAllByUser - Aplicando filtro de empresa:', company_id);
       where.push(`p.company_id = $${paramIndex}`);
       params.push(company_id);
       paramIndex++;
@@ -45,6 +47,7 @@ const Project = {
 
     // Filtro por tipo de proyecto
     if (project_type) {
+      console.log('🔍 getAllByUser - Aplicando filtro de tipo de proyecto:', project_type);
       where.push(`p.project_type = $${paramIndex}`);
       params.push(project_type);
       paramIndex++;
@@ -53,6 +56,7 @@ const Project = {
     // Filtro por prioridad
     if (priority) {
       console.log('🔍 getAllByUser - Aplicando filtro de prioridad:', priority);
+      console.log('🔍 getAllByUser - Tipo de prioridad:', typeof priority);
       where.push(`p.priority = $${paramIndex}`);
       params.push(priority);
       paramIndex++;

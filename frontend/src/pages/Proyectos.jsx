@@ -402,34 +402,14 @@ export default function Proyectos() {
       title: 'Por Estado',
       options: [
         { label: 'Pendientes', filter: { status: 'pendiente' } },
-        { label: 'Activos', filter: { status: 'activo' } },
-        { label: 'Completados', filter: { status: 'completado' } },
-        { label: 'Cancelados', filter: { status: 'cancelado' } }
+        { label: 'Activos', filter: { status: 'activo' } }
       ]
     },
     {
       title: 'Por Prioridad',
       options: [
-        { label: '🔴 Urgente', filter: { priority: 'urgent' } },
         { label: '🟠 Alta', filter: { priority: 'high' } },
-        { label: '🔵 Activo', filter: { priority: 'active' } },
-        { label: '🟢 Normal', filter: { priority: 'normal' } },
-        { label: '🔵 Baja', filter: { priority: 'low' } }
-      ]
-    },
-    {
-      title: 'Por Tipo de Proyecto',
-      options: [
-        { label: 'Análisis de Suelos', filter: { project_type: 'Análisis de Suelos' } },
-        { label: 'Estudio Geotécnico', filter: { project_type: 'Estudio Geotécnico' } },
-        { label: 'Evaluación Ambiental', filter: { project_type: 'Evaluación Ambiental' } },
-        { label: 'Control de Calidad', filter: { project_type: 'Control de Calidad' } },
-        { label: 'Análisis de Agua', filter: { project_type: 'Análisis de Agua' } },
-        { label: 'Estudio de Impacto', filter: { project_type: 'Estudio de Impacto' } },
-        { label: 'Análisis Químico', filter: { project_type: 'Análisis Químico' } },
-        { label: 'Pruebas de Laboratorio', filter: { project_type: 'Pruebas de Laboratorio' } },
-        { label: 'Inspección Técnica', filter: { project_type: 'Inspección Técnica' } },
-        { label: 'Certificación de Materiales', filter: { project_type: 'Certificación de Materiales' } }
+        { label: '🟢 Normal', filter: { priority: 'normal' } }
       ]
     }
   ];
