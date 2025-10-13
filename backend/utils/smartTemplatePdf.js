@@ -525,7 +525,7 @@ html, body {
 }
 .header img {
   position: absolute;
-  top: 0;
+  top: -20px;
   left: 0;
   height: 120px;
   z-index: 1;
@@ -720,8 +720,9 @@ a {
 .first-page-footer {
   position: relative;
   margin-top: auto;
+  margin-bottom: 10px;
   height: auto;
-  padding: 4px 5mm;
+  padding: 8px 5mm 12px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
@@ -747,8 +748,9 @@ a {
 .second-page-footer {
   position: relative;
   margin-top: auto;
+  margin-bottom: 10px;
   height: auto;
-  padding: 3px 5mm 5px 5mm;
+  padding: 6px 5mm 10px 5mm;
   border-top: 1.5px solid #FF6B35;
   background: white;
   color: #222;
