@@ -544,37 +544,27 @@ export default function Clientes() {
       accessor: 'priority',
       width: '100px',
       render: (value, row) => {
-        // Extraer prioridad del campo sector
-        const extractPriority = (sector) => {
-          if (!sector) return 'normal';
-          
-          if (sector.includes('[PRIORIDAD: URGENTE]')) return 'urgent';
-          if (sector.includes('[PRIORIDAD: ALTA]')) return 'high';
-          if (sector.includes('[PRIORIDAD: BAJA]')) return 'low';
-          
-          return 'normal';
-        };
-        
-        const priority = extractPriority(row.sector);
+        // Usar el campo priority de la base de datos directamente
+        const priority = row.priority || 'normal';
         let priorityColor = 'secondary';
         let priorityText = 'Normal';
         
         switch (priority) {
           case 'urgent':
             priorityColor = 'danger';
-            priorityText = 'Urgente';
+            priorityText = 'URGENTE';
             break;
           case 'high':
             priorityColor = 'warning';
-            priorityText = 'Alta';
+            priorityText = 'ALTA';
             break;
           case 'normal':
             priorityColor = 'info';
-            priorityText = 'Normal';
+            priorityText = 'NORMAL';
             break;
           case 'low':
             priorityColor = 'secondary';
-            priorityText = 'Baja';
+            priorityText = 'BAJA';
             break;
         }
         

@@ -118,9 +118,12 @@ const ClientStatusDropdown = ({
       
       // Invalidar queries para sincronizar con el servidor
       queryClient.invalidateQueries(['clients']);
+      queryClient.invalidateQueries(['commercial-clients']);
+      queryClient.invalidateQueries(['commercial-clients-with-totals']);
       queryClient.invalidateQueries('companiesList');
       queryClient.invalidateQueries('clientStats');
       queryClient.invalidateQueries('companyStats');
+      queryClient.invalidateQueries('clientFilterOptions');
     } catch (err) {
       console.error(`❌ ClientStatusDropdown - Error al actualizar estado:`, err);
       setError(err.message || 'Error al actualizar estado');
