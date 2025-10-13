@@ -138,7 +138,7 @@ const CommercialManager = () => {
       byStatus[client.status] = (byStatus[client.status] || 0) + 1;
       
       // Por prioridad
-      const priority = extractPriorityFromSector(client.sector);
+      const priority = client.priority || 'normal'; // Usar el campo priority de la base de datos
       byPriority[priority] = (byPriority[priority] || 0) + 1;
       
       // Por sector
@@ -486,7 +486,7 @@ const CommercialManager = () => {
                 </thead>
                 <tbody>
                   {clients.map((client) => {
-                    const priority = extractPriorityFromSector(client.sector);
+                    const priority = client.priority || 'normal'; // Usar el campo priority de la base de datos
                     const cleanSector = cleanSectorForDisplay(client.sector);
                     const priorityConfig = PRIORITY_CONFIG[priority];
                     const statusConfig = STATUS_CONFIG[client.status];
