@@ -46,6 +46,16 @@ function processBundleData(bundle) {
   
   // Detectar cantidad de items para layout adaptativo inteligente
   const itemCount = items.length;
+  
+  // Detectar si hay items con texto muy largo (más de 100 caracteres)
+  const longTextItems = items.filter(item => 
+    (item.description && item.description.length > 100) || 
+    (item.norm && item.norm.length > 100)
+  ).length;
+  
+  // Caso especial: 2 cotizaciones grandes y 1 pequeña (3 items total con 2 de texto largo)
+  const hasTwoLargeOneSmall = itemCount === 3 && longTextItems === 2;
+  
   const hasFewItems = itemCount <= 7;  // POCOS ITEMS: tabla compacta, todo en primera página
   const hasManyItems = itemCount >= 8 && itemCount <= 10; // MUCHOS ITEMS: tabla compacta, condiciones en primera página
   const hasPlazoItems = itemCount >= 11 && itemCount <= 12; // ITEMS CON PLAZO: PLAZO ESTIMADO a segunda página
@@ -97,7 +107,18 @@ function processBundleData(bundle) {
   // Layout adaptativo inteligente según cantidad de items
   let condicionesPrimeraPagina;
   
-  if (hasPlazoItems) {
+  if (hasTwoLargeOneSmall) {
+    // Caso especial: 2 cotizaciones grandes y 1 pequeña - solo variante en primera página
+    condicionesPrimeraPagina = `
+      <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
+      <div class="conditions-content">
+        VALIDEZ DE LA OFERTA: 30 días calendario. Si la cotización llegó al límite de validez, solicite actualización.
+      </div>
+      <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
+      <div class="conditions-content">
+        ${variantConditions.conditions.join(' ')}
+    </div>`;
+  } else if (hasPlazoItems) {
     // Con ITEMS CON PLAZO (11-12): PLAZO ESTIMADO a segunda página
     condicionesPrimeraPagina = `
       <div class="subtitle-box"><span class="subtitle-inner">I. CONDICIONES DEL SERVICIO</span></div>
@@ -148,7 +169,15 @@ function processBundleData(bundle) {
   // Segunda página adaptativa
   let condicionesSegundaPagina;
   
-  if (hasPlazoItems) {
+  if (hasTwoLargeOneSmall) {
+    // Caso especial: 2 cotizaciones grandes y 1 pequeña - PLAZO ESTIMADO a segunda página
+    condicionesSegundaPagina = `
+      <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
+      <div class="conditions-content">
+        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+      </div>
+      <div class="normal-subtitle">CONTRAMUESTRA</div>`;
+  } else if (hasPlazoItems) {
     // Con ITEMS CON PLAZO (11-12): PLAZO ESTIMADO a segunda página
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
@@ -315,6 +344,7 @@ function processBundleData(bundle) {
     hasVeryManyItems: hasVeryManyItems,
     hasExtremeItems: hasExtremeItems,
     hasReducedFont: hasReducedFont,
+    hasTwoLargeOneSmall: hasTwoLargeOneSmall,
     itemCount: itemCount,
     __dirname: __dirname
   };
