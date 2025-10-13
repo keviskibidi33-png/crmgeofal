@@ -72,6 +72,11 @@
   max-height: 400px !important;
   overflow-y: auto !important;
   min-width: 300px !important;
+  z-index: 9999 !important;
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  margin-top: 5px !important;
 }
 
 /* Scroll personalizado para el dropdown de filtros */
@@ -123,16 +128,13 @@
 /* Asegurar que el dropdown de acciones se muestre encima de TODO */
 .data-table .dropdown-menu {
   z-index: 9999 !important;
-  position: fixed !important;
-  top: auto !important;
-  left: auto !important;
+  position: absolute !important;
   min-width: 160px !important;
   max-width: 200px !important;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
   border: 1px solid rgba(0, 0, 0, 0.15) !important;
   border-radius: 8px !important;
   background: white !important;
-  transform: none !important;
 }
 
 /* Mejorar la visibilidad del dropdown toggle */
@@ -170,6 +172,11 @@
   overflow-y: visible !important;
 }
 
+/* Asegurar que el contenedor principal permita que el dropdown se muestre */
+.data-table {
+  overflow: visible !important;
+}
+
 /* Asegurar que las celdas de acciones tengan suficiente espacio */
 .data-table table td:last-child {
   position: relative !important;
@@ -191,7 +198,7 @@
 /* Forzar que el dropdown aparezca encima de cualquier elemento */
 .data-table .dropdown-menu.show {
   z-index: 9999 !important;
-  position: fixed !important;
+  position: absolute !important;
   display: block !important;
 }
 

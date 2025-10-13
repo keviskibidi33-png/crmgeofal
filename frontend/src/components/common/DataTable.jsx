@@ -270,15 +270,19 @@ const DataTable = ({
             
             {filterable && (
               <Col md={6} className="text-end">
-                <Dropdown>
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <Dropdown>
                   <Dropdown.Toggle variant="outline-secondary" size="sm">
                   <FiFilter className="me-1" />
                   Filtros
                   </Dropdown.Toggle>
-                  <Dropdown.Menu className="data-table-filter-dropdown">
+                  <Dropdown.Menu className="data-table-filter-dropdown" style={{ zIndex: 9999 }}>
                     <Dropdown.Item 
                       className="data-table-filter-item"
-                      onClick={() => onFilter && onFilter({})}
+                      onClick={() => {
+                        console.log('🔍 DataTable - Limpiando filtros');
+                        onFilter && onFilter({});
+                      }}
                     >
                       Limpiar filtros
                     </Dropdown.Item>
@@ -292,7 +296,10 @@ const DataTable = ({
                           {section.options.map((option, optIndex) => (
                             <Dropdown.Item 
                               key={optIndex}
-                              onClick={() => onFilter && onFilter(option.filter)}
+                              onClick={() => {
+                                console.log('🔍 DataTable - Aplicando filtro:', option.filter);
+                                onFilter && onFilter(option.filter);
+                              }}
                               className="data-table-filter-item"
                             >
                               {option.label}
@@ -347,6 +354,7 @@ const DataTable = ({
                     )}
                   </Dropdown.Menu>
                 </Dropdown>
+                </div>
               </Col>
             )}
           </Row>
