@@ -351,7 +351,7 @@ const getClientesActivos = async (req, res) => {
       LEFT JOIN projects p ON c.id = p.company_id ${dateFilter}
       LEFT JOIN quotes q ON p.id = q.project_id
       GROUP BY c.id, c.name, c.email, c.phone, c.city, c.sector
-      HAVING total_projects > 0
+      HAVING COUNT(DISTINCT p.id) > 0
       ORDER BY total_value DESC, total_projects DESC
     `;
 

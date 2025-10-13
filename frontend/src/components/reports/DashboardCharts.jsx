@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,6 +24,16 @@ ChartJS.register(
 
 export const SalesBarChart = ({ data, sortBy, goalData }) => {
   console.log('SalesBarChart recibió:', { data, sortBy, goalData });
+  const chartRef = useRef(null);
+  
+  // Cleanup del gráfico cuando el componente se desmonta
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, []);
   
   if (!data || data.length === 0) {
     return (
@@ -39,18 +49,47 @@ export const SalesBarChart = ({ data, sortBy, goalData }) => {
   const chartData = {
     labels: data.slice(0, 10).map(vendedor => vendedor.name),
     datasets: [
-      // Meta como barras de referencia (más simple y estable)
+      {
+        label: sortBy === 'total_sales' ? 'Ventas' :
+               sortBy === 'total_projects' ? 'Proyectos' :
+               sortBy === 'total_quotes' ? 'Cotizaciones' :
+               'Tasa de Aprobación',
+        data: data.slice(0, 10).map(vendedor => {
+          switch (sortBy) {
+            case 'total_sales':
+              return vendedor.total_sales || 0;
+            case 'total_projects':
+              return vendedor.total_projects || 0;
+            case 'total_quotes':
+              return vendedor.total_quotes || 0;
+            case 'approval_rate':
+              return vendedor.approval_rate || 0;
+            default:
+              return vendedor.total_quotes || 0;
+          }
+        }),
+        backgroundColor: 'rgba(33, 150, 243, 0.8)',
+        borderColor: '#2196F3',
+        borderWidth: 1,
+        type: 'bar',
+        order: 2,
+        barThickness: 20,
+        categoryPercentage: 0.8,
+        barPercentage: 0.9
+      },
+      // Meta como línea de referencia
       ...(goalValue > 0 ? [{
-        label: 'Cotizaciones',
-        data: new Array(10).fill(goalValue),
+        label: 'Meta',
+        data: new Array(Math.min(data.length, 10)).fill(goalValue),
         backgroundColor: 'rgba(255, 87, 34, 0.1)',
         borderColor: '#FF5722',
         borderWidth: 2,
-        type: 'bar',
+        type: 'line',
         order: 1,
-        barThickness: 5,
-        categoryPercentage: 0.8,
-        barPercentage: 0.1
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        fill: false,
+        tension: 0
       }] : [])
     ],
   };
@@ -109,12 +148,23 @@ export const SalesBarChart = ({ data, sortBy, goalData }) => {
 
   return (
     <div className="h-100">
-      <Bar data={chartData} options={options} />
+      <Bar ref={chartRef} data={chartData} options={options} />
     </div>
   );
 };
 
 export const SalesDistributionChart = ({ stats }) => {
+  const chartRef = useRef(null);
+  
+  // Cleanup del gráfico cuando el componente se desmonta
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, []);
+  
   if (!stats) {
     return (
       <div className="text-center py-4 text-muted">
@@ -176,14 +226,24 @@ export const SalesDistributionChart = ({ stats }) => {
 
   return (
     <div className="h-100">
-      <Doughnut data={chartData} options={options} />
+      <Doughnut ref={chartRef} data={chartData} options={options} />
     </div>
   );
 };
 
 export const GoalProgressChart = ({ currentSales, goalQuantity }) => {
   console.log('GoalProgressChart recibió:', { currentSales, goalQuantity });
+  const chartRef = useRef(null);
   const progressPercentage = goalQuantity > 0 ? Math.min((currentSales / goalQuantity) * 100, 100) : 0;
+  
+  // Cleanup del gráfico cuando el componente se desmonta
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, []);
   
   const chartData = {
     labels: ['Progreso', 'Restante'],
@@ -234,7 +294,7 @@ export const GoalProgressChart = ({ currentSales, goalQuantity }) => {
 
   return (
     <div className="position-relative h-100">
-      <Doughnut data={chartData} options={options} />
+      <Doughnut ref={chartRef} data={chartData} options={options} />
       <div className="position-absolute top-50 start-50 translate-middle text-center">
         <div className="fw-bold fs-5" style={{ color: progressPercentage >= 100 ? '#4CAF50' : '#2196F3' }}>
           {progressPercentage.toFixed(1)}%
