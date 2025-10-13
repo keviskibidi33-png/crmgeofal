@@ -69,31 +69,39 @@
 
 /* Scroll personalizado para el dropdown de filtros */
 .data-table-filter-dropdown {
-  max-height: 400px !important;
+  max-height: 300px !important;
   overflow-y: auto !important;
   min-width: 300px !important;
   z-index: 9999 !important;
   position: fixed !important;
   transform: translateY(0) !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #c1c1c1 #f1f1f1 !important;
 }
 
 /* Scroll personalizado para el dropdown de filtros */
 .data-table-filter-dropdown::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .data-table-filter-dropdown::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin: 4px 0;
 }
 
 .data-table-filter-dropdown::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: #6c757d;
+  border-radius: 4px;
+  border: 1px solid #f8f9fa;
 }
 
 .data-table-filter-dropdown::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #495057;
+}
+
+.data-table-filter-dropdown::-webkit-scrollbar-thumb:active {
+  background: #343a40;
 }
 
 /* Estilos para los items del dropdown */
