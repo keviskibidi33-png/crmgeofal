@@ -210,6 +210,12 @@ const CommercialManager = () => {
   };
 
   const handleEditClient = (client) => {
+    console.log('🔧 CommercialManager - Editando cliente:', {
+      id: client.id,
+      name: client.name,
+      priority: client.priority,
+      status: client.status
+    });
     setSelectedClient(client);
     setShowEditModal(true);
   };
@@ -223,7 +229,12 @@ const CommercialManager = () => {
     setShowViewModal(false);
     setShowEditModal(false);
     setShowCreateModal(false);
-    setSelectedClient(null);
+    // No resetear selectedClient aquí para mantener el clientId disponible
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedClient(null); // Resetear solo cuando se cierre el modal de edición
   };
 
   // Callbacks para modales de éxito
@@ -634,7 +645,7 @@ const CommercialManager = () => {
         {showEditModal && selectedClient && (
           <ClientEditModal
             show={showEditModal}
-            onHide={handleCloseModals}
+            onHide={handleCloseEditModal}
             clientId={selectedClient.id}
             clientName={selectedClient.name}
             onSuccess={handleEditSuccess}

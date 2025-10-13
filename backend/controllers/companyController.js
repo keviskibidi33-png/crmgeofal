@@ -74,6 +74,7 @@ const listCompanies = async (req, res) => {
           c.sector,
           c.address,
           c.status,
+          c.priority,
           c.actividad,
           c.servicios,
           c.created_at,
@@ -136,27 +137,28 @@ const listCompanies = async (req, res) => {
       `;
     } else {
       dataQuery = `
-        SELECT 
-          c.id,
-          c.name,
-          c.ruc,
-          c.dni,
-          c.type,
-          c.contact_name,
-          c.email,
-          c.phone,
-          c.city,
-          c.sector,
-          c.address,
-          c.status,
-          c.actividad,
-          c.servicios,
-          c.created_at
-        FROM companies c
-        ${whereClause}
-        ORDER BY c.created_at DESC
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
+      SELECT 
+        c.id,
+        c.name,
+        c.ruc,
+        c.dni,
+        c.type,
+        c.contact_name,
+        c.email,
+        c.phone,
+        c.city,
+        c.sector,
+        c.address,
+        c.status,
+        c.priority,
+        c.actividad,
+        c.servicios,
+        c.created_at
+      FROM companies c
+      ${whereClause}
+      ORDER BY c.created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
     }
     
     queryParams.push(parseInt(limit));
@@ -633,7 +635,7 @@ const getCompanyById = async (req, res) => {
       const result = await pool.query(`
         SELECT 
           c.id, c.type, c.ruc, c.dni, c.name, c.address, c.email, c.phone, 
-          c.contact_name, c.city, c.sector, c.status, c.actividad, c.servicios, c.created_at,
+          c.contact_name, c.city, c.sector, c.status, c.priority, c.actividad, c.servicios, c.created_at,
           
           -- Totales de cotizaciones (excluyendo aprobadas y facturadas)
           COALESCE(quote_totals.total_quoted, 0) as total_quoted,
@@ -704,6 +706,12 @@ const getCompanyById = async (req, res) => {
     }
 
     console.log(`✅ getCompanyById - Cliente ${id} obtenido exitosamente`);
+    console.log(`📋 getCompanyById - Datos del cliente:`, {
+      id: company.id,
+      name: company.name,
+      priority: company.priority,
+      status: company.status
+    });
 
     res.json({
       success: true,

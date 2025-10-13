@@ -26,18 +26,43 @@ const ClientEditModal = ({ show, onHide, clientId, clientName, onSuccess }) => {
   
   const queryClient = useQueryClient();
 
+  // Resetear formulario cuando se cierre el modal
+  React.useEffect(() => {
+    if (!show) {
+      setFormData({
+        name: '',
+        ruc: '',
+        contact_name: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        sector: '',
+        priority: 'normal',
+        status: 'prospeccion',
+        assigned_user_id: null,
+        actividad: '',
+        servicios: ''
+      });
+      setErrors({});
+    }
+  }, [show]);
+
   // Obtener datos del cliente
   const { data: clientData, isLoading: isLoadingClient } = useQuery(
     ['client', clientId],
     () => getCompanyById(clientId),
     {
       enabled: !!clientId && show,
+      staleTime: 0, // No usar cache, siempre obtener datos frescos
+      cacheTime: 0, // No mantener en cache
       onSuccess: (data) => {
         console.log('📋 ClientEditModal - Datos recibidos:', data);
         if (data) {
           // Manejar diferentes formatos de respuesta
           const clientInfo = data.data || data.company || data;
           console.log('📋 ClientEditModal - Datos procesados:', clientInfo);
+          console.log('📋 ClientEditModal - Prioridad recibida:', clientInfo.priority);
           
           setFormData({
             name: clientInfo.name || '',
@@ -78,7 +103,9 @@ const ClientEditModal = ({ show, onHide, clientId, clientName, onSuccess }) => {
     (data) => updateCompany(clientId, data),
     {
       onSuccess: (data) => {
+        // Invalidar cache específico del cliente
         queryClient.invalidateQueries(['client', clientId]);
+        queryClient.removeQueries(['client', clientId]); // Remover completamente del cache
         queryClient.invalidateQueries(['commercial-clients']);
         queryClient.invalidateQueries(['commercial-clients-with-totals']);
         if (onSuccess) {
