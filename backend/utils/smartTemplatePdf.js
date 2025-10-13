@@ -280,9 +280,10 @@ function processBundleData(bundle) {
       const getTextLengthClass = (text) => {
         if (!text) return '';
         const length = String(text).length;
+        if (length > 150) return 'ultra-long-text-cell';
         if (length > 100) return 'extreme-long-text-cell';
-        if (length > 60) return 'very-long-text-cell';
-        if (length > 40) return 'long-text-cell';
+        if (length > 70) return 'very-long-text-cell';
+        if (length > 50) return 'long-text-cell';
         return '';
       };
 
@@ -554,22 +555,29 @@ table {
 
 /* ===== ADAPTACIÓN AUTOMÁTICA PARA TEXTO LARGO ===== */
 .long-text-cell {
-  font-size: 7px !important;
+  font-size: 8px !important;
   line-height: 1.1;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .very-long-text-cell {
-  font-size: 6px !important;
+  font-size: 7px !important;
   line-height: 1.0;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .extreme-long-text-cell {
-  font-size: 5px !important;
+  font-size: 6px !important;
   line-height: 0.9;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.ultra-long-text-cell {
+  font-size: 5px !important;
+  line-height: 0.8;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }

@@ -7,7 +7,7 @@ module.exports = {
   // 'template' = Sistema basado en plantilla existente
   // 'html' = Sistema HTML + CSS
   // 'pdfkit' = Sistema tradicional con PDFKit
-  pdfSystem: 'template', // Usar sistema basado en plantilla existente por defecto
+  pdfSystem: 'html', // Usar sistema HTML/CSS con adaptación automática de fuente
   
   // Rutas de plantillas
   templates: {

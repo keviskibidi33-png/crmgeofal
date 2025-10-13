@@ -130,7 +130,14 @@ exports.exportPdf = async (req, res) => {
       ...bundle.items.map(i => ({ code: i.code, desc: i.description, norm: i.norm, qty: i.quantity, unit: i.unit_price, partial: i.partial_price }))
     ];
   try {
-    await renderQuotePdf(bundle, filePath);
+    // Usar el sistema de PDF configurado
+    if (pdfConfig.pdfSystem === 'html') {
+      console.log('🔍 exportPdf - Usando sistema HTML/CSS (smartTemplatePdf)');
+      await generateSmartTemplatePdf(bundle, filePath);
+    } else {
+      console.log('🔍 exportPdf - Usando sistema PDFKit (quotePdfTemplate)');
+      await renderQuotePdf(bundle, filePath);
+    }
     console.log('✅ exportPdf - PDF generado exitosamente');
   } catch (pdfError) {
     console.error('❌ exportPdf - Error generando PDF:', pdfError.message);

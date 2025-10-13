@@ -11,16 +11,13 @@ function drawTable(doc, { x, y, widths, rows, header = [], maxRowHeight = 25 }) 
     if (!text || String(text).length === 0) return baseFontSize;
     
     const textLength = String(text).length;
-    const avgCharWidth = baseFontSize * 0.6; // Aproximación del ancho promedio de un carácter
-    const estimatedWidth = textLength * avgCharWidth;
     
-    // Si el texto es muy largo, reducir el tamaño de fuente
-    if (estimatedWidth > availableWidth * 1.2) {
-      // Reducir progresivamente el tamaño de fuente
-      if (textLength > 100) return Math.max(6, baseFontSize - 3); // Texto muy largo
-      if (textLength > 60) return Math.max(7, baseFontSize - 2);  // Texto largo
-      if (textLength > 40) return Math.max(8, baseFontSize - 1);  // Texto medio-largo
-    }
+    // Reducción más agresiva basada en la longitud del texto
+    if (textLength > 150) return 5;      // Texto extremadamente largo
+    if (textLength > 100) return 6;      // Texto muy largo
+    if (textLength > 70) return 7;       // Texto largo
+    if (textLength > 50) return 8;       // Texto medio-largo
+    if (textLength > 30) return 8.5;     // Texto ligeramente largo
     
     return baseFontSize;
   };
