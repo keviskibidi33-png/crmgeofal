@@ -71,8 +71,13 @@ function processBundleData(bundle) {
   }
     // Convertir variant_id de ID numérico a string (V1, V2, etc.) si es necesario
     let variantId = bundle.quote?.variant_id;
+    // Asegurar que variantId sea un string válido
+    if (!variantId || typeof variantId !== 'string') {
+      variantId = 'V1'; // Default a V1 si no hay variantId
+    }
+    
+    // Si viene como número, convertir a string
     if (typeof variantId === 'number') {
-      // Mapear ID numérico a string
       const variantMap = {
         1: 'V1',
         2: 'V2', 
@@ -84,8 +89,9 @@ function processBundleData(bundle) {
         8: 'V8'
       };
       variantId = variantMap[variantId] || 'V1';
-      console.log(`🔍 processBundleData - variant_id convertido de ID ${bundle.quote?.variant_id} a string ${variantId}`);
     }
+    
+    console.log(`🔍 processBundleData - variant_id procesado: ${variantId} (original: ${bundle.quote?.variant_id})`);
     const variantConditions = getVariantConditions(variantId);
     
   // Layout adaptativo inteligente según cantidad de items
@@ -100,7 +106,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
     </div>`;
   } else if (hasCondicionesItems) {
     // Con ITEMS CON CONDICIONES (13-20): I. CONDICIONES DEL SERVICIO a segunda página
@@ -114,7 +120,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
     </div>`;
   } else if (hasMediumItems) {
     // Con ITEMS MEDIOS (25-27): solo tabla en primera página, condiciones básicas a segunda página
@@ -131,7 +137,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
     </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
@@ -159,7 +165,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
@@ -183,7 +189,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
@@ -199,7 +205,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">CONDICIONES ESPECÍFICAS:</div>
       <div class="conditions-content">
-        El cliente debe enviar al laboratorio, para los ensayos en suelo y agregados, la cantidad mínima de 100 kg por cada muestra. El cliente deberá entregar las muestras debidamente identificadas. El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio. El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.
+        ${variantConditions.conditions.join(' ')}
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">

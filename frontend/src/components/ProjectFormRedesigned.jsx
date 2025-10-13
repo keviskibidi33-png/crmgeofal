@@ -3,9 +3,8 @@ import { Card, Row, Col, Form, Button, Alert, Badge, ProgressBar } from 'react-b
 import { 
   FiUser, FiMapPin, FiMail, FiPhone, FiMessageSquare, FiSettings, 
   FiCheck, FiX, FiPlus, FiEdit, FiTrash2, FiDollarSign, FiClock,
-  FiHome, FiTool, FiBookOpen, FiShield, FiCheckCircle
+  FiHome, FiTool, FiBookOpen, FiShield, FiCheckCircle, FiAlertTriangle
 } from 'react-icons/fi';
-import ProjectServiceForm from './ProjectServiceForm';
 import { searchCompanies } from '../services/companySearch';
 
 export default function ProjectFormRedesigned({ 
@@ -29,15 +28,16 @@ export default function ProjectFormRedesigned({
     contact_name: '',
     contact_phone: '',
     contact_email: '',
-    queries: '',
     priority: 'normal',
     marked: false,
-    // Servicios seleccionados
-    selectedServices: []
+    
+    // Requisitos del proyecto
+    requiere_laboratorio: false,
+    requiere_ingenieria: false,
+    requiere_capacitacion: false
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [showServiceForm, setShowServiceForm] = useState(false);
   const [errors, setErrors] = useState({});
   
   // Estados para búsqueda inteligente
@@ -52,8 +52,7 @@ export default function ProjectFormRedesigned({
     if (data) {
       setFormData(prev => ({
         ...prev,
-        ...data,
-        selectedServices: data.selectedServices || []
+        ...data
       }));
     }
   }, [data]);
@@ -73,12 +72,6 @@ export default function ProjectFormRedesigned({
     }
   };
 
-  const handleServicesChange = (services) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedServices: services
-    }));
-  };
 
   // Búsqueda inteligente de clientes
   const handleSearch = async (searchTerm) => {
@@ -153,8 +146,9 @@ export default function ProjectFormRedesigned({
         if (!formData.contact_phone) newErrors.contact_phone = 'Teléfono es requerido';
         break;
       case 3:
-        if (formData.selectedServices.length === 0) {
-          newErrors.services = 'Debes seleccionar al menos un servicio';
+        if (!formData.requiere_laboratorio && !formData.requiere_ingenieria && 
+            !formData.requiere_capacitacion) {
+          newErrors.services = 'Debes seleccionar al menos un tipo de servicio';
         }
         break;
     }
@@ -193,7 +187,7 @@ export default function ProjectFormRedesigned({
     switch (step) {
       case 1: return 'Información Básica';
       case 2: return 'Contacto';
-      case 3: return 'Servicios';
+      case 3: return 'Requisitos del Proyecto';
       case 4: return 'Resumen';
       default: return 'Paso';
     }
@@ -201,10 +195,13 @@ export default function ProjectFormRedesigned({
 
   const renderStep1 = () => (
     <div className="step-content">
-      <h5 className="mb-4">
-        <FiUser className="me-2" />
-        Información Básica del Proyecto
-      </h5>
+      <div className="text-center mb-5">
+        <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 mb-3" style={{ width: '64px', height: '64px' }}>
+          <FiUser size={28} className="text-primary" />
+        </div>
+        <h3 className="fw-bold text-dark mb-2">Información Básica</h3>
+        <p className="text-muted">Completa los datos del cliente y del proyecto</p>
+      </div>
       
       <Row className="g-3">
         {/* Selección de tipo de cliente */}
@@ -387,10 +384,13 @@ export default function ProjectFormRedesigned({
 
   const renderStep2 = () => (
     <div className="step-content">
-      <h5 className="mb-4">
-        <FiMessageSquare className="me-2" />
-        Información de Contacto
-      </h5>
+      <div className="text-center mb-5">
+        <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 mb-3" style={{ width: '64px', height: '64px' }}>
+          <FiMessageSquare size={28} className="text-success" />
+        </div>
+        <h3 className="fw-bold text-dark mb-2">Información de Contacto</h3>
+        <p className="text-muted">Datos de la persona responsable del proyecto</p>
+      </div>
       
       <Row className="g-3">
         <Col md={6}>
@@ -440,135 +440,158 @@ export default function ProjectFormRedesigned({
             />
           </Form.Group>
         </Col>
-        
-        <Col md={12}>
-          <Form.Group>
-            <Form.Label className="fw-bold">Consultas/Notas</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={4}
-              value={formData.queries}
-              onChange={(e) => handleInputChange('queries', e.target.value)}
-              placeholder="Consultas, notas o comentarios adicionales"
-            />
-          </Form.Group>
-        </Col>
       </Row>
     </div>
   );
 
   const renderStep3 = () => (
     <div className="step-content">
-      <h5 className="mb-4">
-        <FiSettings className="me-2" />
-        Selección de Servicios
-      </h5>
+      <div className="text-center mb-5">
+        <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10 mb-3" style={{ width: '64px', height: '64px' }}>
+          <FiSettings size={28} className="text-warning" />
+        </div>
+        <h3 className="fw-bold text-dark mb-2">Requisitos del Proyecto</h3>
+        <p className="text-muted">Selecciona los tipos de servicios que requiere este proyecto</p>
+      </div>
       
       <Alert variant="info" className="mb-4">
         <div className="d-flex align-items-center">
           <FiTool className="me-2" />
           <div>
-            <strong>Selecciona los servicios que requiere este proyecto</strong>
+            <strong>Selecciona los tipos de servicios que requiere este proyecto</strong>
             <br />
-            <small>Puedes elegir entre servicios de Laboratorio o Ingeniería</small>
+            <small>Esto ayudará a determinar qué áreas del laboratorio trabajarán en el proyecto</small>
           </div>
         </div>
       </Alert>
       
-      <div className="mb-4">
-        <Button 
-          variant="outline-primary" 
-          onClick={() => setShowServiceForm(true)}
-          className="w-100 py-3"
-          size="lg"
-        >
-          <FiSettings className="me-2" />
-          {formData.selectedServices.length > 0 
-            ? `Configurar Servicios (${formData.selectedServices.length} seleccionados)` 
-            : 'Seleccionar Servicios del Proyecto'
-          }
-        </Button>
-        {errors.services && (
-          <Alert variant="danger" className="mt-2">
-            {errors.services}
-          </Alert>
-        )}
+      <Row className="g-4">
+        <Col md={6}>
+          <Card 
+            className={`h-100 border-0 shadow-sm service-card ${formData.requiere_laboratorio ? 'selected' : ''}`}
+            style={{ 
+              borderRadius: '16px',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              border: formData.requiere_laboratorio ? '2px solid #667eea' : '2px solid transparent'
+            }}
+            onClick={() => handleInputChange('requiere_laboratorio', !formData.requiere_laboratorio)}
+          >
+            <Card.Body className="text-center p-4">
+              <div className="service-icon mb-3">
+                <FiTool 
+                  size={48} 
+                  className={formData.requiere_laboratorio ? 'text-white' : 'text-primary'} 
+                />
       </div>
-      
-      {formData.selectedServices.length > 0 && (
-        <Card className="border-success">
-          <Card.Header className="bg-success text-white">
-            <h6 className="mb-0">
-              <FiCheckCircle className="me-2" />
-              Servicios Seleccionados ({formData.selectedServices.length})
-            </h6>
-          </Card.Header>
-          <Card.Body>
-            {formData.selectedServices.map((service, index) => (
-              <div key={index} className="mb-3 p-3 border rounded bg-light">
-                <div className="d-flex justify-content-between align-items-start">
-                  <div>
-                    <h6 className="mb-1">{service.ensayo.name}</h6>
-                    <p className="text-muted small mb-2">{service.ensayo.description}</p>
-                    <div className="d-flex flex-wrap gap-1">
-                      {service.subservices.map((sub, subIndex) => (
-                        <Badge key={subIndex} bg="info" className="me-1">
-                          {sub.codigo}
-                        </Badge>
-                      ))}
-                    </div>
+              <h5 className="fw-bold mb-2">Laboratorio</h5>
+              <p className="text-muted small mb-4">
+                Ensayos de laboratorio, análisis de muestras, pruebas técnicas
+              </p>
+              <Form.Check
+                type="checkbox"
+                id="requiere_laboratorio"
+                label="Requiere servicios de laboratorio"
+                checked={formData.requiere_laboratorio || false}
+                onChange={(e) => handleInputChange('requiere_laboratorio', e.target.checked)}
+                className="d-flex justify-content-center"
+                style={{ pointerEvents: 'none' }}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+        
+        <Col md={6}>
+          <Card 
+            className={`h-100 border-0 shadow-sm service-card ${formData.requiere_ingenieria ? 'selected' : ''}`}
+            style={{ 
+              borderRadius: '16px',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              border: formData.requiere_ingenieria ? '2px solid #56ab2f' : '2px solid transparent'
+            }}
+            onClick={() => handleInputChange('requiere_ingenieria', !formData.requiere_ingenieria)}
+          >
+            <Card.Body className="text-center p-4">
+              <div className="service-icon mb-3">
+                <FiHome 
+                  size={48} 
+                  className={formData.requiere_ingenieria ? 'text-white' : 'text-success'} 
+                />
                   </div>
-                  <div className="text-end">
-                    <div className="fw-bold text-success h5 mb-1">
-                      S/ {service.total.toFixed(2)}
-                    </div>
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm"
-                      onClick={() => {
-                        const newServices = formData.selectedServices.filter((_, i) => i !== index);
-                        handleServicesChange(newServices);
-                      }}
-                    >
-                      <FiX size={12} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            <div className="mt-3 pt-3 border-top">
-              <Row>
+              <h5 className="fw-bold mb-2">Ingeniería</h5>
+              <p className="text-muted small mb-4">
+                Diseño, consultoría técnica, supervisión de obras
+              </p>
+              <Form.Check
+                type="checkbox"
+                id="requiere_ingenieria"
+                label="Requiere servicios de ingeniería"
+                checked={formData.requiere_ingenieria || false}
+                onChange={(e) => handleInputChange('requiere_ingenieria', e.target.checked)}
+                className="d-flex justify-content-center"
+                style={{ pointerEvents: 'none' }}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+        
                 <Col md={6}>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
-                    <strong>S/ {formData.selectedServices.reduce((sum, service) => sum + service.total, 0).toFixed(2)}</strong>
+          <Card 
+            className={`h-100 border-0 shadow-sm service-card ${formData.requiere_capacitacion ? 'selected' : ''}`}
+            style={{ 
+              borderRadius: '16px',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              border: formData.requiere_capacitacion ? '2px solid #3498db' : '2px solid transparent'
+            }}
+            onClick={() => handleInputChange('requiere_capacitacion', !formData.requiere_capacitacion)}
+          >
+            <Card.Body className="text-center p-4">
+              <div className="service-icon mb-3">
+                <FiBookOpen 
+                  size={48} 
+                  className={formData.requiere_capacitacion ? 'text-white' : 'text-info'} 
+                />
                   </div>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>IGV (18%):</span>
-                    <span>S/ {(formData.selectedServices.reduce((sum, service) => sum + service.total, 0) * 0.18).toFixed(2)}</span>
-                  </div>
-                </Col>
-                <Col md={6}>
-                  <div className="d-flex justify-content-between fw-bold text-success h5">
-                    <span>Total:</span>
-                    <span>S/ {(formData.selectedServices.reduce((sum, service) => sum + service.total, 0) * 1.18).toFixed(2)}</span>
-                  </div>
-                </Col>
-              </Row>
-            </div>
+              <h5 className="fw-bold mb-2">Capacitación</h5>
+              <p className="text-muted small mb-4">
+                Entrenamiento, cursos, formación técnica
+              </p>
+              <Form.Check
+                type="checkbox"
+                id="requiere_capacitacion"
+                label="Requiere servicios de capacitación"
+                checked={formData.requiere_capacitacion || false}
+                onChange={(e) => handleInputChange('requiere_capacitacion', e.target.checked)}
+                className="d-flex justify-content-center"
+                style={{ pointerEvents: 'none' }}
+              />
           </Card.Body>
         </Card>
+        </Col>
+      </Row>
+      
+      {/* Validación de al menos un servicio */}
+      {!formData.requiere_laboratorio && !formData.requiere_ingenieria && 
+       !formData.requiere_capacitacion && (
+        <Alert variant="warning" className="mt-3">
+          <FiAlertTriangle className="me-2" />
+          Debes seleccionar al menos un tipo de servicio para el proyecto
+        </Alert>
       )}
     </div>
   );
 
   const renderStep4 = () => (
     <div className="step-content">
-      <h5 className="mb-4">
-        <FiCheckCircle className="me-2" />
-        Resumen del Proyecto
-      </h5>
+      <div className="text-center mb-5">
+        <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-info bg-opacity-10 mb-3" style={{ width: '64px', height: '64px' }}>
+          <FiCheckCircle size={28} className="text-info" />
+        </div>
+        <h3 className="fw-bold text-dark mb-2">Resumen del Proyecto</h3>
+        <p className="text-muted">Revisa la información antes de crear el proyecto</p>
+      </div>
       
       <Row className="g-4">
         <Col md={6}>
@@ -601,194 +624,342 @@ export default function ProjectFormRedesigned({
         <Col md={6}>
           <Card>
             <Card.Header>
-              <h6 className="mb-0">Servicios Seleccionados</h6>
+              <h6 className="mb-0">Requisitos del Proyecto</h6>
             </Card.Header>
             <Card.Body>
-              {formData.selectedServices.length > 0 ? (
-                <div>
-                  <div className="mb-2">
-                    <strong>Total de Servicios:</strong> {formData.selectedServices.length}
+              <div className="mb-3">
+                <strong>Tipos de servicios requeridos:</strong>
                   </div>
-                  <div className="mb-2">
-                    <strong>Total de Subservicios:</strong> {formData.selectedServices.reduce((sum, service) => sum + service.subservices.length, 0)}
+              <div className="d-flex flex-column gap-2">
+                {formData.requiere_laboratorio && (
+                  <div className="d-flex align-items-center">
+                    <FiTool className="text-primary me-2" />
+                    <span>Laboratorio</span>
                   </div>
-                  <div className="mb-2">
-                    <strong>Subtotal:</strong> S/ {formData.selectedServices.reduce((sum, service) => sum + service.total, 0).toFixed(2)}
+                )}
+                {formData.requiere_ingenieria && (
+                  <div className="d-flex align-items-center">
+                    <FiHome className="text-success me-2" />
+                    <span>Ingeniería</span>
                   </div>
-                  <div className="mb-2">
-                    <strong>IGV (18%):</strong> S/ {(formData.selectedServices.reduce((sum, service) => sum + service.total, 0) * 0.18).toFixed(2)}
+                )}
+                {formData.requiere_capacitacion && (
+                  <div className="d-flex align-items-center">
+                    <FiBookOpen className="text-info me-2" />
+                    <span>Capacitación</span>
                   </div>
-                  <div className="fw-bold text-success h5">
-                    <strong>Total:</strong> S/ {(formData.selectedServices.reduce((sum, service) => sum + service.total, 0) * 1.18).toFixed(2)}
-                  </div>
-                </div>
-              ) : (
+                )}
+                {!formData.requiere_laboratorio && !formData.requiere_ingenieria && 
+                 !formData.requiere_capacitacion && (
                 <div className="text-muted">
                   <FiX className="me-1" />
-                  No hay servicios seleccionados
+                    No hay requisitos seleccionados
                 </div>
               )}
+              </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
       
-      {formData.queries && (
-        <Card className="mt-4">
-          <Card.Header>
-            <h6 className="mb-0">Consultas/Notas</h6>
-          </Card.Header>
-          <Card.Body>
-            <p className="mb-0">{formData.queries}</p>
-          </Card.Body>
-        </Card>
-      )}
     </div>
   );
 
   return (
-    <div className="project-form-redesigned">
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <h6 className="mb-0">Progreso del Formulario</h6>
-          <span className="text-muted">{currentStep} de {totalSteps}</span>
+    <div className="project-form-redesigned" style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif' }}>
+      {/* Modern Progress Indicator */}
+      <div className="mb-5">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4 className="mb-0 fw-bold text-dark">Crear Nuevo Proyecto</h4>
+          <div className="d-flex align-items-center">
+            <span className="text-muted me-2">Paso {currentStep} de {totalSteps}</span>
+            <div className="progress" style={{ width: '120px', height: '6px' }}>
+              <div 
+                className="progress-bar bg-gradient-primary" 
+                style={{ 
+                  width: `${(currentStep / totalSteps) * 100}%`,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '3px'
+                }}
+              ></div>
         </div>
-        <ProgressBar 
-          now={(currentStep / totalSteps) * 100} 
-          variant="primary"
-          style={{ height: '8px' }}
-        />
+          </div>
       </div>
       
-      {/* Step Navigation */}
-      <div className="mb-4">
-        <Row className="g-2">
+        {/* Modern Step Navigation */}
+        <div className="step-navigation">
           {Array.from({ length: totalSteps }, (_, index) => {
             const step = index + 1;
             const isActive = step === currentStep;
             const isCompleted = step < currentStep;
             
             return (
-              <Col key={step} md={3}>
                 <div 
-                  className={`step-indicator text-center p-3 rounded ${isActive ? 'bg-primary text-white' : isCompleted ? 'bg-success text-white' : 'bg-light'}`}
-                  style={{ cursor: 'pointer' }}
+                key={step} 
+                className={`step-item ${isActive ? 'active' : isCompleted ? 'completed' : ''}`}
                   onClick={() => setCurrentStep(step)}
                 >
-                  <div className="mb-2">
-                    {getStepIcon(step)}
+                <div className="step-icon">
+                  {isCompleted ? <FiCheckCircle /> : getStepIcon(step)}
                   </div>
-                  <div className="small fw-bold">
-                    {getStepTitle(step)}
+                <div className="step-content">
+                  <div className="step-title">{getStepTitle(step)}</div>
+                  <div className="step-subtitle">
+                    {step === 1 && 'Información del cliente y proyecto'}
+                    {step === 2 && 'Datos de contacto'}
+                    {step === 3 && 'Tipos de servicios requeridos'}
+                    {step === 4 && 'Revisar y confirmar'}
                   </div>
                 </div>
-              </Col>
+                {step < totalSteps && <div className="step-connector"></div>}
+              </div>
             );
           })}
-        </Row>
+        </div>
       </div>
       
-      {/* Step Content */}
-      <Card className="mb-4">
-        <Card.Body>
+      {/* Modern Content Card */}
+      <Card className="border-0 shadow-lg mb-4" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+        <Card.Body className="p-5">
+          <div className="step-content-wrapper">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
+          </div>
         </Card.Body>
       </Card>
       
-      {/* Navigation Buttons */}
-      <div className="d-flex justify-content-between">
+      {/* Modern Navigation Buttons */}
+      <div className="d-flex justify-content-between align-items-center">
         <Button 
           variant="outline-secondary" 
           onClick={handlePrevious}
           disabled={currentStep === 1}
+          className="px-4 py-2 rounded-pill"
+          style={{ 
+            border: '2px solid #e9ecef',
+            fontWeight: '500',
+            minWidth: '120px'
+          }}
         >
-          <FiX className="me-1" />
+          <FiX className="me-2" />
           Anterior
         </Button>
         
-        <div>
+        <div className="d-flex gap-3">
           {currentStep < totalSteps ? (
             <Button 
               variant="primary" 
               onClick={handleNext}
-              className="me-2"
+              className="px-5 py-2 rounded-pill fw-bold"
+              style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                minWidth: '140px',
+                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+              }}
             >
               Siguiente
-              <FiPlus className="ms-1" />
+              <FiPlus className="ms-2" />
             </Button>
           ) : (
             <Button 
               variant="success" 
               onClick={handleSubmit}
               disabled={loading}
-              className="me-2"
+              className="px-5 py-2 rounded-pill fw-bold"
+              style={{ 
+                background: 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)',
+                border: 'none',
+                minWidth: '160px',
+                boxShadow: '0 4px 15px rgba(86, 171, 47, 0.4)'
+              }}
             >
-              {loading ? 'Creando...' : 'Crear Proyecto'}
-              <FiCheckCircle className="ms-1" />
+              {loading ? (
+                <>
+                  <div className="spinner-border spinner-border-sm me-2" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                  Creando...
+                </>
+              ) : (
+                <>
+                  Crear Proyecto
+                  <FiCheckCircle className="ms-2" />
+                </>
+              )}
             </Button>
           )}
           
           <Button 
             variant="outline-danger" 
             onClick={onCancel}
+            className="px-4 py-2 rounded-pill"
+            style={{ 
+              border: '2px solid #dc3545',
+              color: '#dc3545',
+              fontWeight: '500',
+              minWidth: '120px'
+            }}
           >
             Cancelar
           </Button>
         </div>
       </div>
       
-      {/* Modal de Servicios */}
-      {showServiceForm && (
-        <div className="modal-backdrop" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 1050,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <div className="modal-content bg-white rounded shadow-lg" style={{
-            width: '90%',
-            maxWidth: '1200px',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <div className="modal-header p-4 border-bottom">
-              <h5 className="mb-0">Seleccionar Servicios del Proyecto</h5>
-              <Button 
-                variant="outline-secondary" 
-                size="sm"
-                onClick={() => setShowServiceForm(false)}
-              >
-                <FiX />
-              </Button>
-            </div>
-            <div className="modal-body p-4">
-              <ProjectServiceForm
-                selectedServices={formData.selectedServices}
-                onServicesChange={handleServicesChange}
-              />
-            </div>
-            <div className="modal-footer p-4 border-top">
-              <Button 
-                variant="success" 
-                onClick={() => setShowServiceForm(false)}
-              >
-                <FiCheck className="me-1" />
-                Confirmar Selección
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Custom Styles */}
+      <style jsx>{`
+        .step-navigation {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+          margin: 2rem 0;
+        }
+        
+        .step-item {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          position: relative;
+          z-index: 2;
+        }
+        
+        .step-item:hover {
+          transform: translateY(-2px);
+        }
+        
+        .step-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          font-weight: bold;
+          transition: all 0.3s ease;
+          margin-right: 12px;
+          background: #f8f9fa;
+          color: #6c757d;
+          border: 3px solid #e9ecef;
+        }
+        
+        .step-item.active .step-icon {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-color: #667eea;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .step-item.completed .step-icon {
+          background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+          color: white;
+          border-color: #56ab2f;
+        }
+        
+        .step-content {
+          flex: 1;
+        }
+        
+        .step-title {
+          font-weight: 600;
+          font-size: 14px;
+          color: #495057;
+          margin-bottom: 2px;
+        }
+        
+        .step-item.active .step-title {
+          color: #667eea;
+          font-weight: 700;
+        }
+        
+        .step-item.completed .step-title {
+          color: #56ab2f;
+        }
+        
+        .step-subtitle {
+          font-size: 12px;
+          color: #6c757d;
+          line-height: 1.3;
+        }
+        
+        .step-connector {
+          position: absolute;
+          top: 24px;
+          left: 100%;
+          width: 100%;
+          height: 2px;
+          background: #e9ecef;
+          z-index: 1;
+        }
+        
+        .step-item.completed + .step-item .step-connector {
+          background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+        
+        .step-content-wrapper {
+          min-height: 400px;
+        }
+        
+        .bg-gradient-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .service-card {
+          transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .service-card.selected {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+        }
+        
+        .service-card.selected .service-icon {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 50%;
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 1rem auto;
+        }
+        
+        .service-card:not(.selected) .service-icon {
+          background: rgba(0,0,0,0.05);
+          border-radius: 50%;
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 1rem auto;
+        }
+        
+        @media (max-width: 768px) {
+          .step-navigation {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          
+          .step-item {
+            width: 100%;
+            margin-bottom: 1rem;
+          }
+          
+          .step-connector {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -2432,10 +2432,46 @@ export default function Proyectos() {
             <div className="modal-body p-4">
               <ProjectFormRedesigned
                 data={selectedClient ? { company_id: selectedClient.id } : {}}
-                onSubmit={(formData) => {
-                  console.log('Datos del formulario:', formData);
-                  // Aquí se procesaría la creación del proyecto
-                  setShowNewForm(false);
+                onSubmit={async (formData) => {
+                  try {
+                    console.log('Datos del formulario:', formData);
+                    
+                    // Preparar datos para crear proyecto
+                    const projectData = {
+                      company_id: formData.client_id,
+                      name: formData.name,
+                      location: formData.location,
+                      contact_name: formData.contact_name,
+                      contact_phone: formData.contact_phone,
+                      contact_email: formData.contact_email,
+                      priority: formData.priority || 'normal',
+                      marked: formData.marked || false,
+                      // Usar los requisitos seleccionados directamente
+                      requiere_laboratorio: formData.requiere_laboratorio || false,
+                      requiere_ingenieria: formData.requiere_ingenieria || false,
+                      requiere_capacitacion: formData.requiere_capacitacion || false
+                    };
+                    
+                    // Crear el proyecto
+                    await createMutation.mutateAsync(projectData);
+                    
+                    // Mostrar mensaje de éxito
+                    setToastMessage('Proyecto creado exitosamente');
+                    setToastVariant('success');
+                    setShowToast(true);
+                    
+                    // Cerrar modal
+                    setShowNewForm(false);
+                    
+                    // Refrescar la lista de proyectos
+                    queryClient.invalidateQueries('projects');
+                    
+                  } catch (error) {
+                    console.error('Error al crear proyecto:', error);
+                    setToastMessage('Error al crear el proyecto');
+                    setToastVariant('danger');
+                    setShowToast(true);
+                  }
                 }}
                 onCancel={() => setShowNewForm(false)}
                 loading={createMutation.isLoading}
