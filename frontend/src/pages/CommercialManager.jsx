@@ -15,6 +15,7 @@ import ClientHistoryModal from '../components/ClientHistoryModal';
 import ClientEditModal from '../components/ClientEditModal';
 import ClientSuccessModal from '../components/ClientSuccessModal';
 import ClientCreateModal from '../components/ClientCreateModal';
+import ClientStatusDropdown from '../components/ClientStatusDropdown';
 import './CommercialManager.css';
 
 // Función para limpiar el sector para mostrar (sin prioridad embebida)
@@ -227,6 +228,12 @@ const CommercialManager = () => {
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setSelectedClient(null); // Resetear solo cuando se cierre el modal de edición
+  };
+
+  // Función para manejar cambio de estado
+  const handleStatusChange = (clientId, newStatus) => {
+    console.log(`🔄 CommercialManager - Estado del cliente ${clientId} cambiado a: ${newStatus}`);
+    // La actualización se maneja automáticamente por react-query
   };
 
   // Callbacks para modales de éxito
@@ -514,9 +521,13 @@ const CommercialManager = () => {
                           </div>
                         </td>
                         <td>
-                          <span className={`cell-status status-${client.status}`}>
-                            {statusConfig?.label || client.status}
-                          </span>
+                          <ClientStatusDropdown
+                            clientId={client.id}
+                            currentStatus={client.status || 'prospeccion'}
+                            onStatusChange={(newStatus) => handleStatusChange(client.id, newStatus)}
+                            size="sm"
+                            showLabel={true}
+                          />
                         </td>
                         <td>
                           <span className={`cell-priority priority-${priority}`}>
