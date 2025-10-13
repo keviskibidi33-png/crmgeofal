@@ -507,6 +507,8 @@ const Company = {
         ORDER BY count DESC, city ASC
       `);
       
+      console.log('🔍 Company.getFilterOptions - Ciudades encontradas:', citiesResult.rows.length);
+      
       // Obtener sectores únicos
       const sectorsResult = await pool.query(`
         SELECT DISTINCT sector, COUNT(*) as count
@@ -516,6 +518,8 @@ const Company = {
         ORDER BY count DESC, sector ASC
       `);
       
+      console.log('🔍 Company.getFilterOptions - Sectores encontrados:', sectorsResult.rows.length);
+      
       // Obtener tipos únicos
       const typesResult = await pool.query(`
         SELECT DISTINCT type, COUNT(*) as count
@@ -524,6 +528,8 @@ const Company = {
         GROUP BY type
         ORDER BY count DESC, type ASC
       `);
+      
+      console.log('🔍 Company.getFilterOptions - Tipos encontrados:', typesResult.rows);
       
       const filterOptions = {
         cities: citiesResult.rows.map(row => ({
@@ -543,7 +549,14 @@ const Company = {
         }))
       };
       
-      console.log('✅ Company.getFilterOptions - Opciones obtenidas:', filterOptions);
+      console.log('✅ Company.getFilterOptions - Opciones obtenidas:', {
+        cities: filterOptions.cities.length,
+        sectors: filterOptions.sectors.length,
+        types: filterOptions.types.length,
+        typesData: filterOptions.types,
+        citiesData: filterOptions.cities.slice(0, 3), // Primeras 3 ciudades
+        sectorsData: filterOptions.sectors.slice(0, 3) // Primeros 3 sectores
+      });
       return filterOptions;
     } catch (error) {
       console.error('❌ Company.getFilterOptions - Error:', error);

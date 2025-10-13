@@ -131,6 +131,17 @@ export default function Clientes() {
     }
   );
 
+  // Debug: Log de opciones de filtros
+  React.useEffect(() => {
+    if (filterOptionsData && filterOptionsData.data) {
+      console.log('✅ Opciones de filtros cargadas correctamente:', {
+        types: filterOptionsData.data.types,
+        sectors: filterOptionsData.data.sectors,
+        cities: filterOptionsData.data.cities
+      });
+    }
+  }, [filterOptionsData]);
+
   const showNotification = (message, variant = 'success') => {
     setToastMessage(message);
     setToastVariant(variant);
@@ -167,50 +178,80 @@ export default function Clientes() {
 
   // Función para manejar filtros
   const handleFilter = (filters) => {
-    console.log('🔍 handleFilter - Filtros:', filters);
-    setSelectedType(filters.type || '');
-    setSelectedCity(filters.city || '');
-    setSelectedSector(filters.sector || '');
+    console.log('🔍 handleFilter - Filtros recibidos:', filters);
+    console.log('🔍 handleFilter - Estado actual:', { selectedType, selectedCity, selectedSector });
+    
+    const newType = filters.type || '';
+    const newCity = filters.city || '';
+    const newSector = filters.sector || '';
+    
+    // Si se está limpiando filtros (objeto vacío), también limpiar búsqueda
+    if (Object.keys(filters).length === 0) {
+      console.log('🔍 handleFilter - Limpiando todos los filtros y búsqueda');
+      setSearchTerm('');
+    }
+    
+    setSelectedType(newType);
+    setSelectedCity(newCity);
+    setSelectedSector(newSector);
     setCurrentPage(1); // Resetear a la primera página
+    
+    console.log('🔍 handleFilter - Nuevos valores aplicados:', { 
+      type: newType, 
+      city: newCity, 
+      sector: newSector 
+    });
+    
+    // Forzar refetch de la query para asegurar que se actualice
+    setTimeout(() => {
+      refetch();
+    }, 100);
   };
 
   // Opciones de filtros dinámicas basadas en datos reales
   const clientFilterOptions = useMemo(() => {
-    if (!filterOptionsData) {
+    console.log('🔍 clientFilterOptions - filterOptionsData:', filterOptionsData);
+    
+    if (!filterOptionsData || !filterOptionsData.data) {
+      console.log('🔍 clientFilterOptions - Usando opciones por defecto');
       return [
         {
           title: 'Por Tipo de Cliente',
           options: [
             { label: 'Empresas', filter: { type: 'empresa' } },
-            { label: 'Personas Naturales', filter: { type: 'persona' } }
+            { label: 'Personas Naturales', filter: { type: 'persona_natural' } }
           ]
         }
       ];
     }
 
-    return [
+    const data = filterOptionsData.data;
+    const options = [
       {
         title: 'Por Tipo de Cliente',
-        options: filterOptionsData.types?.map(type => ({
+        options: data.types?.map(type => ({
           label: `${type.label} (${type.count})`,
           filter: { type: type.value }
         })) || []
       },
       {
         title: 'Por Sector',
-        options: filterOptionsData.sectors?.map(sector => ({
+        options: data.sectors?.map(sector => ({
           label: `${sector.label} (${sector.count})`,
           filter: { sector: sector.value }
         })) || []
       },
       {
         title: 'Por Ciudad',
-        options: filterOptionsData.cities?.map(city => ({
+        options: data.cities?.map(city => ({
           label: `${city.label} (${city.count})`,
           filter: { city: city.value }
         })) || []
       }
     ];
+    
+    console.log('🔍 clientFilterOptions - Opciones generadas:', options);
+    return options;
   }, [filterOptionsData]);
 
   const createMutation = useMutation(createCompany, {

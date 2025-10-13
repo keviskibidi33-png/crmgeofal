@@ -105,7 +105,7 @@ const sectionsByRole = {
       ]
     },
     {
-      title: 'Gestión',
+      title: 'Gestión Comercial',
       items: [
         { path: '/clientes', label: 'Clientes', icon: FiUser },
         { path: '/comercial/panel', label: 'Panel Comercial', icon: FiTrendingUp },
@@ -115,7 +115,6 @@ const sectionsByRole = {
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
         { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
-        { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
       ]
     },

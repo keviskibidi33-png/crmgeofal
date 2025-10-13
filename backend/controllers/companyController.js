@@ -231,6 +231,14 @@ const getCompanyFilterOptions = async (req, res) => {
     
     const options = await Company.getFilterOptions();
     
+    console.log('✅ getCompanyFilterOptions - Respuesta enviada:', {
+      success: true,
+      dataKeys: Object.keys(options),
+      typesCount: options.types?.length || 0,
+      sectorsCount: options.sectors?.length || 0,
+      citiesCount: options.cities?.length || 0
+    });
+    
     res.json({
       success: true,
       data: options

@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Spinner, Alert, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
-import { FiTrendingUp, FiUsers, FiDollarSign, FiBarChart2, FiRefreshCw, FiClock, FiCheckCircle, FiFileText } from 'react-icons/fi';
+import { Container, Row, Col, Card, Spinner, Alert, Badge, Button, Table, ProgressBar, Tabs, Tab } from 'react-bootstrap';
+import { 
+  FiTrendingUp, FiUsers, FiDollarSign, FiBarChart2, FiRefreshCw, 
+  FiClock, FiCheckCircle, FiFileText, FiTarget, FiAward, FiActivity,
+  FiPieChart, FiTrendingDown, FiEye, FiDownload, FiFilter
+} from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import './MetricasEmbudo.css';
 
 const MetricasEmbudo = () => {
   const { user } = useAuth();
@@ -124,409 +129,446 @@ const MetricasEmbudo = () => {
   };
 
   return (
-    <Container fluid>
-      <Row className="mb-4">
-        <Col>
-          <h2>📊 Análisis de Conversión y Rendimiento Comercial</h2>
-          <p className="text-muted">Dashboard inteligente para jefes comerciales</p>
-        </Col>
-        <Col xs="auto">
-          <Button variant="outline-primary" onClick={fetchMetrics}>
-            <FiRefreshCw className="me-2" />
-            Actualizar
-          </Button>
-        </Col>
-      </Row>
+    <div className="metricas-embudo">
+      <Container fluid>
+        {/* Header */}
+        <div className="metricas-header">
+          <Row className="align-items-center">
+            <Col>
+              <h1 className="metricas-title">
+                <FiBarChart2 className="me-3" />
+                Métricas de Embudo
+              </h1>
+              <p className="metricas-subtitle">
+                Dashboard inteligente para análisis de conversión y rendimiento comercial
+              </p>
+            </Col>
+            <Col xs="auto">
+              <div className="d-flex gap-2">
+                <Button className="btn-metricas-outline" onClick={fetchMetrics}>
+                  <FiRefreshCw className="me-2" />
+                  Actualizar
+                </Button>
+                <Button className="btn-metricas">
+                  <FiDownload className="me-2" />
+                  Exportar
+                </Button>
+              </div>
+            </Col>
+          </Row>
+        </div>
 
-      {error && (
-        <Alert variant="danger" dismissible onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
+        {error && (
+          <Alert variant="danger" dismissible onClose={() => setError(null)} className="metricas-card">
+            <FiActivity className="me-2" />
+            {error}
+          </Alert>
+        )}
 
-      {/* Resumen Ejecutivo */}
-      <Row className="mb-4">
-        <Col>
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiDollarSign className="me-2" />
-                Resumen Ejecutivo
-              </h5>
-            </Card.Header>
-            <Card.Body>
+        {/* KPIs Principales */}
+        <Row className="mb-4">
+          <Col lg={3} md={6} className="mb-3">
+            <div className="kpi-card">
+              <FiCheckCircle className="kpi-icon" />
+              <div className="kpi-value">{metrics.executiveSummary.approved_quotes || 0}</div>
+              <div className="kpi-label">Cotizaciones Aprobadas</div>
+            </div>
+          </Col>
+          <Col lg={3} md={6} className="mb-3">
+            <div className="kpi-card">
+              <FiDollarSign className="kpi-icon" />
+              <div className="kpi-value">{formatCurrency(metrics.executiveSummary.approved_amount || 0)}</div>
+              <div className="kpi-label">Monto Total Aprobado</div>
+            </div>
+          </Col>
+          <Col lg={3} md={6} className="mb-3">
+            <div className="kpi-card">
+              <FiTrendingUp className="kpi-icon" />
+              <div className="kpi-value">{formatCurrency(metrics.executiveSummary.average_approved_amount || 0)}</div>
+              <div className="kpi-label">Promedio por Cotización</div>
+            </div>
+          </Col>
+          <Col lg={3} md={6} className="mb-3">
+            <div className="kpi-card">
+              <FiUsers className="kpi-icon" />
+              <div className="kpi-value">{metrics.executiveSummary.active_salespeople || 0}</div>
+              <div className="kpi-label">Vendedores Activos</div>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Tabs de Análisis */}
+        <div className="metricas-tabs">
+          <Tabs defaultActiveKey="rankings" id="metricas-tabs" className="mb-4">
+            <Tab eventKey="rankings" title={
+              <span>
+                <FiAward className="me-2" />
+                Rankings
+              </span>
+            }>
               <Row>
-                <Col md={3}>
-                  <div className="text-center">
-                    <h3 className="text-primary">{metrics.executiveSummary.approved_quotes || 0}</h3>
-                    <p className="text-muted">Cotizaciones Aprobadas</p>
+                {/* Ranking de Categorías */}
+                <Col lg={6} className="mb-4">
+                  <div className="metricas-card">
+                    <div className="metricas-card-header">
+                      <h5 className="metricas-card-title">
+                        <FiAward className="me-2" />
+                        🏆 Top Categorías
+                      </h5>
+                    </div>
+                    <div className="metricas-card-body">
+                      {metrics.categoryRanking.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FiBarChart2 size={48} className="mb-3 opacity-50" />
+                          <p>No hay datos disponibles</p>
+                        </div>
+                      ) : (
+                        <div>
+                          {metrics.categoryRanking.slice(0, 8).map((category, index) => (
+                            <div key={index} className="ranking-item d-flex align-items-center">
+                              <div className={`ranking-position ${index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : ''}`}>
+                                {index + 1}
+                              </div>
+                              <div className="ranking-content">
+                                <div className="ranking-title text-capitalize">{category.category_name}</div>
+                                <div className="ranking-subtitle">
+                                  {category.total_items} ítems • {category.total_quotes} cotizaciones
+                                </div>
+                                <div className="ranking-stats">
+                                  <span className="ranking-stat">
+                                    {category.percentage_of_items}% del total
+                                  </span>
+                                  <span className="ranking-stat">
+                                    Promedio: S/ {category.average_money_per_quote ? Number(category.average_money_per_quote).toFixed(2) : '0.00'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ranking-amount">
+                                S/ {category.total_money?.toLocaleString() || '0'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Col>
-                <Col md={3}>
-                  <div className="text-center">
-                    <h3 className="text-success">
-                      {formatCurrency(metrics.executiveSummary.approved_amount || 0)}
-                    </h3>
-                    <p className="text-muted">Monto Total Aprobado</p>
-                  </div>
-                </Col>
-                <Col md={3}>
-                  <div className="text-center">
-                    <h3 className="text-info">
-                      {formatCurrency(metrics.executiveSummary.average_approved_amount || 0)}
-                    </h3>
-                    <p className="text-muted">Promedio por Cotización</p>
-                  </div>
-                </Col>
-                <Col md={3}>
-                  <div className="text-center">
-                    <h3 className="text-warning">
-                      {metrics.executiveSummary.active_salespeople || 0}
-                    </h3>
-                    <p className="text-muted">Vendedores Activos</p>
+
+                {/* Ranking de Ensayos */}
+                <Col lg={6} className="mb-4">
+                  <div className="metricas-card">
+                    <div className="metricas-card-header">
+                      <h5 className="metricas-card-title">
+                        <FiTarget className="me-2" />
+                        🧪 Top Ensayos
+                      </h5>
+                    </div>
+                    <div className="metricas-card-body">
+                      {metrics.ensayosRanking.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FiTrendingUp size={48} className="mb-3 opacity-50" />
+                          <p>No hay datos disponibles</p>
+                        </div>
+                      ) : (
+                        <div>
+                          {metrics.ensayosRanking.slice(0, 8).map((ensayo, index) => (
+                            <div key={index} className="ranking-item d-flex align-items-center">
+                              <div className={`ranking-position ${index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : ''}`}>
+                                {index + 1}
+                              </div>
+                              <div className="ranking-content">
+                                <div className="ranking-title text-capitalize">{ensayo.ensayo_name}</div>
+                                <div className="ranking-subtitle">
+                                  {ensayo.total_hijos_cotizados} hijos cotizados • {ensayo.total_quotes} cotizaciones
+                                </div>
+                                <div className="ranking-stats">
+                                  <span className="ranking-stat">
+                                    {ensayo.category_main}
+                                  </span>
+                                  <span className="ranking-stat">
+                                    {ensayo.percentage_of_items}% del total
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ranking-amount">
+                                S/ {ensayo.total_money?.toLocaleString() || '0'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Col>
               </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+            </Tab>
 
-      <Row>
-        {/* Ranking de Categorías por Ítems y Dinero */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiBarChart2 className="me-2" />
-                🏆 Ranking de Categorías
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.categoryRanking.length === 0 ? (
-                <p className="text-muted text-center">No hay datos disponibles</p>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {metrics.categoryRanking.map((category, index) => (
-                    <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div className="d-flex align-items-center">
-                        <Badge 
-                          bg={index === 0 ? "warning" : index === 1 ? "secondary" : "info"} 
-                          className="me-3 fs-6"
-                        >
-                          #{index + 1}
-                        </Badge>
-                        <div>
-                          <strong className="text-capitalize">{category.category_name}</strong>
-                          <br />
-                          <small className="text-muted">
-                            {category.total_items} ítems • {category.total_quotes} cotizaciones
-                          </small>
-                        </div>
-                      </div>
-                      <div className="text-end">
-                        <Badge bg="success" className="fs-6 mb-1">
-                          S/ {category.total_money?.toLocaleString() || '0'}
-                        </Badge>
-                        <br />
-                        <small className="text-muted">
-                          Promedio: S/ {category.average_money_per_quote ? Number(category.average_money_per_quote).toFixed(2) : '0.00'}
-                        </small>
-                        <br />
-                        <small className="text-info">
-                          {category.percentage_of_items}% del total
-                        </small>
-                      </div>
+            <Tab eventKey="performance" title={
+              <span>
+                <FiUsers className="me-2" />
+                Rendimiento
+              </span>
+            }>
+              <Row>
+                {/* Conversión por Categoría */}
+                <Col lg={6} className="mb-4">
+                  <div className="metricas-card">
+                    <div className="metricas-card-header">
+                      <h5 className="metricas-card-title">
+                        <FiCheckCircle className="me-2" />
+                        Conversión por Categoría
+                      </h5>
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        {/* Ranking de Ensayos (Servicios Padre) */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiTrendingUp className="me-2" />
-                🧪 Ranking de Ensayos
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.ensayosRanking.length === 0 ? (
-                <p className="text-muted text-center">No hay datos disponibles</p>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {metrics.ensayosRanking.slice(0, 10).map((ensayo, index) => (
-                    <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div className="d-flex align-items-center">
-                        <Badge 
-                          bg={index === 0 ? "warning" : index === 1 ? "secondary" : index === 2 ? "info" : "light"} 
-                          className="me-3 fs-6"
-                        >
-                          #{index + 1}
-                        </Badge>
-                        <div>
-                          <strong className="text-capitalize">{ensayo.ensayo_name}</strong>
-                          <br />
-                          <small className="text-muted">
-                            {ensayo.total_hijos_cotizados} hijos cotizados • {ensayo.total_quotes} cotizaciones
-                          </small>
-                          <br />
-                          <small className="text-info">
-                            {ensayo.category_main} • {ensayo.percentage_of_items}% del total
-                          </small>
+                    <div className="metricas-card-body">
+                      {metrics.conversionByCategory.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FiPieChart size={48} className="mb-3 opacity-50" />
+                          <p>No hay datos disponibles</p>
                         </div>
-                      </div>
-                      <div className="text-end">
-                        <Badge bg="success" className="fs-6 mb-1">
-                          S/ {ensayo.total_money?.toLocaleString() || '0'}
-                        </Badge>
-                        <br />
-                        <small className="text-muted">
-                          Promedio: S/ {ensayo.average_money_per_quote ? Number(ensayo.average_money_per_quote).toFixed(2) : '0.00'}
-                        </small>
-                      </div>
+                      ) : (
+                        <div>
+                          {metrics.conversionByCategory.map((category, index) => (
+                            <div key={index} className="ranking-item">
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                <div className="ranking-title">{category.category_name}</div>
+                                <Badge bg={category.conversion_rate > 50 ? 'success' : category.conversion_rate > 25 ? 'warning' : 'danger'}>
+                                  {category.conversion_rate}%
+                                </Badge>
+                              </div>
+                              <div className="progress-custom">
+                                <div 
+                                  className="progress-bar-custom" 
+                                  style={{ width: `${category.conversion_rate}%` }}
+                                ></div>
+                              </div>
+                              <div className="d-flex justify-content-between mt-2">
+                                <small className="text-muted">Borradores: {category.draft_count}</small>
+                                <small className="text-muted">Aprobadas: {category.approved_count}</small>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                  </div>
+                </Col>
 
-      <Row>
-        {/* Estructura Jerárquica Completa */}
-        <Col lg={12} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
+                {/* Rendimiento de Vendedores */}
+                <Col lg={6} className="mb-4">
+                  <div className="metricas-card">
+                    <div className="metricas-card-header">
+                      <h5 className="metricas-card-title">
+                        <FiUsers className="me-2" />
+                        Rendimiento de Vendedores
+                      </h5>
+                    </div>
+                    <div className="metricas-card-body">
+                      {metrics.salespersonPerformance.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FiUsers size={48} className="mb-3 opacity-50" />
+                          <p>No hay datos disponibles</p>
+                        </div>
+                      ) : (
+                        <div>
+                          {metrics.salespersonPerformance.map((salesperson, index) => (
+                            <div key={index} className="ranking-item">
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                  <div className="ranking-title">{salesperson.name} {salesperson.apellido}</div>
+                                  <Badge bg="info" className="mt-1">{salesperson.area}</Badge>
+                                </div>
+                                <div className="text-end">
+                                  <div className="ranking-amount">{salesperson.approval_rate}%</div>
+                                  <small className="text-muted">Éxito</small>
+                                </div>
+                              </div>
+                              <div className="row text-center">
+                                <div className="col-4">
+                                  <div className="fw-bold text-primary">{salesperson.total_quotes}</div>
+                                  <small className="text-muted">Total</small>
+                                </div>
+                                <div className="col-4">
+                                  <div className="fw-bold text-success">{salesperson.approved_quotes}</div>
+                                  <small className="text-muted">Aprobadas</small>
+                                </div>
+                                <div className="col-4">
+                                  <div className="fw-bold text-info">{formatCurrency(salesperson.approved_amount)}</div>
+                                  <small className="text-muted">Monto</small>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Tab>
+
+            <Tab eventKey="structure" title={
+              <span>
                 <FiBarChart2 className="me-2" />
-                🌳 Estructura Jerárquica del Embudo
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.hierarchicalStructure.length === 0 ? (
-                <p className="text-muted text-center">No hay datos disponibles</p>
-              ) : (
-                <div className="hierarchical-structure">
-                  {metrics.hierarchicalStructure.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className={`hierarchy-item ${item.level}`}
-                      style={{
-                        marginLeft: item.level === 'category' ? '0px' : 
-                                   item.level === 'ensayo' ? '20px' : '40px',
-                        padding: '10px',
-                        border: '1px solid #e0e0e0',
-                        borderRadius: '5px',
-                        marginBottom: '5px',
-                        backgroundColor: item.level === 'category' ? '#f8f9fa' : 
-                                       item.level === 'ensayo' ? '#e3f2fd' : '#f3e5f5'
-                      }}
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center">
-                          {item.level === 'category' && <span className="me-2">📁</span>}
-                          {item.level === 'ensayo' && <span className="me-2">🧪</span>}
-                          {item.level === 'subservicio' && <span className="me-2">📋</span>}
-                          <div>
-                            <strong className="text-capitalize">{item.name}</strong>
-                            {item.level === 'category' && (
-                              <div className="text-muted small">
-                                {item.total_items} ítems • {item.total_quotes} cotizaciones
+                Estructura
+              </span>
+            }>
+              <Row>
+                <Col lg={12} className="mb-4">
+                  <div className="metricas-card">
+                    <div className="metricas-card-header">
+                      <h5 className="metricas-card-title">
+                        <FiBarChart2 className="me-2" />
+                        🌳 Estructura Jerárquica del Embudo
+                      </h5>
+                    </div>
+                    <div className="metricas-card-body">
+                      {metrics.hierarchicalStructure.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FiBarChart2 size={48} className="mb-3 opacity-50" />
+                          <p>No hay datos disponibles</p>
+                        </div>
+                      ) : (
+                        <div className="hierarchical-structure">
+                          {metrics.hierarchicalStructure.map((item, index) => (
+                            <div 
+                              key={index} 
+                              className={`hierarchy-item ${item.level}`}
+                              style={{
+                                marginLeft: item.level === 'category' ? '0px' : 
+                                           item.level === 'ensayo' ? '20px' : '40px',
+                                padding: '15px',
+                                border: '1px solid rgba(102, 126, 234, 0.2)',
+                                borderRadius: '12px',
+                                marginBottom: '10px',
+                                background: item.level === 'category' ? 'linear-gradient(135deg, #f8f9fa, #e9ecef)' : 
+                                           item.level === 'ensayo' ? 'linear-gradient(135deg, #e3f2fd, #bbdefb)' : 
+                                           'linear-gradient(135deg, #f3e5f5, #e1bee7)',
+                                transition: 'all 0.3s ease'
+                              }}
+                            >
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center">
+                                  {item.level === 'category' && <span className="me-2">📁</span>}
+                                  {item.level === 'ensayo' && <span className="me-2">🧪</span>}
+                                  {item.level === 'subservicio' && <span className="me-2">📋</span>}
+                                  <div>
+                                    <strong className="text-capitalize">{item.name}</strong>
+                                    {item.level === 'category' && (
+                                      <div className="text-muted small">
+                                        {item.total_items} ítems • {item.total_quotes} cotizaciones
+                                      </div>
+                                    )}
+                                    {item.level === 'ensayo' && (
+                                      <div className="text-muted small">
+                                        {item.total_items} hijos cotizados • {item.total_quotes} cotizaciones
+                                      </div>
+                                    )}
+                                    {item.level === 'subservicio' && (
+                                      <div className="text-muted small">
+                                        {item.veces_cotizado} veces cotizado • {item.total_quotes} cotizaciones
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-end">
+                                  <div className="ranking-amount">
+                                    S/ {item.total_money?.toLocaleString() || '0'}
+                                  </div>
+                                </div>
                               </div>
-                            )}
-                            {item.level === 'ensayo' && (
-                              <div className="text-muted small">
-                                {item.total_items} hijos cotizados • {item.total_quotes} cotizaciones
-                              </div>
-                            )}
-                            {item.level === 'subservicio' && (
-                              <div className="text-muted small">
-                                {item.veces_cotizado} veces cotizado • {item.total_quotes} cotizaciones
-                              </div>
-                            )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Tab>
+          </Tabs>
+        </div>
+
+        {/* Métricas Adicionales */}
+        <Row>
+          {/* Servicios Subutilizados */}
+          <Col lg={6} className="mb-4">
+            <div className="metricas-card">
+              <div className="metricas-card-header">
+                <h5 className="metricas-card-title">
+                  <FiTrendingDown className="me-2" />
+                  Servicios Subutilizados
+                </h5>
+              </div>
+              <div className="metricas-card-body">
+                {metrics.underutilizedServices.length === 0 ? (
+                  <div className="text-center text-muted py-4">
+                    <FiTrendingDown size={48} className="mb-3 opacity-50" />
+                    <p>No hay servicios subutilizados</p>
+                  </div>
+                ) : (
+                  <div>
+                    {metrics.underutilizedServices.map((service, index) => (
+                      <div key={index} className="ranking-item d-flex justify-content-between align-items-center">
+                        <div>
+                          <div className="ranking-title">{service.service_name}</div>
+                          <div className="ranking-subtitle">
+                            {service.category_name} • {service.area}
                           </div>
                         </div>
                         <div className="text-end">
-                          <Badge bg="success" className="fs-6">
-                            S/ {item.total_money?.toLocaleString() || '0'}
-                          </Badge>
+                          <Badge bg="warning" className="mb-1">{service.usage_count} usos</Badge>
+                          <div className="ranking-amount">{formatCurrency(service.total_revenue)}</div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row>
-        {/* Conversión por Categoría */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiCheckCircle className="me-2" />
-                Conversión por Categoría
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.conversionByCategory.length === 0 ? (
-                <p className="text-muted text-center">No hay datos disponibles</p>
-              ) : (
-                <Table responsive size="sm">
-                  <thead>
-                    <tr>
-                      <th>Categoría</th>
-                      <th>Borradores</th>
-                      <th>Aprobadas</th>
-                      <th>% Conversión</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metrics.conversionByCategory.map((category, index) => (
-                      <tr key={index}>
-                        <td>{category.category_name}</td>
-                        <td>{category.draft_count}</td>
-                        <td>{category.approved_count}</td>
-                        <td>
-                          <Badge bg={category.conversion_rate > 50 ? 'success' : category.conversion_rate > 25 ? 'warning' : 'danger'}>
-                            {category.conversion_rate}%
-                          </Badge>
-                        </td>
-                      </tr>
                     ))}
-                  </tbody>
-                </Table>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        {/* Rendimiento de Vendedores */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiUsers className="me-2" />
-                Rendimiento de Vendedores
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.salespersonPerformance.length === 0 ? (
-                <p className="text-muted text-center">No hay datos disponibles</p>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {metrics.salespersonPerformance.map((salesperson, index) => (
-                    <div key={index} className="list-group-item">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h6 className="mb-0">{salesperson.name} {salesperson.apellido}</h6>
-                        <Badge bg="info">{salesperson.area}</Badge>
-                      </div>
-                      <div className="row text-center">
-                        <div className="col-4">
-                          <small className="text-muted">Total</small>
-                          <div className="fw-bold">{salesperson.total_quotes}</div>
-                        </div>
-                        <div className="col-4">
-                          <small className="text-muted">Aprobadas</small>
-                          <div className="fw-bold text-success">{salesperson.approved_quotes}</div>
-                        </div>
-                        <div className="col-4">
-                          <small className="text-muted">% Éxito</small>
-                          <div className="fw-bold text-primary">{salesperson.approval_rate}%</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <small className="text-muted">Monto: </small>
-                        <span className="fw-bold text-success">{formatCurrency(salesperson.approved_amount)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row>
-        {/* Servicios Subutilizados */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiFileText className="me-2" />
-                Servicios Subutilizados
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              {metrics.underutilizedServices.length === 0 ? (
-                <p className="text-muted text-center">No hay servicios subutilizados</p>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {metrics.underutilizedServices.map((service, index) => (
-                    <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 className="mb-1">{service.service_name}</h6>
-                        <small className="text-muted">
-                          {service.category_name} • {service.area}
-                        </small>
-                      </div>
-                      <div className="text-end">
-                        <Badge bg="warning">{service.usage_count} usos</Badge>
-                        <div className="small text-muted">{formatCurrency(service.total_revenue)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        {/* Métricas de Tiempo */}
-        <Col lg={6} className="mb-4">
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">
-                <FiClock className="me-2" />
-                Métricas de Tiempo
-              </h5>
-            </Card.Header>
-            <Card.Body>
-              <div className="text-center">
-                <h4 className="text-primary">
-                  {Math.round(metrics.approvalMetrics.avg_approval_hours || 0)}h
-                </h4>
-                <p className="text-muted">Tiempo Promedio de Aprobación</p>
-                
-                <div className="mt-3">
-                  <div className="d-flex justify-content-between">
-                    <span>Rápido (&lt;24h)</span>
-                    <span>{metrics.approvalMetrics.fast_approvals || 0}</span>
                   </div>
-                  <ProgressBar 
-                    now={metrics.approvalMetrics.total_approvals ? 
-                      ((metrics.approvalMetrics.fast_approvals || 0) / metrics.approvalMetrics.total_approvals) * 100 : 0
-                    } 
-                    variant="success" 
-                    className="mt-1"
-                  />
+                )}
+              </div>
+            </div>
+          </Col>
+
+          {/* Métricas de Tiempo */}
+          <Col lg={6} className="mb-4">
+            <div className="metricas-card">
+              <div className="metricas-card-header">
+                <h5 className="metricas-card-title">
+                  <FiClock className="me-2" />
+                  Métricas de Tiempo
+                </h5>
+              </div>
+              <div className="metricas-card-body">
+                <div className="text-center">
+                  <div className="kpi-value text-primary">
+                    {Math.round(metrics.approvalMetrics.avg_approval_hours || 0)}h
+                  </div>
+                  <div className="kpi-label">Tiempo Promedio de Aprobación</div>
+                  
+                  <div className="mt-4">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="fw-bold">Rápido (&lt;24h)</span>
+                      <span className="fw-bold text-success">{metrics.approvalMetrics.fast_approvals || 0}</span>
+                    </div>
+                    <div className="progress-custom">
+                      <div 
+                        className="progress-bar-custom" 
+                        style={{ 
+                          width: `${metrics.approvalMetrics.total_approvals ? 
+                            ((metrics.approvalMetrics.fast_approvals || 0) / metrics.approvalMetrics.total_approvals) * 100 : 0
+                          }%` 
+                        }}
+                      ></div>
+                    </div>
+                    <small className="text-muted mt-2 d-block">
+                      Total de aprobaciones: {metrics.approvalMetrics.total_approvals || 0}
+                    </small>
+                  </div>
                 </div>
               </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

@@ -106,7 +106,7 @@ function App() {
                   <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
                   <Route path="/clientes" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Clientes /></RequireRole></ErrorBoundary>} />
                   <Route path="/clientes/importar" element={<ErrorBoundary><RequireRole roles={["admin"]}><ClientImport /></RequireRole></ErrorBoundary>} />
-                  <Route path="/comercial/panel" element={<ErrorBoundary><RequireRole roles={["admin","comercial"]}><CommercialManager /></RequireRole></ErrorBoundary>} />
+                  <Route path="/comercial/panel" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><CommercialManager /></RequireRole></ErrorBoundary>} />
                   <Route path="/proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Proyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones/lista" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><ListaCotizaciones /></RequireRole></ErrorBoundary>} />
@@ -122,7 +122,7 @@ function App() {
                   <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
                   <Route path="/laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Laboratorio /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
-                  <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Facturas /></RequireRole></ErrorBoundary>} />
+                  <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin"]}><Facturas /></RequireRole></ErrorBoundary>} />
                   {/* Rutas eliminadas: /variantes-cotizacion, /items-cotizacion */}
                   <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />

@@ -87,7 +87,14 @@ export const getCompanyFilterOptions = () => {
   console.log('🔍 getCompanyFilterOptions - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch('/api/companies/filter-options').then(data => {
-    console.log('✅ getCompanyFilterOptions - Respuesta recibida:', data);
+    console.log('✅ getCompanyFilterOptions - Respuesta recibida:', {
+      success: data.success,
+      hasData: !!data.data,
+      dataKeys: data.data ? Object.keys(data.data) : [],
+      typesCount: data.data?.types?.length || 0,
+      sectorsCount: data.data?.sectors?.length || 0,
+      citiesCount: data.data?.cities?.length || 0
+    });
     return data;
   }).catch(error => {
     console.error('❌ getCompanyFilterOptions - Error:', error);

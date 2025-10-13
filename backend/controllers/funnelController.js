@@ -8,8 +8,8 @@ exports.getServiceDistribution = async (req, res) => {
         category_main as category_name,
         COUNT(*) as items_count,
         COUNT(DISTINCT quote_id) as quote_count,
-        COALESCE(SUM(real_amount_paid), 0) as total_amount,
-        COALESCE(AVG(real_amount_paid), 0) as average_amount,
+        COALESCE(SUM(item_total), 0) as total_amount,
+        COALESCE(AVG(item_total), 0) as average_amount,
         COALESCE(SUM(item_total), 0) as items_total_amount
       FROM funnel_metrics
       GROUP BY category_main
@@ -33,9 +33,9 @@ exports.getConversionByCategory = async (req, res) => {
         COUNT(DISTINCT quote_id) as draft_count,
         COUNT(DISTINCT quote_id) as approved_count,
         COUNT(DISTINCT quote_id) as invoiced_count,
-        COALESCE(SUM(real_amount_paid), 0) as draft_amount,
-        COALESCE(SUM(real_amount_paid), 0) as approved_amount,
-        COALESCE(SUM(real_amount_paid), 0) as invoiced_amount,
+        COALESCE(SUM(item_total), 0) as draft_amount,
+        COALESCE(SUM(item_total), 0) as approved_amount,
+        COALESCE(SUM(item_total), 0) as invoiced_amount,
         100.0 as conversion_rate
       FROM funnel_metrics
       GROUP BY category_main
@@ -82,7 +82,7 @@ exports.getUnderutilizedServices = async (req, res) => {
         service_name,
         category_main as category_name,
         COUNT(*) as usage_count,
-        COALESCE(SUM(real_amount_paid), 0) as total_revenue
+        COALESCE(SUM(item_total), 0) as total_revenue
       FROM funnel_metrics
       GROUP BY service_name, category_main
       HAVING COUNT(*) < 3
@@ -144,9 +144,9 @@ exports.getExecutiveSummary = async (req, res) => {
       SELECT 
         COUNT(DISTINCT fm.quote_id) as approved_quotes,
         COUNT(DISTINCT fm.quote_id) as invoiced_quotes,
-        COALESCE(SUM(fm.real_amount_paid), 0) as approved_amount,
-        COALESCE(SUM(fm.real_amount_paid), 0) as invoiced_amount,
-        COALESCE(SUM(fm.real_amount_paid) / COUNT(DISTINCT fm.quote_id), 0) as average_approved_amount,
+        COALESCE(SUM(fm.item_total), 0) as approved_amount,
+        COALESCE(SUM(fm.item_total), 0) as invoiced_amount,
+        COALESCE(SUM(fm.item_total) / COUNT(DISTINCT fm.quote_id), 0) as average_approved_amount,
         COALESCE(SUM(fm.real_amount_paid) / COUNT(DISTINCT fm.quote_id), 0) as average_invoiced_amount,
         COUNT(DISTINCT q.created_by) as active_salespeople,
         COUNT(DISTINCT q.project_id) as unique_projects
@@ -311,7 +311,7 @@ exports.getHierarchicalStructure = async (req, res) => {
           category_main,
           COUNT(*) as total_items,
           COUNT(DISTINCT quote_id) as total_quotes,
-          COALESCE(SUM(real_amount_paid), 0) as total_money
+          COALESCE(SUM(item_total), 0) as total_money
         FROM funnel_metrics
         GROUP BY category_main
       ),
@@ -321,7 +321,7 @@ exports.getHierarchicalStructure = async (req, res) => {
           category_main,
           COUNT(*) as total_hijos_cotizados,
           COUNT(DISTINCT quote_id) as total_quotes,
-          COALESCE(SUM(real_amount_paid), 0) as total_money
+          COALESCE(SUM(item_total), 0) as total_money
         FROM funnel_metrics
         WHERE service_name != 'Servicio no especificado'
         GROUP BY service_name, category_main
@@ -333,7 +333,7 @@ exports.getHierarchicalStructure = async (req, res) => {
           category_main,
           COUNT(*) as veces_cotizado,
           COUNT(DISTINCT quote_id) as total_quotes,
-          COALESCE(SUM(real_amount_paid), 0) as total_money
+          COALESCE(SUM(item_total), 0) as total_money
         FROM funnel_metrics
         WHERE item_name != 'Ítem sin nombre'
         GROUP BY item_name, service_name, category_main
