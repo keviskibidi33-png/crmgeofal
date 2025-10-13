@@ -156,6 +156,7 @@ const ClientHistoryModal = ({ show, onHide, clientId, clientName }) => {
                     <th>Creado por</th>
                     <th>Fecha Creación</th>
                     <th>Última Actualización</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -184,6 +185,16 @@ const ClientHistoryModal = ({ show, onHide, clientId, clientName }) => {
                       <td>
                         <FiCalendar className="me-1" />
                         {formatDate(quote.updated_at)}
+                      </td>
+                      <td>
+                        <button 
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => window.open(`/cotizaciones/${quote.id}`, '_blank')}
+                          title="Ver detalles de la cotización"
+                        >
+                          <FiSearch className="me-1" />
+                          Ver Detalles
+                        </button>
                       </td>
                     </tr>
                   ))}

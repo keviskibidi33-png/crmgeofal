@@ -106,7 +106,7 @@ const Company = {
     try {
       console.log(`📋 Company.getClientHistory - Obteniendo historial para cliente ID: ${clientId}`);
       
-      // Obtener cotizaciones del cliente
+      // Obtener cotizaciones del cliente a través de proyectos
       const quotesResult = await pool.query(`
         SELECT 
           q.id,
@@ -117,9 +117,9 @@ const Company = {
           u.name as created_by_name,
           u.role as created_by_role
         FROM quotes q
+        LEFT JOIN projects p ON q.project_id = p.id
         LEFT JOIN users u ON q.created_by = u.id
-        LEFT JOIN companies c ON c.id = $1
-        WHERE q.client_ruc = c.ruc OR q.client_ruc = c.dni
+        WHERE p.company_id = $1
         ORDER BY q.created_at DESC
       `, [clientId]);
       
