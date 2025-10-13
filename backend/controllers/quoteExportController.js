@@ -83,6 +83,12 @@ async function loadQuoteBundle(id, frontendData = null) {
 }
 
 function buildFilename(bundle, ext = 'pdf') {
+  // Usar el número completo de cotización si está disponible
+  if (bundle.quote.quote_number) {
+    return `${bundle.quote.quote_number}.${ext}`;
+  }
+  
+  // Fallback al formato anterior si no hay número de cotización
   const asesor = (bundle.quote.meta?.quote?.commercial_name || 'asesor').toString().replace(/[^a-z0-9_\-]+/gi, '_');
   const date = new Date().toISOString().slice(0,10);
   const companyName = (bundle.company?.name || bundle.quote.meta?.customer?.company_name || 'cliente').toString().replace(/[^a-z0-9_\-]+/gi, '_');
@@ -277,10 +283,18 @@ exports.exportPdfDraft = async (req, res) => {
     });
     const tmp = path.join(__dirname, '../tmp');
     if (!fs.existsSync(tmp)) fs.mkdirSync(tmp);
-    const date = new Date().toISOString().slice(0,10);
-    const asesor = (bundle.quote.meta?.quote?.commercial_name || 'asesor').toString().replace(/[^a-z0-9_\-]+/gi, '_');
-    const companyName = (bundle.company?.name || bundle.quote.meta?.customer?.company_name || 'cliente').toString().replace(/[^a-z0-9_\-]+/gi, '_');
-    const fileName = `BORRADOR_${companyName}_${asesor}_${date}.pdf`;
+    
+    // Usar el número completo de cotización si está disponible
+    let fileName;
+    if (bundle.quote.quote_number) {
+      fileName = `BORRADOR_${bundle.quote.quote_number}.pdf`;
+    } else {
+      // Fallback al formato anterior si no hay número de cotización
+      const date = new Date().toISOString().slice(0,10);
+      const asesor = (bundle.quote.meta?.quote?.commercial_name || 'asesor').toString().replace(/[^a-z0-9_\-]+/gi, '_');
+      const companyName = (bundle.company?.name || bundle.quote.meta?.customer?.company_name || 'cliente').toString().replace(/[^a-z0-9_\-]+/gi, '_');
+      fileName = `BORRADOR_${companyName}_${asesor}_${date}.pdf`;
+    }
     const filePath = path.join(tmp, fileName);
     console.log('🔍 exportPdfDraft - Generando PDF:', filePath);
     console.log('🔍 exportPdfDraft - Bundle items:', bundle.items);

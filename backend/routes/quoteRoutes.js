@@ -30,6 +30,8 @@ router.put('/:id', auth(['jefa_comercial','vendedor_comercial','admin']), quoteC
 router.patch('/:id/status', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.updateStatus);
 // Eliminar cotización
 router.delete('/:id', auth(['jefa_comercial','admin']), quoteController.delete);
+// Clonar cotización
+router.post('/:id/clone', auth(['jefa_comercial','vendedor_comercial','admin']), quoteController.cloneQuote);
 
 // Exportaciones de una cotización específica
 router.get('/:id/export/pdf', auth(['jefa_comercial','vendedor_comercial','admin']), quoteExportController.exportPdf);

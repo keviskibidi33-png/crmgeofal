@@ -395,3 +395,48 @@ exports.updateStatus = async (req, res) => {
     res.status(500).json({ error: 'Error al actualizar estado de cotización' });
   }
 };
+
+// Clonar una cotización
+exports.cloneQuote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newData = req.body;
+    
+    console.log('🔄 Clonando cotización ID:', id);
+    console.log('🔄 Datos adicionales para la clonación:', newData);
+    
+    // Verificar que la cotización original existe
+    const originalQuote = await Quote.getById(id);
+    if (!originalQuote) {
+      return res.status(404).json({ error: 'Cotización no encontrada' });
+    }
+    
+    // Agregar el usuario actual como creador si no se especifica
+    if (req.user && req.user.id && !newData.created_by) {
+      newData.created_by = req.user.id;
+    }
+    
+    // Clonar la cotización
+    const clonedQuote = await Quote.cloneQuote(id, newData);
+    
+    console.log('✅ Cotización clonada exitosamente:', {
+      originalId: id,
+      originalNumber: originalQuote.quote_number,
+      newId: clonedQuote.id,
+      newNumber: clonedQuote.quote_number
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Cotización clonada exitosamente',
+      quote: clonedQuote
+    });
+    
+  } catch (err) {
+    console.error('❌ Error clonando cotización:', err);
+    res.status(500).json({ 
+      error: 'Error al clonar cotización',
+      details: err.message 
+    });
+  }
+};

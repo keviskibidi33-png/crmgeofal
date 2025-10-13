@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { generateUniqueQuoteNumber } = require('../utils/quoteNumberGenerator');
 
 const QuoteAdvanced = {
   // Crear borrador con versionado
@@ -16,7 +17,7 @@ const QuoteAdvanced = {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
       `, [
-        data.quote_number || `BORRADOR_${Date.now()}`,
+        data.quote_number || await generateUniqueQuoteNumber(),
         data.project_id,
         data.subtotal || 0,
         data.igv || 0,

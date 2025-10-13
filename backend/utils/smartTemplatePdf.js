@@ -2,17 +2,29 @@ const fs = require('fs').promises;
 const path = require('path');
 const puppeteer = require('puppeteer');
 
-// Función para generar número de cotización autoincremental por día
-function generateQuoteNumber() {
+// Función para generar número de cotización - ahora usa el número real de la base de datos
+function generateQuoteNumber(bundle) {
+  // Si la cotización tiene un número asignado, usarlo
+  if (bundle?.quote?.quote_number) {
+    // Convertir formato COT-131025-25-374 a 0120-251013-374
+    const match = bundle.quote.quote_number.match(/COT-(\d{2})(\d{2})(\d{2})-(\d{2})-(\d{3})/);
+    if (match) {
+      const [, year, month, day, yearShort, sequence] = match;
+      return `0120-${yearShort}${month}${day}-${sequence}`;
+    }
+    // Si no coincide el formato, usar el número tal como está
+    return bundle.quote.quote_number;
+  }
+  
+  // Fallback: generar número temporal (solo para casos sin número)
   const today = new Date();
   const year = today.getFullYear().toString().slice(-2);
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   
-  // Crear un identificador único basado en fecha y hora
   const now = new Date();
   const timeStamp = now.getTime();
-  const dailyCounter = Math.floor(timeStamp / (1000 * 60 * 60 * 24)) % 1000; // Contador diario
+  const dailyCounter = Math.floor(timeStamp / (1000 * 60 * 60 * 24)) % 1000;
   
   return `0120-${year}${month}${day}-${String(dailyCounter).padStart(3, '0')}`;
 }
@@ -310,7 +322,7 @@ function processBundleData(bundle) {
     </div>`;
 
   return {
-    numero_cotizacion: generateQuoteNumber(),
+    numero_cotizacion: generateQuoteNumber(bundle),
       fecha_emision: fechaFormateada,
       fecha_solicitud: bundle.quote?.meta?.quote?.request_date || '',
     referencia: bundle.quote?.meta?.quote?.reference || bundle.quote?.reference || 'SEGÚN LO SOLICITADO VÍA CORREO ELECTRÓNICO / LLAMADA TELEFÓNICA',
