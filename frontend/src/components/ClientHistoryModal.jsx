@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Tab, Tabs, Table, Badge, Row, Col, Card } from 'react-bootstrap';
 import { useQuery } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 import { getClientHistory } from '../services/companies';
 import ClientChat from './ClientChat';
 import ClientCostTab from './ClientCostTab';
@@ -28,6 +29,8 @@ const STATUS_CONFIG = {
 };
 
 const ClientHistoryModal = ({ show, onHide, clientId, clientName }) => {
+  const navigate = useNavigate();
+  
   const { data: historyData, isLoading, error } = useQuery(
     ['clientHistory', clientId],
     () => getClientHistory(clientId),
@@ -189,7 +192,11 @@ const ClientHistoryModal = ({ show, onHide, clientId, clientName }) => {
                       <td>
                         <button 
                           className="btn btn-sm btn-outline-primary"
-                          onClick={() => window.open(`/cotizaciones/${quote.id}`, '_blank')}
+                          onClick={() => {
+                            console.log('🔍 Navegando a cotización:', quote.id);
+                            navigate(`/cotizaciones/${quote.id}`);
+                            onHide(); // Cerrar el modal
+                          }}
                           title="Ver detalles de la cotización"
                         >
                           <FiSearch className="me-1" />

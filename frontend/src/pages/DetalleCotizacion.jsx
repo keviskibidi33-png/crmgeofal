@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ModuloBase from '../components/ModuloBase';
 import { getQuote, updateQuote } from '../services/quotes';
 import QuoteEvidences from '../components/QuoteEvidences';
 
 export default function DetalleCotizacion() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [row, setRow] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,10 @@ export default function DetalleCotizacion() {
       try {
         setLoading(true);
         setError('');
+        console.log('🔍 DetalleCotizacion - Cargando cotización ID:', id);
+        console.log('🔍 DetalleCotizacion - Token presente:', localStorage.getItem('token') ? 'Sí' : 'No');
         const q = await getQuote(id);
+        console.log('✅ DetalleCotizacion - Cotización cargada:', q);
         
         // Parsear meta para extraer datos del cliente y de items
         let meta = null;
@@ -53,7 +57,16 @@ export default function DetalleCotizacion() {
         
         setRow(q);
       } catch (e) {
+        console.error('❌ Error cargando cotización:', e);
         setError(e.message || 'No se pudo cargar la cotización');
+        
+        // Si es un error 404 (cotización no encontrada), redirigir al dashboard
+        if (e.status === 404 || e.message?.includes('404') || e.message?.includes('no encontrada')) {
+          console.log('🔄 Cotización no encontrada, redirigiendo al dashboard...');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+        }
       } finally {
         setLoading(false);
       }
@@ -135,7 +148,19 @@ export default function DetalleCotizacion() {
           </div>
         </div>
       )}
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="alert alert-danger">
+          <div className="d-flex justify-content-between align-items-center">
+            <span>{error}</span>
+            <button 
+              className="btn btn-sm btn-outline-danger"
+              onClick={() => navigate('/dashboard')}
+            >
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>
+      )}
       {row && (
         <>
           {/* Información Resumida de la Cotización */}
