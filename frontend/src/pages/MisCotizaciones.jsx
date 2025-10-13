@@ -166,6 +166,19 @@ const MisCotizaciones = () => {
                   <div className="mb-2">
                     <strong>Proyecto:</strong> {quote.project_name || 'N/A'}
                   </div>
+                  {/* Información distintiva */}
+                  {quote.distinctive_info?.variant && (
+                    <div className="mb-2">
+                      <strong>Variante:</strong> 
+                      <Badge bg="primary" className="ms-2">{quote.distinctive_info.variant}</Badge>
+                    </div>
+                  )}
+                  {quote.distinctive_info?.delivery_days && (
+                    <div className="mb-2">
+                      <strong>Días hábiles:</strong> 
+                      <Badge bg="success" className="ms-2">{quote.distinctive_info.delivery_days}</Badge>
+                    </div>
+                  )}
                   <div className="mb-2">
                     <strong>Total:</strong> S/ {parseFloat(quote.total || 0).toFixed(2)}
                   </div>
@@ -265,6 +278,19 @@ const MisCotizaciones = () => {
                     <strong>Total:</strong> S/ {parseFloat(selectedQuote.total || 0).toFixed(2)}
                   </Col>
                 </Row>
+                {/* Información distintiva en modal */}
+                {selectedQuote.distinctive_info?.variant && (
+                  <Row>
+                    <Col md={6}>
+                      <strong>Variante:</strong> 
+                      <Badge bg="primary" className="ms-2">{selectedQuote.distinctive_info.variant}</Badge>
+                    </Col>
+                    <Col md={6}>
+                      <strong>Días hábiles:</strong> 
+                      <Badge bg="success" className="ms-2">{selectedQuote.distinctive_info.delivery_days}</Badge>
+                    </Col>
+                  </Row>
+                )}
                 <Row>
                   <Col md={6}>
                     <strong>Autor:</strong> {selectedQuote.created_by_name || 'N/A'}

@@ -69,7 +69,7 @@ export default function VendedorComercialDashboard() {
       
       switch (action) {
         case 'nueva-cotizacion':
-          navigate('/cotizacion-inteligente');
+          navigate('/cotizaciones/inteligente');
           break;
         case 'ver-clientes':
           navigate('/clientes');
@@ -377,9 +377,17 @@ export default function VendedorComercialDashboard() {
                         <tr key={index}>
                           <td>
                             <code className="text-primary">{cotizacion.quote_number}</code>
+                            {cotizacion.distinctive_info?.variant && (
+                              <div>
+                                <Badge bg="primary" size="sm">{cotizacion.distinctive_info.variant}</Badge>
+                              </div>
+                            )}
                           </td>
                           <td>
                             <div className="fw-medium">{cotizacion.client_contact}</div>
+                            {cotizacion.project_name && (
+                              <div className="text-muted small">{cotizacion.project_name}</div>
+                            )}
                           </td>
                           <td>
                             <span className="fw-bold text-success">
@@ -388,6 +396,11 @@ export default function VendedorComercialDashboard() {
                                 maximumFractionDigits: 2 
                               }) || '0.00'}
                             </span>
+                            {cotizacion.distinctive_info?.delivery_days && (
+                              <div className="text-muted small">
+                                {cotizacion.distinctive_info.delivery_days} días hábiles
+                              </div>
+                            )}
                           </td>
                           <td>
                             <Badge 

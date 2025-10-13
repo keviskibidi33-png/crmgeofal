@@ -69,7 +69,23 @@ function processBundleData(bundle) {
     const fechaActual = new Date();
     fechaFormateada = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
   }
-    const variantId = bundle.quote?.variant_id;
+    // Convertir variant_id de ID numérico a string (V1, V2, etc.) si es necesario
+    let variantId = bundle.quote?.variant_id;
+    if (typeof variantId === 'number') {
+      // Mapear ID numérico a string
+      const variantMap = {
+        1: 'V1',
+        2: 'V2', 
+        3: 'V3',
+        4: 'V4',
+        5: 'V5',
+        6: 'V6',
+        7: 'V7',
+        8: 'V8'
+      };
+      variantId = variantMap[variantId] || 'V1';
+      console.log(`🔍 processBundleData - variant_id convertido de ID ${bundle.quote?.variant_id} a string ${variantId}`);
+    }
     const variantConditions = getVariantConditions(variantId);
     
   // Layout adaptativo inteligente según cantidad de items
@@ -257,6 +273,7 @@ function processBundleData(bundle) {
           codigo: item.code || '',
           descripcion: item.description || '',
           norma: item.norm || '',
+          acreditacion: item.acreditacion || null, // SI/NO - por ahora null hasta tener datos en BD
       costo_unitario: parseFloat(item.unit_price || 0).toFixed(2),
       cantidad: parseInt(item.quantity || 1),
       costo_parcial: (parseFloat(item.unit_price || 0) * parseInt(item.quantity || 1)).toFixed(2)
@@ -265,7 +282,7 @@ function processBundleData(bundle) {
       igv: igv.toFixed(2),
       total: total.toFixed(2),
     variant_conditions: variantConditions,
-    delivery_days: bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
+    delivery_days: bundle.quote?.delivery_days || bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
     condiciones_primera_pagina: condicionesPrimeraPagina,
     condiciones_segunda_pagina: condicionesSegundaPagina,
     // Variables para layout adaptativo
@@ -715,7 +732,7 @@ a {
                         <td>{{codigo}}</td>
                         <td>{{descripcion}}</td>
                         <td>{{norma}}</td>
-            <td style="text-align:center">(*)</td>
+            <td style="text-align:center">{{#if acreditacion}}{{acreditacion}}{{else}}-{{/if}}</td>
             <td style="text-align:center">{{costo_unitario}}</td>
             <td style="text-align:center">{{cantidad}}</td>
             <td style="text-align:center">{{costo_parcial}}</td>
@@ -726,7 +743,6 @@ a {
           <tr class="total-row"><td colspan="4"></td><td></td><td>Costo Total:</td><td style="text-align:right">S/ {{ total }}</td></tr>
                 </tbody>
             </table>
-      {{#unless hasVeryManyItems}}<div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>{{/unless}}
       {{{condiciones_primera_pagina}}}
             </div>
 
@@ -818,13 +834,79 @@ function getVariantConditions(variantId) {
             'El cliente deberá de entregar las muestras debidamente identificadas.',
             'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
         'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
-          ],
-          payment_conditions: [
-            'El pago debe realizarse antes del inicio de los ensayos.',
-            'Se acepta pago en efectivo, transferencia bancaria o cheque.',
-            'Los precios incluyen IGV (18%).',
-            'La cotización tiene una validez de 30 días calendario.',
-            'En caso de cancelación, se cobrará el 50% del monto total.'
+          ]
+        },
+    V2: {
+          title: 'PROBETAS',
+      delivery_days: 4,
+          conditions: [
+        'El cliente debe proporcionar las probetas antes del ingreso a obra.',
+            'El cliente deberá de entregar las muestras debidamente identificadas.',
+            'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
+          ]
+        },
+    V3: {
+          title: 'DENSIDAD DE CAMPO Y MUESTREO',
+      delivery_days: 4,
+          conditions: [
+        'El cliente deberá enviar al laboratorio, para los ensayo en suelo y agregados, la cantidad minima de 100 kg por cada muestra.',
+            'Para el ensayo de Densidad de campo, la cantidad de puntos/salida minimo 4 und.',
+            'El cliente deberá de programar el servicio, Densidad de campo, con 24 horas de anticipación.',
+            'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima.'
+          ]
+        },
+    V4: {
+          title: 'EXTRACCIÓN DE DIAMANTINA',
+      delivery_days: 7,
+          conditions: [
+        'Movilización y desmovilización de equipos y del personal técnico, estara a cargo de GEOFAL.',
+            'Resane de estructura de concreto con sika rep 500 y Sikadur 32, estara a cargo de GEOFAL.',
+            'El servicio no incluye trabajos de acabados como pintura, mayolica y otros.',
+            'El area de trabajo, zona de extracción de diamantina, tiene que estar libre de interferencia.',
+            'La extracción de diamantina se realizara en 2 dia en campo, en laboratorio se realizará el tallado y refrentado de diamantina, el ensayo de resistencia a la compresión de testigo de diamantina se realizara en 5 dias (el tiempo de ensayo obedece a la normativa vigente).',
+        'Costo de resane insumos 250 soles, este costo se distribuira de acuerdo con el numero de perforaciones Donde se hara las extracciones de diamantina'
+          ]
+        },
+    V5: {
+          title: 'DIAMANTINA PARA PASES',
+      delivery_days: 5,
+          conditions: [
+        'El cliente deberá de programar el servicio, Extracción diamantina, con 24 horas de anticipación.',
+            'El area de trabajo, zona de extraccion de diamantina, debera estar libre de interferencia.',
+            'Para extraer la diamantina, se ubicara el acero con un escaneador.',
+        'Movilizacion y desmovilizacion de equipos y del personal tecnico, estara a cargo de Geofal.'
+          ]
+        },
+    V6: {
+          title: 'ALBAÑILERÍA',
+      delivery_days: 4,
+          conditions: [
+        'El cliente deberá enviar al laboratorio, 20 ladrillo de cada tipo, en buen estado y sin presentar fisuras.',
+            'El cliente deberá de entregar las muestras debidamente identificadas.',
+            'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.',
+        'El cliente deberá entregar las muestras en las instalaciones del LEM, ubicado en la Av. Marañón N° 763, Los Olivos, Lima'
+          ]
+        },
+    V7: {
+          title: 'VIGA BECKELMAN',
+      delivery_days: 4,
+          conditions: [
+        'El cliente deberá de programar el servicio, Ensayo de Deflexión, con 24 horas de anticipación.',
+            'El area de trabajo tiene que estar habilitado.',
+            'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP o MTC vigente de acuerdo con el alcance del laboratorio.',
+        'Especificar las caracteristicas del camion'
+          ]
+        },
+    V8: {
+          title: 'CONTROL DE CALIDAD DE CONCRETO FRESCO EN OBRA',
+      delivery_days: 7,
+          conditions: [
+        'El cliente deberá de programar el servicio, con 24 horas de anticipación.',
+            'Para el ensayo de control de calidad de concreto fresco en obra, se moldeara 6 probetas, ensayo slump, control de temperatura, en laboratorio las probetas se colocara en camara de curado, el ensayo de compresión de las probetas seran 3 a 7 dias y 3 a 28 dias.',
+            'El control de calidad del concreto fresco se sacara cada 50m3 a uno de los mixer donde se hara todos los ensayos respectivos mencionados, o por dia asi no se halla llegado los 50m3.',
+        'El cliente deberá especificar la Norma a ser utilizada para la ejecución del ensayo, caso contrario se considera Norma ASTM o NTP vigente de acuerdo con el alcance del laboratorio.'
           ]
         }
   };

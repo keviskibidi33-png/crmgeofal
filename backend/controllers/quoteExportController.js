@@ -7,9 +7,10 @@ const pdfConfig = require('../config/pdf-config');
 const pool = require('../config/db');
 const ProjectAttachment = require('../models/projectAttachment');
 
-async function loadQuoteBundle(id) {
+async function loadQuoteBundle(id, frontendData = null) {
   try {
     console.log('🔍 loadQuoteBundle - Cargando bundle para ID:', id);
+    console.log('🔍 loadQuoteBundle - Datos del frontend:', frontendData);
     
     const quoteRes = await pool.query('SELECT * FROM quotes WHERE id = $1', [id]);
     const quote = quoteRes.rows[0];
@@ -20,9 +21,34 @@ async function loadQuoteBundle(id) {
     
     console.log('✅ loadQuoteBundle - Cotización encontrada:', quote.id);
     
-    // Los ítems se manejan en el frontend, no en el backend
-    // Crear ítems vacíos para compatibilidad
-    const items = [];
+    // Si hay datos del frontend, usarlos para sobrescribir los de la BD
+    if (frontendData) {
+      if (frontendData.variant_id) {
+        quote.variant_id = frontendData.variant_id;
+        console.log('✅ loadQuoteBundle - variant_id del frontend:', frontendData.variant_id);
+      }
+      if (frontendData.delivery_days) {
+        quote.delivery_days = frontendData.delivery_days;
+        console.log('✅ loadQuoteBundle - delivery_days del frontend:', frontendData.delivery_days);
+      }
+      if (frontendData.meta) {
+        quote.meta = frontendData.meta;
+        console.log('✅ loadQuoteBundle - meta del frontend actualizado');
+      }
+    }
+    
+    // Obtener ítems de la cotización desde la base de datos
+    const itemsRes = await pool.query('SELECT * FROM quote_items WHERE quote_id = $1', [id]);
+    const items = itemsRes.rows.map(item => ({
+      code: item.name || '',
+      description: item.description || '',
+      norm: item.norm || '',
+      unit_price: parseFloat(item.unit_price) || 0,
+      quantity: parseInt(item.quantity) || 1,
+      partial_price: parseFloat(item.partial_price) || 0,
+      total: parseFloat(item.total_price) || 0
+    }));
+    console.log('✅ loadQuoteBundle - Ítems obtenidos de la base de datos:', items.length);
     
     const projectRes = quote.project_id ? await pool.query('SELECT * FROM projects WHERE id = $1', [quote.project_id]) : { rows: [] };
     const project = projectRes.rows[0] || null;
@@ -69,12 +95,21 @@ exports.exportPdf = async (req, res) => {
     console.log('🔍 exportPdf - ID recibido:', id);
     console.log('🔍 exportPdf - Body recibido:', req.body);
     
-    const bundle = await loadQuoteBundle(id);
+    // Preparar datos del frontend
+    const frontendData = {
+      variant_id: req.body?.variant_id,
+      delivery_days: req.body?.delivery_days,
+      meta: req.body?.meta
+    };
+    
+    const bundle = await loadQuoteBundle(id, frontendData);
     console.log('🔍 exportPdf - Bundle cargado:', {
       quoteId: bundle?.quote?.id,
       projectId: bundle?.project?.id,
       companyId: bundle?.company?.id,
-      itemsCount: bundle?.items?.length || 0
+      itemsCount: bundle?.items?.length || 0,
+      variantId: bundle?.quote?.variant_id,
+      deliveryDays: bundle?.quote?.delivery_days
     });
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
     
@@ -144,7 +179,14 @@ exports.exportPdf = async (req, res) => {
 exports.exportExcel = async (req, res) => {
   try {
     const id = req.params.id;
-    const bundle = await loadQuoteBundle(id);
+    // Preparar datos del frontend
+    const frontendData = {
+      variant_id: req.body?.variant_id,
+      delivery_days: req.body?.delivery_days,
+      meta: req.body?.meta
+    };
+    
+    const bundle = await loadQuoteBundle(id, frontendData);
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
     
     // Agregar ítems del cuerpo de la petición si están disponibles
@@ -204,7 +246,14 @@ exports.exportPdfDraft = async (req, res) => {
   try {
     const id = req.params.id;
     console.log('🔍 exportPdfDraft - ID:', id);
-    const bundle = await loadQuoteBundle(id);
+    // Preparar datos del frontend
+    const frontendData = {
+      variant_id: req.body?.variant_id,
+      delivery_days: req.body?.delivery_days,
+      meta: req.body?.meta
+    };
+    
+    const bundle = await loadQuoteBundle(id, frontendData);
     if (!bundle) return res.status(404).json({ error: 'Cotización no encontrada' });
     
     // Agregar ítems del cuerpo de la petición si están disponibles

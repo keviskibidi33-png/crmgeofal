@@ -404,18 +404,24 @@ exports.getVendedorComercialDashboard = async (req, res) => {
     const proyectosResult = await pool.query(proyectosQuery, [userId]);
     const proyectosMetrics = proyectosResult.rows[0] || {};
 
-    // Obtener cotizaciones recientes del vendedor
+    // Obtener cotizaciones recientes del vendedor con información distintiva
     const cotizacionesRecientesQuery = `
       SELECT 
         q.id,
         q.quote_number,
         c.name as client_contact,
+        p.name as project_name,
         COALESCE(q.total_amount, 0) as total_amount,
         q.status,
-        q.created_at
+        q.created_at,
+        q.variant_id,
+        q.meta,
+        qv.title as variant_title,
+        qv.code as variant_code
       FROM quotes q
       JOIN projects p ON q.project_id = p.id
       JOIN companies c ON p.company_id = c.id
+      LEFT JOIN quote_variants qv ON q.variant_id = qv.id
       WHERE q.created_by = $1
       ORDER BY q.created_at DESC
       LIMIT 5
@@ -486,13 +492,48 @@ exports.getVendedorComercialDashboard = async (req, res) => {
       ingresosEsteMes: parseFloat(vendedorMetrics.ingresos_este_mes) || 0,
       
       // Datos recientes
-      cotizacionesRecientes: cotizacionesRecientesResult.rows.map(cotizacion => ({
-        quote_number: cotizacion.quote_number || `COT-${cotizacion.id}`,
-        client_contact: cotizacion.client_contact || 'Cliente no especificado',
-        total_amount: parseFloat(cotizacion.total_amount) || 0,
-        status: cotizacion.status || 'nueva',
-        created_at: cotizacion.created_at
-      })),
+      cotizacionesRecientes: cotizacionesRecientesResult.rows.map(cotizacion => {
+        // Procesar meta para obtener información adicional
+        let meta = null;
+        let deliveryDays = null;
+        let variantInfo = '';
+        
+        if (cotizacion.meta && typeof cotizacion.meta === 'string') {
+          try {
+            meta = JSON.parse(cotizacion.meta);
+            deliveryDays = meta?.quote?.delivery_days;
+          } catch (e) {
+            meta = null;
+          }
+        } else if (cotizacion.meta && typeof cotizacion.meta === 'object') {
+          meta = cotizacion.meta;
+          deliveryDays = meta?.quote?.delivery_days;
+        }
+        
+        // Información de la variante
+        if (cotizacion.variant_title) {
+          variantInfo = `${cotizacion.variant_code || 'V' + cotizacion.variant_id} - ${cotizacion.variant_title}`;
+        } else if (cotizacion.variant_id) {
+          variantInfo = `V${cotizacion.variant_id}`;
+        }
+        
+        return {
+          quote_number: cotizacion.quote_number || `COT-${cotizacion.id}`,
+          client_contact: cotizacion.client_contact || 'Cliente no especificado',
+          project_name: cotizacion.project_name || 'Proyecto sin nombre',
+          total_amount: parseFloat(cotizacion.total_amount) || 0,
+          status: cotizacion.status || 'nueva',
+          created_at: cotizacion.created_at,
+          variant_info: variantInfo,
+          delivery_days: deliveryDays,
+          // Información distintiva para mostrar
+          distinctive_info: {
+            variant: variantInfo,
+            delivery_days: deliveryDays ? `${deliveryDays} días` : null,
+            project: cotizacion.project_name
+          }
+        };
+      }),
       
       clientesRecientes: clientesRecientesResult.rows.map(cliente => ({
         name: cliente.name || 'Cliente no especificado',

@@ -135,9 +135,6 @@ function renderQuotePage1(doc, bundle) {
   
   renderTestsTable(doc, bundle, tableY, maxRowHeight);
 
-  // Nota INACAL
-  doc.font('Helvetica-Oblique').fontSize(8).fillColor('#000')
-    .text('(*) Ensayo dentro del alcance de acreditación INACAL.', 50, doc.y + 8);
 
   // Totales
   renderTotals(doc, bundle);
@@ -168,8 +165,9 @@ function renderQuotePage2(doc, bundle) {
 
   // Plazo estimado
   doc.font('Helvetica-Bold').fontSize(10).text('PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO', 50, doc.y + 15);
+  const deliveryDays = bundle.quote?.meta?.quote?.delivery_days || bundle.quote?.delivery_days || 4;
   const plazos = [
-    'El plazo de entrega será de los resultados se estima 04 días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM.',
+    `El plazo de entrega será de los resultados se estima ${deliveryDays} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM.`,
     'El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.'
   ];
   

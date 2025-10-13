@@ -67,7 +67,25 @@ const Quote = {
       LEFT JOIN users u ON q.created_by = u.id
       WHERE q.id = $1
     `, [id]);
-    return res.rows[0];
+    
+    const quote = res.rows[0];
+    if (!quote) return null;
+    
+    // Obtener ítems de la cotización
+    const itemsRes = await pool.query('SELECT * FROM quote_items WHERE quote_id = $1', [id]);
+    quote.items = itemsRes.rows.map(item => ({
+      id: item.id,
+      code: item.name || '',
+      description: item.description || '',
+      norm: item.norm || '',
+      unit_price: parseFloat(item.unit_price) || 0,
+      quantity: parseInt(item.quantity) || 1,
+      partial_price: parseFloat(item.partial_price) || 0,
+      total: parseFloat(item.total_price) || 0,
+      subservice_id: item.subservice_id
+    }));
+    
+    return quote;
   },
   async create({ 
     project_id, variant_id, created_by, client_contact, client_email, client_phone, 

@@ -687,13 +687,34 @@ export default function CotizacionInteligente() {
         throw new Error('No se encontró token de autenticación');
       }
       
-      // Realizar la petición con el token
+      // Preparar datos del formulario actual
+      const formData = {
+        variant_id: variantId,
+        delivery_days: quote.delivery_days,
+        meta: {
+          customer: client,
+          quote: {
+            ...quote,
+            delivery_days: quote.delivery_days,
+            variant_id: variantId
+          },
+          items: items,
+          conditions_text: conditionsText,
+          payment_terms: quote.payment_terms
+        },
+        items: items
+      };
+      
+      console.log('🔍 exportFile - Enviando datos:', formData);
+      
+      // Realizar la petición con los datos del formulario
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(formData)
       });
       
       if (!response.ok) {
@@ -734,13 +755,34 @@ export default function CotizacionInteligente() {
         throw new Error('No se encontró token de autenticación');
       }
       
-      // Realizar la petición con el token
+      // Preparar datos del formulario actual
+      const formData = {
+        variant_id: variantId,
+        delivery_days: quote.delivery_days,
+        meta: {
+          customer: client,
+          quote: {
+            ...quote,
+            delivery_days: quote.delivery_days,
+            variant_id: variantId
+          },
+          items: items,
+          conditions_text: conditionsText,
+          payment_terms: quote.payment_terms
+        },
+        items: items
+      };
+      
+      console.log('🔍 exportDraft - Enviando datos:', formData);
+      
+      // Realizar la petición con los datos del formulario
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(formData)
       });
       
       if (!response.ok) {

@@ -55,7 +55,7 @@
             <td>{{ codigo }}</td>
             <td>{{ descripcion }}</td>
             <td>{{ norma }}</td>
-            <td style="text-align:center">(*)</td>
+            <td style="text-align:center">{{#if acreditacion}}{{acreditacion}}{{else}}-{{/if}}</td>
             <td>{{ cantidad }}</td>
             <td>{{ costo_parcial }}</td>
           </tr>
@@ -87,7 +87,6 @@
           </tr>
         </tbody>
       </table>
-      <div class="footer-note">(*) Ensayo dentro del alcance de acreditación INACAL.</div>
       {{{condiciones_primera_pagina}}}
             </div>
 

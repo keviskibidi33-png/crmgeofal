@@ -219,11 +219,14 @@ exports.getMyQuotes = async (req, res) => {
         c.name as company_name,
         c.ruc as company_ruc,
         u.name as created_by_name,
-        u.role as created_by_role
+        u.role as created_by_role,
+        qv.title as variant_title,
+        qv.code as variant_code
       FROM quotes q
       LEFT JOIN projects p ON q.project_id = p.id
       LEFT JOIN companies c ON p.company_id = c.id
       LEFT JOIN users u ON q.created_by = u.id
+      LEFT JOIN quote_variants qv ON q.variant_id = qv.id
       ${whereClause}
       ORDER BY q.created_at DESC
       LIMIT ${limitParam} OFFSET ${offsetParam}
@@ -242,9 +245,46 @@ exports.getMyQuotes = async (req, res) => {
     `;
     const countResult = await pool.query(countQuery, params.slice(0, -2));
     
+    // Procesar datos para incluir información distintiva
+    const processedData = result.rows.map(cotizacion => {
+      // Procesar meta para obtener información adicional
+      let meta = null;
+      let deliveryDays = null;
+      let variantInfo = '';
+      
+      if (cotizacion.meta && typeof cotizacion.meta === 'string') {
+        try {
+          meta = JSON.parse(cotizacion.meta);
+          deliveryDays = meta?.quote?.delivery_days;
+        } catch (e) {
+          meta = null;
+        }
+      } else if (cotizacion.meta && typeof cotizacion.meta === 'object') {
+        meta = cotizacion.meta;
+        deliveryDays = meta?.quote?.delivery_days;
+      }
+      
+      // Información de la variante
+      if (cotizacion.variant_title) {
+        variantInfo = `${cotizacion.variant_code || 'V' + cotizacion.variant_id} - ${cotizacion.variant_title}`;
+      } else if (cotizacion.variant_id) {
+        variantInfo = `V${cotizacion.variant_id}`;
+      }
+      
+      return {
+        ...cotizacion,
+        // Información distintiva para mostrar
+        distinctive_info: {
+          variant: variantInfo,
+          delivery_days: deliveryDays ? `${deliveryDays} días` : null,
+          project: cotizacion.project_name
+        }
+      };
+    });
+
     res.json({
       success: true,
-      data: result.rows,
+      data: processedData,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
