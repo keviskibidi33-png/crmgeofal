@@ -6,8 +6,9 @@ const listCompanies = async (req, res) => {
   try {
     console.log('🔍 listCompanies - Llamando a:', req.url);
     console.log('🔍 listCompanies - Token:', req.headers.authorization ? 'Presente' : 'Ausente');
+    console.log('🔍 listCompanies - Filtros:', { search, type, city, sector, priority, status, includeTotals });
     
-    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '', priority = '', includeTotals = false } = req.query;
+    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '', priority = '', status = '', includeTotals = false } = req.query;
     
     // Consultar datos reales de la base de datos
     const pool = require('../config/db');
@@ -47,7 +48,16 @@ const listCompanies = async (req, res) => {
       paramIndex++;
     }
     
+    if (status) {
+      whereConditions.push(`status = $${paramIndex}`);
+      queryParams.push(status);
+      paramIndex++;
+    }
+    
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
+    console.log('🔍 listCompanies - Condiciones WHERE:', whereClause);
+    console.log('🔍 listCompanies - Parámetros:', queryParams);
     
     // Contar total de registros
     const countQuery = `SELECT COUNT(*) as total FROM companies ${whereClause}`;
