@@ -521,13 +521,9 @@ const CommercialManager = () => {
                           </div>
                         </td>
                         <td>
-                          <ClientStatusDropdown
-                            clientId={client.id}
-                            currentStatus={client.status || 'prospeccion'}
-                            onStatusChange={(newStatus) => handleStatusChange(client.id, newStatus)}
-                            size="sm"
-                            showLabel={true}
-                          />
+                          <span className={`cell-status status-${client.status}`}>
+                            {statusConfig?.label || client.status}
+                          </span>
                         </td>
                         <td>
                           <span className={`cell-priority priority-${priority}`}>

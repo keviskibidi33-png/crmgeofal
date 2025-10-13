@@ -108,6 +108,11 @@ const ClientEditModal = ({ show, onHide, clientId, clientName, onSuccess }) => {
         queryClient.removeQueries(['client', clientId]); // Remover completamente del cache
         queryClient.invalidateQueries(['commercial-clients']);
         queryClient.invalidateQueries(['commercial-clients-with-totals']);
+        
+        // Forzar refetch inmediato de las queries principales
+        queryClient.refetchQueries(['commercial-clients-with-totals']);
+        queryClient.refetchQueries(['clients']);
+        
         if (onSuccess) {
           onSuccess(data);
         }
