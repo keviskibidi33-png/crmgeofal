@@ -208,6 +208,16 @@ const Company = {
         GROUP BY sector
       `);
       
+      // Obtener estadísticas por prioridad
+      const priorityStats = await pool.query(`
+        SELECT 
+          priority,
+          COUNT(*) as count
+        FROM companies 
+        WHERE priority IS NOT NULL AND priority <> ''
+        GROUP BY priority
+      `);
+      
       // Obtener total de clientes
       const totalResult = await pool.query('SELECT COUNT(*) as total FROM companies');
       const total = parseInt(totalResult.rows[0].total);
@@ -263,16 +273,22 @@ const Company = {
         const sector = row.sector;
         const count = parseInt(row.count);
         stats.bySector[sector] = count;
+      });
+      
+      // Mapear prioridades usando el campo priority real
+      priorityStats.rows.forEach(row => {
+        const priority = row.priority;
+        const count = parseInt(row.count);
         
-        // Extraer prioridad del sector (lógica simplificada)
-        if (sector && sector.toLowerCase().includes('urgent')) {
-          stats.byPriority.urgent += count;
-        } else if (sector && sector.toLowerCase().includes('high')) {
-          stats.byPriority.high += count;
-        } else if (sector && sector.toLowerCase().includes('medium')) {
-          stats.byPriority.medium += count;
-        } else {
-          stats.byPriority.low += count;
+        // Mapear a las categorías esperadas
+        if (priority === 'urgent') {
+          stats.byPriority.urgent = count;
+        } else if (priority === 'high') {
+          stats.byPriority.high = count;
+        } else if (priority === 'normal') {
+          stats.byPriority.medium = count; // Mapear normal a medium para compatibilidad
+        } else if (priority === 'low') {
+          stats.byPriority.low = count;
         }
       });
       
