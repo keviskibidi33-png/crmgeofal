@@ -270,11 +270,10 @@ const DataTable = ({
             
             {filterable && (
               <Col md={6} className="text-end">
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <Dropdown>
+                <Dropdown>
                   <Dropdown.Toggle variant="outline-secondary" size="sm">
-                  <FiFilter className="me-1" />
-                  Filtros
+                    <FiFilter className="me-1" />
+                    Filtros
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="data-table-filter-dropdown" style={{ zIndex: 9999 }}>
                     <Dropdown.Item 
@@ -354,7 +353,6 @@ const DataTable = ({
                     )}
                   </Dropdown.Menu>
                 </Dropdown>
-                </div>
               </Col>
             )}
           </Row>

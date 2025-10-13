@@ -73,10 +73,8 @@
   overflow-y: auto !important;
   min-width: 300px !important;
   z-index: 9999 !important;
-  position: absolute !important;
-  top: 100% !important;
-  right: 0 !important;
-  margin-top: 5px !important;
+  position: fixed !important;
+  transform: translateY(0) !important;
 }
 
 /* Scroll personalizado para el dropdown de filtros */
@@ -175,6 +173,13 @@
 /* Asegurar que el contenedor principal permita que el dropdown se muestre */
 .data-table {
   overflow: visible !important;
+  position: relative !important;
+}
+
+/* Asegurar que el contenedor de filtros no interfiera */
+.data-table .row:first-child {
+  position: relative !important;
+  z-index: 1000 !important;
 }
 
 /* Asegurar que las celdas de acciones tengan suficiente espacio */
