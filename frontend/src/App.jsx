@@ -106,6 +106,7 @@ function App() {
                   <Route path="/usuarios" element={<ErrorBoundary><RequireRole roles={["admin"]}><Usuarios /></RequireRole></ErrorBoundary>} />
                   <Route path="/clientes" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Clientes /></RequireRole></ErrorBoundary>} />
                   <Route path="/clientes/importar" element={<ErrorBoundary><RequireRole roles={["admin"]}><ClientImport /></RequireRole></ErrorBoundary>} />
+                  {/* Panel Comercial - Acceso para admin y jefa_comercial */}
                   <Route path="/comercial/panel" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><CommercialManager /></RequireRole></ErrorBoundary>} />
                   <Route path="/proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><Proyectos /></RequireRole></ErrorBoundary>} />
                   <Route path="/cotizaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","jefe_laboratorio","usuario_laboratorio"]}><Cotizaciones /></RequireRole></ErrorBoundary>} />
