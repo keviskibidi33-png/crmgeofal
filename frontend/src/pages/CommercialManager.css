@@ -1,0 +1,611 @@
+/* Estilos para el Panel Comercial - Diseño Excel */
+
+.commercial-manager {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header estilo Excel */
+.excel-header {
+  background: #ffffff;
+  border-bottom: 2px solid #d0d7de;
+  padding: 16px 20px;
+  margin-bottom: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.excel-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #24292f;
+  display: flex;
+  align-items: center;
+}
+
+.excel-title svg {
+  margin-right: 8px;
+  color: #656d76;
+}
+
+.excel-subtitle {
+  font-size: 14px;
+  color: #656d76;
+  margin: 4px 0 0 0;
+  font-weight: 400;
+}
+
+/* Estadísticas estilo Excel */
+.excel-stats {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 16px 20px;
+  margin-bottom: 0;
+  box-shadow: none;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 16px;
+  text-align: center;
+  transition: none;
+  margin: 0 4px;
+}
+
+.stat-card:hover {
+  transform: none;
+  box-shadow: none;
+  background: #f6f8fa;
+}
+
+.stat-icon {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: #24292f;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #656d76;
+  margin: 4px 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* Filtros estilo Excel */
+.excel-filters {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 16px 20px;
+  margin-bottom: 0;
+  box-shadow: none;
+  border-top: none;
+}
+
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  flex: 1;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #24292f;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input {
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 6px 8px;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.filter-input:focus {
+  border-color: #0969da;
+  box-shadow: 0 0 0 1px #0969da;
+  outline: none;
+}
+
+.filter-input::placeholder {
+  color: #656d76;
+}
+
+/* Tabla estilo Excel */
+.excel-table-container {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+  border-top: none;
+}
+
+.excel-table-header {
+  background: #f6f8fa;
+  padding: 12px 20px;
+  border-bottom: 1px solid #d0d7de;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.excel-table-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #24292f;
+}
+
+.excel-table-count {
+  font-size: 12px;
+  color: #656d76;
+  margin: 0;
+}
+
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.excel-table thead {
+  background: #f6f8fa;
+}
+
+.excel-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #24292f;
+  border-bottom: 1px solid #d0d7de;
+  border-right: 1px solid #d0d7de;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  font-size: 12px;
+  background: #f6f8fa;
+}
+
+.excel-table th:hover {
+  background: #eaeef2;
+}
+
+.excel-table th.sortable::after {
+  content: '↕';
+  position: absolute;
+  right: 6px;
+  color: #656d76;
+  font-size: 10px;
+}
+
+.excel-table th.sort-asc::after {
+  content: '↑';
+  color: #0969da;
+}
+
+.excel-table th.sort-desc::after {
+  content: '↓';
+  color: #0969da;
+}
+
+.excel-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #d0d7de;
+  border-right: 1px solid #d0d7de;
+  vertical-align: top;
+  font-size: 13px;
+  color: #24292f;
+}
+
+.excel-table tbody tr:hover {
+  background: #f6f8fa;
+}
+
+.excel-table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.excel-table tbody tr:nth-child(even):hover {
+  background: #f1f3f4;
+}
+
+/* Acciones de celda estilo Excel */
+.cell-action-btn {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 4px 6px;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: none;
+  font-size: 12px;
+}
+
+.cell-action-btn:hover {
+  border-color: #0969da;
+  background: #f6f8fa;
+}
+
+.cell-action-btn:active {
+  background: #eaeef2;
+}
+
+.cell-action-icon {
+  color: #656d76;
+  font-size: 12px;
+}
+
+.cell-action-btn:hover .cell-action-icon {
+  color: #0969da;
+}
+
+/* Paginación estilo Excel */
+.excel-pagination {
+  background: #f6f8fa;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid #d0d7de;
+}
+
+.pagination-btn {
+  padding: 6px 10px;
+  border: 1px solid #d0d7de;
+  background: #ffffff;
+  color: #24292f;
+  border-radius: 0;
+  cursor: pointer;
+  transition: none;
+  font-size: 12px;
+  margin: 0 1px;
+  font-weight: 500;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: #0969da;
+  background: #f6f8fa;
+  color: #0969da;
+}
+
+.pagination-btn.active {
+  background: #0969da;
+  border-color: #0969da;
+  color: #ffffff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f6f8fa;
+}
+
+/* Botones principales estilo Excel */
+.btn-success {
+  background: #2da44e;
+  border: 1px solid #2da44e;
+  border-radius: 0;
+  padding: 6px 12px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: none;
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background: #2c974b;
+  border-color: #2c974b;
+  transform: none;
+}
+
+.btn-outline-primary {
+  border: 1px solid #d0d7de;
+  color: #24292f;
+  border-radius: 0;
+  padding: 6px 12px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: none;
+  background: #ffffff;
+}
+
+.btn-outline-primary:hover {
+  background: #f6f8fa;
+  color: #24292f;
+  border-color: #d0d7de;
+  transform: none;
+}
+
+/* Estilos para las nuevas columnas de actividad y servicios */
+.cell-activity,
+.cell-services {
+  max-width: 200px;
+  min-width: 150px;
+}
+
+.cell-activity-content,
+.cell-services-content {
+  padding: 2px 0;
+}
+
+.cell-activity-text,
+.cell-services-text {
+  font-size: 12px;
+  line-height: 1.3;
+  color: #24292f;
+  word-wrap: break-word;
+  cursor: help;
+}
+
+.cell-activity-text:hover,
+.cell-services-text:hover {
+  color: #0969da;
+}
+
+/* Responsive para las nuevas columnas */
+@media (max-width: 1200px) {
+  .cell-activity,
+  .cell-services {
+    max-width: 150px;
+    min-width: 120px;
+  }
+  
+  .cell-activity-text,
+  .cell-services-text {
+    font-size: 11px;
+  }
+}
+
+/* Botón Limpiar */
+.filter-clear-btn {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #24292f;
+  font-weight: 500;
+  transition: none;
+  margin-top: 20px;
+  align-self: flex-start;
+}
+
+.filter-clear-btn:hover {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+  color: #24292f;
+}
+
+.filter-clear-btn svg {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+/* Responsive general */
+@media (max-width: 768px) {
+  .commercial-manager {
+    padding: 0;
+  }
+  
+  .excel-header {
+    padding: 12px 16px;
+  }
+  
+  .excel-title {
+    font-size: 16px;
+  }
+  
+  .excel-table th,
+  .excel-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-number {
+    font-size: 18px;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+}
+
+/* Estados y badges estilo Excel */
+.badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 0;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.badge-prospeccion {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.badge-ganado {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.badge-perdido {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.badge-urgente {
+  background-color: #fed7aa;
+  color: #ea580c;
+  border-color: #fdba74;
+}
+
+.badge-alta {
+  background-color: #fce7f3;
+  color: #be185d;
+  border-color: #f9a8d4;
+}
+
+.badge-normal {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+}
+
+.badge-baja {
+  background-color: #d1fae5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+/* Iconos de contacto */
+.contact-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1px;
+  font-size: 11px;
+}
+
+.contact-info svg {
+  margin-right: 4px;
+  color: #656d76;
+  width: 12px;
+  height: 12px;
+}
+
+.contact-info:last-child {
+  margin-bottom: 0;
+}
+
+/* Loading states */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.loading-spinner .spinner-border {
+  color: #0969da;
+}
+
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #656d76;
+}
+
+.empty-state svg {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  margin-bottom: 8px;
+  color: #24292f;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Dropdowns estilo Excel */
+.dropdown-toggle {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #24292f;
+}
+
+.dropdown-toggle:hover {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+}
+
+.dropdown-toggle:focus {
+  border-color: #0969da;
+  box-shadow: 0 0 0 1px #0969da;
+}
+
+.dropdown-menu {
+  border: 1px solid #d0d7de;
+  border-radius: 0;
+  box-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
+  font-size: 13px;
+}
+
+.dropdown-item {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #24292f;
+}
+
+.dropdown-item:hover {
+  background: #f6f8fa;
+  color: #24292f;
+}
+
+/* Botones de acción en header */
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.header-actions .btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 0;
+  font-weight: 500;
+}

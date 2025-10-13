@@ -7,7 +7,7 @@ const listCompanies = async (req, res) => {
     console.log('🔍 listCompanies - Llamando a:', req.url);
     console.log('🔍 listCompanies - Token:', req.headers.authorization ? 'Presente' : 'Ausente');
     
-    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '' } = req.query;
+    const { page = 1, limit = 20, search = '', type = '', city = '', sector = '', priority = '', includeTotals = false } = req.query;
     
     // Consultar datos reales de la base de datos
     const pool = require('../config/db');
@@ -41,6 +41,12 @@ const listCompanies = async (req, res) => {
       paramIndex++;
     }
     
+    if (priority) {
+      whereConditions.push(`priority = $${paramIndex}`);
+      queryParams.push(priority);
+      paramIndex++;
+    }
+    
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
     
     // Contar total de registros
@@ -50,26 +56,108 @@ const listCompanies = async (req, res) => {
     
     // Obtener datos paginados
     const offset = (page - 1) * limit;
-    const dataQuery = `
-      SELECT 
-        c.id,
-        c.name,
-        c.ruc,
-        c.dni,
-        c.type,
-        c.contact_name,
-        c.email,
-        c.phone,
-        c.city,
-        c.sector,
-        c.address,
-        c.status,
-        c.created_at
-      FROM companies c
-      ${whereClause}
-      ORDER BY c.created_at DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
+    
+    // Construir consulta con o sin totales según el parámetro
+    let dataQuery;
+    if (includeTotals === 'true') {
+      dataQuery = `
+        SELECT 
+          c.id,
+          c.name,
+          c.ruc,
+          c.dni,
+          c.type,
+          c.contact_name,
+          c.email,
+          c.phone,
+          c.city,
+          c.sector,
+          c.address,
+          c.status,
+          c.actividad,
+          c.servicios,
+          c.created_at,
+          
+          -- Totales de cotizaciones (excluyendo aprobadas y facturadas)
+          COALESCE(quote_totals.total_quoted, 0) as total_quoted,
+          COALESCE(quote_totals.quotes_count, 0) as quotes_count,
+          COALESCE(quote_totals.won_quotes_total, 0) as won_quotes_total,
+          COALESCE(quote_totals.won_quotes_count, 0) as won_quotes_count,
+          
+          -- Totales de cotizaciones aprobadas para facturación (para referencia)
+          COALESCE(quote_totals.approved_for_billing, 0) as approved_for_billing,
+          COALESCE(quote_totals.approved_count, 0) as approved_count,
+          
+          -- Totales generales
+          COALESCE(quote_totals.total_all_quotes, 0) as total_all_quotes,
+          COALESCE(quote_totals.total_quotes_count, 0) as total_quotes_count,
+          
+          -- Proyectos
+          COALESCE(project_totals.projects_count, 0) as projects_count,
+          COALESCE(project_totals.completed_projects_count, 0) as completed_projects_count,
+          
+          -- Total acumulado (SOLO cotizaciones, NO aprobadas para facturación)
+          COALESCE(quote_totals.total_quoted, 0) as total_accumulated
+        FROM companies c
+        LEFT JOIN (
+          SELECT 
+            p.company_id,
+            -- Total de cotizaciones (excluyendo aprobadas y facturadas)
+            COALESCE(SUM(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as total_quoted,
+            COUNT(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN 1 END) as quotes_count,
+            
+            -- Total de cotizaciones ganadas
+            COALESCE(SUM(CASE WHEN q.status = 'ganado' THEN q.total ELSE 0 END), 0) as won_quotes_total,
+            COUNT(CASE WHEN q.status = 'ganado' THEN 1 END) as won_quotes_count,
+            
+            -- Total de cotizaciones aprobadas para facturación (para referencia)
+            COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as approved_for_billing,
+            COUNT(CASE WHEN q.status IN ('aprobada', 'facturada') THEN 1 END) as approved_count,
+            
+            -- Total general
+            COALESCE(SUM(q.total), 0) as total_all_quotes,
+            COUNT(q.id) as total_quotes_count
+          FROM quotes q
+          LEFT JOIN projects p ON q.project_id = p.id
+          WHERE p.company_id IS NOT NULL
+          GROUP BY p.company_id
+        ) quote_totals ON c.id = quote_totals.company_id
+        LEFT JOIN (
+          SELECT 
+            company_id,
+            COUNT(id) as projects_count,
+            COUNT(CASE WHEN status = 'completado' THEN 1 END) as completed_projects_count
+          FROM projects
+          GROUP BY company_id
+        ) project_totals ON c.id = project_totals.company_id
+        ${whereClause}
+        ORDER BY c.created_at DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+    } else {
+      dataQuery = `
+        SELECT 
+          c.id,
+          c.name,
+          c.ruc,
+          c.dni,
+          c.type,
+          c.contact_name,
+          c.email,
+          c.phone,
+          c.city,
+          c.sector,
+          c.address,
+          c.status,
+          c.actividad,
+          c.servicios,
+          c.created_at
+        FROM companies c
+        ${whereClause}
+        ORDER BY c.created_at DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+    }
     
     queryParams.push(parseInt(limit));
     queryParams.push(offset);
@@ -139,7 +227,8 @@ const getCompanyFilterOptions = async (req, res) => {
     console.error('❌ getCompanyFilterOptions - Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error interno del servidor'
+      message: 'Error al obtener opciones de filtros',
+      error: error.message
     });
   }
 };
@@ -186,7 +275,11 @@ const createCompany = async (req, res) => {
       contact_name, 
       city, 
       sector,
-      dni
+      priority = 'normal',
+      dni,
+      actividad,
+      servicios,
+      assigned_user_id
     } = req.body;
     
     // Validaciones obligatorias según el tipo
@@ -234,7 +327,10 @@ const createCompany = async (req, res) => {
       contact_name,
       city,
       sector,
-      dni: type === 'persona' ? dni : null
+      dni: type === 'persona' ? dni : null,
+      actividad,
+      servicios,
+      managed_by: assigned_user_id
     });
     
     const company = await Company.create({
@@ -247,7 +343,11 @@ const createCompany = async (req, res) => {
       contact_name,
       city,
       sector,
-      dni: type === 'persona' ? dni : null
+      priority,
+      dni: type === 'persona' ? dni : null,
+      actividad,
+      servicios,
+      managed_by: assigned_user_id
     });
     
     // Auditoría
@@ -517,6 +617,108 @@ const deleteCompany = async (req, res) => {
   }
 };
 
+// Obtener empresa por ID
+const getCompanyById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { includeTotals } = req.query;
+    const userId = req.user?.id;
+
+    console.log(`🔍 getCompanyById - Usuario ${userId} obteniendo cliente ${id}, includeTotals: ${includeTotals}`);
+
+    let company;
+    if (includeTotals === 'true') {
+      // Obtener la empresa con totales usando una consulta directa
+      const pool = require('../config/db');
+      const result = await pool.query(`
+        SELECT 
+          c.id, c.type, c.ruc, c.dni, c.name, c.address, c.email, c.phone, 
+          c.contact_name, c.city, c.sector, c.status, c.actividad, c.servicios, c.created_at,
+          
+          -- Totales de cotizaciones (excluyendo aprobadas y facturadas)
+          COALESCE(quote_totals.total_quoted, 0) as total_quoted,
+          COALESCE(quote_totals.quotes_count, 0) as quotes_count,
+          COALESCE(quote_totals.won_quotes_total, 0) as won_quotes_total,
+          COALESCE(quote_totals.won_quotes_count, 0) as won_quotes_count,
+          
+          -- Totales de cotizaciones aprobadas para facturación (para referencia)
+          COALESCE(quote_totals.approved_for_billing, 0) as approved_for_billing,
+          COALESCE(quote_totals.approved_count, 0) as approved_count,
+          
+          -- Totales generales
+          COALESCE(quote_totals.total_all_quotes, 0) as total_all_quotes,
+          COALESCE(quote_totals.total_quotes_count, 0) as total_quotes_count,
+          
+          -- Proyectos
+          COALESCE(project_totals.projects_count, 0) as projects_count,
+          COALESCE(project_totals.completed_projects_count, 0) as completed_projects_count,
+          
+          -- Total acumulado (SOLO cotizaciones, NO aprobadas para facturación)
+          COALESCE(quote_totals.total_quoted, 0) as total_accumulated
+        FROM companies c
+        LEFT JOIN (
+          SELECT 
+            p.company_id,
+            -- Total de cotizaciones (excluyendo aprobadas y facturadas)
+            COALESCE(SUM(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as total_quoted,
+            COUNT(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN 1 END) as quotes_count,
+            
+            -- Total de cotizaciones ganadas
+            COALESCE(SUM(CASE WHEN q.status = 'ganado' THEN q.total ELSE 0 END), 0) as won_quotes_total,
+            COUNT(CASE WHEN q.status = 'ganado' THEN 1 END) as won_quotes_count,
+            
+            -- Total de cotizaciones aprobadas para facturación (para referencia)
+            COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as approved_for_billing,
+            COUNT(CASE WHEN q.status IN ('aprobada', 'facturada') THEN 1 END) as approved_count,
+            
+            -- Total general
+            COALESCE(SUM(q.total), 0) as total_all_quotes,
+            COUNT(q.id) as total_quotes_count
+          FROM quotes q
+          LEFT JOIN projects p ON q.project_id = p.id
+          WHERE p.company_id IS NOT NULL
+          GROUP BY p.company_id
+        ) quote_totals ON c.id = quote_totals.company_id
+        LEFT JOIN (
+          SELECT 
+            company_id,
+            COUNT(id) as projects_count,
+            COUNT(CASE WHEN status = 'completado' THEN 1 END) as completed_projects_count
+          FROM projects
+          GROUP BY company_id
+        ) project_totals ON c.id = project_totals.company_id
+        WHERE c.id = $1
+      `, [id]);
+      
+      company = result.rows[0];
+    } else {
+      // Obtener solo la empresa básica
+      company = await Company.getById(id);
+    }
+
+    if (!company) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Cliente no encontrado' 
+      });
+    }
+
+    console.log(`✅ getCompanyById - Cliente ${id} obtenido exitosamente`);
+
+    res.json({
+      success: true,
+      data: company
+    });
+
+  } catch (err) {
+    console.error('❌ getCompanyById - Error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error al obtener cliente' 
+    });
+  }
+};
+
 // Actualizar empresa
 const updateCompany = async (req, res) => {
   try {
@@ -573,6 +775,7 @@ module.exports = {
   getCompanyFilterOptions,
   searchCompanies,
   createCompany,
+  getCompanyById,
   updateCompany,
   getOrCreateCompany,
   updateClientStatus,

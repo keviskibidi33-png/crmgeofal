@@ -7,6 +7,7 @@ const {
   getCompanyFilterOptions, 
   searchCompanies,
   createCompany,
+  getCompanyById,
   getOrCreateCompany,
   updateClientStatus,
   updateClientManager,
@@ -23,14 +24,17 @@ router.get('/stats', auth(), getCompanyStats);
 // Ruta para crear empresa
 router.post('/', auth(), createCompany);
 
-// Ruta para actualizar empresa
-router.put('/:id', auth(['admin', 'vendedor_comercial', 'jefa_comercial']), require('../controllers/companyController').updateCompany);
-
-// Ruta para obtener opciones de filtros
+// Ruta para obtener opciones de filtros (DEBE ir antes de /:id)
 router.get('/filter-options', auth(), getCompanyFilterOptions);
 
-// Ruta para búsqueda de empresas/personas
+// Ruta para búsqueda de empresas/personas (DEBE ir antes de /:id)
 router.get('/search', auth(), searchCompanies);
+
+// Ruta para obtener empresa por ID
+router.get('/:id', auth(), getCompanyById);
+
+// Ruta para actualizar empresa
+router.put('/:id', auth(['admin', 'vendedor_comercial', 'jefa_comercial']), require('../controllers/companyController').updateCompany);
 
 // Ruta para obtener o crear empresa (para cotizaciones)
 router.post('/get-or-create', auth(), getOrCreateCompany);

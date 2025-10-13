@@ -27,7 +27,47 @@ export const listCompanies = (params = {}) => {
   });
 };
 
+export const listCompaniesWithTotals = (params = {}) => {
+  const sp = new URLSearchParams();
+  if (params.page) sp.set('page', params.page);
+  if (params.limit) sp.set('limit', params.limit);
+  if (params.search) sp.set('search', params.search);
+  if (params.type) sp.set('type', params.type);
+  if (params.city) sp.set('city', params.city);
+  if (params.sector) sp.set('sector', params.sector);
+  if (params.status) sp.set('status', params.status);
+  if (params.priority) sp.set('priority', params.priority);
+  if (params.sortBy) sp.set('sortBy', params.sortBy);
+  if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
+  
+  // Incluir totales
+  sp.set('includeTotals', 'true');
+  
+  // Agregar timestamp para evitar cache del navegador
+  sp.set('_t', Date.now().toString());
+  
+  const qs = sp.toString();
+  const path = qs ? `/api/companies?${qs}` : '/api/companies';
+  
+  console.log('💰 listCompaniesWithTotals - Llamando a:', path);
+  console.log('💰 listCompaniesWithTotals - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
+  
+  return apiFetch(path).then(data => {
+    console.log('✅ listCompaniesWithTotals - Respuesta recibida:', data);
+    return data;
+  }).catch(error => {
+    console.error('❌ listCompaniesWithTotals - Error:', error);
+    throw error;
+  });
+};
+
 export const getCompany = (id) => apiFetch(`/api/companies/${id}`);
+export const getCompanyById = (id) => apiFetch(`/api/companies/${id}`);
+
+export const getCompanyWithTotals = (id) => {
+  console.log('💰 getCompanyWithTotals - Obteniendo cliente con totales:', id);
+  return apiFetch(`/api/companies/${id}?includeTotals=true`);
+};
 
 export const getCompanyStats = () => {
   console.log('📊 getCompanyStats - Llamando a: /api/companies/stats');
@@ -77,11 +117,19 @@ export const getOrCreateCompany = (payload) => {
   });
 };
 
-export const updateCompany = (id, payload) =>
-  apiFetch(`/api/companies/${id}`, {
-    method: 'PATCH',
+export const updateCompany = (id, payload) => {
+  console.log('📝 updateCompany - Actualizando cliente:', id, payload);
+  return apiFetch(`/api/companies/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(payload),
+  }).then(response => {
+    console.log('✅ updateCompany - Cliente actualizado:', response);
+    return response;
+  }).catch(error => {
+    console.error('❌ updateCompany - Error:', error);
+    throw error;
   });
+};
 
 export const deleteCompany = (id) =>
   apiFetch(`/api/companies/${id}`, {

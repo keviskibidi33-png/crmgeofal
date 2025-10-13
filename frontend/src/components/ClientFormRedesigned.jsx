@@ -27,6 +27,13 @@ const CITIES = [
   { value: 'otro', label: 'Otra' }
 ];
 
+const PRIORITIES = [
+  { value: 'urgent', label: 'URGENTE' },
+  { value: 'high', label: 'ALTA' },
+  { value: 'normal', label: 'NORMAL' },
+  { value: 'low', label: 'BAJA' }
+];
+
 const ClientFormRedesigned = ({ 
   show, 
   onHide, 
@@ -45,7 +52,10 @@ const ClientFormRedesigned = ({
     phone: data.phone || '',
     address: data.address || '',
     city: data.city || 'lima',
-    sector: data.sector || 'servicios'
+    sector: data.sector || 'servicios',
+    priority: data.priority || 'normal',
+    actividad: data.actividad || '',
+    servicios: data.servicios || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -66,7 +76,10 @@ const ClientFormRedesigned = ({
         phone: isNewClient ? '' : (data.phone || ''),
         address: isNewClient ? '' : (data.address || ''),
         city: data.city || 'lima',
-        sector: data.sector || 'servicios'
+        sector: data.sector || 'servicios',
+        priority: data.priority || 'normal',
+        actividad: isNewClient ? '' : (data.actividad || ''),
+        servicios: isNewClient ? '' : (data.servicios || '')
       });
       setErrors({});
     }
@@ -385,7 +398,7 @@ const ClientFormRedesigned = ({
               </div>
             </div>
 
-            <div className="client-form-row single">
+            <div className="client-form-row">
               <div className="client-form-group">
                 <label className="client-form-label">
                   <FiHome className="client-form-icon" />
@@ -402,6 +415,66 @@ const ClientFormRedesigned = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="client-form-group">
+                <label className="client-form-label">
+                  <FiUserCheck className="client-form-icon" />
+                  Prioridad
+                </label>
+                <select
+                  className="client-form-select"
+                  value={formData.priority}
+                  onChange={(e) => handleInputChange('priority', e.target.value)}
+                >
+                  {PRIORITIES.map(priority => (
+                    <option key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Información de Actividad y Servicios */}
+          <div className="client-form-section">
+            <div className="client-form-section-title">
+              <FiHome className="client-form-icon" />
+              Actividad y Servicios
+            </div>
+            
+            <div className="client-form-row single">
+              <div className="client-form-group">
+                <label className="client-form-label">
+                  <FiHome className="client-form-icon" />
+                  Actividad Principal
+                </label>
+                <textarea
+                  className="client-form-input"
+                  value={formData.actividad}
+                  onChange={(e) => handleInputChange('actividad', e.target.value)}
+                  placeholder="Describe la actividad principal de la empresa"
+                  rows="3"
+                />
+                <div className="client-form-help">Describe brevemente a qué se dedica la empresa</div>
+              </div>
+            </div>
+
+            <div className="client-form-row single">
+              <div className="client-form-group">
+                <label className="client-form-label">
+                  <FiHome className="client-form-icon" />
+                  Servicios
+                </label>
+                <textarea
+                  className="client-form-input"
+                  value={formData.servicios}
+                  onChange={(e) => handleInputChange('servicios', e.target.value)}
+                  placeholder="Describe los servicios que ofrece o requiere la empresa"
+                  rows="3"
+                />
+                <div className="client-form-help">Lista los servicios que ofrece o que necesita la empresa</div>
               </div>
             </div>
           </div>

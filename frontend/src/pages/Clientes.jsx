@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button, Badge, Row, Col, Card, Container } from 'react-bootstrap';
-import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding, FiFolderPlus, FiClock, FiUserCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiUser, FiHome, FiMail, FiPhone, FiMapPin, FiUsers, FiHome as FiBuilding, FiFolderPlus, FiClock, FiUserCheck, FiUpload, FiDollarSign } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
 import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
@@ -12,6 +12,7 @@ import ConfirmModal from '../components/common/ConfirmModal';
 import PermissionDeniedModal from '../components/common/PermissionDeniedModal';
 import ClientStatusDropdown from '../components/ClientStatusDropdown';
 import ClientHistoryModal from '../components/ClientHistoryModal';
+import ClientSuccessModal from '../components/ClientSuccessModal';
 import { listCompanies, createCompany, updateCompany, deleteCompany, getCompanyStats, getCompanyFilterOptions } from '../services/companies';
 import { getCurrentUser, canCreateClient, canEditClient, canDeleteClient, canViewClientHistory, canCreateProject, logUserInfo } from '../utils/authHelper';
 import './Clientes.css';
@@ -28,6 +29,9 @@ const emptyForm = {
   contact_name: '',
   city: '',
   sector: '',
+  priority: 'normal',
+  actividad: '',
+  servicios: '',
 };
 
 export default function Clientes() {
@@ -38,6 +42,16 @@ export default function Clientes() {
   const [selectedClientForHistory, setSelectedClientForHistory] = useState(null);
   const [showPermissionDeniedModal, setShowPermissionDeniedModal] = useState(false);
   const [permissionDeniedInfo, setPermissionDeniedInfo] = useState({});
+  
+  // Estados para notificaciones
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
+  
+  // Estados para modal de éxito
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successClientData, setSuccessClientData] = useState(null);
+  const [isEditSuccess, setIsEditSuccess] = useState(false);
   
   // Información del usuario actual
   const currentUser = getCurrentUser();
@@ -117,6 +131,17 @@ export default function Clientes() {
     }
   );
 
+  const showNotification = (message, variant = 'success') => {
+    setToastMessage(message);
+    setToastVariant(variant);
+    setShowToast(true);
+    
+    // Auto-close después de 5 segundos
+    setTimeout(() => {
+      setShowToast(false);
+    }, 5000);
+  };
+
   const handleMutationSuccess = (message) => {
     queryClient.invalidateQueries('clients');
     queryClient.invalidateQueries('clientStats'); // Invalidar también las estadísticas
@@ -124,6 +149,9 @@ export default function Clientes() {
     setShowModal(false);
     setEditingClient(null);
     setDeletingClient(null);
+    
+    // Mostrar notificación de éxito
+    showNotification(message, 'success');
   };
 
   // Función para manejar búsqueda
@@ -186,7 +214,12 @@ export default function Clientes() {
   }, [filterOptionsData]);
 
   const createMutation = useMutation(createCompany, {
-    onSuccess: () => handleMutationSuccess('Cliente creado exitosamente'),
+    onSuccess: (data) => {
+      setSuccessClientData(data);
+      setIsEditSuccess(false);
+      setShowSuccessModal(true);
+      handleMutationSuccess('Cliente creado exitosamente');
+    },
     onError: (error) => {
       console.error('Error creating client:', error);
       console.error('Error details:', {
@@ -198,7 +231,12 @@ export default function Clientes() {
   });
 
   const updateMutation = useMutation(updateCompany, {
-    onSuccess: () => handleMutationSuccess('Cliente actualizado exitosamente'),
+    onSuccess: (data) => {
+      setSuccessClientData(data);
+      setIsEditSuccess(true);
+      setShowSuccessModal(true);
+      handleMutationSuccess('Cliente actualizado exitosamente');
+    },
     onError: (error) => console.error('Error updating client:', error)
   });
 
@@ -309,6 +347,7 @@ export default function Clientes() {
     setSelectedClientForHistory(client);
     setShowHistoryModal(true);
   };
+
 
   const handleStatusChange = (clientId, newStatus) => {
     // La actualización se maneja automáticamente por react-query
@@ -439,7 +478,14 @@ export default function Clientes() {
       accessor: 'sector',
       width: '80px',
       render: (value) => {
-        const sector = value || 'General';
+        // Limpiar sector para mostrar solo el sector base
+        const cleanSector = (sector) => {
+          if (!sector) return 'General';
+          // Remover la información de prioridad
+          return sector.replace(/\s*\[PRIORIDAD:\s*\w+\]/g, '').trim() || 'General';
+        };
+        
+        const sector = cleanSector(value);
         let sectorColor = 'secondary';
         
         // Asignar colores según el sector
@@ -492,6 +538,52 @@ export default function Clientes() {
           showLabel={true}
         />
       )
+    },
+    {
+      header: 'Prioridad',
+      accessor: 'priority',
+      width: '100px',
+      render: (value, row) => {
+        // Extraer prioridad del campo sector
+        const extractPriority = (sector) => {
+          if (!sector) return 'normal';
+          
+          if (sector.includes('[PRIORIDAD: URGENTE]')) return 'urgent';
+          if (sector.includes('[PRIORIDAD: ALTA]')) return 'high';
+          if (sector.includes('[PRIORIDAD: BAJA]')) return 'low';
+          
+          return 'normal';
+        };
+        
+        const priority = extractPriority(row.sector);
+        let priorityColor = 'secondary';
+        let priorityText = 'Normal';
+        
+        switch (priority) {
+          case 'urgent':
+            priorityColor = 'danger';
+            priorityText = 'Urgente';
+            break;
+          case 'high':
+            priorityColor = 'warning';
+            priorityText = 'Alta';
+            break;
+          case 'normal':
+            priorityColor = 'info';
+            priorityText = 'Normal';
+            break;
+          case 'low':
+            priorityColor = 'secondary';
+            priorityText = 'Baja';
+            break;
+        }
+        
+        return (
+          <Badge bg={priorityColor} className="px-2 py-1" style={{fontSize: '0.7rem'}}>
+            {priorityText}
+          </Badge>
+        );
+      }
     },
     {
       header: 'Gestor',
@@ -754,17 +846,31 @@ export default function Clientes() {
             <h4 className="mb-0 fw-bold">Gestión de Clientes</h4>
             <small className="text-muted">Crear, editar y gestionar clientes del sistema</small>
           </div>
+          <div className="d-flex gap-2">
+            {currentUser?.role === 'admin' && (
+              <Button 
+                variant="outline-success" 
+                size="sm"
+                onClick={() => navigate('/clientes/importar')}
+                title="Importar clientes desde archivo CSV"
+              >
+                <FiUpload className="me-1" />
+                Importar Clientes
+              </Button>
+            )}
             <Button 
               variant="primary" 
-            size="sm"
+              size="sm"
               onClick={handleCreate}
               disabled={!userCanCreateClient}
               title={!userCanCreateClient ? `No tienes permisos para crear clientes. Rol actual: ${currentUser?.role || 'No autenticado'}` : 'Crear nuevo cliente'}
             >
-            <FiPlus className="me-1" />
+              <FiPlus className="me-1" />
               Nuevo Cliente
             </Button>
+          </div>
         </div>
+
 
         {/* Información de depuración */}
         {!userCanCreateClient && (
@@ -773,51 +879,47 @@ export default function Clientes() {
           </div>
         )}
 
-        {/* Estadísticas ultra compactas */}
-        <Row className="g-0 mb-3">
+        {/* Estadísticas compactas */}
+        <Row className="g-2 mb-3">
           <Col md={6} lg={3}>
-            <div className="bg-primary bg-opacity-10 rounded p-2 text-center">
-              <div className="d-flex align-items-center justify-content-center">
-                <FiUsers className="text-primary me-2" size={16} />
-                <div>
-                  <div className="fw-bold text-primary">{statsLoading ? '...' : stats.total}</div>
-                  <small className="text-muted">Total</small>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Total"
+              value={stats.total}
+              icon={FiUsers}
+              color="primary"
+              loading={statsLoading}
+              size="compact"
+            />
           </Col>
           <Col md={6} lg={3}>
-            <div className="bg-success bg-opacity-10 rounded p-2 text-center">
-              <div className="d-flex align-items-center justify-content-center">
-                <FiBuilding className="text-success me-2" size={16} />
-                <div>
-                  <div className="fw-bold text-success">{statsLoading ? '...' : stats.empresas}</div>
-                  <small className="text-muted">Empresas</small>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Empresas"
+              value={stats.empresas}
+              icon={FiBuilding}
+              color="success"
+              loading={statsLoading}
+              size="compact"
+            />
           </Col>
           <Col md={6} lg={3}>
-            <div className="bg-info bg-opacity-10 rounded p-2 text-center">
-              <div className="d-flex align-items-center justify-content-center">
-                <FiUser className="text-info me-2" size={16} />
-                <div>
-                  <div className="fw-bold text-info">{statsLoading ? '...' : stats.personas}</div>
-                  <small className="text-muted">Personas</small>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Personas"
+              value={stats.personas}
+              icon={FiUser}
+              color="info"
+              loading={statsLoading}
+              size="compact"
+            />
           </Col>
           <Col md={6} lg={3}>
-            <div className="bg-warning bg-opacity-10 rounded p-2 text-center">
-              <div className="d-flex align-items-center justify-content-center">
-                <FiMail className="text-warning me-2" size={16} />
-                <div>
-                  <div className="fw-bold text-warning">{statsLoading ? '...' : stats.conEmail}</div>
-                  <small className="text-muted">Con Email</small>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Con Email"
+              value={stats.conEmail}
+              icon={FiMail}
+              color="warning"
+              loading={statsLoading}
+              size="compact"
+            />
           </Col>
         </Row>
 
@@ -900,6 +1002,39 @@ export default function Clientes() {
         requiredRole={permissionDeniedInfo.requiredRole}
         currentRole={permissionDeniedInfo.currentRole}
       />
+
+      {/* Modal de éxito */}
+      <ClientSuccessModal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+        clientData={successClientData}
+        isEdit={isEditSuccess}
+      />
+
+      {/* Toast de notificaciones */}
+      {showToast && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 99999,
+            backgroundColor: toastVariant === 'success' ? '#28a745' : '#dc3545',
+            color: 'white',
+            padding: '15px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            minWidth: '300px',
+            border: 'none'
+          }}
+          onClick={() => setShowToast(false)}
+        >
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+            {toastVariant === 'success' ? '✅ Éxito' : '❌ Error'}
+          </div>
+          <div>{toastMessage}</div>
+        </div>
+      )}
       </Container>
       </div>
   );

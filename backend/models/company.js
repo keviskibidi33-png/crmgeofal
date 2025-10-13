@@ -16,7 +16,7 @@ const Company = {
   // Exponer los estados para uso en otros módulos
   STATUS: CLIENT_STATUS,
 
-  async getAll({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '', status = '' }) {
+  async getAll({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '', priority = '', status = '' }) {
     const offset = (page - 1) * limit;
     let where = [];
     let params = [];
@@ -43,6 +43,10 @@ const Company = {
       params.push(sector);
       where.push(`sector = $${params.length}`);
     }
+    if (priority) {
+      params.push(priority);
+      where.push(`priority = $${params.length}`);
+    }
     if (status) {
       params.push(status);
       where.push(`status = $${params.length}`);
@@ -52,7 +56,7 @@ const Company = {
     params.push(limit, offset);
     
         const data = await pool.query(
-          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, created_at FROM companies ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
+          `SELECT id, type, ruc, dni, name, address, email, phone, contact_name, city, sector, status, priority, actividad, servicios, created_at FROM companies ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${params.length-1} OFFSET $${params.length}`,
           params
         );
     
@@ -77,18 +81,18 @@ const Company = {
     const res = await pool.query('SELECT * FROM companies WHERE dni = $1', [dni]);
     return res.rows[0];
   },
-  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
+  async create({ type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios }) {
     const res = await pool.query(
-      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector]
+      `INSERT INTO companies (type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios]
     );
     return res.rows[0];
   },
-  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector }) {
+  async update(id, { type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by }) {
     const res = await pool.query(
-      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10 WHERE id = $11 RETURNING *`,
-      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, id]
+      `UPDATE companies SET type = $1, ruc = $2, dni = $3, name = $4, address = $5, email = $6, phone = $7, contact_name = $8, city = $9, sector = $10, priority = $11, actividad = $12, servicios = $13, managed_by = $14 WHERE id = $15 RETURNING *`,
+      [type, ruc, dni, name, address, email, phone, contact_name, city, sector, priority, actividad, servicios, managed_by, id]
     );
     return res.rows[0];
   },
@@ -185,6 +189,25 @@ const Company = {
         GROUP BY type
       `);
       
+      // Obtener estadísticas por estado
+      const statusStats = await pool.query(`
+        SELECT 
+          status,
+          COUNT(*) as count
+        FROM companies 
+        GROUP BY status
+      `);
+      
+      // Obtener estadísticas por sector
+      const sectorStats = await pool.query(`
+        SELECT 
+          sector,
+          COUNT(*) as count
+        FROM companies 
+        WHERE sector IS NOT NULL AND sector <> ''
+        GROUP BY sector
+      `);
+      
       // Obtener total de clientes
       const totalResult = await pool.query('SELECT COUNT(*) as total FROM companies');
       const total = parseInt(totalResult.rows[0].total);
@@ -204,7 +227,15 @@ const Company = {
         personas: 0,
         withEmail: withEmail,
         withPhone: withPhone,
-        byType: {}
+        byType: {},
+        byStatus: {},
+        bySector: {},
+        byPriority: {
+          urgent: 0,
+          high: 0,
+          medium: 0,
+          low: 0
+        }
       };
       
       // Mapear tipos a categorías
@@ -220,10 +251,229 @@ const Company = {
         }
       });
       
+      // Mapear estados
+      statusStats.rows.forEach(row => {
+        const status = row.status;
+        const count = parseInt(row.count);
+        stats.byStatus[status] = count;
+      });
+      
+      // Mapear sectores
+      sectorStats.rows.forEach(row => {
+        const sector = row.sector;
+        const count = parseInt(row.count);
+        stats.bySector[sector] = count;
+        
+        // Extraer prioridad del sector (lógica simplificada)
+        if (sector && sector.toLowerCase().includes('urgent')) {
+          stats.byPriority.urgent += count;
+        } else if (sector && sector.toLowerCase().includes('high')) {
+          stats.byPriority.high += count;
+        } else if (sector && sector.toLowerCase().includes('medium')) {
+          stats.byPriority.medium += count;
+        } else {
+          stats.byPriority.low += count;
+        }
+      });
+      
       console.log('✅ Company.getStats - Estadísticas calculadas:', stats);
       return stats;
     } catch (error) {
       console.error('❌ Company.getStats - Error:', error);
+      throw error;
+    }
+  },
+
+  async getClientTotalValue(companyId) {
+    try {
+      console.log('💰 Company.getClientTotalValue - Calculando valor total para cliente:', companyId);
+      
+      // Obtener total de cotizaciones del cliente (SOLO cotizaciones, NO aprobadas para facturación)
+      const quotesResult = await pool.query(`
+        SELECT 
+          -- Total de cotizaciones (excluyendo aprobadas y facturadas)
+          COALESCE(SUM(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as total_quoted,
+          COUNT(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN 1 END) as quotes_count,
+          
+          -- Total de cotizaciones ganadas (excluyendo aprobadas y facturadas)
+          COALESCE(SUM(CASE WHEN q.status = 'ganado' THEN q.total ELSE 0 END), 0) as won_quotes_total,
+          COUNT(CASE WHEN q.status = 'ganado' THEN 1 END) as won_quotes_count,
+          
+          -- Total de cotizaciones aprobadas para facturación (para referencia, NO incluido en total acumulado)
+          COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as approved_for_billing,
+          COUNT(CASE WHEN q.status IN ('aprobada', 'facturada') THEN 1 END) as approved_count,
+          
+          -- Total general (todas las cotizaciones)
+          COALESCE(SUM(q.total), 0) as total_all_quotes,
+          COUNT(q.id) as total_quotes_count
+        FROM quotes q
+        LEFT JOIN projects p ON q.project_id = p.id
+        WHERE p.company_id = $1
+      `, [companyId]);
+      
+      // Obtener total de proyectos del cliente
+      const projectsResult = await pool.query(`
+        SELECT 
+          COUNT(p.id) as projects_count,
+          COUNT(CASE WHEN p.status = 'completado' THEN 1 END) as completed_projects_count
+        FROM projects p
+        WHERE p.company_id = $1
+      `, [companyId]);
+      
+      const quotesData = quotesResult.rows[0];
+      const projectsData = projectsResult.rows[0];
+      
+      const totalValue = {
+        // Valores principales (solo cotizaciones, NO aprobadas para facturación)
+        total_quoted: parseFloat(quotesData.total_quoted) || 0,
+        quotes_count: parseInt(quotesData.quotes_count) || 0,
+        won_quotes_total: parseFloat(quotesData.won_quotes_total) || 0,
+        won_quotes_count: parseInt(quotesData.won_quotes_count) || 0,
+        
+        // Valores de referencia (aprobados para facturación - NO incluidos en total acumulado)
+        approved_for_billing: parseFloat(quotesData.approved_for_billing) || 0,
+        approved_count: parseInt(quotesData.approved_count) || 0,
+        
+        // Totales generales
+        total_all_quotes: parseFloat(quotesData.total_all_quotes) || 0,
+        total_quotes_count: parseInt(quotesData.total_quotes_count) || 0,
+        
+        // Proyectos
+        projects_count: parseInt(projectsData.projects_count) || 0,
+        completed_projects_count: parseInt(projectsData.completed_projects_count) || 0,
+        
+        // Total acumulado (SOLO cotizaciones, NO aprobadas para facturación)
+        total_accumulated: parseFloat(quotesData.total_quoted) || 0
+      };
+      
+      console.log('✅ Company.getClientTotalValue - Valor calculado:', totalValue);
+      return totalValue;
+    } catch (error) {
+      console.error('❌ Company.getClientTotalValue - Error:', error);
+      throw error;
+    }
+  },
+
+  async getAllWithTotals({ page = 1, limit = 20, search = '', type = '', area = '', city = '', sector = '', priority = '', status = '' }) {
+    try {
+      console.log('💰 Company.getAllWithTotals - Obteniendo clientes con totales...');
+      
+      const offset = (page - 1) * limit;
+      let where = [];
+      let params = [];
+      
+      // Búsqueda en múltiples campos
+      if (search) {
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        params.push(`%${search}%`);
+        where.push(`(LOWER(name) LIKE LOWER($${params.length-3}) OR LOWER(contact_name) LIKE LOWER($${params.length-2}) OR LOWER(email) LIKE LOWER($${params.length-1}) OR LOWER(phone) LIKE LOWER($${params.length}))`);
+      }
+      
+      // Filtros
+      if (type) {
+        params.push(type);
+        where.push(`type = $${params.length}`);
+      }
+      if (city) {
+        params.push(city);
+        where.push(`city = $${params.length}`);
+      }
+      if (sector) {
+        params.push(sector);
+        where.push(`sector = $${params.length}`);
+      }
+      if (priority) {
+        params.push(priority);
+        where.push(`priority = $${params.length}`);
+      }
+      if (status) {
+        params.push(status);
+        where.push(`status = $${params.length}`);
+      }
+      
+      let whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+      params.push(limit, offset);
+      
+      // Query principal con totales calculados (SOLO cotizaciones, NO aprobadas para facturación)
+      const data = await pool.query(`
+        SELECT 
+          c.id, c.type, c.ruc, c.dni, c.name, c.address, c.email, c.phone, 
+          c.contact_name, c.city, c.sector, c.status, c.actividad, c.servicios, c.created_at,
+          
+          -- Totales de cotizaciones (excluyendo aprobadas y facturadas)
+          COALESCE(quote_totals.total_quoted, 0) as total_quoted,
+          COALESCE(quote_totals.quotes_count, 0) as quotes_count,
+          COALESCE(quote_totals.won_quotes_total, 0) as won_quotes_total,
+          COALESCE(quote_totals.won_quotes_count, 0) as won_quotes_count,
+          
+          -- Totales de cotizaciones aprobadas para facturación (para referencia)
+          COALESCE(quote_totals.approved_for_billing, 0) as approved_for_billing,
+          COALESCE(quote_totals.approved_count, 0) as approved_count,
+          
+          -- Totales generales
+          COALESCE(quote_totals.total_all_quotes, 0) as total_all_quotes,
+          COALESCE(quote_totals.total_quotes_count, 0) as total_quotes_count,
+          
+          -- Proyectos
+          COALESCE(project_totals.projects_count, 0) as projects_count,
+          COALESCE(project_totals.completed_projects_count, 0) as completed_projects_count,
+          
+          -- Total acumulado (SOLO cotizaciones, NO aprobadas para facturación)
+          COALESCE(quote_totals.total_quoted, 0) as total_accumulated
+        FROM companies c
+        LEFT JOIN (
+          SELECT 
+            p.company_id,
+            -- Total de cotizaciones (excluyendo aprobadas y facturadas)
+            COALESCE(SUM(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as total_quoted,
+            COUNT(CASE WHEN q.status NOT IN ('aprobada', 'facturada') THEN 1 END) as quotes_count,
+            
+            -- Total de cotizaciones ganadas
+            COALESCE(SUM(CASE WHEN q.status = 'ganado' THEN q.total ELSE 0 END), 0) as won_quotes_total,
+            COUNT(CASE WHEN q.status = 'ganado' THEN 1 END) as won_quotes_count,
+            
+            -- Total de cotizaciones aprobadas para facturación (para referencia)
+            COALESCE(SUM(CASE WHEN q.status IN ('aprobada', 'facturada') THEN q.total ELSE 0 END), 0) as approved_for_billing,
+            COUNT(CASE WHEN q.status IN ('aprobada', 'facturada') THEN 1 END) as approved_count,
+            
+            -- Total general
+            COALESCE(SUM(q.total), 0) as total_all_quotes,
+            COUNT(q.id) as total_quotes_count
+          FROM quotes q
+          LEFT JOIN projects p ON q.project_id = p.id
+          WHERE p.company_id IS NOT NULL
+          GROUP BY p.company_id
+        ) quote_totals ON c.id = quote_totals.company_id
+        LEFT JOIN (
+          SELECT 
+            company_id,
+            COUNT(id) as projects_count,
+            COUNT(CASE WHEN status = 'completado' THEN 1 END) as completed_projects_count
+          FROM projects
+          GROUP BY company_id
+        ) project_totals ON c.id = project_totals.company_id
+        ${whereClause}
+        ORDER BY c.created_at DESC, c.id DESC 
+        LIMIT $${params.length-1} OFFSET $${params.length}
+      `, params);
+      
+      // Total con filtros
+      let totalParams = params.slice(0, params.length-2);
+      const total = await pool.query(`
+        SELECT COUNT(*) FROM companies c ${whereClause}
+      `, totalParams);
+      
+      return {
+        rows: data.rows,
+        total: parseInt(total.rows[0].count),
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(parseInt(total.rows[0].count) / limit)
+      };
+    } catch (error) {
+      console.error('❌ Company.getAllWithTotals - Error:', error);
       throw error;
     }
   },
