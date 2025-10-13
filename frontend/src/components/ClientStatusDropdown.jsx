@@ -124,6 +124,10 @@ const ClientStatusDropdown = ({
       queryClient.invalidateQueries('clientStats');
       queryClient.invalidateQueries('companyStats');
       queryClient.invalidateQueries('clientFilterOptions');
+      
+      // Forzar refetch inmediato de las queries principales
+      queryClient.refetchQueries(['commercial-clients-with-totals']);
+      queryClient.refetchQueries(['clients']);
     } catch (err) {
       console.error(`❌ ClientStatusDropdown - Error al actualizar estado:`, err);
       setError(err.message || 'Error al actualizar estado');

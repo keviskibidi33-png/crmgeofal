@@ -17,18 +17,10 @@ import ClientSuccessModal from '../components/ClientSuccessModal';
 import ClientCreateModal from '../components/ClientCreateModal';
 import './CommercialManager.css';
 
-// Función para extraer prioridad del sector
-const extractPriorityFromSector = (sector) => {
-  if (!sector) return 'normal';
-  if (sector.includes('[PRIORIDAD: URGENTE]') || sector.includes('[URG]')) return 'urgent';
-  if (sector.includes('[PRIORIDAD: ALTA]') || sector.includes('[ALTA]')) return 'high';
-  if (sector.includes('[PRIORIDAD: BAJA]') || sector.includes('[BAJA]')) return 'low';
-  return 'normal';
-};
-
-// Función para limpiar el sector para mostrar
+// Función para limpiar el sector para mostrar (sin prioridad embebida)
 const cleanSectorForDisplay = (sector) => {
   if (!sector) return 'General';
+  // Limpiar cualquier prioridad embebida que pueda quedar
   return sector.replace(/\s*\[PRIORIDAD:\s*\w+\]/g, '').replace(/\s*\[URG\]/g, '').replace(/\s*\[ALTA\]/g, '').replace(/\s*\[BAJA\]/g, '').trim() || 'General';
 };
 
@@ -93,7 +85,7 @@ const CommercialManager = () => {
     { 
       keepPreviousData: true,
       refetchOnWindowFocus: true,
-      staleTime: 30000 // 30 segundos
+      staleTime: 0 // No usar cache, siempre obtener datos frescos
     }
   );
 
