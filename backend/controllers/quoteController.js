@@ -210,7 +210,31 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const data = req.body;
+    
+    console.log('🔍 Quote.update - Datos recibidos:', JSON.stringify(data, null, 2));
+    console.log('🔍 Quote.update - Meta type:', typeof data.meta);
+    console.log('🔍 Quote.update - Meta value:', data.meta);
+    
+    // Procesar el campo meta si existe
+    if (data.meta && typeof data.meta === 'object') {
+      // Si meta es un objeto, asegurar que se serialice correctamente
+      data.meta = JSON.stringify(data.meta);
+      console.log('🔍 Quote.update - Meta serializado:', data.meta);
+    } else if (data.meta && typeof data.meta === 'string') {
+      // Si meta es string, verificar que sea JSON válido
+      try {
+        JSON.parse(data.meta);
+        console.log('🔍 Quote.update - Meta string es JSON válido');
+      } catch (error) {
+        console.error('❌ Quote.update - Meta string no es JSON válido:', error);
+        return res.status(400).json({ error: 'Campo meta no es JSON válido' });
+      }
+    }
+    
     const quote = await Quote.update(req.params.id, data);
+    
+    console.log('✅ Quote.update - Cotización actualizada:', quote.id);
+    
     await AuditQuote.log({
       user_id: req.user.id,
       action: 'editar',
@@ -220,7 +244,8 @@ exports.update = async (req, res) => {
     });
     res.json(quote);
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar cotización' });
+    console.error('❌ Quote.update - Error:', err);
+    res.status(500).json({ error: 'Error al actualizar cotización: ' + err.message });
   }
 };
 

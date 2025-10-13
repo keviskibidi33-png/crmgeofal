@@ -81,6 +81,10 @@ function processBundleData(bundle) {
   const hasVeryManyItems = itemCount >= 28; // MUY MUCHOS ITEMS: tabla compacta, condiciones a segunda página
   const hasExtremeItems = itemCount > 30; // ITEMS EXTREMOS: tabla muy compacta
   const hasReducedFont = itemCount >= 13; // REDUCCIÓN DE LETRA: para 13+ items en segunda página
+  
+  // ✅ DEFINIR delivery_days AL INICIO para que esté disponible en los templates
+  const delivery_days = bundle.quote?.delivery_days || bundle.quote?.meta?.quote?.delivery_days || 4;
+  
     items.forEach(item => {
       const unitPrice = parseFloat(item.unit_price) || 0;
       const quantity = parseInt(item.quantity) || 1;
@@ -178,7 +182,7 @@ function processBundleData(bundle) {
     </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>`;
   }
 
@@ -190,7 +194,7 @@ function processBundleData(bundle) {
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else if (hasPlazoItems) {
@@ -198,7 +202,7 @@ function processBundleData(bundle) {
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else if (hasCondicionesItems) {
@@ -214,7 +218,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else if (hasPartialItems) {
@@ -222,7 +226,7 @@ function processBundleData(bundle) {
     condicionesSegundaPagina = `
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else if (hasMediumItems) {
@@ -238,7 +242,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else if (hasVeryManyItems) {
@@ -254,7 +258,7 @@ function processBundleData(bundle) {
       </div>
       <div class="normal-subtitle">PLAZO ESTIMADO DE EJECUCIÓN DE SERVICIO</div>
       <div class="conditions-content">
-        El plazo de entrega será de los resultados se estima ${variantConditions.delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
+        El plazo de entrega será de los resultados se estima ${delivery_days} días hábiles, este tiempo está sujeto a la programación enviada por el área de LEM. El laboratorio enviará un correo de confirmación de recepción y fecha de entrega del informe.
       </div>
       <div class="normal-subtitle">CONTRAMUESTRA</div>`;
   } else {
@@ -349,7 +353,7 @@ function processBundleData(bundle) {
       igv: igv.toFixed(2),
       total: total.toFixed(2),
     variant_conditions: variantConditions,
-    delivery_days: bundle.quote?.delivery_days || bundle.quote?.meta?.quote?.delivery_days || variantConditions?.delivery_days || 4,
+    delivery_days: delivery_days,
     condiciones_primera_pagina: condicionesPrimeraPagina,
     condiciones_segunda_pagina: condicionesSegundaPagina,
     // Variables para layout adaptativo

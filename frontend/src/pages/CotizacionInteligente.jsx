@@ -430,6 +430,8 @@ export default function CotizacionInteligente() {
       }
       
       // Cargar datos de la cotización
+      const deliveryDaysValue = existingQuote.meta?.quote?.delivery_days || existingQuote.delivery_days || 4;
+      
       setQuote(prev => ({
         ...prev,
         request_date: existingQuote.meta?.quote?.request_date || existingQuote.request_date || new Date().toISOString().slice(0, 10),
@@ -440,7 +442,7 @@ export default function CotizacionInteligente() {
         reference: existingQuote.reference || '',
         reference_type: existingQuote.reference_type || ['email', 'phone'],
         igv: existingQuote.igv !== false,
-        delivery_days: existingQuote.meta?.quote?.delivery_days || existingQuote.delivery_days || 4, // Mantener días hábiles originales
+        delivery_days: deliveryDaysValue, // Mantener días hábiles originales
         category_main: existingQuote.category_main || 'laboratorio'
       }));
       
@@ -472,6 +474,15 @@ export default function CotizacionInteligente() {
       if (existingQuote.meta && existingQuote.meta.conditions_text) {
         setConditionsText(existingQuote.meta.conditions_text);
         console.log('📝 Condiciones específicas cargadas');
+      }
+      
+      // ✅ NUEVO: Cargar project_id para preservar el proyecto original
+      if (existingQuote.project_id) {
+        setSelection(prev => ({
+          ...prev,
+          project_id: existingQuote.project_id
+        }));
+        console.log('✅ Project ID cargado para edición:', existingQuote.project_id);
       }
       
       console.log('✅ Datos de cotización cargados para edición');
@@ -539,6 +550,7 @@ export default function CotizacionInteligente() {
       }
     };
   }, [searchTimeout]);
+
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -1265,13 +1277,18 @@ export default function CotizacionInteligente() {
               <div className="col-md-6">
                 <label className="form-label">Días Hábiles</label>
                 <input 
+                  key={`delivery-days-${quote.delivery_days}`}
                   type="number" 
                   className="form-control" 
-                  value={quote.delivery_days} 
-                  onChange={e => setQuote({...quote, delivery_days: parseInt(e.target.value) || 4})} 
+                  value={quote.delivery_days || 4} 
+                  onChange={e => {
+                    const newValue = parseInt(e.target.value) || 4;
+                    setQuote(prev => ({...prev, delivery_days: newValue}));
+                  }} 
                   min="1"
                   max="30"
                 />
+                <small className="text-muted">Estado actual: {quote.delivery_days}</small>
               </div>
               <div className="col-md-6">
                 <div className="form-check mt-4">
