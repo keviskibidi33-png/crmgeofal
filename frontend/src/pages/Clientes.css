@@ -70,6 +70,13 @@
   font-size: 0.7rem !important;
 }
 
+/* Asegurar que el dropdown de filtros funcione correctamente */
+.client-table .data-table-filter-dropdown {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  z-index: 9999 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .client-table table td,
