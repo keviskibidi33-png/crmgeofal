@@ -324,17 +324,61 @@ const createCompany = async (req, res) => {
     console.log('✅ createCompany - Validaciones pasadas, tipo:', type, 'ruc:', ruc, 'dni:', dni);
     
     // Verificar si ya existe una empresa con ese RUC o DNI
+    // EXCEPCIÓN: Solo RUCs que empiecen con "209999999" pueden ser duplicados (datos temporales)
     let existingCompany = null;
+    const isTemporaryRuc = ruc && ruc.startsWith('209999999');
+    
     if (type === 'empresa' && ruc) {
       existingCompany = await Company.getByRuc(ruc);
+      
+      if (existingCompany) {
+        if (isTemporaryRuc) {
+          // RUC temporal: generar RUC único automáticamente
+          console.log('🔄 RUC temporal duplicado detectado, generando RUC único');
+          console.log(`   RUC original: ${ruc} ya existe en cliente: ${existingCompany.name}`);
+          
+          // Generar RUC temporal único automáticamente
+          console.log('   🔄 Generando RUC temporal único...');
+          
+          let newRuc;
+          let counter = 1;
+          let isUnique = false;
+          
+          // Buscar el siguiente RUC temporal disponible
+          while (!isUnique && counter <= 99) {
+            newRuc = `209999999${String(counter).padStart(2, '0')}`;
+            const checkResult = await pool.query('SELECT id FROM companies WHERE ruc = $1', [newRuc]);
+            isUnique = checkResult.rows.length === 0;
+            counter++;
+          }
+          
+          // Si no se encuentra uno disponible, usar timestamp
+          if (!isUnique) {
+            newRuc = `209999999${Date.now().toString().slice(-2)}`;
+            console.log('   ⚠️ Usando timestamp para RUC único');
+          }
+          
+          console.log(`   ✅ RUC temporal generado: ${newRuc}`);
+          ruc = newRuc; // Actualizar el RUC para la creación
+        } else {
+          // RUC real: no permitir duplicados
+          console.log('❌ RUC real duplicado detectado, devolviendo cliente existente');
+          return res.status(200).json({
+            ...existingCompany,
+            isExisting: true,
+            message: 'Cliente existente encontrado'
+          });
+        }
+      }
     } else if (type === 'persona' && dni) {
       existingCompany = await Company.getByDni(dni);
-    }
-    
-    if (existingCompany) {
-      // Si la empresa ya existe, devolver la empresa existente en lugar de error
-      console.log('✅ Empresa existente encontrada, devolviendo datos existentes');
-      return res.status(200).json(existingCompany);
+      if (existingCompany) {
+        console.log('❌ DNI duplicado detectado, devolviendo cliente existente');
+        return res.status(200).json({
+          ...existingCompany,
+          warning: `Ya existe un cliente con este DNI: ${existingCompany.name}`
+        });
+      }
     }
     
     console.log('🔨 createCompany - Creando empresa con datos:', {
@@ -399,10 +443,48 @@ const getOrCreateCompany = async (req, res) => {
     }
     
     // Buscar empresa existente
+    // EXCEPCIÓN: Solo RUCs que empiecen con "209999999" pueden ser duplicados (datos temporales)
+    const isTemporaryRuc = ruc && ruc.startsWith('209999999');
     const existingCompany = await Company.getByRuc(ruc);
+    
     if (existingCompany) {
-      console.log('✅ Empresa existente encontrada:', existingCompany.name);
-      return res.status(200).json(existingCompany);
+      if (isTemporaryRuc) {
+        // RUC temporal: generar RUC único automáticamente
+        console.log('🔄 RUC temporal duplicado detectado, generando RUC único');
+        console.log(`   RUC original: ${ruc} ya existe en cliente: ${existingCompany.name}`);
+        
+        // Generar RUC temporal único automáticamente
+        console.log('   🔄 Generando RUC temporal único...');
+        
+        let newRuc;
+        let counter = 1;
+        let isUnique = false;
+        
+        // Buscar el siguiente RUC temporal disponible
+        while (!isUnique && counter <= 99) {
+          newRuc = `209999999${String(counter).padStart(2, '0')}`;
+          const checkResult = await pool.query('SELECT id FROM companies WHERE ruc = $1', [newRuc]);
+          isUnique = checkResult.rows.length === 0;
+          counter++;
+        }
+        
+        // Si no se encuentra uno disponible, usar timestamp
+        if (!isUnique) {
+          newRuc = `209999999${Date.now().toString().slice(-2)}`;
+          console.log('   ⚠️ Usando timestamp para RUC único');
+        }
+        
+        console.log(`   ✅ RUC temporal generado: ${newRuc}`);
+        ruc = newRuc; // Actualizar el RUC para la creación
+      } else {
+        // RUC real: devolver cliente existente
+        console.log('✅ Empresa existente encontrada:', existingCompany.name);
+        return res.status(200).json({
+          ...existingCompany,
+          isExisting: true,
+          message: 'Cliente existente encontrado'
+        });
+      }
     }
     
     // Crear nueva empresa si no existe

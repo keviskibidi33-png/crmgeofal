@@ -91,7 +91,7 @@ const ClientFormRedesigned = ({
     // Validación en tiempo real para RUC y DNI
     if (field === 'ruc' && formData.type === 'empresa') {
       if (value && !validateRUC(value)) {
-        setErrors(prev => ({ ...prev, ruc: 'El RUC debe empezar con 20 y tener 11 dígitos' }));
+        setErrors(prev => ({ ...prev, ruc: 'El RUC debe empezar con 20 o 209999999 y tener 11 dígitos' }));
       } else {
         setErrors(prev => ({ ...prev, ruc: '' }));
       }
@@ -122,8 +122,8 @@ const ClientFormRedesigned = ({
   // Función para validar RUC peruano
   const validateRUC = (ruc) => {
     if (!ruc) return false;
-    // RUC debe empezar con 20 y tener 11 dígitos
-    const rucRegex = /^20\d{9}$/;
+    // RUC debe empezar con 20 o 209999999 y tener 11 dígitos
+    const rucRegex = /^(20|209999999)\d{9}$/;
     return rucRegex.test(ruc);
   };
 
@@ -154,7 +154,7 @@ const ClientFormRedesigned = ({
       if (!formData.ruc.trim()) {
         newErrors.ruc = 'El RUC es requerido para empresas';
       } else if (!validateRUC(formData.ruc)) {
-        newErrors.ruc = 'El RUC debe empezar con 20 y tener 11 dígitos';
+        newErrors.ruc = 'El RUC debe empezar con 20 o 209999999 y tener 11 dígitos';
       }
     }
 

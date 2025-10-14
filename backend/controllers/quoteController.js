@@ -16,9 +16,9 @@ function validateRUC(ruc) {
     return { valid: false, message: 'RUC debe tener exactamente 11 dígitos' };
   }
   
-  // Verificar que empiece con "20"
-  if (!rucStr.startsWith('20')) {
-    return { valid: false, message: 'RUC debe empezar con "20"' };
+  // Verificar que empiece con "20" o "209999999"
+  if (!rucStr.startsWith('20') && !rucStr.startsWith('209999999')) {
+    return { valid: false, message: 'RUC debe empezar con "20" o "209999999"' };
   }
   
   return { valid: true, message: 'RUC válido' };
