@@ -128,7 +128,7 @@ const Project = {
       user.role === 'jefa_comercial' ||
       user.role === 'jefe_laboratorio' ||
       user.role === 'admin' ||
-      (user.role === 'vendedor_comercial' && project.vendedor_id === user.id) ||
+      user.role === 'vendedor_comercial' ||
       (user.role === 'usuario_laboratorio' && project.laboratorio_id === user.id)
     ) {
       return project;
@@ -265,7 +265,7 @@ const Project = {
     if (
       user.role === 'jefa_comercial' ||
       user.role === 'admin' ||
-      (user.role === 'vendedor_comercial' && project.vendedor_id === user.id) ||
+      user.role === 'vendedor_comercial' ||
       (user.role === 'vendedor' && project.vendedor_id === user.id)
     ) {
       console.log('✅ Project.update - Usuario autorizado para editar');
@@ -378,8 +378,8 @@ const Project = {
     return null;
   },
   async delete(id, user) {
-    // Solo jefa comercial puede eliminar
-    if (user.role !== 'jefa_comercial') return false;
+    // Solo jefa comercial, admin y vendedor comercial pueden eliminar
+    if (user.role !== 'jefa_comercial' && user.role !== 'admin' && user.role !== 'vendedor_comercial') return false;
     await pool.query('DELETE FROM projects WHERE id = $1', [id]);
     return true;
   },

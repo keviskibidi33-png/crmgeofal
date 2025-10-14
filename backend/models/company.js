@@ -3,6 +3,8 @@ const pool = require('../config/db');
 // Estados de clientes
 const CLIENT_STATUS = {
   PROSPECCION: 'prospeccion',
+  CONTACTADO: 'contactado',
+  NO_CONTESTO: 'no_contesto',
   INTERESADO: 'interesado',
   PENDIENTE_COTIZACION: 'pendiente_cotizacion',
   COTIZACION_ENVIADA: 'cotizacion_enviada',

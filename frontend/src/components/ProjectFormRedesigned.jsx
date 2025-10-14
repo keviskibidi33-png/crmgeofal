@@ -45,6 +45,7 @@ export default function ProjectFormRedesigned({
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [autoDetectedClient, setAutoDetectedClient] = useState(null);
 
   const totalSteps = 4;
 
@@ -75,13 +76,17 @@ export default function ProjectFormRedesigned({
 
   // Búsqueda inteligente de clientes
   const handleSearch = async (searchTerm) => {
+    console.log('🔍 handleSearch - Iniciando búsqueda:', { searchTerm, clientType: formData.clientType });
+    
     if (!searchTerm || searchTerm.length < 2) {
+      console.log('🔍 handleSearch - Término muy corto, cancelando búsqueda');
       setSearchResults([]);
       setShowSearchResults(false);
       return;
     }
 
     if (!formData.clientType) {
+      console.log('🔍 handleSearch - No hay tipo de cliente seleccionado');
       setSearchResults([]);
       setShowSearchResults(false);
       return;
@@ -89,16 +94,59 @@ export default function ProjectFormRedesigned({
 
     setIsSearching(true);
     try {
+      console.log('🔍 handleSearch - Llamando a searchCompanies...');
       const response = await searchCompanies(formData.clientType, searchTerm);
+      console.log('🔍 handleSearch - Respuesta recibida:', response);
+      
       if (response.success) {
-        setSearchResults(response.data || []);
+        const results = response.data || [];
+        console.log('🔍 handleSearch - Resultados encontrados:', results.length);
+        setSearchResults(results);
         setShowSearchResults(true);
+        
+        // Auto-seleccionar si hay una coincidencia exacta o muy similar
+        const exactMatch = results.find(client => {
+          const clientName = client.name.toLowerCase().trim();
+          const searchName = searchTerm.toLowerCase().trim();
+          
+          console.log('🔍 Comparando:', { clientName, searchName });
+          
+          // Coincidencia exacta
+          if (clientName === searchName) {
+            console.log('✅ Coincidencia exacta encontrada');
+            return true;
+          }
+          
+          // Coincidencia sin espacios extra
+          if (clientName.replace(/\s+/g, ' ') === searchName.replace(/\s+/g, ' ')) {
+            console.log('✅ Coincidencia sin espacios extra encontrada');
+            return true;
+          }
+          
+          // Coincidencia sin caracteres especiales
+          const cleanClientName = clientName.replace(/[^\w\s]/g, '');
+          const cleanSearchName = searchName.replace(/[^\w\s]/g, '');
+          if (cleanClientName === cleanSearchName) {
+            console.log('✅ Coincidencia sin caracteres especiales encontrada');
+            return true;
+          }
+          
+          return false;
+        });
+        
+        if (exactMatch) {
+          console.log('🎯 Cliente detectado automáticamente:', exactMatch.name);
+          handleSelectClient(exactMatch, true);
+        } else {
+          console.log('❌ No se encontró coincidencia exacta');
+        }
       } else {
+        console.log('❌ handleSearch - Respuesta no exitosa:', response);
         setSearchResults([]);
         setShowSearchResults(false);
       }
     } catch (error) {
-      console.error('Error en búsqueda:', error);
+      console.error('❌ Error en búsqueda:', error);
       setSearchResults([]);
       setShowSearchResults(false);
     } finally {
@@ -107,7 +155,7 @@ export default function ProjectFormRedesigned({
   };
 
   // Seleccionar cliente
-  const handleSelectClient = (client) => {
+  const handleSelectClient = (client, isAutoDetected = false) => {
     setFormData(prev => ({
       ...prev,
       client_id: client.id,
@@ -116,6 +164,14 @@ export default function ProjectFormRedesigned({
     }));
     setSearchTerm(client.name);
     setShowSearchResults(false);
+    
+    if (isAutoDetected) {
+      // Mostrar mensaje de confirmación
+      console.log('✅ Cliente seleccionado automáticamente:', client.name);
+      setAutoDetectedClient(client.name);
+      // Limpiar el mensaje después de 3 segundos
+      setTimeout(() => setAutoDetectedClient(null), 3000);
+    }
   };
 
   // Limpiar selección
@@ -129,6 +185,7 @@ export default function ProjectFormRedesigned({
     setSearchTerm('');
     setSearchResults([]);
     setShowSearchResults(false);
+    setAutoDetectedClient(null);
   };
 
   const validateStep = (step) => {
@@ -137,7 +194,7 @@ export default function ProjectFormRedesigned({
     switch (step) {
       case 1:
         if (!formData.clientType) newErrors.clientType = 'Selecciona el tipo de cliente';
-        if (!formData.client_id) newErrors.client_id = 'Selecciona un cliente';
+        if (!formData.client_id) newErrors.client_id = 'Debes seleccionar un cliente de la lista de resultados';
         if (!formData.name) newErrors.name = 'Nombre del proyecto es requerido';
         if (!formData.location) newErrors.location = 'Ubicación es requerida';
         break;
@@ -254,6 +311,7 @@ export default function ProjectFormRedesigned({
                   }}
                   placeholder={`Buscar ${formData.clientType === 'empresa' ? 'empresa' : 'persona natural'}...`}
                   isInvalid={!!errors.client_id}
+                  isValid={!!formData.client_id && !errors.client_id}
                 />
                 {isSearching && (
                   <div className="position-absolute top-50 end-0 translate-middle-y me-3">
@@ -267,21 +325,32 @@ export default function ProjectFormRedesigned({
                 {showSearchResults && searchTerm && (
                   <div className="position-absolute w-100 bg-white border rounded shadow-lg" style={{zIndex: 1000, maxHeight: '300px', overflowY: 'auto'}}>
                     {searchResults.length > 0 ? (
-                      searchResults.map((result, index) => (
-                        <div 
-                          key={index}
-                          className="p-3 border-bottom cursor-pointer hover-bg-light"
-                          onClick={() => handleSelectClient(result)}
-                        >
-                          <div className="fw-bold">{result.name}</div>
-                          <div className="text-muted small">
-                            {formData.clientType === 'empresa' ? result.ruc : result.dni} • {result.address}
-                          </div>
+                      <>
+                        <div className="p-2 bg-light border-bottom">
+                          <small className="text-muted">
+                            <strong>Haz clic en un cliente para seleccionarlo:</strong>
+                          </small>
                         </div>
-                      ))
+                        {searchResults.map((result, index) => (
+                          <div 
+                            key={index}
+                            className="p-3 border-bottom cursor-pointer hover-bg-light"
+                            onClick={() => handleSelectClient(result)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="fw-bold">{result.name}</div>
+                            <div className="text-muted small">
+                              {formData.clientType === 'empresa' ? result.ruc : result.dni} • {result.address}
+                            </div>
+                          </div>
+                        ))}
+                      </>
                     ) : (
-                      <div className="p-3 text-muted text-center">
-                        No se encontraron resultados
+                      <div className="p-3 text-center">
+                        <div className="text-muted mb-2">No se encontraron resultados</div>
+                        <small className="text-warning">
+                          Verifica el nombre o crea un nuevo cliente
+                        </small>
                       </div>
                     )}
                   </div>
@@ -291,6 +360,14 @@ export default function ProjectFormRedesigned({
                 <Form.Control.Feedback type="invalid">
                   {errors.client_id}
                 </Form.Control.Feedback>
+              )}
+              {autoDetectedClient && (
+                <div className="mt-2">
+                  <Alert variant="success" className="py-2 mb-0">
+                    <FiCheckCircle className="me-2" />
+                    <strong>Cliente detectado automáticamente:</strong> {autoDetectedClient}
+                  </Alert>
+                </div>
               )}
             </Form.Group>
           </Col>

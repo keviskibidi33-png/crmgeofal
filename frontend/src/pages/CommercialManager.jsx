@@ -278,7 +278,7 @@ const CommercialManager = () => {
   }
 
   return (
-    <RequireRole roles={['admin', 'jefa_comercial']}>
+    <RequireRole roles={['admin', 'jefa_comercial', 'vendedor_comercial']}>
       <div className="commercial-manager">
         <Container fluid className="py-4">
           {/* Header */}

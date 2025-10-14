@@ -1,6 +1,6 @@
 // Small API helper for frontend
-// Use VITE_API_URL if provided; otherwise rely on same-origin and dev proxy
-const RAW_BASE = (import.meta.env?.VITE_API_URL || '').trim();
+// Use VITE_API_URL if provided; otherwise use localhost:4000 for production
+const RAW_BASE = (import.meta.env?.VITE_API_URL || 'http://localhost:4000/api').trim();
 const API_BASE = RAW_BASE.replace(/\/$/, ''); // quita la barra final
 
 function getAuthHeader() {
@@ -32,6 +32,9 @@ export async function apiFetch(path, opts = {}) {
     normPath = normPath.replace(/^\/api(\/|$)/i, '/');
   }
   const url = API_BASE ? `${API_BASE}${normPath}` : normPath;
+  
+  // Debug log para verificar la URL
+  console.log('🌐 API Request:', { url, API_BASE, normPath, RAW_BASE });
 
   const res = await fetch(url, { ...opts, headers });
   const text = await res.text();
