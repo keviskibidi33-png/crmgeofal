@@ -1301,8 +1301,6 @@ export default function Proyectos() {
               data={data?.data || []}
               columns={columns}
               loading={isLoading || isSearching}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
               actions={[
                 { 
                   label: 'Ver', 
@@ -1311,7 +1309,18 @@ export default function Proyectos() {
                   variant: 'primary',
                   style: { backgroundColor: '#f84616', borderColor: '#f84616' }
                 },
-                { label: 'Eliminar', icon: FiTrash2, onClick: handleDelete, variant: 'outline-danger' }
+                { 
+                  label: 'Editar', 
+                  icon: FiEdit, 
+                  onClick: handleEdit, 
+                  variant: 'outline-primary' 
+                },
+                { 
+                  label: 'Eliminar', 
+                  icon: FiTrash2, 
+                  onClick: handleDelete, 
+                  variant: 'outline-danger' 
+                }
               ]}
               emptyMessage="No hay proyectos registrados"
               // Props para paginación del backend
