@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getCurrentUser, canCreateProject, canEditProject, canDeleteProject } from '../utils/authHelper';
 import { Button, Badge, Row, Col, Card, Container, Tabs, Tab, Toast, ToastContainer } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiHome, FiMapPin, FiCalendar, FiUser, FiCheckCircle, FiClock, FiX, FiRefreshCw, FiFolder, FiMessageCircle, FiCheck, FiSettings, FiEye, FiUsers, FiDownload, FiAlertTriangle, FiUpload, FiFileText, FiSave, FiMessageSquare } from 'react-icons/fi';
 import PageHeader from '../components/common/PageHeader';
@@ -9,6 +10,7 @@ import DataTable from '../components/common/DataTable';
 import ModalForm from '../components/common/ModalForm';
 import StatsCard from '../components/common/StatsCard';
 import ConfirmModal from '../components/common/ConfirmModal';
+import PermissionDeniedModal from '../components/common/PermissionDeniedModal';
 import { listProjects, createProject, updateProject, deleteProject, getProjectStats, updateProjectStatus, updateProjectQueries, updateProjectMark } from '../services/projects';
 import { listProjectAttachments, uploadAttachment, deleteAttachment, downloadFile } from '../services/attachments';
 import { listUsers } from '../services/users';
@@ -36,6 +38,12 @@ const emptyForm = {
 
 export default function Proyectos() {
   const { user } = useAuth();
+  
+  // Información del usuario actual y permisos
+  const currentUser = getCurrentUser();
+  const userCanCreateProject = canCreateProject();
+  const userCanEditProject = canEditProject();
+  const userCanDeleteProject = canDeleteProject();
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
@@ -47,6 +55,10 @@ export default function Proyectos() {
   const [showViewOnlyModal, setShowViewOnlyModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
+  
+  // Estados para modal de permisos denegados
+  const [showPermissionDeniedModal, setShowPermissionDeniedModal] = useState(false);
+  const [permissionDeniedInfo, setPermissionDeniedInfo] = useState({});
   
   // Estados para archivos adjuntos
   const [attachments, setAttachments] = useState([]);
@@ -564,6 +576,16 @@ export default function Proyectos() {
   );
 
   const handleCreate = () => {
+    if (!userCanCreateProject) {
+      setPermissionDeniedInfo({
+        action: "crear proyectos",
+        requiredRole: "administrador, jefa comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
+    
     // Si hay un cliente pre-seleccionado, pre-llenar el formulario
     const formData = selectedClient ? {
       ...emptyForm,
@@ -580,11 +602,37 @@ export default function Proyectos() {
   };
 
   const handleEdit = (project) => {
+    if (!userCanEditProject) {
+      setPermissionDeniedInfo({
+        action: "editar proyectos",
+        requiredRole: "administrador, jefa comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
     setEditingProject(project);
     setShowModal(true);
   };
 
   const handleDelete = (project) => {
+    console.log('🔍 handleDelete - Verificando permisos:', {
+      userCanDeleteProject,
+      currentUserRole: currentUser?.role,
+      currentUser: currentUser
+    });
+    
+    if (!userCanDeleteProject) {
+      console.log('🚫 handleDelete - Permisos insuficientes, mostrando modal');
+      setPermissionDeniedInfo({
+        action: "eliminar proyectos",
+        requiredRole: "administrador, jefa comercial o vendedor comercial",
+        currentRole: currentUser?.role || "no autenticado"
+      });
+      setShowPermissionDeniedModal(true);
+      return;
+    }
+    console.log('✅ handleDelete - Permisos OK, procediendo con eliminación');
     setDeletingProject(project);
   };
 
@@ -2495,6 +2543,15 @@ export default function Proyectos() {
         message={`¿Estás seguro de que quieres ${markingProject?.marked ? 'desmarcar' : 'marcar'} el proyecto "${markingProject?.name}"?`}
         confirmText={markingProject?.marked ? 'Desmarcar' : 'Marcar'}
         variant={markingProject?.marked ? 'warning' : 'success'}
+      />
+
+      {/* Modal de permisos denegados */}
+      <PermissionDeniedModal
+        show={showPermissionDeniedModal}
+        onHide={() => setShowPermissionDeniedModal(false)}
+        action={permissionDeniedInfo.action}
+        requiredRole={permissionDeniedInfo.requiredRole}
+        currentRole={permissionDeniedInfo.currentRole}
       />
     </>
   );

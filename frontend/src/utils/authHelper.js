@@ -53,6 +53,14 @@ export const canCreateProject = () => {
   return hasRole(['admin', 'jefa_comercial', 'vendedor_comercial']);
 };
 
+export const canEditProject = () => {
+  return hasRole(['admin', 'jefa_comercial', 'vendedor_comercial']);
+};
+
+export const canDeleteProject = () => {
+  return hasRole(['admin', 'jefa_comercial', 'vendedor_comercial']);
+};
+
 export const logUserInfo = () => {
   const user = getCurrentUser();
   if (user) {
@@ -65,7 +73,10 @@ export const logUserInfo = () => {
     console.log('🔐 Permisos:', {
       canCreateClient: canCreateClient(),
       canEditClient: canEditClient(),
-      canDeleteClient: canDeleteClient()
+      canDeleteClient: canDeleteClient(),
+      canCreateProject: canCreateProject(),
+      canEditProject: canEditProject(),
+      canDeleteProject: canDeleteProject()
     });
   } else {
     console.log('❌ No hay usuario autenticado');
