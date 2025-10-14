@@ -199,6 +199,8 @@ const ClientEditModal = ({ show, onHide, clientId, clientName, onSuccess }) => {
 
   const statusOptions = [
     { value: 'prospeccion', label: 'Prospección' },
+    { value: 'contactado', label: 'Contactado' },
+    { value: 'no_contesto', label: 'No contestó' },
     { value: 'interesado', label: 'Interesado' },
     { value: 'pendiente_cotizacion', label: 'Pendiente Cotización' },
     { value: 'cotizacion_enviada', label: 'Cotización Enviada' },

@@ -1,2 +1,0 @@
-import{b as s}from"./index-Dcu-y_Nk.js";const u=(t={})=>{const o=new URLSearchParams(t).toString(),e=o?`/api/quotes?${o}`:"/api/quotes";return s(e)},i=t=>s(`/api/quotes/${t}`),n=t=>s("/api/quotes",{method:"POST",body:JSON.stringify(t)}),p=(t,o)=>s(`/api/quotes/${t}`,{method:"PUT",body:JSON.stringify(o)}),c=t=>s(`/api/quotes/${t}`,{method:"DELETE"}),r=(t,o)=>s(`/api/quotes/${t}/status`,{method:"PATCH",body:JSON.stringify({status:o})});export{r as a,n as c,c as d,i as g,u as l,p as u};
-//# sourceMappingURL=quotes-BLxht9GA.js.map

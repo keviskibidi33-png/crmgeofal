@@ -66,10 +66,9 @@ async function restoreClients(backupFile) {
       const insertResult = await pool.query(`
         INSERT INTO companies (
           name, ruc, address, phone, email, contact_name, 
-          contact_phone, contact_email, sector, state, 
-          city, priority, actividad, servicios, created_by, 
-          created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          sector, city, priority, actividad, servicios, 
+          status, type, dni, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING id
       `, [
         clientData.name,
@@ -78,15 +77,14 @@ async function restoreClients(backupFile) {
         clientData.phone,
         clientData.email,
         clientData.contact_name,
-        clientData.contact_phone,
-        clientData.contact_email,
         clientData.sector,
-        clientData.state,
         clientData.city,
         clientData.priority,
         clientData.actividad,
         clientData.servicios,
-        createdBy,
+        clientData.status || 'prospeccion',
+        clientData.type || 'empresa',
+        clientData.dni || null,
         clientData.created_at || new Date(),
         clientData.updated_at || new Date()
       ]);

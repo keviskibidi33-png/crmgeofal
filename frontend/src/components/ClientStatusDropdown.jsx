@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Dropdown, Button, Spinner, Alert } from 'react-bootstrap';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from 'react-query';
-import { FiChevronDown, FiCheck, FiSearch, FiHeart, FiClock, FiSend, FiMessageSquare, FiCheckCircle, FiX, FiMoreHorizontal } from 'react-icons/fi';
+import { FiChevronDown, FiCheck, FiSearch, FiHeart, FiClock, FiSend, FiMessageSquare, FiCheckCircle, FiX, FiMoreHorizontal, FiUserCheck, FiPhoneOff } from 'react-icons/fi';
 import { updateClientStatus } from '../services/companies';
 
 // Estados de clientes con iconos y colores
@@ -12,6 +12,18 @@ const CLIENT_STATUSES = {
     icon: FiSearch,
     color: 'secondary',
     bgColor: '#6c757d'
+  },
+  contactado: {
+    label: 'Contactado',
+    icon: FiUserCheck,
+    color: 'primary',
+    bgColor: '#007bff'
+  },
+  no_contesto: {
+    label: 'No contestó',
+    icon: FiPhoneOff,
+    color: 'warning',
+    bgColor: '#ffc107'
   },
   interesado: {
     label: 'Interesado',

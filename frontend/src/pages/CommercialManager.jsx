@@ -36,6 +36,8 @@ const PRIORITY_CONFIG = {
 // Configuración de estados
 const STATUS_CONFIG = {
   prospeccion: { label: 'Prospección', variant: 'primary' },
+  contactado: { label: 'Contactado', variant: 'info' },
+  no_contesto: { label: 'No contestó', variant: 'warning' },
   interesado: { label: 'Interesado', variant: 'info' },
   pendiente_cotizacion: { label: 'Pendiente Cotización', variant: 'warning' },
   cotizacion_enviada: { label: 'Cotización Enviada', variant: 'secondary' },
