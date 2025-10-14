@@ -472,7 +472,10 @@ export default function Proyectos() {
 
   const deleteMutation = useMutation(deleteProject, {
     onSuccess: () => handleMutationSuccess('Proyecto eliminado exitosamente'),
-    onError: (error) => console.error('Error deleting project:', error)
+    onError: (error) => {
+      console.error('Error deleting project:', error);
+      // El manejo específico del error 403 se hace en confirmDelete
+    }
   });
 
   const updateStatusMutation = useMutation(
@@ -642,7 +645,19 @@ export default function Proyectos() {
       setDeletingProject(null);
     } catch (error) {
       console.error('Error eliminando proyecto:', error);
-      setDeletingProject(null);
+      
+      // Si es un error 403 (Forbidden), mostrar modal de permisos denegados
+      if (error.status === 403 || error.message?.includes('No autorizado')) {
+        setDeletingProject(null); // Cerrar modal de confirmación
+        setPermissionDeniedInfo({
+          action: "eliminar proyectos",
+          requiredRole: "administrador, jefa comercial o vendedor comercial",
+          currentRole: currentUser?.role || "no autenticado"
+        });
+        setShowPermissionDeniedModal(true);
+      } else {
+        setDeletingProject(null);
+      }
     }
   };
 
