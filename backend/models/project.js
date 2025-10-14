@@ -378,8 +378,8 @@ const Project = {
     return null;
   },
   async delete(id, user) {
-    // Solo jefa comercial, admin y vendedor comercial pueden eliminar
-    if (user.role !== 'jefa_comercial' && user.role !== 'admin' && user.role !== 'vendedor_comercial') return false;
+    // Solo jefa comercial, soporte y admin pueden eliminar
+    if (user.role !== 'jefa_comercial' && user.role !== 'soporte' && user.role !== 'admin') return false;
     await pool.query('DELETE FROM projects WHERE id = $1', [id]);
     return true;
   },

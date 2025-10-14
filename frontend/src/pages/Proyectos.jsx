@@ -629,7 +629,7 @@ export default function Proyectos() {
       console.log('🚫 handleDelete - Permisos insuficientes, mostrando modal');
       setPermissionDeniedInfo({
         action: "eliminar proyectos",
-        requiredRole: "administrador, jefa comercial o vendedor comercial",
+        requiredRole: "jefa comercial o soporte",
         currentRole: currentUser?.role || "no autenticado"
       });
       setShowPermissionDeniedModal(true);
@@ -651,7 +651,7 @@ export default function Proyectos() {
         setDeletingProject(null); // Cerrar modal de confirmación
         setPermissionDeniedInfo({
           action: "eliminar proyectos",
-          requiredRole: "administrador, jefa comercial o vendedor comercial",
+          requiredRole: "jefa comercial o soporte",
           currentRole: currentUser?.role || "no autenticado"
         });
         setShowPermissionDeniedModal(true);
@@ -1323,12 +1323,6 @@ export default function Proyectos() {
                   onClick: handleViewOnlyProject, 
                   variant: 'primary',
                   style: { backgroundColor: '#f84616', borderColor: '#f84616' }
-                },
-                { 
-                  label: 'Editar', 
-                  icon: FiEdit, 
-                  onClick: handleEdit, 
-                  variant: 'outline-primary' 
                 },
                 { 
                   label: 'Eliminar', 

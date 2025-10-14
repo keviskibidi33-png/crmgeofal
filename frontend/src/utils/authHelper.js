@@ -58,7 +58,7 @@ export const canEditProject = () => {
 };
 
 export const canDeleteProject = () => {
-  return hasRole(['admin', 'jefa_comercial', 'vendedor_comercial']);
+  return hasRole(['admin', 'jefa_comercial', 'soporte']);
 };
 
 export const logUserInfo = () => {
