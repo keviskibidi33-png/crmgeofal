@@ -1,0 +1,86 @@
+===============================================
+    GUÍA COMPLETA PARA VENDEDORES - CRM GEOFAL
+===============================================
+
+DESCRIPCIÓN:
+-----------
+Sistema CRM completo para gestión de clientes, cotizaciones, 
+proyectos y tickets. Accesible desde internet para todo el equipo.
+
+CREDENCIALES NGROK:
+------------------
+Email: keviskibidi33@gmail.com
+Authtoken: 343DA2ih7rCy2bHk1vvAmJ0PbiL_5uEtYQjDnWvypjjPxJqE4
+Plan: Free
+Región: South America (sa)
+
+CÓMO INICIAR EL SISTEMA:
+-----------------------
+1. Abrir PowerShell como Administrador
+2. Navegar al directorio del proyecto
+3. Ejecutar: .\iniciar-sistema.ps1
+4. Esperar a que se abra la ventana de ngrok
+5. Copiar la URL que aparece (ej: https://xxxxx.ngrok.io)
+
+CÓMO COMPARTIR CON EL EQUIPO:
+----------------------------
+1. Una vez iniciado el sistema, copiar la URL de ngrok
+2. Enviar la URL a todos los vendedores
+3. Los vendedores pueden acceder desde cualquier lugar
+4. No necesitan instalación adicional
+
+CÓMO DETENER EL SISTEMA:
+-----------------------
+1. Cerrar la ventana de ngrok (Ctrl+C)
+2. O ejecutar: Get-Process -Name "ngrok" | Stop-Process -Force
+
+FUNCIONALIDADES PRINCIPALES:
+---------------------------
+- Gestión de clientes
+- Creación de cotizaciones
+- Seguimiento de proyectos
+- Sistema de tickets
+- Reportes y métricas
+- Importación de datos
+- Backups automáticos
+
+ARCHIVOS IMPORTANTES:
+--------------------
+- iniciar-sistema.ps1 (Script principal)
+- ngrok.exe (Cliente para exposición a internet)
+- backend/ (API del sistema)
+- frontend/ (Interfaz de usuario)
+- backend/backups/ (Backups de clientes)
+- DocumentosExcel/ (Archivos de importación)
+
+BACKUPS DISPONIBLES:
+-------------------
+- backup_clientes_completo_2025-10-14T05-53-13-058Z.json
+- crmgeofal_backup_2025-10-13T23-55-50.sql
+- crmgeofal_backup_2025-10-13T23-56-33.sql
+
+SCRIPTS DE BACKUP:
+-----------------
+- backend/scripts/backupClients.js
+- backend/scripts/restoreClients.js
+
+SOLUCIÓN DE PROBLEMAS:
+--------------------
+- Si ngrok no funciona: Verificar authtoken
+- Si el backend no inicia: Verificar puerto 4000
+- Si hay errores de CORS: Recompilar frontend
+- Si no se puede acceder: Verificar que ngrok esté corriendo
+
+NOTAS IMPORTANTES:
+-----------------
+- El sistema funciona 24/7 mientras ngrok esté activo
+- La URL de ngrok cambia cada vez que se reinicia
+- Siempre compartir la nueva URL después de reiniciar
+- Los backups se guardan automáticamente
+- El sistema es completamente funcional desde internet
+
+CONTACTO TÉCNICO:
+----------------
+Para problemas técnicos contactar al administrador del sistema.
+
+===============================================

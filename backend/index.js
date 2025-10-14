@@ -28,15 +28,24 @@ const logger = winston.createLogger({
   ]
 });
 
-// Seguridad HTTP
-app.use(helmet());
-app.use(cors());
+// Seguridad HTTP - Configuración para tunnels
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
 // Logging HTTP requests
 app.use(morgan('combined', { stream: { write: msg => logger.info(msg.trim()) } }));
 
 // Para servir archivos adjuntos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Para servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -46,9 +55,9 @@ const apiLimiter = rateLimit({
 });
 app.use(apiLimiter);
 
-// Example route
+// Ruta principal - servir el frontend
 app.get('/', (req, res) => {
-  res.send('CRM Backend running');
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 // Health check route
@@ -139,6 +148,16 @@ app.use('/api/recuperados', require('./routes/recuperadosRoutes'));
 // Sistema de servicios moderno
 app.use('/api/project-services', require('./routes/projectServiceRoutes'));
 app.use('/api/project-history', require('./routes/projectHistoryRoutes'));
+
+// Ruta catch-all para el frontend (SPA) - debe ir al final
+app.get('*', (req, res) => {
+  // Si es una ruta de API, no servir el frontend
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  // Para todas las demás rutas, servir el frontend
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 // Middleware global de manejo de errores
 // Keep the 4-arg signature for Express error middleware. To avoid ESLint warnings about the
