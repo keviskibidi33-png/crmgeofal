@@ -278,7 +278,7 @@ const CommercialManager = () => {
   }
 
   return (
-    <RequireRole roles={['admin', 'comercial']}>
+    <RequireRole roles={['admin', 'jefa_comercial']}>
       <div className="commercial-manager">
         <Container fluid className="py-4">
           {/* Header */}
@@ -511,13 +511,27 @@ const CommercialManager = () => {
                             {client.email && (
                               <div className="cell-contact-item">
                                 <FiMail className="cell-contact-icon" />
-                                <small className="text-muted">{client.email}</small>
+                                <small 
+                                  className="text-muted" 
+                                  style={{ cursor: 'pointer', color: '#007bff' }}
+                                  onClick={() => window.open(`mailto:${client.email}`, '_blank')}
+                                  title="Abrir en Outlook"
+                                >
+                                  {client.email}
+                                </small>
                               </div>
                             )}
                             {client.phone && (
                               <div className="cell-contact-item">
                                 <FiPhone className="cell-contact-icon" />
-                                <small className="text-muted">{client.phone}</small>
+                                <small 
+                                  className="text-muted" 
+                                  style={{ cursor: 'pointer', color: '#25d366' }}
+                                  onClick={() => window.open(`https://wa.me/51${client.phone.replace(/\D/g, '')}`, '_blank')}
+                                  title="Abrir en WhatsApp"
+                                >
+                                  {client.phone}
+                                </small>
                               </div>
                             )}
                           </div>

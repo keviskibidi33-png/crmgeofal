@@ -37,7 +37,7 @@ class ClientCommentController {
       socketService.sendClientComment(company_id, newComment);
       
       // Enviar notificación a roles comerciales
-      socketService.sendClientCommentToRoles(['admin', 'comercial', 'jefa_comercial'], {
+      socketService.sendClientCommentToRoles(['admin', 'jefa_comercial'], {
         title: `Nuevo comentario en cliente`,
         message: `${req.user.name} comentó: "${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}"`,
         type: 'client_comment',

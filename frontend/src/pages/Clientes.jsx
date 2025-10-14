@@ -457,13 +457,27 @@ export default function Clientes() {
           {row.email && (
             <div className="d-flex align-items-center mt-1">
               <FiMail size={10} className="me-1 text-muted" />
-              <small className="text-muted" style={{fontSize: '0.7rem'}}>{row.email}</small>
+              <small 
+                className="text-muted" 
+                style={{fontSize: '0.7rem', cursor: 'pointer', color: '#007bff'}}
+                onClick={() => window.open(`mailto:${row.email}`, '_blank')}
+                title="Abrir en Outlook"
+              >
+                {row.email}
+              </small>
             </div>
           )}
           {row.phone && (
             <div className="d-flex align-items-center mt-1">
               <FiPhone size={10} className="me-1 text-muted" />
-              <small className="text-muted" style={{fontSize: '0.7rem'}}>{row.phone}</small>
+              <small 
+                className="text-muted" 
+                style={{fontSize: '0.7rem', cursor: 'pointer', color: '#25d366'}}
+                onClick={() => window.open(`https://wa.me/51${row.phone.replace(/\D/g, '')}`, '_blank')}
+                title="Abrir en WhatsApp"
+              >
+                {row.phone}
+              </small>
             </div>
           )}
         </div>
