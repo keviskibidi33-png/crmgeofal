@@ -28,6 +28,9 @@ const logger = winston.createLogger({
   ]
 });
 
+// Configuración para ngrok y proxies
+app.set('trust proxy', true);
+
 // Seguridad HTTP - Configuración para tunnels
 app.use(helmet({
   contentSecurityPolicy: false,

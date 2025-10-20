@@ -15,6 +15,7 @@ export async function apiFetch(path, opts = {}) {
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     'Pragma': 'no-cache',
     'Expires': '0',
+    'ngrok-skip-browser-warning': 'true', // Bypass ngrok warning page
     ...getAuthHeader(), 
     ...(opts.headers || {}) 
   };
