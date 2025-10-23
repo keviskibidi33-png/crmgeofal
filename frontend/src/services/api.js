@@ -1,6 +1,6 @@
 // Small API helper for frontend
-// Use VITE_API_URL if provided; otherwise use localhost:4000 for production
-const RAW_BASE = (import.meta.env?.VITE_API_URL || 'http://localhost:4000/api').trim();
+// Force localhost for development
+const RAW_BASE = 'http://localhost:4000/api';
 const API_BASE = RAW_BASE.replace(/\/$/, ''); // quita la barra final
 
 function getAuthHeader() {

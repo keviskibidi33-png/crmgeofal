@@ -40,7 +40,16 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(express.json());
+// Configuración para UTF-8
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Configurar charset UTF-8 para todas las respuestas
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
+
 // Logging HTTP requests
 app.use(morgan('combined', { stream: { write: msg => logger.info(msg.trim()) } }));
 
@@ -94,6 +103,7 @@ app.use('/api/quotes', require('./routes/quoteRoutes'));
 // Servicios y laboratorio
 app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/subservices', require('./routes/subserviceRoutes'));
+app.use('/api/ensayos', require('./routes/ensayos'));
 app.use('/api/laboratorio', require('./routes/laboratorioRoutes'));
 
 // Tickets y soporte

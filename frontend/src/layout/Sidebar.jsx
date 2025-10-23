@@ -79,6 +79,7 @@ const sectionsByRole = {
         { path: '/servicios', label: 'Servicios', icon: FiSettings },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
+        { path: '/ensayos', label: 'Lista de Precios', icon: FiList },
         { path: '/facturas', label: 'Facturas', icon: FiInvoice },
         { path: '/auditoria', label: 'Auditoría', icon: FiShield },
         { path: '/exportaciones', label: 'Exportaciones', icon: FiDownload },
@@ -114,6 +115,7 @@ const sectionsByRole = {
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
+        { path: '/ensayos', label: 'Lista de Precios', icon: FiList },
         { path: '/metricas-embudo', label: 'Métricas de Embudo', icon: FiBarChart2 },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
       ]
@@ -134,6 +136,7 @@ const sectionsByRole = {
         { path: '/cotizaciones/inteligente', label: 'Cotización Inteligente', icon: FiZap },
         { path: '/mis-cotizaciones', label: 'Mis Cotizaciones', icon: FiFileText },
         { path: '/enviar-comprobante', label: 'Enviar Comprobante', icon: FiUpload },
+        { path: '/ensayos', label: 'Lista de Precios', icon: FiList },
         { path: '/tickets-vendedor', label: 'Mis Tickets', icon: FiMessageSquare },
       ]
     },

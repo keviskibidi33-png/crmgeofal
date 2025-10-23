@@ -7,7 +7,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "seed": "node scripts/seedData.js",
-    "seed-many-users": "node scripts/seedManyUsers.js",
+  "seed-many-users": "node scripts/seedManyUsers.js",
+  "import-clients": "node scripts/import_clients_from_csv.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

@@ -1,2 +1,0 @@
-2025/10/14 04:16:22 [emerg] 24472#27140: "add_header" directive is not allowed here in C:\Users\miguel\Documents\ok\crmgeofal\nginx\nginx-1.24.0/conf/nginx.conf:45
-2025/10/14 04:16:50 [emerg] 9604#16336: "add_header" directive is not allowed here in C:\Users\miguel\Documents\ok\crmgeofal\nginx\nginx-1.24.0/conf/nginx.conf:26

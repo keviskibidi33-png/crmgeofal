@@ -31,6 +31,10 @@ const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
 const Servicios = lazy(() => import('./pages/Servicios'));
 const Laboratorio = lazy(() => import('./pages/Laboratorio'));
 const Evidencias = lazy(() => import('./pages/Evidencias'));
+const EnsayosList = lazy(() => import('./components/EnsayosList'));
+const EnsayosTest = lazy(() => import('./components/EnsayosTest'));
+const EnsayosTestSimple = lazy(() => import('./components/EnsayosTestSimple'));
+const UTF8Test = lazy(() => import('./components/UTF8Test'));
 
 // Tickets y soporte
 const Tickets = lazy(() => import('./pages/Tickets'));
@@ -123,6 +127,10 @@ function App() {
                   <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
                   <Route path="/laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Laboratorio /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
+                  <Route path="/ensayos" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","jefa_comercial","vendedor_comercial","vendedor"]}><EnsayosList /></RequireRole></ErrorBoundary>} />
+                  <Route path="/ensayos-test" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","jefa_comercial","vendedor_comercial","vendedor"]}><EnsayosTest /></RequireRole></ErrorBoundary>} />
+                  <Route path="/ensayos-test-simple" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","jefa_comercial","vendedor_comercial","vendedor"]}><EnsayosTestSimple /></RequireRole></ErrorBoundary>} />
+                  <Route path="/utf8-test" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","jefa_comercial","vendedor_comercial","vendedor"]}><UTF8Test /></RequireRole></ErrorBoundary>} />
                   <Route path="/facturas" element={<ErrorBoundary><RequireRole roles={["admin"]}><Facturas /></RequireRole></ErrorBoundary>} />
                   {/* Rutas eliminadas: /variantes-cotizacion, /items-cotizacion */}
                   <Route path="/historial-tickets" element={<ErrorBoundary><RequireRole roles={["admin","soporte"]}><HistorialTickets /></RequireRole></ErrorBoundary>} />
