@@ -98,13 +98,24 @@ const ROLE_PERMISSIONS = {
         read: true,      // Puede ver estado y descargar
         update: false,   // NO puede probar plantillas
         delete: false
+      },
+      // Ensayos (Lista de Precios) - Acceso completo para gestión comercial
+      ensayos: {
+        create: true,     // Puede crear nuevos ensayos
+        read: true,       // Puede ver todos los ensayos
+        update: true,     // Puede actualizar precios y datos
+        delete: false,    // NO puede eliminar ensayos
+        import: true,     // Puede importar desde CSV
+        export: true,     // Puede exportar lista de precios
+        manage: true      // Puede gestionar la lista de precios
       }
     },
     isolatedViews: [
       'dashboard-analytics',  // Dashboard analítico
       'funnel-metrics',      // Métricas de embudo
       'service-analysis',    // Análisis de servicios
-      'conversion-reports'   // Reportes de conversión
+      'conversion-reports',  // Reportes de conversión
+      'ensayos'              // Lista de Precios
     ]
   },
 

@@ -96,21 +96,21 @@ router.use(auth);
 router.get('/search', ensayoController.searchForQuote);
 
 // Rutas que requieren permisos específicos
-router.get('/', ensayoController.getAll);
+router.get('/', checkPermission('ensayos', 'read'), ensayoController.getAll);
 
-router.get('/stats', ensayoController.getStats);
+router.get('/stats', checkPermission('ensayos', 'read'), ensayoController.getStats);
 
-router.get('/:codigo', ensayoController.getByCodigo);
+router.get('/:codigo', checkPermission('ensayos', 'read'), ensayoController.getByCodigo);
 
 // Rutas de administración (solo admin y jefe de laboratorio)
-router.post('/', ensayoController.create);
+router.post('/', checkPermission('ensayos', 'create'), ensayoController.create);
 
-router.put('/:id', ensayoController.update);
+router.put('/:id', checkPermission('ensayos', 'update'), ensayoController.update);
 
-router.put('/:codigo/precio', ensayoController.updatePrecio);
+router.put('/:codigo/precio', checkPermission('ensayos', 'update'), ensayoController.updatePrecio);
 
-router.put('/precios/masivos', ensayoController.updatePreciosMasivos);
+router.put('/precios/masivos', checkPermission('ensayos', 'update'), ensayoController.updatePreciosMasivos);
 
-router.post('/import', ensayoController.importFromCSV);
+router.post('/import', checkPermission('ensayos', 'import'), ensayoController.importFromCSV);
 
 module.exports = router;
