@@ -18,7 +18,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      const newSocket = io('http://localhost:4000', {
+      const newSocket = io('https://sublustrous-odelia-uninsured.ngrok-free.dev', {
         auth: {
           token: token
         },

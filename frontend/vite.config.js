@@ -9,7 +9,7 @@ export default defineConfig({
     allowedHosts: 'all', // Permite todos los hosts
     proxy: {
       '/api': {
-        target: 'http://localhost:4000', // Backend local
+        target: 'https://sublustrous-odelia-uninsured.ngrok-free.dev', // Backend via ngrok
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {

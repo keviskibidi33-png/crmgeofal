@@ -14,7 +14,7 @@ class SocketService {
       return this.socket;
     }
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://sublustrous-odelia-uninsured.ngrok-free.dev';
     console.log('🔌 WebSocket - Conectando a:', backendUrl);
     console.log('🔌 WebSocket - Token:', token ? 'Presente' : 'Ausente');
     

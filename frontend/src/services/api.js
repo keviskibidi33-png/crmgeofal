@@ -1,6 +1,6 @@
 // Small API helper for frontend
-// Force localhost for development
-const RAW_BASE = 'http://localhost:4000/api';
+// Using ngrok URL for external access
+const RAW_BASE = 'https://sublustrous-odelia-uninsured.ngrok-free.dev/api';
 const API_BASE = RAW_BASE.replace(/\/$/, ''); // quita la barra final
 
 function getAuthHeader() {
