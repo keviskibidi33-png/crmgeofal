@@ -5,7 +5,7 @@ import { FiSearch, FiX, FiDollarSign, FiFileText, FiLink, FiPlus } from 'react-i
 import { useQuery } from 'react-query';
 import { searchSubservices } from '../services/subservices';
 import { extractDependenciesFromComment, formatDependenciesForDisplay } from '../utils/ensayoDependencies';
-import { apiFetch } from '../utils/api';
+import { apiFetch } from '../services/api';
 
 const SubserviceAutocompleteFinal = ({ 
   value = '', 
