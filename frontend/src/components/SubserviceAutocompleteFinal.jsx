@@ -97,11 +97,19 @@ const SubserviceAutocompleteFinal = ({
   };
 
   const handleItemSelect = (item) => {
+    console.log('🎯 Item seleccionado:', item);
+    console.log('📊 Datos completos del item:', JSON.stringify(item, null, 2));
+    
     setSearchTerm(item.display_text);
     setIsOpen(false);
     onSelect?.(item);
     
     // Manejar dependencias si existen
+    console.log('🔍 Verificando dependencias...');
+    console.log('onDependenciesSelect existe?', !!onDependenciesSelect);
+    console.log('item.comentarios existe?', !!item.comentarios);
+    console.log('item.comentarios valor:', item.comentarios);
+    
     if (onDependenciesSelect && item.comentarios) {
       console.log('🔍 Analizando dependencias para:', item.codigo);
       console.log('📝 Comentario:', item.comentarios);
@@ -121,6 +129,12 @@ const SubserviceAutocompleteFinal = ({
           onDependenciesSelect(dependencyItems);
         }
       }
+    } else {
+      console.log('❌ No se pueden procesar dependencias:', {
+        hasOnDependenciesSelect: !!onDependenciesSelect,
+        hasComentarios: !!item.comentarios,
+        comentariosValue: item.comentarios
+      });
     }
   };
 

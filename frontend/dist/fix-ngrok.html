@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solucionar Problema de Ngrok</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Solucionador de Problema de Ngrok</h1>
+        <p>Este script limpiará todas las configuraciones de ngrok y forzará el uso de localhost.</p>
+        
+        <div id="status">
+            <p class="info">Preparando limpieza...</p>
+        </div>
+        
+        <button onclick="clearAll()">🧹 Limpiar Todo</button>
+        <button onclick="redirectToApp()">🚀 Ir a la Aplicación</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function clearAll() {
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            try {
+                // Limpiar localStorage
+                localStorage.clear();
+                console.log('✅ localStorage limpiado');
+                
+                // Limpiar sessionStorage
+                sessionStorage.clear();
+                console.log('✅ sessionStorage limpiado');
+                
+                // Limpiar cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                console.log('✅ Cookies limpiadas');
+                
+                // Limpiar IndexedDB si existe
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    });
+                }
+                console.log('✅ IndexedDB limpiado');
+                
+                status.innerHTML = '<p class="success">✅ Limpieza completada exitosamente</p>';
+                results.innerHTML = `
+                    <h3>Acciones realizadas:</h3>
+                    <ul>
+                        <li>✅ localStorage limpiado</li>
+                        <li>✅ sessionStorage limpiado</li>
+                        <li>✅ Cookies eliminadas</li>
+                        <li>✅ IndexedDB limpiado</li>
+                    </ul>
+                    <p class="success">Ahora puedes ir a la aplicación y debería funcionar con localhost.</p>
+                `;
+                
+            } catch (error) {
+                status.innerHTML = '<p class="error">❌ Error durante la limpieza: ' + error.message + '</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        function redirectToApp() {
+            window.location.href = '/';
+        }
+        
+        // Auto-ejecutar limpieza
+        window.onload = function() {
+            clearAll();
+        };
+    </script>
+</body>
+</html>

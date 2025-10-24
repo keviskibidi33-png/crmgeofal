@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpiar Storage</title>
+</head>
+<body>
+    <h1>Limpiando localStorage...</h1>
+    <script>
+        // Limpiar localStorage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Limpiar también las cookies relacionadas
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        console.log('Storage limpiado');
+        alert('Storage limpiado. Redirigiendo...');
+        
+        // Redirigir al login
+        window.location.href = '/';
+    </script>
+</body>
+</html>
