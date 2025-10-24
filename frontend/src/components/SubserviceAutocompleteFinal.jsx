@@ -103,12 +103,19 @@ const SubserviceAutocompleteFinal = ({
     
     // Manejar dependencias si existen
     if (onDependenciesSelect && item.comentarios) {
+      console.log('🔍 Analizando dependencias para:', item.codigo);
+      console.log('📝 Comentario:', item.comentarios);
+      
       const dependencies = extractDependenciesFromComment(item.comentarios);
+      console.log('🔗 Dependencias encontradas:', dependencies);
+      
       if (dependencies.length > 0) {
         // Buscar los ensayos dependientes en los resultados actuales
         const dependencyItems = results.filter(result => 
           dependencies.includes(result.codigo)
         );
+        
+        console.log('📋 Items dependientes encontrados:', dependencyItems);
         
         if (dependencyItems.length > 0) {
           onDependenciesSelect(dependencyItems);

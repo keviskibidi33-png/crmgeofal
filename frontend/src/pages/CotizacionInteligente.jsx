@@ -1415,6 +1415,8 @@ export default function CotizacionInteligente() {
                               }
                             }}
                             onDependenciesSelect={(dependencyItems) => {
+                              console.log('🚀 Agregando dependencias automáticamente:', dependencyItems);
+                              
                               // Agregar ensayos dependientes automáticamente
                               const newItems = dependencyItems.map(dep => ({
                                 ...emptyItem,
@@ -1425,10 +1427,14 @@ export default function CotizacionInteligente() {
                                 quantity: 1
                               }));
                               
+                              console.log('📦 Nuevos items a agregar:', newItems);
+                              
                               // Agregar los nuevos items después del item actual
                               const currentItems = [...items];
                               currentItems.splice(idx + 1, 0, ...newItems);
                               setItems(currentItems);
+                              
+                              console.log('✅ Items actualizados:', currentItems);
                             }}
                             placeholder="Buscar servicio..."
                             size="sm"

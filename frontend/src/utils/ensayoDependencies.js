@@ -14,25 +14,17 @@ export function extractDependenciesFromComment(comentario) {
 
   const dependencies = [];
   
-  // Patrones para encontrar códigos de ensayos
-  const patterns = [
-    // Patrón para códigos como SU24, AG19, etc.
-    /\b([A-Z]{2}\d{2,3})\b/g,
-    // Patrón para códigos con barras como AG19/AG28
-    /([A-Z]{2}\d{2,3})\//g,
-    // Patrón para códigos seguidos de espacios o comas
-    /([A-Z]{2}\d{2,3})[\s,]/g
-  ];
-
-  patterns.forEach(pattern => {
-    let match;
-    while ((match = pattern.exec(comentario)) !== null) {
-      const code = match[1];
-      if (code && !dependencies.includes(code)) {
-        dependencies.push(code);
-      }
+  // Patrón más específico para encontrar códigos de ensayos
+  // Busca códigos como SU24, AG19, AG28, SU32, SU31, etc.
+  const pattern = /\b([A-Z]{2}\d{2,3})\b/g;
+  
+  let match;
+  while ((match = pattern.exec(comentario)) !== null) {
+    const code = match[1];
+    if (code && !dependencies.includes(code)) {
+      dependencies.push(code);
     }
-  });
+  }
 
   return dependencies;
 }
