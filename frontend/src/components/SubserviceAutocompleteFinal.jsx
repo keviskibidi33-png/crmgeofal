@@ -5,6 +5,7 @@ import { FiSearch, FiX, FiDollarSign, FiFileText, FiLink, FiPlus } from 'react-i
 import { useQuery } from 'react-query';
 import { searchSubservices } from '../services/subservices';
 import { extractDependenciesFromComment, formatDependenciesForDisplay } from '../utils/ensayoDependencies';
+import { apiFetch } from '../utils/api';
 
 const SubserviceAutocompleteFinal = ({ 
   value = '', 
@@ -117,18 +118,35 @@ const SubserviceAutocompleteFinal = ({
       const dependencies = extractDependenciesFromComment(item.comentarios);
       console.log('🔗 Dependencias encontradas:', dependencies);
       
-      if (dependencies.length > 0) {
-        // Buscar los ensayos dependientes en los resultados actuales
-        const dependencyItems = results.filter(result => 
-          dependencies.includes(result.codigo)
-        );
-        
-        console.log('📋 Items dependientes encontrados:', dependencyItems);
-        
-        if (dependencyItems.length > 0) {
-          onDependenciesSelect(dependencyItems);
-        }
-      }
+         if (dependencies.length > 0) {
+           // Buscar los ensayos dependientes haciendo búsquedas individuales
+           console.log('🔍 Buscando ensayos dependientes individualmente...');
+           
+           const dependencyItems = [];
+           
+           for (const depCode of dependencies) {
+             try {
+               console.log(`🔍 Buscando: ${depCode}`);
+               const response = await apiFetch(`/subservices/search?q=${depCode}&limit=1`);
+               
+               if (response.data && response.data.length > 0) {
+                 const foundItem = response.data[0];
+                 console.log(`✅ Encontrado: ${depCode}`, foundItem);
+                 dependencyItems.push(foundItem);
+               } else {
+                 console.log(`❌ No encontrado: ${depCode}`);
+               }
+             } catch (error) {
+               console.error(`❌ Error buscando ${depCode}:`, error);
+             }
+           }
+           
+           console.log('📋 Items dependientes encontrados:', dependencyItems);
+           
+           if (dependencyItems.length > 0) {
+             onDependenciesSelect(dependencyItems);
+           }
+         }
     } else {
       console.log('❌ No se pueden procesar dependencias:', {
         hasOnDependenciesSelect: !!onDependenciesSelect,
