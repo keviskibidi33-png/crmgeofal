@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Form, Badge, Spinner } from 'react-bootstrap';
-import { FiSearch, FiX, FiDollarSign, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiX, FiDollarSign, FiFileText, FiLink, FiPlus } from 'react-icons/fi';
 import { useQuery } from 'react-query';
 import { searchSubservices } from '../services/subservices';
+import { extractDependenciesFromComment, formatDependenciesForDisplay } from '../utils/ensayoDependencies';
 
 const SubserviceAutocompleteFinal = ({ 
   value = '', 
   onChange, 
   onSelect, 
+  onDependenciesSelect,
   placeholder = 'Buscar servicio...',
   disabled = false,
   size = 'sm'
@@ -98,6 +100,21 @@ const SubserviceAutocompleteFinal = ({
     setSearchTerm(item.display_text);
     setIsOpen(false);
     onSelect?.(item);
+    
+    // Manejar dependencias si existen
+    if (onDependenciesSelect && item.comentarios) {
+      const dependencies = extractDependenciesFromComment(item.comentarios);
+      if (dependencies.length > 0) {
+        // Buscar los ensayos dependientes en los resultados actuales
+        const dependencyItems = results.filter(result => 
+          dependencies.includes(result.codigo)
+        );
+        
+        if (dependencyItems.length > 0) {
+          onDependenciesSelect(dependencyItems);
+        }
+      }
+    }
   };
 
   const handleClear = () => {
@@ -171,44 +188,62 @@ const SubserviceAutocompleteFinal = ({
         </div>
       )}
 
-      {!isLoading && results.length > 0 && results.map((item) => (
-        <div
-          key={item.id}
-          className="p-2 border-bottom"
-          onClick={() => handleItemSelect(item)}
-          style={{ 
-            cursor: 'pointer',
-            transition: 'background-color 0.15s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-        >
-          <div className="d-flex justify-content-between align-items-start">
-            <div className="flex-grow-1">
-              <div className="d-flex align-items-center gap-2 mb-1">
-                <Badge bg={getServiceColor(item.service_name)} className="small">
-                  {item.codigo}
-                </Badge>
-              </div>
-              <div className="fw-bold small text-dark">
-                {item.descripcion}
-              </div>
-              {item.norma && item.norma !== '-' && (
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  <FiFileText size={10} className="me-1" />
-                  {item.norma}
+      {!isLoading && results.length > 0 && results.map((item) => {
+        // Extraer dependencias del comentario
+        const dependencies = extractDependenciesFromComment(item.comentarios);
+        const hasDependencies = dependencies.length > 0;
+        
+        return (
+          <div
+            key={item.id}
+            className="p-2 border-bottom"
+            onClick={() => handleItemSelect(item)}
+            style={{ 
+              cursor: 'pointer',
+              transition: 'background-color 0.15s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            <div className="d-flex justify-content-between align-items-start">
+              <div className="flex-grow-1">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <Badge bg={getServiceColor(item.service_name)} className="small">
+                    {item.codigo}
+                  </Badge>
+                  {hasDependencies && (
+                    <Badge bg="warning" text="dark" className="small">
+                      <FiLink size={10} className="me-1" />
+                      Con dependencias
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="text-end ms-2">
-              <div className="fw-bold text-success small">
-                <FiDollarSign size={12} />
-                {formatPrice(item.precio)}
+                <div className="fw-bold small text-dark">
+                  {item.descripcion}
+                </div>
+                {item.norma && item.norma !== '-' && (
+                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                    <FiFileText size={10} className="me-1" />
+                    {item.norma}
+                  </div>
+                )}
+                {hasDependencies && (
+                  <div className="text-info mt-1" style={{ fontSize: '0.7rem' }}>
+                    <FiPlus size={8} className="me-1" />
+                    {formatDependenciesForDisplay(dependencies.map(code => ({ codigo: code })))}
+                  </div>
+                )}
+              </div>
+              <div className="text-end ms-2">
+                <div className="fw-bold text-success small">
+                  <FiDollarSign size={12} />
+                  {formatPrice(item.precio)}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 

@@ -1414,6 +1414,22 @@ export default function CotizacionInteligente() {
                                 });
                               }
                             }}
+                            onDependenciesSelect={(dependencyItems) => {
+                              // Agregar ensayos dependientes automáticamente
+                              const newItems = dependencyItems.map(dep => ({
+                                ...emptyItem,
+                                code: dep.codigo,
+                                description: dep.descripcion,
+                                norm: dep.norma,
+                                unit_price: dep.precio,
+                                quantity: 1
+                              }));
+                              
+                              // Agregar los nuevos items después del item actual
+                              const currentItems = [...items];
+                              currentItems.splice(idx + 1, 0, ...newItems);
+                              setItems(currentItems);
+                            }}
                             placeholder="Buscar servicio..."
                             size="sm"
                           />
