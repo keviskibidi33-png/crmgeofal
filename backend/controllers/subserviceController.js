@@ -102,31 +102,30 @@ exports.searchSubservices = async (req, res) => {
 
     const searchQuery = `
       SELECT 
-        s.id,
-        s.codigo,
-        s.descripcion,
-        s.norma,
-        s.precio,
-        s.comentarios,
-        serv.name as service_name,
-        serv.area
-      FROM subservices s
-      JOIN services serv ON s.service_id = serv.id
-      WHERE s.is_active = true 
+        e.id,
+        e.codigo,
+        e.descripcion,
+        e.norma,
+        e.precio,
+        e.comentarios,
+        e.categoria as service_name,
+        e.ubicacion as area
+      FROM ensayos e
+      WHERE e.is_active = true 
         AND (
-          s.codigo ILIKE $1 OR 
-          s.descripcion ILIKE $1 OR 
-          s.norma ILIKE $1 OR
-          serv.name ILIKE $1
+          e.codigo ILIKE $1 OR 
+          e.descripcion ILIKE $1 OR 
+          e.norma ILIKE $1 OR
+          e.categoria ILIKE $1
         )
       ORDER BY 
         CASE 
-          WHEN s.codigo ILIKE $2 THEN 1
-          WHEN s.descripcion ILIKE $2 THEN 2
-          WHEN s.norma ILIKE $2 THEN 3
+          WHEN e.codigo ILIKE $2 THEN 1
+          WHEN e.descripcion ILIKE $2 THEN 2
+          WHEN e.norma ILIKE $2 THEN 3
           ELSE 4
         END,
-        s.codigo
+        e.codigo
       LIMIT $3
     `;
 
