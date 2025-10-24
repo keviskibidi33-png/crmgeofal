@@ -354,7 +354,7 @@ const EnsayosList = () => {
                         </div>
                       </td>
                       <td>
-                        <Badge bg={getCategoryColor(ensayo.categoria)}>
+                        <Badge bg={getCategoryColor(ensayo.categoria)} text={getCategoryColor(ensayo.categoria) === 'light' ? 'dark' : undefined}>
                           {ensayo.categoria}
                         </Badge>
                       </td>

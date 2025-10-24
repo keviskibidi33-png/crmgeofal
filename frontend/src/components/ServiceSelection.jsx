@@ -148,7 +148,7 @@ export default function ServiceSelection({
                       className={`h-100 cursor-pointer ${
                         isSelected ? 'border-success' : 
                         isCurrentlySelected ? 'border-primary' : ''
-                      } ${isSelected ? 'bg-light' : ''}`}
+                      } ${isSelected ? 'bg-light text-dark' : ''}`}
                       onClick={() => handleEnsayoSelect(service)}
                     >
                       <Card.Body>
