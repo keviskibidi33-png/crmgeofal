@@ -107,6 +107,7 @@ exports.searchSubservices = async (req, res) => {
         s.descripcion,
         s.norma,
         s.precio,
+        s.comentarios,
         serv.name as service_name,
         serv.area
       FROM subservices s
@@ -141,6 +142,7 @@ exports.searchSubservices = async (req, res) => {
         descripcion: row.descripcion,
         norma: row.norma,
         precio: parseFloat(row.precio),
+        comentarios: row.comentarios,
         service_name: row.service_name,
         area: row.area,
         display_text: `${row.codigo} - ${row.descripcion}`,
