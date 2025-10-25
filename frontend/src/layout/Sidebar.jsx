@@ -72,7 +72,6 @@ const sectionsByRole = {
         },
         { path: '/recuperados', label: 'Recuperados', icon: FiCheckCircle },
         { path: '/reportes', label: 'Reportes', icon: FiBarChart2 },
-        { path: '/reportes-nuevo', label: 'Reportes Nuevo', icon: FiBarChart2 },
         { path: '/dashboard-asesor', label: 'Dashboard Asesor', icon: FiTrendingUp },
         { path: '/laboratorio', label: 'Gestión Laboratorio', icon: FiActivity },
         { path: '/evidencias', label: 'Evidencias', icon: FiCheckCircle },
