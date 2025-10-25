@@ -27,8 +27,7 @@ const CotizacionInteligente = lazy(() => import('./pages/CotizacionInteligente')
 const ListaCotizaciones = lazy(() => import('./pages/ListaCotizaciones'));
 const DetalleCotizacion = lazy(() => import('./pages/DetalleCotizacion'));
 
-// Servicios y laboratorio
-const Servicios = lazy(() => import('./pages/Servicios'));
+// Laboratorio
 const Laboratorio = lazy(() => import('./pages/Laboratorio'));
 const Evidencias = lazy(() => import('./pages/Evidencias'));
 const EnsayosList = lazy(() => import('./components/EnsayosList'));
@@ -48,7 +47,6 @@ const Exportaciones = lazy(() => import('./pages/Exportaciones'));
 
 // Archivos y gestión
 const Adjuntos = lazy(() => import('./pages/Adjuntos'));
-const FileManagement = lazy(() => import('./pages/FileManagement'));
 const Facturas = lazy(() => import('./pages/Facturas'));
 
 // Configuración
@@ -124,7 +122,6 @@ function App() {
                   {/* <Route path="/categorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Categorias /></RequireRole></ErrorBoundary>} /> */}
                   {/* <Route path="/subcategorias" element={<ErrorBoundary><RequireRole roles={["admin"]}><Subcategorias /></RequireRole></ErrorBoundary>} /> */}
                   <Route path="/historial-proyectos" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial","gerencia"]}><HistorialProyectos /></RequireRole></ErrorBoundary>} />
-                  <Route path="/servicios" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio"]}><Servicios /></RequireRole></ErrorBoundary>} />
                   <Route path="/laboratorio" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Laboratorio /></RequireRole></ErrorBoundary>} />
                   <Route path="/evidencias" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","usuario_laboratorio"]}><Evidencias /></RequireRole></ErrorBoundary>} />
                   <Route path="/ensayos" element={<ErrorBoundary><RequireRole roles={["admin","jefe_laboratorio","jefa_comercial","vendedor_comercial","vendedor"]}><EnsayosList /></RequireRole></ErrorBoundary>} />
@@ -137,7 +134,6 @@ function App() {
                   <Route path="/auditoria" element={<ErrorBoundary><RequireRole roles={["admin"]}><Auditoria /></RequireRole></ErrorBoundary>} />
                   <Route path="/exportaciones" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial"]}><Exportaciones /></RequireRole></ErrorBoundary>} />
                   <Route path="/actividades" element={<Navigate to="/auditoria" replace />} />
-                  <Route path="/gestion-archivos" element={<ErrorBoundary><RequireRole roles={["admin"]}><FileManagement /></RequireRole></ErrorBoundary>} />
                   
                          {/* Sistema de comprobantes de pago */}
                          <Route path="/enviar-comprobante" element={<ErrorBoundary><RequireRole roles={["admin","jefa_comercial","vendedor_comercial"]}><EnviarComprobante /></RequireRole></ErrorBoundary>} />

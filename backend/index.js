@@ -100,8 +100,7 @@ app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/quotes', require('./routes/quoteRoutes'));
 
-// Servicios y laboratorio
-app.use('/api/services', require('./routes/serviceRoutes'));
+// Laboratorio
 app.use('/api/subservices', require('./routes/subserviceRoutes'));
 app.use('/api/ensayos', require('./routes/ensayos'));
 app.use('/api/laboratorio', require('./routes/laboratorioRoutes'));
