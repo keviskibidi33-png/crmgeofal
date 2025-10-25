@@ -111,11 +111,6 @@ export default function Clientes() {
   // Debug: Log de estadísticas (simplificado)
   React.useEffect(() => {
     if (statsData && statsData.data) {
-      console.log('✅ Estadísticas cargadas correctamente:', {
-        total: statsData.data.total,
-        empresas: statsData.data.empresas,
-        personas: statsData.data.personas
-      });
     }
   }, [statsData]);
 
@@ -134,11 +129,6 @@ export default function Clientes() {
   // Debug: Log de opciones de filtros
   React.useEffect(() => {
     if (filterOptionsData && filterOptionsData.data) {
-      console.log('✅ Opciones de filtros cargadas correctamente:', {
-        types: filterOptionsData.data.types,
-        sectors: filterOptionsData.data.sectors,
-        cities: filterOptionsData.data.cities
-      });
     }
   }, [filterOptionsData]);
 
@@ -210,10 +200,8 @@ export default function Clientes() {
 
   // Opciones de filtros dinámicas basadas en datos reales
   const clientFilterOptions = useMemo(() => {
-    console.log('🔍 clientFilterOptions - filterOptionsData:', filterOptionsData);
     
     if (!filterOptionsData || !filterOptionsData.data) {
-      console.log('🔍 clientFilterOptions - Usando opciones por defecto');
       return [
         {
           title: 'Por Tipo de Cliente',
@@ -250,7 +238,6 @@ export default function Clientes() {
       }
     ];
     
-    console.log('🔍 clientFilterOptions - Opciones generadas:', options);
     return options;
   }, [filterOptionsData]);
 
@@ -859,8 +846,6 @@ export default function Clientes() {
   const stats = useMemo(() => {
     // Usar estadísticas reales del backend si están disponibles
     if (statsData && statsData.data) {
-      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
-      console.log('📊 Stats - Datos extraídos:', statsData.data);
       return {
         total: statsData.data.total || 0,
         empresas: statsData.data.empresas || 0,
@@ -872,7 +857,6 @@ export default function Clientes() {
     
     // Fallback: calcular desde los datos de la página actual
     const companies = data?.data || [];
-    console.log('📊 Stats - Fallback: calculando desde página actual:', companies);
     return {
       total: companies.length,
       empresas: companies.filter(c => c.type === 'empresa').length,

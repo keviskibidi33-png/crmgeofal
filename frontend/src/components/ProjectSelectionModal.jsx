@@ -16,7 +16,6 @@ const ProjectSelectionModal = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('🔍 ProjectSelectionModal - useEffect triggered:', { show, projectName, companyId });
     if (show && projectName && projectName.trim().length >= 2) {
       searchExistingProjects();
     }

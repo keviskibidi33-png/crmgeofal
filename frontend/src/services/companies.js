@@ -15,11 +15,8 @@ export const listCompanies = (params = {}) => {
   const qs = sp.toString();
   const path = qs ? `/api/companies?${qs}` : '/api/companies';
   
-  console.log('🔍 listCompanies - Llamando a:', path);
-  console.log('🔍 listCompanies - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch(path).then(data => {
-    console.log('✅ listCompanies - Respuesta recibida:', data);
     return data;
   }).catch(error => {
     console.error('❌ listCompanies - Error:', error);
@@ -49,11 +46,8 @@ export const listCompaniesWithTotals = (params = {}) => {
   const qs = sp.toString();
   const path = qs ? `/api/companies?${qs}` : '/api/companies';
   
-  console.log('💰 listCompaniesWithTotals - Llamando a:', path);
-  console.log('💰 listCompaniesWithTotals - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch(path).then(data => {
-    console.log('✅ listCompaniesWithTotals - Respuesta recibida:', data);
     return data;
   }).catch(error => {
     console.error('❌ listCompaniesWithTotals - Error:', error);
@@ -70,11 +64,8 @@ export const getCompanyWithTotals = (id) => {
 };
 
 export const getCompanyStats = () => {
-  console.log('📊 getCompanyStats - Llamando a: /api/companies/stats');
-  console.log('📊 getCompanyStats - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch('/api/companies/stats').then(data => {
-    console.log('✅ getCompanyStats - Respuesta recibida:', data);
     return data;
   }).catch(error => {
     console.error('❌ getCompanyStats - Error:', error);
@@ -83,18 +74,8 @@ export const getCompanyStats = () => {
 };
 
 export const getCompanyFilterOptions = () => {
-  console.log('🔍 getCompanyFilterOptions - Llamando a: /api/companies/filter-options');
-  console.log('🔍 getCompanyFilterOptions - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch('/api/companies/filter-options').then(data => {
-    console.log('✅ getCompanyFilterOptions - Respuesta recibida:', {
-      success: data.success,
-      hasData: !!data.data,
-      dataKeys: data.data ? Object.keys(data.data) : [],
-      typesCount: data.data?.types?.length || 0,
-      sectorsCount: data.data?.sectors?.length || 0,
-      citiesCount: data.data?.cities?.length || 0
-    });
     return data;
   }).catch(error => {
     console.error('❌ getCompanyFilterOptions - Error:', error);

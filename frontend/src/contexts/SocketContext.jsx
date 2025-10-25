@@ -26,12 +26,10 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('connect', () => {
-        console.log('🔌 Conectado al servidor WebSocket');
         setIsConnected(true);
       });
 
       newSocket.on('disconnect', (reason) => {
-        console.log('🔌 Desconectado del servidor WebSocket:', reason);
         setIsConnected(false);
       });
 

@@ -10,13 +10,10 @@ class SocketService {
   // Conectar al servidor WebSocket
   connect(token) {
     if (this.socket && this.isConnected) {
-      console.log('🔄 WebSocket ya conectado, reutilizando conexión');
       return this.socket;
     }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://sublustrous-odelia-uninsured.ngrok-free.dev';
-    console.log('🔌 WebSocket - Conectando a:', backendUrl);
-    console.log('🔌 WebSocket - Token:', token ? 'Presente' : 'Ausente');
     
     this.socket = io(backendUrl, {
       auth: {
@@ -29,13 +26,11 @@ class SocketService {
 
     // Eventos de conexión
     this.socket.on('connect', () => {
-      console.log('Conectado al servidor WebSocket');
       this.isConnected = true;
       this.emit('connection_status', { connected: true });
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('Desconectado del servidor WebSocket:', reason);
       this.isConnected = false;
       this.emit('connection_status', { connected: false, reason });
     });

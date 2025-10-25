@@ -71,7 +71,6 @@ export default function ListaCotizaciones() {
   );
 
   // Debug: mostrar datos en consola (temporal)
-  console.log('📊 Datos de cotizaciones:', { data, quotes: data?.data?.length || 0, isLoading, error });
 
   const deleteMutation = useMutation(deleteQuote, {
     onSuccess: () => {

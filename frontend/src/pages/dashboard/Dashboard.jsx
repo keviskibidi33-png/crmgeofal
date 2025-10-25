@@ -61,7 +61,6 @@ const Dashboard = () => {
       refetchInterval: 300000, // 5 minutos
       staleTime: 60000, // 1 minuto
       onSuccess: (data) => {
-        console.log('✅ Dashboard: Datos recibidos del backend:', data);
       },
       onError: (error) => {
         console.error('❌ Dashboard: Error obteniendo datos:', error);
@@ -129,18 +128,6 @@ const Dashboard = () => {
     }
   };
 
-  // Depuración de datos del dashboard
-  useEffect(() => {
-    console.log('📊 Dashboard: Estado de los datos:');
-    console.log('- isLoading:', statsLoading);
-    console.log('- error:', statsError);
-    console.log('- data:', dashboardStats);
-    console.log('- stats procesados:', stats);
-    console.log('- totalUsers:', stats.totalUsers, typeof stats.totalUsers);
-    console.log('- totalProjects:', stats.totalProjects, typeof stats.totalProjects);
-    console.log('- totalQuotes:', stats.totalQuotes, typeof stats.totalQuotes);
-    console.log('- totalTickets:', stats.totalTickets, typeof stats.totalTickets);
-  }, [statsLoading, statsError, dashboardStats, stats]);
 
   // Función para formatear tiempo de actividad
   const formatActivityTime = (createdAt) => {

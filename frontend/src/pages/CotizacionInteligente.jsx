@@ -78,12 +78,40 @@ export default function CotizacionInteligente() {
   const [selection, setSelection] = useState({ company_id: null, project_id: null, company: null, project: null });
   const [quote, setQuote] = useState(emptyQuote);
   const [items, setItems] = useState([{ ...emptyItem }]);
+  const [isSelectingItem, setIsSelectingItem] = useState(false);
+  const [itemBackups, setItemBackups] = useState({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [conditionsText, setConditionsText] = useState('');
   const [lastSavedId, setLastSavedId] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
   const [projectSuggestions, setProjectSuggestions] = useState([]);
+
+  // Efecto para restaurar automáticamente campos borrados
+  useEffect(() => {
+    const restoreFields = () => {
+      let needsRestore = false;
+      const updatedItems = items.map((item, idx) => {
+        if (itemBackups[idx] && itemBackups[idx].code && itemBackups[idx].norm) {
+          if (!item.code || !item.norm) {
+            needsRestore = true;
+            return {
+              ...item,
+              code: itemBackups[idx].code,
+              norm: itemBackups[idx].norm
+            };
+          }
+        }
+        return item;
+      });
+      
+      if (needsRestore) {
+        setItems(updatedItems);
+      }
+    };
+
+    restoreFields();
+  }, [items, itemBackups]);
   const [showProjectSuggestions, setShowProjectSuggestions] = useState(false);
   const [suggestedFileName, setSuggestedFileName] = useState('');
   const [loadingQuote, setLoadingQuote] = useState(false);
@@ -224,17 +252,36 @@ export default function CotizacionInteligente() {
 
   const onAddItem = () => setItems([...items, { ...emptyItem }]);
   const onRemoveItem = (idx) => setItems(items.filter((_, i) => i !== idx));
-  const onChangeItem = (idx, patch) => setItems(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
+  const onChangeItem = (idx, patch) => {
+    const currentItem = items[idx];
+    const newItem = { ...currentItem, ...patch };
+    
+    // SIEMPRE preservar código y norma si ya existen y solo se está actualizando la descripción
+    if (patch.description && !patch.code && !patch.norm && currentItem.code && currentItem.norm) {
+      newItem.code = currentItem.code;
+      newItem.norm = currentItem.norm;
+    }
+    
+    // Detectar si se borraron campos importantes y restaurarlos automáticamente
+    if (currentItem.code && currentItem.norm && (!newItem.code || !newItem.norm)) {
+      // Restaurar automáticamente los campos borrados
+      if (!newItem.code && currentItem.code) {
+        newItem.code = currentItem.code;
+      }
+      if (!newItem.norm && currentItem.norm) {
+        newItem.norm = currentItem.norm;
+      }
+    }
+    
+    const newItems = items.map((it, i) => (i === idx ? newItem : it));
+    setItems(newItems);
+  };
 
   // Funciones para el buscador de clientes
   const fetchClients = async () => {
     try {
-      console.log('🔍 fetchClients - Llamando a /api/companies');
       const clientsData = await listCompanies({ limit: 500 });
-      console.log('🔍 fetchClients - Respuesta recibida:', clientsData);
-      
       const clientsList = clientsData?.data || clientsData || [];
-      console.log('🔍 fetchClients - Lista de clientes:', clientsList.length, 'clientes');
       
       setClients(clientsList);
     } catch (err) {
@@ -1403,23 +1450,43 @@ export default function CotizacionInteligente() {
                         <td>
                           <SubserviceAutocompleteFinal
                             value={it.description}
-                            onChange={(value) => onChangeItem(idx, { description: value })}
+                            onChange={(value) => {
+                              // No actualizar si se está realizando una selección
+                              if (isSelectingItem) {
+                                return;
+                              }
+                              
+                              // Permitir escritura normal - el sistema restaurará automáticamente si es necesario
+                              onChangeItem(idx, { description: value });
+                            }}
                             onSelect={(subservice) => {
                               if (subservice) {
+                                // Crear backup de los campos importantes
+                                setItemBackups(prev => ({
+                                  ...prev,
+                                  [idx]: {
+                                    code: subservice.codigo,
+                                    norm: subservice.norma
+                                  }
+                                }));
+                                
+                                // Marcar que se está realizando una selección para evitar sobrescritura
+                                setIsSelectingItem(true);
                                 onChangeItem(idx, {
                                   code: subservice.codigo,
                                   description: subservice.descripcion,
                                   norm: subservice.norma,
                                   unit_price: subservice.precio
                                 });
+                                // Limpiar la bandera después de un breve delay
+                                setTimeout(() => {
+                                  setIsSelectingItem(false);
+                                }, 100);
                               }
                             }}
                             onDependenciesSelect={(dependencyItems) => {
-                              console.log('🚀 Agregando dependencias automáticamente:', dependencyItems);
-                              
                               // Agregar ensayos dependientes automáticamente
                               const newItems = dependencyItems.map(dep => ({
-                                ...emptyItem,
                                 code: dep.codigo,
                                 description: dep.descripcion,
                                 norm: dep.norma,
@@ -1427,14 +1494,10 @@ export default function CotizacionInteligente() {
                                 quantity: 1
                               }));
                               
-                              console.log('📦 Nuevos items a agregar:', newItems);
-                              
                               // Agregar los nuevos items después del item actual
                               const currentItems = [...items];
                               currentItems.splice(idx + 1, 0, ...newItems);
                               setItems(currentItems);
-                              
-                              console.log('✅ Items actualizados:', currentItems);
                             }}
                             placeholder="Buscar servicio..."
                             size="sm"

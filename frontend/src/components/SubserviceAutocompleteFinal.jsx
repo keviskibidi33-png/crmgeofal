@@ -98,61 +98,35 @@ const SubserviceAutocompleteFinal = ({
   };
 
   const handleItemSelect = async (item) => {
-    console.log('🎯 Item seleccionado:', item);
-    console.log('📊 Datos completos del item:', JSON.stringify(item, null, 2));
-    
     setSearchTerm(item.display_text);
     setIsOpen(false);
     onSelect?.(item);
     
     // Manejar dependencias si existen
-    console.log('🔍 Verificando dependencias...');
-    console.log('onDependenciesSelect existe?', !!onDependenciesSelect);
-    console.log('item.comentarios existe?', !!item.comentarios);
-    console.log('item.comentarios valor:', item.comentarios);
-    
     if (onDependenciesSelect && item.comentarios) {
-      console.log('🔍 Analizando dependencias para:', item.codigo);
-      console.log('📝 Comentario:', item.comentarios);
-      
       const dependencies = extractDependenciesFromComment(item.comentarios);
-      console.log('🔗 Dependencias encontradas:', dependencies);
       
       if (dependencies.length > 0) {
         // Buscar los ensayos dependientes haciendo búsquedas individuales
-        console.log('🔍 Buscando ensayos dependientes individualmente...');
-        
         const dependencyItems = [];
         
         for (const depCode of dependencies) {
           try {
-            console.log(`🔍 Buscando: ${depCode}`);
             const response = await apiFetch(`/subservices/search?q=${depCode}&limit=1`);
             
             if (response.data && response.data.length > 0) {
               const foundItem = response.data[0];
-              console.log(`✅ Encontrado: ${depCode}`, foundItem);
               dependencyItems.push(foundItem);
-            } else {
-              console.log(`❌ No encontrado: ${depCode}`);
             }
           } catch (error) {
-            console.error(`❌ Error buscando ${depCode}:`, error);
+            console.error(`Error buscando ${depCode}:`, error);
           }
         }
-        
-        console.log('📋 Items dependientes encontrados:', dependencyItems);
         
         if (dependencyItems.length > 0) {
           onDependenciesSelect(dependencyItems);
         }
       }
-    } else {
-      console.log('❌ No se pueden procesar dependencias:', {
-        hasOnDependenciesSelect: !!onDependenciesSelect,
-        hasComentarios: !!item.comentarios,
-        comentariosValue: item.comentarios
-      });
     }
   };
 

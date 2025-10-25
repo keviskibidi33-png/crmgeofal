@@ -13,11 +13,8 @@ export const listProjects = (params = {}) => {
   const qs = sp.toString();
   const path = qs ? `/api/projects?${qs}` : '/api/projects';
   
-  console.log('🔍 listProjects - Llamando a:', path);
-  console.log('🔍 listProjects - Token:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
   
   return apiFetch(path).then(data => {
-    console.log('✅ listProjects - Respuesta recibida:', data);
     return data;
   }).catch(error => {
     console.error('❌ listProjects - Error:', error);

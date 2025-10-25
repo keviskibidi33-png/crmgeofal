@@ -7,3 +7,4 @@ ADD COLUMN IF NOT EXISTS queries_history TEXT;
 
 -- Comentario sobre la columna
 COMMENT ON COLUMN projects.queries_history IS 'Historial de consultas del proyecto en formato JSON';
+

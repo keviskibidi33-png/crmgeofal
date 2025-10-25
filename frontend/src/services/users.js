@@ -57,9 +57,7 @@ export const deleteUser = async (id) => {
 // Obtener estadísticas de usuarios
 export const getUserStats = async () => {
   try {
-    console.log('📊 getUserStats - Llamando a: /api/users/stats');
     const response = await apiFetch('/api/users/stats');
-    console.log('✅ getUserStats - Respuesta recibida:', response);
     return response;
   } catch (error) {
     console.error('❌ getUserStats - Error:', error);

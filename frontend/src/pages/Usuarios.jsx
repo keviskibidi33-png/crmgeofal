@@ -403,7 +403,6 @@ export default function Usuarios() {
   const stats = useMemo(() => {
     // Usar estadísticas reales del backend si están disponibles
     if (statsData) {
-      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
       return {
         total: statsData.total || 0,
         admins: statsData.admins || 0,
@@ -415,7 +414,6 @@ export default function Usuarios() {
     
     // Fallback: calcular desde los datos de la página actual
     const users = data?.data || [];
-    console.log('📊 Stats - Fallback: calculando desde página actual:', users);
     return {
       total: users.length,
       admins: users.filter(u => u.role === 'admin').length,

@@ -44,8 +44,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Configurar charset UTF-8 para todas las respuestas
-app.use((req, res, next) => {
+// Configurar charset UTF-8 solo para rutas de API
+app.use('/api', (req, res, next) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   next();
 });
@@ -146,6 +146,14 @@ app.use('/api/invoicing', require('./routes/invoicingRoutes'));
 // Exportaciones y dashboard
 app.use('/api/export', require('./routes/exportRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Ruta catch-all: enviar React app para cualquier ruta no-API
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 // Dashboards específicos por rol
 app.use('/api/role-dashboard', require('./routes/roleDashboardRoutes'));

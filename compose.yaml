@@ -1,6 +1,0 @@
-services:
-  crmgeofal:
-    image: crmgeofal
-    build:
-      context: .
-      dockerfile: ./Dockerfile

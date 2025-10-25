@@ -35,7 +35,6 @@ export async function apiFetch(path, opts = {}) {
   const url = API_BASE ? `${API_BASE}${normPath}` : normPath;
   
   // Debug log para verificar la URL
-  console.log('🌐 API Request:', { url, API_BASE, normPath, RAW_BASE });
 
   const res = await fetch(url, { ...opts, headers });
   const text = await res.text();

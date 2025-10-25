@@ -112,7 +112,6 @@ const CommercialManager = () => {
   const stats = React.useMemo(() => {
     // Usar estadísticas reales del backend si están disponibles
     if (statsData && statsData.data) {
-      console.log('📊 Stats - Usando estadísticas reales del backend:', statsData);
       return {
         total: statsData.data.total || 0,
         byStatus: statsData.data.byStatus || {},
